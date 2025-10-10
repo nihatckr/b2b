@@ -1,0 +1,238 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/data/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANUFACTURE
+  CUSTOMER
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  email       String       @unique
+  password    String
+  name        String?
+  role        Role         @default(CUSTOMER)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  categories  Category[]
+  collections Collection[]
+
+  // Customer relations
+  customerSamples   Sample[]   @relation("CustomerSamples")
+  customerOrders    Order[]    @relation("CustomerOrders")
+  customerQuestions Question[] @relation("CustomerQuestions")
+  customerReviews   Review[]   @relation("CustomerReviews")
+
+  // Manufacture relations
+  manufactureSamples      Sample[]           @relation("ManufactureSamples")
+  manufactureOrders       Order[]            @relation("ManufactureOrders")
+  manufactureQuestions    Question[]         @relation("ManufactureQuestions")
+  sampleProductionUpdates SampleProduction[]
+  orderProductionUpdates  OrderProduction[]  @relation("OrderProductionUpdates")
+}
+
+model Category {
+  id               Int          @id @default(autoincrement())
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  name             String       @unique
+  description      String?
+  author           User?        @relation(fields: [authorId], references: [id])
+  authorId         Int?
+  collections      Collection[]
+  subCategories    Category[]   @relation("CategoryToSubCategories")
+  parentCategory   Category?    @relation("CategoryToSubCategories", fields: [parentCategoryId], references: [id])
+  parentCategoryId Int?
+}
+
+model Collection {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  name        String
+  description String?
+  price       Float
+  sku         String    @unique
+  stock       Int       @default(0)
+  images      String?   // Ürün görselleri (JSON string: ["url1","url2"])
+  isActive    Boolean   @default(true)
+  category    Category? @relation(fields: [categoryId], references: [id])
+  categoryId  Int?
+  author      User?     @relation(fields: [authorId], references: [id]) // Üretici
+  authorId    Int?
+
+  // Relations
+  samples              Sample[]   @relation("SampleCollection")
+  revisedSamples       Sample[]   @relation("OriginalCollection") // Bu ürün için yapılan revize numuneleri
+  orders               Order[]
+  questions            Question[]
+  reviews              Review[]
+}
+
+// Numune talep ve üretim sistemi
+model Sample {
+  id                   Int          @id @default(autoincrement())
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  sampleNumber         String       @unique // Numune takip numarası
+  sampleType           SampleType   @default(STANDARD) // Numune tipi
+  status               SampleStatus @default(REQUESTED)
+  customerNote         String?      // Müşteri talep notu
+  manufacturerResponse String?      // Üretici yanıtı/değerlendirme
+
+  // Revize/Özelleştirme bilgileri (CUSTOM ve REVISION tipleri için)
+  customDesignImages   String?      // Müşteri tasarım görselleri (JSON)
+  revisionRequests     String?      // Revize istekleri (JSON: [{field, oldValue, newValue, note}])
+  originalCollectionId Int?         // Revize edilecek orijinal ürün ID'si
+  
+  // Üretim süreci bilgileri
+  productionDays          Int?      // Üretici: "X günde üretebilirim"
+  estimatedProductionDate DateTime? // Hesaplanan üretim tarihi
+  actualProductionDate    DateTime? // Gerçek üretim tamamlanma tarihi
+  shippingDate            DateTime? // Kargoya veriliş tarihi
+  deliveryAddress         String?   // Teslimat adresi
+  cargoTrackingNumber     String?   // Kargo takip numarası (opsiyonel)
+
+  collection           Collection?        @relation("SampleCollection", fields: [collectionId], references: [id])
+  collectionId         Int?
+  originalCollection   Collection?        @relation("OriginalCollection", fields: [originalCollectionId], references: [id])
+  customer             User               @relation("CustomerSamples", fields: [customerId], references: [id])
+  customerId           Int
+  manufacture          User               @relation("ManufactureSamples", fields: [manufactureId], references: [id])
+  manufactureId        Int
+  productionHistory    SampleProduction[] // Üretim geçmişi takibi
+}
+
+// Numune üretim geçmişi takibi
+model SampleProduction {
+  id             Int          @id @default(autoincrement())
+  createdAt      DateTime     @default(now())
+  status         SampleStatus
+  note           String?      // Üretici açıklaması
+  estimatedDays  Int?         // Bu aşama için tahmini gün
+  actualDate     DateTime?    // Bu aşamanın gerçek tamamlanma tarihi
+  sample         Sample       @relation(fields: [sampleId], references: [id])
+  sampleId       Int
+  updatedBy      User         @relation(fields: [updatedById], references: [id])
+  updatedById    Int
+}
+
+// Sipariş ve üretim sistemi
+model Order {
+  id                     Int              @id @default(autoincrement())
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  orderNumber            String           @unique
+  quantity               Int
+  unitPrice              Float            // Birim fiyat
+  totalPrice             Float            // Toplam fiyat
+  status                 OrderStatus      @default(PENDING)
+  customerNote           String?          // Müşteri sipariş notu
+  manufacturerResponse   String?          // Üretici yanıtı/değerlendirme
+  
+  // Üretim süreci bilgileri
+  productionDays         Int?             // Üretici: "X günde üretebilirim" 
+  estimatedProductionDate DateTime?       // Hesaplanan üretim tarihi
+  actualProductionStart  DateTime?        // Gerçek üretime başlama tarihi
+  actualProductionEnd    DateTime?        // Gerçek üretim bitiş tarihi
+  shippingDate          DateTime?         // Kargoya veriliş tarihi
+  deliveryAddress       String?          // Teslimat adresi
+  cargoTrackingNumber   String?          // Kargo takip numarası
+  
+  collection            Collection       @relation(fields: [collectionId], references: [id])
+  collectionId          Int
+  customer              User             @relation("CustomerOrders", fields: [customerId], references: [id])
+  customerId            Int
+  manufacture           User             @relation("ManufactureOrders", fields: [manufactureId], references: [id])
+  manufactureId         Int
+  productionHistory     OrderProduction[] // Üretim süreç takibi
+}
+
+// Sipariş üretim geçmişi takibi  
+model OrderProduction {
+  id             Int         @id @default(autoincrement())
+  createdAt      DateTime    @default(now())
+  status         OrderStatus
+  note           String?     // Üretici açıklaması
+  estimatedDays  Int?        // Bu aşama için tahmini gün
+  actualDate     DateTime?   // Bu aşamanın gerçek tamamlanma tarihi
+  order          Order       @relation(fields: [orderId], references: [id])
+  orderId        Int
+  updatedBy      User        @relation("OrderProductionUpdates", fields: [updatedById], references: [id])
+  updatedById    Int
+}
+
+// Soru-cevap sistemi
+model Question {
+  id            Int        @id @default(autoincrement())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  question      String
+  answer        String?
+  isAnswered    Boolean    @default(false)
+  isPublic      Boolean    @default(true) // Herkese görünür mü?
+  collection    Collection @relation(fields: [collectionId], references: [id])
+  collectionId  Int
+  customer      User       @relation("CustomerQuestions", fields: [customerId], references: [id])
+  customerId    Int
+  manufacture   User       @relation("ManufactureQuestions", fields: [manufactureId], references: [id])
+  manufactureId Int
+}
+
+// Değerlendirme sistemi
+model Review {
+  id           Int        @id @default(autoincrement())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  rating       Int        // 1-5 yıldız
+  comment      String?
+  isApproved   Boolean    @default(false) // Üretici onayı
+  collection   Collection @relation(fields: [collectionId], references: [id])
+  collectionId Int
+  customer     User       @relation("CustomerReviews", fields: [customerId], references: [id])
+  customerId   Int
+}
+
+// Enum'lar
+enum SampleType {
+  STANDARD    // Mevcut ürün için standart numune
+  REVISION    // Mevcut ürün için revize istekli numune
+  CUSTOM      // Müşteri kendi tasarımı için numune
+}
+
+enum SampleStatus {
+  REQUESTED           // Müşteri tarafından talep edildi
+  REVIEWED            // Üretici tarafından inceleniyor
+  QUOTE_SENT          // Üretici süre teklifi gönderdi (X günde üretebilirim)
+  APPROVED            // Müşteri teklifi onayladı
+  REJECTED            // Üretici/Müşteri tarafından reddedildi  
+  IN_PRODUCTION       // Üretim aşamasında
+  PRODUCTION_COMPLETE // Üretim tamamlandı
+  SHIPPED             // Kargoya verildi
+  DELIVERED           // Müşteriye teslim edildi
+}
+
+enum OrderStatus {
+  PENDING             // Sipariş beklemede
+  REVIEWED            // Üretici tarafından inceleniyor  
+  QUOTE_SENT          // Üretici süre ve fiyat teklifi gönderdi
+  CONFIRMED           // Müşteri siparişi onayladı
+  REJECTED            // Sipariş reddedildi
+  IN_PRODUCTION       // Üretim aşamasında
+  PRODUCTION_COMPLETE // Üretim tamamlandı
+  QUALITY_CHECK       // Kalite kontrolü yapılıyor
+  SHIPPED             // Kargoya verildi
+  DELIVERED           // Müşteriye teslim edildi
+  CANCELLED           // İptal edildi
+}
