@@ -17,11 +17,107 @@ enum Role {
   CUSTOMER
 }
 
+model Company {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  phone     String?
+  address   String?
+  website   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users              User[]               @relation("CompanyUsers")
+  categories         Category[]
+  collections        Collection[]
+  samples            Sample[]
+  orders             Order[]
+  productionTracking ProductionTracking[]
+  messages           Message[]
+
+  @@map("companies")
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  senderId  Int
+  receiver  String?
+  isRead    Boolean  @default(false)
+  type      String   @default("general")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  company   Company? @relation(fields: [companyId], references: [id])
+  companyId Int?
+
+  @@map("messages")
+}
+
+model ProductionTracking {
+  id           Int      @id @default(autoincrement())
+  orderId      Int?
+  sampleId     Int?
+  status       String   @default("pending")
+  stage        String   @default("preparation")
+  progress     Int      @default(0)
+  estimatedEnd DateTime?
+  actualEnd    DateTime?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  order     Order?     @relation(fields: [orderId], references: [id])
+  sample    Sample?    @relation(fields: [sampleId], references: [id])
+  company   Company?   @relation(fields: [companyId], references: [id])
+  companyId Int?
+  revisions Revision[]
+
+  @@map("production_tracking")
+}
+
+model Revision {
+  id                   Int      @id @default(autoincrement())
+  orderId              Int?
+  sampleId             Int?
+  productionTrackingId Int?
+  revisionNumber       Int      @default(1)
+  requestMessage       String?
+  responseMessage      String?
+  status               String   @default("pending")
+  requestedAt          DateTime @default(now())
+  completedAt          DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  order              Order?             @relation(fields: [orderId], references: [id])
+  sample             Sample?            @relation(fields: [sampleId], references: [id])
+  productionTracking ProductionTracking? @relation(fields: [productionTrackingId], references: [id])
+
+  @@map("revisions")
+}
+
 model User {
   id          Int          @id @default(autoincrement())
   email       String       @unique
   password    String
   name        String?
+  username    String?      @unique // GraphQL için eklenen
+  firstName   String?      // GraphQL pagination için eklenen
+  lastName    String?      // GraphQL pagination için eklenen
+  phone       String?      // Contact bilgisi için eklenen
+  isActive    Boolean      @default(true) // GraphQL için eklenen
+  company     Company?     @relation("CompanyUsers", fields: [companyId], references: [id])
+  companyId   Int?         // Company relation için eklenen
+  
+  // Messages relation
+  sentMessages Message[]   @relation("SentMessages")
   role        Role         @default(CUSTOMER)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -54,6 +150,10 @@ model Category {
   subCategories    Category[]   @relation("CategoryToSubCategories")
   parentCategory   Category?    @relation("CategoryToSubCategories", fields: [parentCategoryId], references: [id])
   parentCategoryId Int?
+  
+  // Company relation
+  company          Company?     @relation(fields: [companyId], references: [id])
+  companyId        Int?
 }
 
 model Collection {
@@ -62,11 +162,13 @@ model Collection {
   updatedAt   DateTime  @updatedAt
   name        String
   description String?
-  price       Float
-  sku         String    @unique
+  price       Float     @default(0.00)
+  sku         String?   @unique
   stock       Int       @default(0)
   images      String?   // Ürün görselleri (JSON string: ["url1","url2"])
   isActive    Boolean   @default(true)
+  isFeatured  Boolean   @default(false) // GraphQL için eklenen field
+  slug        String?   @unique // SEO friendly URL
   category    Category? @relation(fields: [categoryId], references: [id])
   categoryId  Int?
   author      User?     @relation(fields: [authorId], references: [id]) // Üretici
@@ -78,6 +180,10 @@ model Collection {
   orders               Order[]
   questions            Question[]
   reviews              Review[]
+  
+  // Company relation
+  company              Company?   @relation(fields: [companyId], references: [id])
+  companyId            Int?
 }
 
 // Numune talep ve üretim sistemi
@@ -112,6 +218,12 @@ model Sample {
   manufacture          User               @relation("ManufactureSamples", fields: [manufactureId], references: [id])
   manufactureId        Int
   productionHistory    SampleProduction[] // Üretim geçmişi takibi
+  productionTracking   ProductionTracking[]
+  revisions            Revision[]
+  
+  // Company relation
+  company              Company?           @relation(fields: [companyId], references: [id])
+  companyId            Int?
 }
 
 // Numune üretim geçmişi takibi
@@ -157,6 +269,12 @@ model Order {
   manufacture           User             @relation("ManufactureOrders", fields: [manufactureId], references: [id])
   manufactureId         Int
   productionHistory     OrderProduction[] // Üretim süreç takibi
+  productionTracking    ProductionTracking[]
+  revisions             Revision[]
+  
+  // Company relation
+  company               Company?         @relation(fields: [companyId], references: [id])
+  companyId             Int?
 }
 
 // Sipariş üretim geçmişi takibi  
@@ -206,13 +324,15 @@ model Review {
 
 // Enum'lar
 enum SampleType {
-  STANDARD    // Mevcut ürün için standart numune
-  REVISION    // Mevcut ürün için revize istekli numune
-  CUSTOM      // Müşteri kendi tasarımı için numune
+  STANDARD     // Mevcut ürün için standart numune
+  REVISION     // Mevcut ürün için revize istekli numune
+  CUSTOM       // Müşteri kendi tasarımı için numune
+  DEVELOPMENT  // Mevcut veriler için backward compatibility
 }
 
 enum SampleStatus {
   REQUESTED           // Müşteri tarafından talep edildi
+  RECEIVED            // Mevcut veriler için backward compatibility
   REVIEWED            // Üretici tarafından inceleniyor
   QUOTE_SENT          // Üretici süre teklifi gönderdi (X günde üretebilirim)
   APPROVED            // Müşteri teklifi onayladı

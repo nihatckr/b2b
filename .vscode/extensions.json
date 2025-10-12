@@ -1,0 +1,49 @@
+{
+  "recommendations": [
+    // 🔧 Temel Geliştirme Araçları
+    "ms-vscode.vscode-typescript-next",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
+
+    // 🗄️ Database & Prisma
+    "prisma.prisma",
+    "ms-vscode.vscode-json",
+
+    // 📊 GraphQL
+    "graphql.vscode-graphql",
+    "graphql.vscode-graphql-syntax",
+    "apollographql.vscode-apollo",
+
+    // 📝 Markdown & Dokümantasyon
+    "yzhang.markdown-all-in-one",
+    "shd101wyy.markdown-preview-enhanced",
+    "davidanson.vscode-markdownlint",
+
+    // 🎨 UI/UX Geliştirme
+    "ms-vscode.vscode-css-peek",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+
+    // 🔍 Arama & Navigasyon
+    "ms-vscode.vscode-search-result-tree-view",
+    "alefragnani.bookmarks",
+
+    // 🧪 Test & Debug
+    "ms-vscode.test-adapter-converter",
+    "hbenl.vscode-test-explorer",
+
+    // 🔄 Git & Versiyon Kontrolü
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+
+    // 📦 Package Management
+    "christian-kohler.npm-intellisense",
+    "eg2.vscode-npm-script",
+
+    // 🎯 Özel Araçlar
+    "ms-vscode.vscode-thunder-client",
+    "humao.rest-client",
+    "rangav.vscode-thunder-client"
+  ]
+}

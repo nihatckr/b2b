@@ -1,0 +1,85 @@
+{
+  // 🎯 Tekstil Üretim Projesi - VS Code Workspace Settings
+
+  // Genel Editor Ayarları
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.rulers": [80, 120],
+  "editor.wordWrap": "on",
+
+  // TypeScript Ayarları
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.quoteStyle": "single",
+
+  // Dosya Ayarları
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/coverage": true,
+    "server/src/data/generated": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "server/src/data/generated/**": true
+  },
+  "files.associations": {
+    "*.prisma": "prisma",
+    "*.md": "markdown"
+  },
+
+  // Search Ayarları
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/coverage": true,
+    "server/src/data/generated": true,
+    "**/*.log": true
+  },
+
+  // Terminal Ayarları
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.cwd": "${workspaceFolder}",
+
+  // Prisma Ayarları
+  "prisma.showPrismaDataPlatformNotification": false,
+
+  // GraphQL Ayarları
+  "graphql.useSchemaFileForIntrospection": true,
+
+  // Emmet Ayarları
+  "emmet.includeLanguages": {
+    "typescript": "typescriptreact",
+    "javascript": "javascriptreact"
+  },
+
+  // Markdown Ayarları
+  "markdown.preview.fontSize": 14,
+  "markdown.preview.lineHeight": 1.6,
+
+  // Git Ayarları
+  "git.ignoreLimitWarning": true,
+  "git.autofetch": true,
+
+  // Explorer Ayarları
+  "explorer.compactFolders": false,
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml",
+    "tsconfig.json": "tsconfig.*.json",
+    ".gitignore": ".gitattributes, .gitmodules",
+    "README.md": "*.md",
+    "prisma": "prisma.*, *.prisma"
+  }
+}

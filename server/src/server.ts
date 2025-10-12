@@ -1,34 +1,59 @@
-import { ApolloServer } from '@apollo/server'
-import { startStandaloneServer } from '@apollo/server/standalone'
-import { createContext, type Context } from './context'
-import { schema } from './schema'
+import { ApolloServer } from "@apollo/server";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import { expressMiddleware } from "@as-integrations/express5";
+import cors from "cors";
+import "dotenv/config";
+import express from "express";
+import http from "http";
+import { Context, createContext } from "./context";
+import { schema } from "./schema";
 
-const server = new ApolloServer<Context>({
+// Constants
+const port = process.env.PORT || 4000;
+const env = process.env.NODE_ENV || "development";
+const graphqlPath = "/graphql";
+const app = express();
+const httpServer = http.createServer(app);
+
+// Middleware Initialization
+
+function initializeMiddleware(appRef: typeof app) {
+  appRef.use(cors());
+  appRef.use(express.urlencoded({ limit: "2mb", extended: true }));
+  appRef.use(express.json({ limit: "2mb" }));
+}
+
+// Apollo Server setup
+const apolloServer = new ApolloServer<Context>({
   schema,
-  // Production'da stacktrace gizle
-  includeStacktraceInErrorResponses: process.env.NODE_ENV !== 'production',
-  // Custom error formatting
-  formatError: (err) => {
-    // Production'da hassas bilgileri gizle
-    if (process.env.NODE_ENV === 'production') {
-      // Sadece güvenli error bilgilerini döndür
-      return {
-        message: err.message,
-        extensions: {
-          code: err.extensions?.code || 'INTERNAL_SERVER_ERROR'
-        }
-      }
-    }
-    // Development'da full error döndür
-    return err
-  }
-})
+  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+  introspection: env !== "production",
+});
 
-startStandaloneServer(server, {
-  context: async ({ req }) => createContext({ req })
-}).then(({ url }) => {
-  console.log(`\
-    🚀 Server ready at: ${url}
-    ⭐️ See sample queries: http://pris.ly/e/ts/graphql-auth#using-the-graphql-api`,
+async function startServer() {
+  console.log(`Starting server in ${env} mode on port ${port}`);
+  await apolloServer.start();
+
+  initializeMiddleware(app);
+
+  app.use(
+    "/",
+    cors<cors.CorsRequest>(),
+    express.json(),
+    // expressMiddleware accepts the same arguments:
+    // an Apollo Server instance and optional configuration options
+    expressMiddleware(apolloServer, {
+      context: async ({ req }) => createContext({ req }),
+    })
   );
-})
+
+  await new Promise<void>((resolve) =>
+    httpServer.listen({ port: Number(port) }, resolve)
+  );
+  console.log(`🚀 Server ready at http://localhost:${port}${graphqlPath}`);
+}
+
+startServer().catch((err) => {
+  console.error("Failed to start server", err);
+  process.exit(1);
+});

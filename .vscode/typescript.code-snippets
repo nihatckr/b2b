@@ -1,0 +1,126 @@
+{
+  "GraphQL Resolver": {
+    "prefix": "resolver",
+    "body": [
+      "export const ${1:resolverName} = {",
+      "  async ${2:fieldName}(parent: any, args: ${3:ArgsType}, context: Context) {",
+      "    try {",
+      "      // 🔐 Permission check",
+      "      if (!context.user) {",
+      "        throw new Error('AUTHENTICATION_REQUIRED');",
+      "      }",
+      "",
+      "      // 🎯 Business logic",
+      "      ${4:// Implementation here}",
+      "",
+      "      return ${5:result};",
+      "    } catch (error) {",
+      "      console.error('Error in ${2:fieldName}:', error);",
+      "      throw error;",
+      "    }",
+      "  }",
+      "};"
+    ],
+    "description": "GraphQL Resolver with error handling"
+  },
+
+  "Prisma Model Query": {
+    "prefix": "prismaquery",
+    "body": [
+      "const ${1:result} = await context.prisma.${2:model}.${3:findMany}({",
+      "  where: {",
+      "    ${4:// conditions}",
+      "  },",
+      "  include: {",
+      "    ${5:// relations}",
+      "  },",
+      "  orderBy: {",
+      "    ${6:createdAt}: 'desc'",
+      "  }",
+      "});"
+    ],
+    "description": "Prisma query with common options"
+  },
+
+  "Error Handler": {
+    "prefix": "errorhandler",
+    "body": [
+      "try {",
+      "  ${1:// Code that might throw}",
+      "} catch (error) {",
+      "  console.error('${2:Context}:', error);",
+      "  ",
+      "  if (error.message.includes('P2002')) {",
+      "    throw new Error('DUPLICATE_ENTRY');",
+      "  }",
+      "  ",
+      "  if (error.message.includes('P2025')) {",
+      "    throw new Error('RECORD_NOT_FOUND');",
+      "  }",
+      "  ",
+      "  throw new Error('INTERNAL_SERVER_ERROR');",
+      "}"
+    ],
+    "description": "Error handler with Prisma error codes"
+  },
+
+  "Enum Definition": {
+    "prefix": "enumdef",
+    "body": [
+      "export const ${1:EnumName} = enumType({",
+      "  name: '${1:EnumName}',",
+      "  members: [${2:'VALUE1', 'VALUE2'}],",
+      "  description: '${3:Enum description}'",
+      "});"
+    ],
+    "description": "GraphQL Enum definition"
+  },
+
+  "Object Type": {
+    "prefix": "objecttype",
+    "body": [
+      "export const ${1:TypeName} = objectType({",
+      "  name: '${1:TypeName}',",
+      "  description: '${2:Type description}',",
+      "  definition(t) {",
+      "    t.nonNull.id('id');",
+      "    t.nonNull.string('${3:fieldName}');",
+      "    t.nonNull.datetime('createdAt');",
+      "    t.nonNull.datetime('updatedAt');",
+      "    ${4:// Additional fields}",
+      "  }",
+      "});"
+    ],
+    "description": "GraphQL Object Type definition"
+  },
+
+  "Input Type": {
+    "prefix": "inputtype",
+    "body": [
+      "export const ${1:InputName} = inputObjectType({",
+      "  name: '${1:InputName}',",
+      "  description: '${2:Input description}',",
+      "  definition(t) {",
+      "    t.nonNull.string('${3:fieldName}');",
+      "    ${4:// Additional fields}",
+      "  }",
+      "});"
+    ],
+    "description": "GraphQL Input Type definition"
+  },
+
+  "Permission Check": {
+    "prefix": "permcheck",
+    "body": [
+      "// 🔐 ${1:Permission description}",
+      "if (!context.user) {",
+      "  throw new Error('AUTHENTICATION_REQUIRED');",
+      "}",
+      "",
+      "if (context.user.role !== '${2:REQUIRED_ROLE}') {",
+      "  throw new Error('INSUFFICIENT_PERMISSIONS');",
+      "}"
+    ],
+    "description": "Permission check template"
+  }
+}

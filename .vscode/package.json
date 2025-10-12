@@ -1,0 +1,22 @@
+{
+  "name": "textile-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Textile Production Platform",
+  "main": "prisma-mcp-server.js",
+  "scripts": {
+    "start": "node prisma-mcp-server.js",
+    "install-mcp": "npm install -g @modelcontextprotocol/server-postgres @modelcontextprotocol/server-filesystem @modelcontextprotocol/server-git @modelcontextprotocol/server-fetch @modelcontextprotocol/server-brave-search"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "textile",
+    "production",
+    "prisma",
+    "database"
+  ],
+  "author": "Textile Production Platform",
+  "license": "MIT"
+}
