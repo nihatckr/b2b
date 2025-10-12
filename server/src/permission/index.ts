@@ -1,7 +1,7 @@
 import { allow, rule, shield } from "graphql-shield";
 
 import type { Context } from "../context";
-import { getUserId, getUserWithRole } from "../utils/userUtils";
+import { getUserId, getUserWithRole } from "../utils/user-role-helper";
 
 // Custom error
 class AuthenticationError extends Error {
@@ -184,30 +184,30 @@ export const permissions = shield(
       id: allow,
       email: allow,
       name: allow,
+      username: allow,
+      firstName: allow,
+      lastName: allow,
+      phone: allow,
       role: allow,
-      createdAt: allow,
-      updatedAt: allow,
-    },
-    Collection: {
-      // Basic collection fields - accessible if you can access collection data
-      id: allow,
-      name: allow,
-      description: allow,
-      price: allow,
-      sku: allow,
-      stock: allow,
-      images: allow,
       isActive: allow,
+      companyId: allow,
       createdAt: allow,
       updatedAt: allow,
-    },
-    Category: {
-      // Basic category fields - accessible if you can access category data
-      id: allow,
-      name: allow,
-      description: allow,
-      createdAt: allow,
-      updatedAt: allow,
+
+      // Relations - access controlled by resolvers
+      company: allow,
+      sentMessages: allow,
+      customerSamples: allow,
+      customerOrders: allow,
+      customerQuestions: allow,
+      customerReviews: allow,
+      manufactureSamples: allow,
+      manufactureOrders: allow,
+      manufactureQuestions: allow,
+      categories: allow,
+      collections: allow,
+      sampleProductionUpdates: allow,
+      orderProductionUpdates: allow,
     },
     AuthPayload: {
       // Login/Signup response fields - always accessible after successful auth
@@ -221,57 +221,7 @@ export const permissions = shield(
       manufactureCount: allow,
       customerCount: allow,
     },
-    Sample: {
-      // Basic sample fields
-      id: allow,
-      sampleNumber: allow,
-      sampleType: allow,
-      status: allow,
-      customerNote: allow,
-      manufacturerResponse: allow,
-      createdAt: allow,
-      updatedAt: allow,
-    },
-    Order: {
-      // Basic order fields
-      id: allow,
-      quantity: allow,
-      status: allow,
-      createdAt: allow,
-      updatedAt: allow,
-    },
-    SampleProduction: {
-      // Sample production tracking fields
-      id: allow,
-      status: allow,
-      createdAt: allow,
-      updatedAt: allow,
-    },
-    OrderProduction: {
-      // Order production tracking fields
-      id: allow,
-      status: allow,
-      createdAt: allow,
-      updatedAt: allow,
-    },
-    Question: {
-      // Question fields
-      id: allow,
-      question: allow,
-      answer: allow,
-      isAnswered: allow,
-      isPublic: allow,
-      createdAt: allow,
-      updatedAt: allow,
-    },
-    Review: {
-      // Review fields
-      id: allow,
-      rating: allow,
-      comment: allow,
-      createdAt: allow,
-      updatedAt: allow,
-    },
+
   },
   {
     // Global shield options

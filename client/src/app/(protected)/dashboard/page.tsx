@@ -1,6 +1,6 @@
 "use client";
 
-import { useAllUsersQuery } from "../../../libs/graphql/generated/graphql";
+import { useAllUsersQuery, type User } from "../../../lib/graphql";
 
 export default function DashboardPage() {
   const { loading, error, data } = useAllUsersQuery();
@@ -49,7 +49,7 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data?.allUsers.map((user) => (
+              {data?.allUsers.map((user: User) => (
                 <tr key={user.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {user.name}

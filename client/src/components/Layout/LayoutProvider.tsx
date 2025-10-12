@@ -2,7 +2,7 @@
 import { ApolloProvider } from "@apollo/client/react";
 
 import { ToastProvider } from "../../context/ToastProvider";
-import { apolloClient } from "../../libs/apolloClient";
+import { apolloClient } from "../../lib/apolloClient";
 
 type LayoutContextValue = {
   children: React.ReactNode;

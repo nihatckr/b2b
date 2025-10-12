@@ -17,18 +17,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthProvider";
-import { cn } from "@/lib/utils";
-import {
-  useLoginMutation,
-  type LoginMutation,
-} from "@/libs/graphql/generated/graphql";
-import { showToast } from "@/libs/toast";
 
+import { showToast } from "@/lib/toast";
+import { cn } from "@/lib/utils";
+
+import { useMutation } from "@apollo/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { gql } from '../../../__generated__';
+import type { LoginInput, LoginMutation } from '../../../__generated__/graphql';
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email format"),
@@ -53,11 +53,26 @@ export function LoginForm({ className, onSuccess, ...props }: LoginFormProps) {
     },
   });
 
-  const [loginMutation] = useLoginMutation({
+  const [loginMutation] = useMutation(LOGIN_MUTATION, {
     onCompleted: (data: LoginMutation) => {
       if (data.login?.token) {
         // Use auth context to handle login
-        login(data.login.token, data.login.user!);
+        login(data.login.token, {
+          ...data.login.user!,
+          categories: [],
+          collections: [],
+          company: null,
+          customerOrders: [],
+          customerQuestions: [],
+          customerReviews: [],
+          customerSamples: [],
+          manufactureOrders: [],
+
+          manufactureSamples: [],
+          manufactureReviews: [],
+          manufactureQuestions: [],
+          // Add other missing properties with default values as required by your User type
+        });
 
         // Show success toast
         showToast(
@@ -98,10 +113,14 @@ export function LoginForm({ className, onSuccess, ...props }: LoginFormProps) {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     try {
+      const input: LoginInput = {
+        email: data.email,
+        password: data.password,
+      };
+
       await loginMutation({
         variables: {
-          email: data.email,
-          password: data.password,
+          input,
         },
       });
     } catch (error) {

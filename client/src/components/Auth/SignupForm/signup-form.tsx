@@ -17,12 +17,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthProvider";
+import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import {
   useSignupMutation,
+  type SignupInput,
   type SignupMutation,
-} from "@/libs/graphql/generated/graphql";
-import { showToast } from "@/libs/toast";
+} from '../../../lib/graphql/generated/graphql';
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -109,11 +110,15 @@ export function SignupForm({
   const onSubmit = async (data: SignupForm) => {
     setIsLoading(true);
     try {
+      const input: SignupInput = {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      };
+
       await signupMutation({
         variables: {
-          name: data.name,
-          email: data.email,
-          password: data.password,
+          input,
         },
       });
     } catch (error) {

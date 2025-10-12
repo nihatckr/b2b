@@ -1,11 +1,7 @@
 "use client";
 
-import { apolloClient } from "@/libs/apolloClient";
-import {
-  MeDocument,
-  type MeQuery,
-  type User,
-} from "@/libs/graphql/generated/graphql";
+import { apolloClient } from "@/lib/apolloClient";
+import { MeDocument, type MeQuery, type User } from "@/lib/graphql/generated/graphql";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 // Auth context type
