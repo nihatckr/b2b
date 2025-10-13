@@ -2,22 +2,14 @@
 ### Do not make changes to this file directly
 
 
-input AdminPasswordResetInput {
-  newPassword: String!
-  requireChangeOnLogin: Boolean
-  userId: Int!
+input AnswerQuestionInput {
+  answer: String!
+  id: Int!
 }
 
-input AdminUserUpdateInput {
-  companyId: Int
-  email: String
-  firstName: String
-  isActive: Boolean
-  lastName: String
-  name: String
-  phone: String
-  role: Role
-  username: String
+input ApproveReviewInput {
+  id: Int!
+  isApproved: Boolean!
 }
 
 type AuthPayload {
@@ -26,44 +18,303 @@ type AuthPayload {
 }
 
 type Category {
-  authorId: Int
-  companyId: Int
+  author: User
+  collectionsCount: Int
+  company: Company
   createdAt: String!
   description: String
   id: Int!
   name: String!
-  parentCategoryId: Int
+  parentCategory: Category
+  subCategories: [Category]
   updatedAt: String!
 }
 
-type Collection {
-  authorId: Int
-  categoryId: Int
-  companyId: Int
-  createdAt: String!
+type Certification {
+  category: CertificationCategory!
+  certificateFile: String
+  certificateNumber: String
+  code: String
+  collections: [Collection]
+  company: Company!
+  companyId: Int!
+  createdAt: DateTime!
   description: String
   id: Int!
-  images: String
+  isActive: Boolean!
+  issuer: String
+  name: String!
+  updatedAt: DateTime!
+  validFrom: DateTime
+  validUntil: DateTime
+}
+
+"""Certification categories for products"""
+enum CertificationCategory {
+  CHEMICAL
+  ENVIRONMENTAL
+  FIBER
+  SOCIAL
+  TRACEABILITY
+}
+
+type Collection {
+  accessories: String
+  author: User
+  category: Category
+  colors: [String]
+  company: Company
+  createdAt: DateTime!
+  description: String
+  fabricComposition: String
+  favoritedBy: [User]
+  fit: String
+  gender: Gender
+  id: Int!
+  images: [String]
   isActive: Boolean!
   isFeatured: Boolean!
+  likesCount: Int!
+  measurementChart: String
+  modelCode: String!
+  moq: Int
   name: String!
+  notes: String
+  ordersCount: Int
   price: Float!
+  productionSchedule: String
+  samples: [Sample]
+  samplesCount: Int
+  season: Season
+  sizeGroupIds: [Int]
+  sizeRange: String
   sku: String
   slug: String
   stock: Int!
-  updatedAt: String!
+  targetLeadTime: Int
+  targetPrice: Float
+  techPack: String
+  trend: String
+  updatedAt: DateTime!
+}
+
+type Color {
+  code: String
+  company: Company
+  createdAt: DateTime!
+  hexCode: String
+  id: Int!
+  imageUrl: String
+  isActive: Boolean!
+  name: String!
+  updatedAt: DateTime!
 }
 
 type Company {
   address: String
   createdAt: String!
+  description: String
   email: String!
+  employees: [User]
   id: Int!
   isActive: Boolean!
   name: String!
+  owner: User
+  ownerId: Int
   phone: String
+  settings: String
+  type: CompanyType!
   updatedAt: String!
+  users: [User]
   website: String
+}
+
+"""Company signup action"""
+enum CompanyAction {
+  CREATE_NEW
+  JOIN_EXISTING
+}
+
+input CompanyCreateInput {
+  address: String
+  email: String!
+  isActive: Boolean
+  name: String!
+  phone: String
+  website: String
+}
+
+input CompanyFlowInput {
+  action: CompanyAction!
+  companyAddress: String
+  companyEmail: String
+  companyId: Int
+  companyName: String
+  companyPhone: String
+  companyType: CompanyType
+  companyWebsite: String
+  inviteCode: String
+}
+
+"""Type of company (manufacturer/buyer)"""
+enum CompanyType {
+  BOTH
+  BUYER
+  MANUFACTURER
+}
+
+input CompanyUpdateInput {
+  address: String
+  email: String
+  id: Int!
+  isActive: Boolean
+  name: String
+  phone: String
+  website: String
+}
+
+input CreateCategoryInput {
+  companyId: Int
+  description: String
+  name: String!
+  parentCategoryId: Int
+}
+
+input CreateCollectionInput {
+  accessories: String
+  categoryId: Int
+  colors: [String]
+  companyId: Int
+  description: String
+  fabricComposition: String
+  fit: String
+  gender: Gender
+  images: [String]
+  isActive: Boolean
+  isFeatured: Boolean
+  measurementChart: String
+  modelCode: String
+  moq: Int
+  name: String!
+  notes: String
+  price: Float
+  productionSchedule: String
+  season: Season
+  sizeGroupIds: [Int]
+  sizeRange: String
+  sku: String
+  slug: String
+  stock: Int
+  targetLeadTime: Int
+  targetPrice: Float
+  techPack: String
+  trend: String
+}
+
+input CreateColorInput {
+  code: String
+  hexCode: String
+  imageUrl: String
+  isActive: Boolean
+  name: String!
+}
+
+input CreateCompanyInput {
+  address: String
+  description: String
+  email: String!
+  name: String!
+  phone: String
+  website: String
+}
+
+input CreateFabricInput {
+  code: String
+  composition: String!
+  description: String
+  imageUrl: String
+  isActive: Boolean
+  leadTime: Int
+  minOrder: Int
+  name: String!
+  price: Float
+  supplier: String
+  weight: Int
+  width: Int
+}
+
+input CreateMessageInput {
+  companyId: Int
+  content: String!
+  receiver: String
+  type: String
+}
+
+input CreateOrderInput {
+  collectionId: Int!
+  companyId: Int
+  estimatedDelivery: DateTime
+  notes: String
+  quantity: Int!
+  specifications: String
+  unitPrice: Float!
+}
+
+input CreateProductionTrackingInput {
+  companyId: Int
+  notes: String
+  orderId: Int
+  sampleId: Int
+}
+
+input CreateQualityControlInput {
+  fabricDefects: Boolean
+  finishingDefects: Boolean
+  measureDefects: Boolean
+  notes: String
+  productionId: Int!
+  result: QualityResult!
+  score: Int
+  sewingDefects: Boolean
+}
+
+input CreateQuestionInput {
+  collectionId: Int!
+  isPublic: Boolean
+  question: String!
+}
+
+input CreateReviewInput {
+  collectionId: Int!
+  comment: String
+  rating: Int!
+}
+
+input CreateSampleInput {
+  collectionId: Int
+  companyId: Int
+  customDesignImages: [String]
+  customerNote: String
+  deliveryAddress: String
+  manufactureId: Int
+  originalCollectionId: Int
+  revisionRequests: String
+  sampleType: SampleType!
+}
+
+input CreateSizeGroupInput {
+  category: String
+  description: String
+  isActive: Boolean
+  name: String!
+  sizes: [String!]!
+}
+
+input CreateWorkshopInput {
+  capacity: Int
+  location: String
+  name: String!
+  type: WorkshopType!
 }
 
 """
@@ -71,71 +322,191 @@ A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `dat
 """
 scalar DateTime
 
+type Fabric {
+  code: String
+  company: Company
+  composition: String!
+  createdAt: DateTime!
+  description: String
+  id: Int!
+  imageUrl: String
+  isActive: Boolean!
+  leadTime: Int
+  minOrder: Int
+  name: String!
+  price: Float
+  supplier: String
+  updatedAt: DateTime!
+  weight: Int
+  width: Int
+}
+
+type File {
+  createdAt: DateTime!
+  description: String
+  encoding: String
+  filename: String!
+  id: ID!
+  mimetype: String!
+  path: String!
+  size: Int!
+  updatedAt: DateTime!
+}
+
+"""Clothing fit types"""
+enum Fit {
+  FITTED
+  LOOSE
+  OVERSIZED
+  REGULAR
+  RELAXED
+  SLIM
+}
+
+type FitItem {
+  category: String
+  code: String
+  company: Company
+  companyId: Int!
+  createdAt: DateTime!
+  description: String
+  id: Int!
+  isActive: Boolean!
+  name: String!
+  updatedAt: DateTime!
+}
+
+"""Target gender for products"""
+enum Gender {
+  BOYS
+  GIRLS
+  MEN
+  UNISEX
+  WOMEN
+}
+
 input LoginInput {
   email: String!
   password: String!
-  rememberMe: Boolean
 }
 
 type Message {
+  company: Company
   companyId: Int
   content: String!
   createdAt: String!
   id: Int!
   isRead: Boolean!
   receiver: String
+  sender: User
   senderId: Int!
   type: String!
   updatedAt: String!
 }
 
+input MessageFilterInput {
+  companyId: Int
+  type: String
+  unreadOnly: Boolean
+}
+
 type Mutation {
+  answerQuestion(input: AnswerQuestionInput!): Question
+  approveReview(input: ApproveReviewInput!): Review
+  askQuestion(input: CreateQuestionInput!): Question
   changePassword(currentPassword: String!, newPassword: String!): Boolean
-  deleteUser(userId: Int!): User
+  createCategory(companyId: Int, description: String, name: String!, parentCategoryId: Int): Category
+  createCertification(category: CertificationCategory!, certificateFile: String, certificateNumber: String, code: String, description: String, issuer: String, name: String!, validFrom: DateTime, validUntil: DateTime): Certification
+  createCollection(input: CreateCollectionInput!): Collection
+  createColor(input: CreateColorInput!): Color
+  createCompany(address: String, email: String!, isActive: Boolean, name: String!, phone: String, website: String): Company
+  createFabric(input: CreateFabricInput!): Fabric
+  createFit(category: String, code: String, description: String, name: String!): FitItem
+  createOrder(collectionId: Int!, companyId: Int, customerNote: String, deliveryAddress: String, estimatedDelivery: DateTime, manufactureId: Int, quantity: Int!, unitPrice: Float): Order
+  createReview(input: CreateReviewInput!): Review
+  createSample(input: CreateSampleInput!): Sample
+  createSeason(description: String, endDate: DateTime, fullName: String!, name: String!, startDate: DateTime, type: String!, year: Int!): SeasonItem
+  createSizeGroup(input: CreateSizeGroupInput!): SizeGroup
+  createUser(email: String!, name: String!, password: String!, role: Role!): User
+  deleteCategory(id: Int!): Category
+  deleteCertification(id: Int!): Certification
+  deleteCollection(id: Int!): Collection
+  deleteColor(id: Int!): Color
+  deleteCompany(id: Int!): Company
+  deleteFabric(id: Int!): Fabric
+  deleteFit(id: Int!): FitItem
+  deleteMessage(id: Int!): Message
+  deleteOrder(id: Int!): Order
+  deleteQuestion(id: Int!): Question
+  deleteReview(id: Int!): Review
+  deleteSample(id: Int!): Sample
+  deleteSeason(id: Int!): SeasonItem
+  deleteSizeGroup(id: Int!): SizeGroup
+  deleteUser(id: Int!): User
   login(input: LoginInput!): AuthPayload
   logout: Boolean
+  markMessageAsRead(id: Int!): Message
   resetUserPassword(newPassword: String!, userId: Int!): User
+  sendMessage(input: CreateMessageInput!): Message
   signup(input: SignupInput!): AuthPayload
+  toggleFavoriteCollection(collectionId: Int!): Collection
+  updateCategory(companyId: Int, description: String, id: Int!, name: String, parentCategoryId: Int): Category
+  updateCertification(category: CertificationCategory, certificateFile: String, certificateNumber: String, code: String, description: String, id: Int!, isActive: Boolean, issuer: String, name: String, validFrom: DateTime, validUntil: DateTime): Certification
+  updateCollection(input: UpdateCollectionInput!): Collection
+  updateColor(input: UpdateColorInput!): Color
+  updateCompany(address: String, description: String, email: String, id: Int!, isActive: Boolean, name: String, phone: String, website: String): Company
+  updateFabric(input: UpdateFabricInput!): Fabric
+  updateFit(category: String, code: String, description: String, id: Int!, isActive: Boolean, name: String): FitItem
+  updateOrderStatus(estimatedDays: Int, id: Int!, note: String, quotedPrice: Float, status: OrderStatus!): Order
+  updateProductionStage(input: UpdateProductionStageInput!): ProductionTracking
   updateProfile(input: UserUpdateInput!): User
+  updateSample(input: UpdateSampleInput!): Sample
+  updateSampleStatus(input: UpdateSampleStatusInput!): Sample
+  updateSeason(description: String, endDate: DateTime, fullName: String, id: Int!, isActive: Boolean, name: String, startDate: DateTime, type: String, year: Int): SeasonItem
+  updateSizeGroup(input: UpdateSizeGroupInput!): SizeGroup
+  updateUser(input: UserUpdateInput!): User
   updateUserRole(role: Role!, userId: Int!): User
 }
 
 type Order {
-  actualProductionEnd: String
-  actualProductionStart: String
+  actualProductionEnd: DateTime
+  actualProductionStart: DateTime
   cargoTrackingNumber: String
-  collectionId: Int!
-  companyId: Int
-  createdAt: String!
-  customerId: Int!
+  collection: Collection
+  company: Company
+  createdAt: DateTime!
+  customer: User
   customerNote: String
   deliveryAddress: String
-  estimatedProductionDate: String
+  estimatedProductionDate: DateTime
   id: Int!
-  manufactureId: Int!
+  manufacture: User
   manufacturerResponse: String
   orderNumber: String!
   productionDays: Int
+  productionHistory: [OrderProduction]
+  productionTracking: [ProductionTracking]
   quantity: Int!
-  shippingDate: String
+  shippingDate: DateTime
+  specifications: String
   status: OrderStatus!
   totalPrice: Float!
   unitPrice: Float!
-  updatedAt: String!
+  updatedAt: DateTime!
 }
 
 type OrderProduction {
-  actualDate: String
-  createdAt: String!
+  actualDate: DateTime
+  createdAt: DateTime!
   estimatedDays: Int
   id: Int!
   note: String
-  orderId: Int!
+  order: Order
   status: OrderStatus!
-  updatedById: Int!
+  updatedBy: User
 }
 
-"""Order status tracking"""
+"""Status workflow for order production"""
 enum OrderStatus {
   CANCELLED
   CONFIRMED
@@ -150,56 +521,159 @@ enum OrderStatus {
   SHIPPED
 }
 
-input PasswordChangeInput {
-  confirmPassword: String
-  currentPassword: String!
-  newPassword: String!
+"""7-stage production process"""
+enum ProductionStage {
+  CUTTING
+  FABRIC
+  PACKAGING
+  PLANNING
+  QUALITY
+  SEWING
+  SHIPPING
 }
 
-input PasswordResetInput {
-  email: String!
-  newPassword: String
-  resetToken: String
+type ProductionStageUpdate {
+  actualEndDate: String
+  actualStartDate: String
+  createdAt: String!
+  estimatedDays: Int
+  extraDays: Int!
+  id: Int!
+  isRevision: Boolean!
+  notes: String
+  photos: String
+  productionId: Int!
+  stage: ProductionStage!
+  status: StageStatus!
+}
+
+"""Overall production status"""
+enum ProductionStatus {
+  BLOCKED
+  CANCELLED
+  COMPLETED
+  IN_PROGRESS
+  WAITING
 }
 
 type ProductionTracking {
-  actualEnd: String
+  actualEndDate: String
+  actualStartDate: String
   companyId: Int
   createdAt: String!
-  estimatedEnd: String
+  currentStage: ProductionStage!
+  estimatedEndDate: String
+  estimatedStartDate: String
   id: Int!
   notes: String
+  order: Order
   orderId: Int
+  overallStatus: ProductionStatus!
+  packagingWorkshopId: Int
   progress: Int!
+  qualityControls: [QualityControl]
+  sample: Sample
   sampleId: Int
-  stage: String!
-  status: String!
+  sewingWorkshopId: Int
+  stageUpdates: [ProductionStageUpdate]
   updatedAt: String!
 }
 
+type QualityControl {
+  checkDate: String!
+  createdAt: String!
+  fabricDefects: Boolean!
+  finishingDefects: Boolean!
+  id: Int!
+  inspector: User
+  inspectorId: Int!
+  measureDefects: Boolean!
+  notes: String
+  photos: String
+  productionId: Int!
+  result: QualityResult!
+  score: Int
+  sewingDefects: Boolean!
+}
+
+"""Quality control test results"""
+enum QualityResult {
+  CONDITIONAL_PASS
+  FAILED
+  PASSED
+  PENDING
+}
+
 type Query {
+  allCategories: [Category]
+  allCompanies: [Company]
+  allManufacturers: [User]
   allUsers(role: Role, searchString: String, skip: Int, take: Int): [User!]!
+  assignedOrders(status: OrderStatus): [Order]
+  assignedSamples(sampleType: SampleType, status: SampleStatus): [Sample]
+  categoriesByCompany(companyId: Int): [Category]
+  category(id: Int): Category
+  categoryTree: [Category]
+  collection(id: Int!): Collection
+  collectionAverageRating(collectionId: Int): Float
+  collectionQuestions(collectionId: Int, includePrivate: Boolean): [Question]
+  collectionReviews(approvedOnly: Boolean, collectionId: Int): [Review]
+  collections(categoryId: Int, companyId: Int, isActive: Boolean, isFeatured: Boolean, limit: Int, offset: Int, search: String): [Collection]
+  collectionsByCategory(categoryId: Int!, includeSubcategories: Boolean): [Collection]
+  collectionsByCompany(companyId: Int!, isActive: Boolean): [Collection]
+  company(id: Int): Company
+  companyMessages(companyId: Int): [Message]
+  featuredCollections(limit: Int): [Collection]
   me: User
+  myCategories: [Category]
+  myCertifications: [Certification]
+  myCollections: [Collection]
+  myColors: [Color]
+  myCompanyEmployees: [User!]!
+  myFabrics: [Fabric]
+  myFits: [FitItem]
+  myMessages(filter: MessageFilterInput): [Message]
+  myOrders(status: OrderStatus): [Order]
+  myQuestions: [Question]
+  myReviews: [Review]
+  mySamples(sampleType: SampleType, status: SampleStatus): [Sample]
+  mySeasons: [SeasonItem]
+  mySizeGroups: [SizeGroup]
+  order(id: Int!): Order
+  orders(companyId: Int, customerId: Int, limit: Int, manufactureId: Int, offset: Int, search: String, status: OrderStatus): [Order]
+  pendingReviews: [Review]
+  productionTracking(id: Int, orderId: Int, sampleId: Int): ProductionTracking
+  rootCategories: [Category]
+  sample(id: Int!): Sample
+  sampleProductionHistory(sampleId: Int!): [SampleProduction]
+  samples(companyId: Int, customerId: Int, limit: Int, manufactureId: Int, offset: Int, sampleType: SampleType, search: String, status: SampleStatus): [Sample]
+  unansweredQuestions: [Question]
+  unreadMessageCount: Int
   userStats: UserStats
 }
 
 type Question {
   answer: String
+  collection: Collection
   collectionId: Int!
   createdAt: String!
+  customer: User
   customerId: Int!
   id: Int!
   isAnswered: Boolean!
   isPublic: Boolean!
+  manufacture: User
   manufactureId: Int!
   question: String!
   updatedAt: String!
 }
 
 type Review {
+  collection: Collection
   collectionId: Int!
   comment: String
   createdAt: String!
+  customer: User
   customerId: Int!
   id: Int!
   isApproved: Boolean!
@@ -207,78 +681,68 @@ type Review {
   updatedAt: String!
 }
 
-type Revision {
-  completedAt: String
-  createdAt: String!
-  id: Int!
-  orderId: Int
-  productionTrackingId: Int
-  requestMessage: String
-  requestedAt: String!
-  responseMessage: String
-  revisionNumber: Int!
-  sampleId: Int
-  status: String!
-  updatedAt: String!
-}
-
 """User roles in the system"""
 enum Role {
   ADMIN
+  COMPANY_EMPLOYEE
+  COMPANY_OWNER
   CUSTOMER
+  INDIVIDUAL_CUSTOMER
   MANUFACTURE
 }
 
 type Sample {
-  actualProductionDate: String
+  actualProductionDate: DateTime
   cargoTrackingNumber: String
-  collectionId: Int
-  companyId: Int
-  createdAt: String!
+  collection: Collection
+  company: Company
+  createdAt: DateTime!
   customDesignImages: String
-  customerId: Int!
+  customer: User
   customerNote: String
   deliveryAddress: String
-  estimatedProductionDate: String
+  estimatedProductionDate: DateTime
   id: Int!
-  manufactureId: Int!
+  manufacture: User
   manufacturerResponse: String
+  originalCollection: Collection
   originalCollectionId: Int
   productionDays: Int
+  productionHistory: [SampleProduction]
+  productionTracking: [ProductionTracking]
   revisionRequests: String
   sampleNumber: String!
   sampleType: SampleType!
-  shippingDate: String
+  shippingDate: DateTime
   status: SampleStatus!
-  updatedAt: String!
+  updatedAt: DateTime!
 }
 
 type SampleProduction {
-  actualDate: String
-  createdAt: String!
+  actualDate: DateTime
+  createdAt: DateTime!
   estimatedDays: Int
   id: Int!
   note: String
-  sampleId: Int!
+  sample: Sample
   status: SampleStatus!
-  updatedById: Int!
+  updatedBy: User
 }
 
-"""Sample status tracking"""
+"""Status workflow for sample production - 9 stages"""
 enum SampleStatus {
-  APPROVED
-  DELIVERED
+  COMPLETED
+  IN_DESIGN
   IN_PRODUCTION
-  PRODUCTION_COMPLETE
-  QUOTE_SENT
+  PATTERN_READY
+  QUALITY_CHECK
   RECEIVED
   REJECTED
   REQUESTED
-  REVIEWED
   SHIPPED
 }
 
-"""Sample types in the system"""
+"""Types of samples that can be requested"""
 enum SampleType {
   CUSTOM
   DEVELOPMENT
@@ -286,16 +750,58 @@ enum SampleType {
   STANDARD
 }
 
+"""Fashion seasons (Spring/Summer, Fall/Winter)"""
+enum Season {
+  FW25
+  FW26
+  FW27
+  SS25
+  SS26
+  SS27
+}
+
+type SeasonItem {
+  company: Company
+  companyId: Int!
+  createdAt: DateTime!
+  description: String
+  endDate: DateTime
+  fullName: String!
+  id: Int!
+  isActive: Boolean!
+  name: String!
+  startDate: DateTime
+  type: String!
+  updatedAt: DateTime!
+  year: Int!
+}
+
 input SignupInput {
-  companyId: Int
+  companyFlow: CompanyFlowInput
+  companyId: String
+  department: String
   email: String!
   firstName: String
+  jobTitle: String
   lastName: String
   name: String
   password: String!
+  permissions: String
   phone: String
   role: Role
   username: String
+}
+
+type SizeGroup {
+  category: String
+  company: Company
+  createdAt: DateTime!
+  description: String
+  id: Int!
+  isActive: Boolean!
+  name: String!
+  sizes: [String]
+  updatedAt: DateTime!
 }
 
 """Sort order for queries"""
@@ -304,70 +810,166 @@ enum SortOrder {
   desc
 }
 
+"""Status of individual production stage"""
+enum StageStatus {
+  COMPLETED
+  IN_PROGRESS
+  NOT_STARTED
+  ON_HOLD
+  REQUIRES_REVISION
+}
+
+input UpdateCategoryInput {
+  companyId: Int
+  description: String
+  id: Int!
+  name: String
+  parentCategoryId: Int
+}
+
+input UpdateCollectionInput {
+  accessories: String
+  categoryId: Int
+  colors: [String]
+  companyId: Int
+  description: String
+  fabricComposition: String
+  fit: String
+  gender: Gender
+  id: Int!
+  images: [String]
+  isActive: Boolean
+  isFeatured: Boolean
+  measurementChart: String
+  modelCode: String
+  moq: Int
+  name: String
+  notes: String
+  price: Float
+  productionSchedule: String
+  season: Season
+  sizeGroupIds: [Int]
+  sizeRange: String
+  sku: String
+  slug: String
+  stock: Int
+  targetLeadTime: Int
+  targetPrice: Float
+  techPack: String
+  trend: String
+}
+
+input UpdateColorInput {
+  code: String
+  hexCode: String
+  id: Int!
+  imageUrl: String
+  isActive: Boolean
+  name: String
+}
+
+input UpdateCompanyInput {
+  address: String
+  description: String
+  email: String
+  isActive: Boolean
+  name: String
+  phone: String
+  website: String
+}
+
+input UpdateFabricInput {
+  code: String
+  composition: String
+  description: String
+  id: Int!
+  imageUrl: String
+  isActive: Boolean
+  leadTime: Int
+  minOrder: Int
+  name: String
+  price: Float
+  supplier: String
+  weight: Int
+  width: Int
+}
+
+input UpdateOrderInput {
+  actualDelivery: DateTime
+  estimatedDelivery: DateTime
+  id: Int!
+  notes: String
+  quantity: Int
+  specifications: String
+  status: OrderStatus
+  unitPrice: Float
+}
+
+input UpdateProductionStageInput {
+  estimatedDays: Int
+  notes: String
+  productionId: Int!
+  stage: ProductionStage!
+  status: StageStatus!
+}
+
+input UpdateSampleInput {
+  actualProductionDate: DateTime
+  cargoTrackingNumber: String
+  customerNote: String
+  deliveryAddress: String
+  estimatedProductionDate: DateTime
+  id: Int!
+  manufacturerResponse: String
+  productionDays: Int
+  shippingDate: DateTime
+  status: SampleStatus
+}
+
+input UpdateSampleStatusInput {
+  estimatedDays: Int
+  id: Int!
+  note: String
+  status: SampleStatus!
+}
+
+input UpdateSizeGroupInput {
+  category: String
+  description: String
+  id: Int!
+  isActive: Boolean
+  name: String
+  sizes: [String!]
+}
+
+input UpdateWorkshopInput {
+  capacity: Int
+  id: Int!
+  isActive: Boolean
+  location: String
+  name: String
+  type: WorkshopType
+}
+
 type User {
-  categories: [Category]
-  collections: [Collection]
   company: Company
   companyId: Int
   createdAt: String!
-  customerOrders: [Order]
-  customerQuestions: [Question]
-  customerReviews: [Review]
-  customerSamples: [Sample]
+  department: String
   email: String!
   firstName: String
   id: Int!
   isActive: Boolean!
+  isCompanyOwner: Boolean!
+  isPendingApproval: Boolean!
+  jobTitle: String
   lastName: String
-  manufactureOrders: [Order]
-  manufactureQuestions: [Question]
-  manufactureSamples: [Sample]
   name: String
-  orderProductionUpdates: [OrderProduction]
+  permissions: String
   phone: String
   role: Role!
-  sampleProductionUpdates: [SampleProduction]
-  sentMessages: [Message]
   updatedAt: String!
   username: String
-}
-
-input UserCreateInput {
-  companyId: Int
-  email: String!
-  firstName: String
-  isActive: Boolean
-  lastName: String
-  name: String
-  password: String!
-  phone: String
-  role: Role
-  username: String
-}
-
-input UserFilterInput {
-  companyId: Int
-  email: String
-  isActive: Boolean
-  name: String
-  role: Role
-  searchString: String
-  username: String
-}
-
-input UserPaginationInput {
-  orderBy: UserSortInput
-  skip: Int
-  take: Int
-  where: UserFilterInput
-}
-
-input UserSortInput {
-  createdAt: SortOrder
-  email: SortOrder
-  name: SortOrder
-  role: SortOrder
-  updatedAt: SortOrder
 }
 
 type UserStats {
@@ -378,12 +980,38 @@ type UserStats {
 }
 
 input UserUpdateInput {
-  companyId: Int
+  companyId: String
+  department: String
   email: String
   firstName: String
+  id: Int!
   isActive: Boolean
+  isCompanyOwner: Boolean
+  jobTitle: String
   lastName: String
   name: String
+  permissions: String
   phone: String
+  role: Role
   username: String
+}
+
+type Workshop {
+  capacity: Int
+  createdAt: String!
+  id: Int!
+  isActive: Boolean!
+  location: String
+  name: String!
+  owner: User
+  ownerId: Int!
+  type: WorkshopType!
+}
+
+"""Types of workshops"""
+enum WorkshopType {
+  GENERAL
+  PACKAGING
+  QUALITY_CONTROL
+  SEWING
 }

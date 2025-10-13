@@ -1,6 +1,7 @@
 "use client";
 
 import { IconChevronRight, type Icon } from "@tabler/icons-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import {
@@ -50,31 +51,38 @@ export function NavBusiness({
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton
-              tooltip={item.title}
-              onClick={() => toggleItem(item.title)}
-              className="flex items-center justify-between w-full"
-            >
-              <div className="flex items-center gap-2">
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </div>
-              {item.items && (
+            {item.items ? (
+              <SidebarMenuButton
+                tooltip={item.title}
+                onClick={() => toggleItem(item.title)}
+                className="flex items-center justify-between w-full"
+              >
+                <div className="flex items-center gap-2">
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </div>
                 <IconChevronRight
                   className={`ml-auto h-4 w-4 transition-transform duration-200 ${
                     openItems.has(item.title) ? "rotate-90" : ""
                   }`}
                 />
-              )}
-            </SidebarMenuButton>
+              </SidebarMenuButton>
+            ) : (
+              <SidebarMenuButton tooltip={item.title} asChild>
+                <Link href={item.url}>
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            )}
             {item.items && openItems.has(item.title) && (
               <SidebarMenuSub>
                 {item.items.map((subItem) => (
                   <SidebarMenuSubItem key={subItem.title}>
                     <SidebarMenuSubButton asChild>
-                      <a href={subItem.url}>
+                      <Link href={subItem.url}>
                         <span>{subItem.title}</span>
-                      </a>
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 ))}

@@ -1,7 +1,7 @@
 "use client";
 
-import { SignupForm } from "../../../components/Auth/SignupForm/signup-form";
+import { MultiStepSignupForm } from "../../../components/Auth/SignupForm/multi-step-signup-form";
 
 export default function SignupPage() {
-  return <SignupForm />;
+  return <MultiStepSignupForm />;
 }

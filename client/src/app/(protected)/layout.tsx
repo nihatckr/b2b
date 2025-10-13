@@ -1,14 +1,41 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { AppSidebar } from "../../components/Dashboard/app-sidebar";
 import { SiteHeader } from "../../components/Dashboard/site-header";
 import { SidebarInset, SidebarProvider } from "../../components/ui/sidebar";
+import { useAuth } from "../../context/AuthProvider";
 
 export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { isLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // If not loading and not authenticated, redirect to login
+    if (!isLoading && !isAuthenticated) {
+      router.push("/");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  // If not authenticated, don't render protected content
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <SidebarProvider
       style={

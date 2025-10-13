@@ -97,7 +97,7 @@ export async function requireManufacture(
   return requireRole(context, ["ADMIN", "MANUFACTURE"]);
 }
 
- // Customer, manufacture or admin
+// Customer, manufacture or admin
 export async function requireCustomer(
   context: Context
 ): Promise<{ id: number; role: string }> {
@@ -113,13 +113,17 @@ export function logAuthAttempt(email: string, success: boolean): void {
   );
 }
 // Helper function for role-based access control
-export const canAccessUserData = async (parent: any, context: Context, targetUserId?: number): Promise<boolean> => {
+export const canAccessUserData = async (
+  parent: any,
+  context: Context,
+  targetUserId?: number
+): Promise<boolean> => {
   const currentUserId = getUserId(context);
   if (!currentUserId) return false;
 
   const currentUser = await context.prisma.user.findUnique({
     where: { id: currentUserId },
-    select: { role: true }
+    select: { role: true },
   });
 
   // Admin can access all data
@@ -130,3 +134,8 @@ export const canAccessUserData = async (parent: any, context: Context, targetUse
 
   return false;
 };
+
+// Get user role helper
+export function getUserRole(user: any): string {
+  return user.role || "CUSTOMER";
+}

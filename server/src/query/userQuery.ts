@@ -1,15 +1,19 @@
 import { arg, intArg, stringArg } from "nexus";
 
-import { Context } from '../context';
-import { getUserId, requireAdmin, } from '../utils/user-role-helper';
-
+import { Context } from "../context";
+import { Role } from "../types/Enums";
+import {
+  getUserId,
+  requireAdmin,
+  requireAuth,
+} from "../utils/user-role-helper";
 
 export const userQueries = (t: any) => {
   t.nonNull.list.nonNull.field("allUsers", {
     type: "User",
     args: {
       searchString: stringArg(),
-      role: arg({ type: "Role" }),
+      role: arg({ type: Role }),
       skip: intArg(),
       take: intArg(),
     },
@@ -35,13 +39,8 @@ export const userQueries = (t: any) => {
 
       return context.prisma.user.findMany({
         where: searchConditions,
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
+        include: {
+          company: true,
         },
         orderBy: { createdAt: "desc" },
         skip: args.skip || undefined,
@@ -77,6 +76,34 @@ export const userQueries = (t: any) => {
     },
   });
 
+  // Company employees - for company owners/managers
+  t.nonNull.list.nonNull.field("myCompanyEmployees", {
+    type: "User",
+    resolve: async (_parent: any, _args: any, context: Context) => {
+      const userId = requireAuth(context);
+
+      const user = await context.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true, role: true, isCompanyOwner: true },
+      });
+
+      if (!user?.companyId) {
+        throw new Error("Must be associated with a company");
+      }
+
+      // Return all users from the same company
+      return context.prisma.user.findMany({
+        where: {
+          companyId: user.companyId,
+        },
+        include: {
+          company: true,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    },
+  });
+
   t.field("me", {
     type: "User",
     resolve: async (parent: any, args: any, context: Context) => {
@@ -85,14 +112,28 @@ export const userQueries = (t: any) => {
 
       return context.prisma.user.findUnique({
         where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
+        include: {
+          company: true,
         },
+      });
+    },
+  });
+
+  // Get all manufacturers
+  t.list.field("allManufacturers", {
+    type: "User",
+    resolve: async (_parent: unknown, _args: unknown, context: Context) => {
+      requireAuth(context);
+
+      return context.prisma.user.findMany({
+        where: {
+          role: "MANUFACTURE",
+          isActive: true,
+        },
+        include: {
+          company: true,
+        },
+        orderBy: { name: "asc" },
       });
     },
   });

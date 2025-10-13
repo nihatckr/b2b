@@ -1,8 +1,7 @@
 "use client";
 
-import { apolloClient } from "@/lib/apolloClient";
-import { MeDocument, type MeQuery, type User } from "@/lib/graphql/generated/graphql";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useMeQuery, type User } from "../__generated__/graphql";
 
 // Auth context type
 interface AuthContextType {
@@ -21,6 +20,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [shouldFetch, setShouldFetch] = useState(false);
+
+  // URQL me query
+  const [meResult, refetchMe] = useMeQuery({
+    pause: !shouldFetch, // Only fetch when we have a token
+  });
 
   // Check authentication on app start
   useEffect(() => {
@@ -32,24 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
-
-          // Verify token is still valid by fetching fresh user data
-          try {
-            const { data } = await apolloClient.query<MeQuery>({
-              query: MeDocument,
-              errorPolicy: "all",
-            });
-
-            if (data?.me) {
-              setUser(data.me);
-            }
-          } catch (error) {
-            console.error("Failed to fetch user:", error);
-            // Token might be invalid, clear it
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            setUser(null);
-          }
+          setShouldFetch(true); // Enable the URQL query
         } catch (error) {
           console.error("Failed to parse stored user:", error);
           localStorage.removeItem("token");
@@ -63,32 +51,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, []);
 
+  // Handle URQL query results
+  useEffect(() => {
+    if (meResult.data?.me) {
+      setUser(meResult.data.me);
+      localStorage.setItem("user", JSON.stringify(meResult.data.me));
+    } else if (meResult.error) {
+      console.error("Failed to fetch user:", meResult.error);
+      // Token might be invalid, clear it
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+      setShouldFetch(false);
+    }
+  }, [meResult.data, meResult.error]);
+
   const login = (token: string, userData: User) => {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
+    setShouldFetch(true);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
+    setShouldFetch(false);
   };
 
-  const refetchUser = async () => {
-    try {
-      const { data } = await apolloClient.query<MeQuery>({
-        query: MeDocument,
-        fetchPolicy: "network-only",
-      });
-
-      if (data?.me) {
-        setUser(data.me);
-        localStorage.setItem("user", JSON.stringify(data.me));
-      }
-    } catch (error) {
-      console.error("Failed to refetch user:", error);
-    }
+  const refetchUser = () => {
+    refetchMe({ requestPolicy: "network-only" });
   };
 
   const value: AuthContextType = {

@@ -19,11 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthProvider";
 import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import {
-  useSignupMutation,
-  type SignupInput,
-  type SignupMutation,
-} from '../../../lib/graphql/generated/graphql';
+import { useSignupMutation } from "../../../__generated__/graphql";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -35,7 +31,13 @@ const signupSchema = z
   .object({
     name: z.string().min(1, "Name is required"),
     email: z.string().min(1, "Email is required").email("Invalid email format"),
-    password: z.string().min(1, "Password is required"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        "Password must contain at least one lowercase letter, one uppercase letter, and one number"
+      ),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -68,15 +70,45 @@ export function SignupForm({
     },
   });
 
-  const [signupMutation] = useSignupMutation({
-    onCompleted: (data: SignupMutation) => {
-      if (data.signup?.token) {
+  const [, signupMutation] = useSignupMutation();
+
+  const onSubmit = async (data: SignupForm) => {
+    setIsLoading(true);
+    try {
+      const result = await signupMutation({
+        input: {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        },
+      });
+
+      // Check for URQL errors first
+      if (result.error) {
+        // Handle GraphQL errors from URQL
+        const errorMessage =
+          result.error.graphQLErrors?.[0]?.message ||
+          result.error.networkError?.message ||
+          result.error.message ||
+          "Signup failed";
+
+        // Show error toast
+        showToast(errorMessage, "error");
+
+        // Display error message from server
+        form.setError("root", {
+          message: errorMessage,
+        });
+        return;
+      }
+
+      if (result.data?.signup?.token) {
         // Use auth context to handle login
-        login(data.signup.token, data.signup.user!);
+        login(result.data.signup.token, result.data.signup.user);
 
         // Show success toast with user's name
         showToast(
-          `Account created successfully! Welcome ${data.signup.user?.name}!`,
+          `Account created successfully! Welcome ${result.data.signup.user?.name}!`,
           "success"
         );
 
@@ -90,39 +122,21 @@ export function SignupForm({
           }, 1500);
         }
       }
-    },
-    onError: (error: { message: string }) => {
+    } catch (error) {
       // Only log in development
       if (process.env.NODE_ENV === "development") {
         console.error("Signup error:", error);
       }
 
       // Show server error message via toast
-      showToast(error.message, "error");
+      const serverMessage =
+        error instanceof Error ? error.message : "Signup failed";
+      showToast(serverMessage, "error");
 
       // Also set form error for accessibility
       form.setError("root", {
-        message: error.message,
+        message: serverMessage,
       });
-    },
-  });
-
-  const onSubmit = async (data: SignupForm) => {
-    setIsLoading(true);
-    try {
-      const input: SignupInput = {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-      };
-
-      await signupMutation({
-        variables: {
-          input,
-        },
-      });
-    } catch (error) {
-      console.error("Signup failed:", error);
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +148,7 @@ export function SignupForm({
         <CardHeader>
           <CardTitle>Create an account</CardTitle>
           <CardDescription>
-            Enter your information below to create your account
+            Enter your information to create your account
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -145,11 +159,11 @@ export function SignupForm({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
                       <Input
+                        placeholder="Enter your name"
                         {...field}
-                        placeholder="John Doe"
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -157,7 +171,6 @@ export function SignupForm({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="email"
@@ -166,9 +179,9 @@ export function SignupForm({
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        {...field}
+                        placeholder="Enter your email"
                         type="email"
-                        placeholder="john@example.com"
+                        {...field}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -176,7 +189,6 @@ export function SignupForm({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="password"
@@ -185,9 +197,9 @@ export function SignupForm({
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input
-                        {...field}
-                        type="password"
                         placeholder="Enter your password"
+                        type="password"
+                        {...field}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -195,7 +207,6 @@ export function SignupForm({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="confirmPassword"
@@ -204,9 +215,9 @@ export function SignupForm({
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
                       <Input
-                        {...field}
-                        type="password"
                         placeholder="Confirm your password"
+                        type="password"
+                        {...field}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -215,22 +226,16 @@ export function SignupForm({
                 )}
               />
 
+              {/* Show form-level error if any */}
               {form.formState.errors.root && (
-                <div className="text-sm text-red-600">
+                <div className="text-sm text-red-500">
                   {form.formState.errors.root.message}
                 </div>
               )}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Create Account"}
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
-
-              <div className="text-center text-sm">
-                Already have an account?{" "}
-                <a href="/login" className="underline">
-                  Sign in
-                </a>
-              </div>
             </form>
           </Form>
         </CardContent>

@@ -1,19 +1,30 @@
-import { compare, hash } from 'bcryptjs';
-import { sign } from 'jsonwebtoken';
-import { arg, intArg, nonNull, stringArg } from 'nexus';
-import { Context } from '../context';
-import { APP_SECRET, getUserId, requireAdmin, validateEmail, validatePassword } from '../utils/user-role-helper';
-
-
-
+import { compare, hash } from "bcryptjs";
+import { sign } from "jsonwebtoken";
+import { arg, booleanArg, intArg, nonNull, stringArg } from "nexus";
+import { Context } from "../context";
+import { AuthPayload } from "../types";
+import { SignupInput } from "../types/SignupInput";
+import {
+  APP_SECRET,
+  getUserId,
+  getUserRole,
+  requireAdmin,
+  requireAuth,
+  validateEmail,
+  validatePassword,
+} from "../utils/user-role-helper";
 
 export const userMutations = (t: any) => {
   t.field("signup", {
-    type: "AuthPayload",
+    type: AuthPayload,
     args: {
-      input: nonNull(arg({ type: "SignupInput" })),
+      input: nonNull(arg({ type: SignupInput })),
     },
-    resolve: async (_parent: any, { input }: { input: any }, context: Context) => {
+    resolve: async (
+      _parent: any,
+      { input }: { input: any },
+      context: Context
+    ) => {
       // Development debug logging
       if (process.env.NODE_ENV !== "production") {
         console.log("\n📝 SIGNUP ATTEMPT:", input.email);
@@ -63,29 +74,125 @@ export const userMutations = (t: any) => {
         );
       }
 
-      // 6. Create user
+      // 6. Handle company flow (if provided)
+      let companyId = input.companyId ? parseInt(input.companyId) : null;
+      let isCompanyOwner = false;
+      let newCompany = null;
+
+      if (input.companyFlow) {
+        const flow = input.companyFlow;
+
+        if (flow.action === "CREATE_NEW") {
+          // Create new company
+          if (!flow.companyName || !flow.companyEmail) {
+            throw new Error("Company name and email are required");
+          }
+
+          // Check if company email already exists
+          const existingCompany = await context.prisma.company.findUnique({
+            where: { email: flow.companyEmail },
+          });
+
+          if (existingCompany) {
+            throw new Error("A company with this email already exists");
+          }
+
+          // Create company (owner will be set after user creation)
+          newCompany = await context.prisma.company.create({
+            data: {
+              name: flow.companyName,
+              email: flow.companyEmail,
+              phone: flow.companyPhone || null,
+              address: flow.companyAddress || null,
+              website: flow.companyWebsite || null,
+              type: flow.companyType || "MANUFACTURER",
+              isActive: true,
+            },
+          });
+
+          companyId = newCompany.id;
+          isCompanyOwner = true;
+
+          console.log(`✅ Created new company: ${newCompany.name}`);
+        } else if (flow.action === "JOIN_EXISTING") {
+          // Join existing company
+          if (!flow.companyId) {
+            throw new Error("Company ID is required to join existing company");
+          }
+
+          const company = await context.prisma.company.findUnique({
+            where: { id: flow.companyId },
+          });
+
+          if (!company) {
+            throw new Error("Company not found");
+          }
+
+          // Company owner is creating employee - no approval needed
+          companyId = flow.companyId;
+          isCompanyOwner = false;
+
+          console.log(`✅ Joining company ID: ${companyId}`);
+        }
+      }
+
+      // 7. Determine role
+      let role = input.role || "INDIVIDUAL_CUSTOMER";
+
+      // Auto-set role based on company flow
+      if (input.companyFlow) {
+        if (input.companyFlow.action === "CREATE_NEW") {
+          role = "COMPANY_OWNER";
+        } else if (input.companyFlow.action === "JOIN_EXISTING") {
+          role = "COMPANY_EMPLOYEE";
+        }
+      }
+
+      // 8. Create user
       const hashedPassword = await hash(input.password, 10);
       const user = await context.prisma.user.create({
         data: {
           name: input.name,
           email: input.email,
           password: hashedPassword,
-          role: input.role || "CUSTOMER", // Default role
+          role,
           username: input.username,
           firstName: input.firstName,
           lastName: input.lastName,
           phone: input.phone,
-          companyId: input.companyId,
+          companyId,
+          isCompanyOwner,
+          isPendingApproval: false, // Company owner creating employee - auto approved
+          department: input.department || null,
+          jobTitle: input.jobTitle || null,
+          permissions: input.permissions || null, // JSON string from frontend or null
+          isActive: true,
         },
         select: {
           id: true,
           email: true,
           name: true,
+          firstName: true,
+          lastName: true,
           role: true,
+          companyId: true,
+          isCompanyOwner: true,
+          isPendingApproval: true,
+          department: true,
+          jobTitle: true,
+          isActive: true,
           createdAt: true,
           updatedAt: true,
         },
       });
+
+      // 9. If new company was created, update owner
+      if (newCompany && isCompanyOwner) {
+        await context.prisma.company.update({
+          where: { id: newCompany.id },
+          data: { ownerId: user.id },
+        });
+      }
 
       const token = sign({ userId: user.id.toString() }, APP_SECRET, {
         expiresIn: "7d",
@@ -188,7 +295,13 @@ export const userMutations = (t: any) => {
         id: user.id,
         email: user.email,
         name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
+        companyId: user.companyId,
+        isCompanyOwner: user.isCompanyOwner,
+        isPendingApproval: user.isPendingApproval,
+        isActive: user.isActive,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       };
@@ -201,6 +314,135 @@ export const userMutations = (t: any) => {
   });
 
   // Admin-only mutations
+  t.field("createUser", {
+    type: "User",
+    args: {
+      email: nonNull(stringArg()),
+      name: nonNull(stringArg()),
+      password: nonNull(stringArg()),
+      role: nonNull(arg({ type: "Role" })),
+    },
+    resolve: async (_: any, args: any, context: Context) => {
+      await requireAdmin(context);
+
+      // Validate email
+      try {
+        validateEmail(args.email);
+      } catch (error) {
+        throw new Error("Please enter a valid email address.");
+      }
+
+      // Validate password
+      try {
+        validatePassword(args.password);
+      } catch (error: any) {
+        throw new Error(error.message);
+      }
+
+      // Check if email already exists
+      const existingUser = await context.prisma.user.findUnique({
+        where: { email: args.email.toLowerCase().trim() },
+      });
+
+      if (existingUser) {
+        throw new Error("User with this email already exists.");
+      }
+
+      // Hash password
+      const hashedPassword = await hash(args.password, 10);
+
+      // Create user
+      const user = await context.prisma.user.create({
+        data: {
+          email: args.email.toLowerCase().trim(),
+          name: args.name.trim(),
+          password: hashedPassword,
+          role: args.role,
+          isActive: true,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      return user;
+    },
+  });
+
+  t.field("updateUser", {
+    type: "User",
+    args: {
+      userId: nonNull(intArg()),
+      email: stringArg(),
+      name: stringArg(),
+      role: arg({ type: "Role" }),
+      isActive: booleanArg(),
+    },
+    resolve: async (_: any, args: any, context: Context) => {
+      await requireAdmin(context);
+
+      const updates: any = {};
+
+      if (args.email !== undefined && args.email !== null) {
+        try {
+          validateEmail(args.email);
+        } catch (error) {
+          throw new Error("Please enter a valid email address.");
+        }
+
+        // Check if email already exists (but not current user)
+        const existingUser = await context.prisma.user.findUnique({
+          where: { email: args.email.toLowerCase().trim() },
+        });
+
+        if (existingUser && existingUser.id !== args.userId) {
+          throw new Error("User with this email already exists.");
+        }
+
+        updates.email = args.email.toLowerCase().trim();
+      }
+
+      if (args.name !== undefined && args.name !== null) {
+        if (args.name.trim() === "") {
+          throw new Error("Name cannot be empty.");
+        }
+        updates.name = args.name.trim();
+      }
+
+      if (args.role !== undefined && args.role !== null) {
+        updates.role = args.role;
+      }
+
+      if (args.isActive !== undefined && args.isActive !== null) {
+        updates.isActive = args.isActive;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        throw new Error("No updates provided.");
+      }
+
+      return context.prisma.user.update({
+        where: { id: args.userId },
+        data: updates,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+    },
+  });
+
   t.field("updateUserRole", {
     type: "User",
     args: {
@@ -218,6 +460,7 @@ export const userMutations = (t: any) => {
           email: true,
           name: true,
           role: true,
+          isActive: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -546,6 +789,117 @@ export const userMutations = (t: any) => {
       }
 
       return true;
+    },
+  });
+
+  // Update User (by company owner or admin)
+  t.field("updateUser", {
+    type: "User",
+    args: {
+      input: nonNull(arg({ type: "UserUpdateInput" })),
+    },
+    resolve: async (_parent: any, { input }: any, context: Context) => {
+      const userId = requireAuth(context);
+
+      const currentUser = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!currentUser) throw new Error("User not found");
+
+      const userRole = getUserRole(currentUser);
+
+      // Get target user
+      const targetUser = await context.prisma.user.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!targetUser) throw new Error("Target user not found");
+
+      // Permission check: Admin or company owner updating their employee
+      if (userRole !== "ADMIN") {
+        if (
+          !currentUser.companyId ||
+          currentUser.companyId !== targetUser.companyId
+        ) {
+          throw new Error("Not authorized to update this user");
+        }
+        if (!currentUser.isCompanyOwner) {
+          throw new Error("Only company owner can update employees");
+        }
+      }
+
+      // Build update data
+      const updateData: any = {};
+      if (input.firstName !== undefined) updateData.firstName = input.firstName;
+      if (input.lastName !== undefined) updateData.lastName = input.lastName;
+      if (input.email !== undefined) updateData.email = input.email;
+      if (input.phone !== undefined) updateData.phone = input.phone;
+      if (input.department !== undefined)
+        updateData.department = input.department;
+      if (input.jobTitle !== undefined) updateData.jobTitle = input.jobTitle;
+      if (input.permissions !== undefined)
+        updateData.permissions = input.permissions;
+      if (input.role !== undefined) updateData.role = input.role;
+      if (input.isActive !== undefined) updateData.isActive = input.isActive;
+      if (input.isCompanyOwner !== undefined)
+        updateData.isCompanyOwner = input.isCompanyOwner;
+
+      return context.prisma.user.update({
+        where: { id: input.id },
+        data: updateData,
+        include: { company: true },
+      });
+    },
+  });
+
+  // Delete User (by company owner or admin)
+  t.field("deleteUser", {
+    type: "User",
+    args: {
+      id: nonNull(intArg()),
+    },
+    resolve: async (_parent: any, { id }: any, context: Context) => {
+      const userId = requireAuth(context);
+
+      const currentUser = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!currentUser) throw new Error("User not found");
+
+      const userRole = getUserRole(currentUser);
+
+      // Get target user
+      const targetUser = await context.prisma.user.findUnique({
+        where: { id },
+      });
+
+      if (!targetUser) throw new Error("Target user not found");
+
+      // Cannot delete yourself
+      if (targetUser.id === userId) {
+        throw new Error("Cannot delete yourself");
+      }
+
+      // Permission check
+      if (userRole !== "ADMIN") {
+        if (
+          !currentUser.companyId ||
+          currentUser.companyId !== targetUser.companyId
+        ) {
+          throw new Error("Not authorized to delete this user");
+        }
+        if (!currentUser.isCompanyOwner) {
+          throw new Error("Only company owner can delete employees");
+        }
+      }
+
+      return context.prisma.user.delete({
+        where: { id },
+      });
     },
   });
 };

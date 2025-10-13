@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { SignupForm } from "../SignupForm/signup-form";
+import { MultiStepSignupForm } from "../SignupForm/multi-step-signup-form";
 
 interface SignupModalProps {
   children: React.ReactNode;
@@ -26,11 +26,11 @@ export function SignupModal({ children, onSuccess }: SignupModalProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create your account</DialogTitle>
         </DialogHeader>
-        <SignupForm onSuccess={handleSuccess} />
+        <MultiStepSignupForm onSuccess={handleSuccess} />
       </DialogContent>
     </Dialog>
   );

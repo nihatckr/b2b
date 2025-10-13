@@ -1,12 +1,12 @@
 import { makeSchema } from "nexus";
 import { join } from "path";
-import { Mutation } from './mutations/Mutation';
-import { Query } from './query/Query';
-import * as types from './types';
+import { Mutation } from "./mutations/Mutation";
+import { Query } from "./query/Query";
+import * as types from "./types";
 
 // Create minimal schema for now
 const schemaWithoutPermissions = makeSchema({
-  types:[ Mutation, Query, types],
+  types: [Mutation, Query, types],
   outputs: {
     typegen: join(
       process.cwd(),

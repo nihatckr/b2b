@@ -21,14 +21,12 @@ import { useAuth } from "@/context/AuthProvider";
 import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
-import { useMutation } from "@apollo/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { gql } from '../../../__generated__';
-import type { LoginInput, LoginMutation } from '../../../__generated__/graphql';
+import { useLoginMutation } from "../../../__generated__/graphql";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email format"),
@@ -53,30 +51,46 @@ export function LoginForm({ className, onSuccess, ...props }: LoginFormProps) {
     },
   });
 
-  const [loginMutation] = useMutation(LOGIN_MUTATION, {
-    onCompleted: (data: LoginMutation) => {
-      if (data.login?.token) {
-        // Use auth context to handle login
-        login(data.login.token, {
-          ...data.login.user!,
-          categories: [],
-          collections: [],
-          company: null,
-          customerOrders: [],
-          customerQuestions: [],
-          customerReviews: [],
-          customerSamples: [],
-          manufactureOrders: [],
+  const [, loginMutation] = useLoginMutation();
 
-          manufactureSamples: [],
-          manufactureReviews: [],
-          manufactureQuestions: [],
-          // Add other missing properties with default values as required by your User type
+  const onSubmit = async (data: LoginForm) => {
+    setIsLoading(true);
+    try {
+      const result = await loginMutation({
+        input: {
+          email: data.email,
+          password: data.password,
+        },
+      });
+
+      // Check for URQL errors first
+      if (result.error) {
+        // Handle GraphQL errors from URQL
+        const errorMessage =
+          result.error.graphQLErrors?.[0]?.message ||
+          result.error.networkError?.message ||
+          result.error.message ||
+          "Login failed";
+
+        // Show error toast
+        showToast(errorMessage, "error");
+
+        // Display error message from server
+        form.setError("root", {
+          message: errorMessage,
         });
+        return;
+      }
+
+      if (result.data?.login?.token) {
+        // Use auth context to handle login
+        login(result.data.login.token, result.data.login.user);
 
         // Show success toast
         showToast(
-          `Welcome back, ${data.login.user?.name || data.login.user?.email}!`,
+          `Welcome back, ${
+            result.data.login.user?.name || result.data.login.user?.email
+          }!`,
           "success"
         );
 
@@ -90,15 +104,15 @@ export function LoginForm({ className, onSuccess, ...props }: LoginFormProps) {
           }, 1500);
         }
       }
-    },
-    onError: (error: { message: string }) => {
+    } catch (error) {
       // Only log in development
       if (process.env.NODE_ENV === "development") {
         console.error("Login error:", error);
       }
 
       // Show server error message directly
-      const serverMessage = error.message;
+      const serverMessage =
+        error instanceof Error ? error.message : "Login failed";
 
       // Show error toast
       showToast(serverMessage, "error");
@@ -107,27 +121,6 @@ export function LoginForm({ className, onSuccess, ...props }: LoginFormProps) {
       form.setError("root", {
         message: serverMessage,
       });
-    },
-  });
-
-  const onSubmit = async (data: LoginForm) => {
-    setIsLoading(true);
-    try {
-      const input: LoginInput = {
-        email: data.email,
-        password: data.password,
-      };
-
-      await loginMutation({
-        variables: {
-          input,
-        },
-      });
-    } catch (error) {
-      // Error is already handled by onError callback
-      if (process.env.NODE_ENV === "development") {
-        console.error("Login failed:", error);
-      }
     } finally {
       setIsLoading(false);
     }
