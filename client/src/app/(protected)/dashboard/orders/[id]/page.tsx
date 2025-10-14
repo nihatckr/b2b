@@ -1,74 +1,131 @@
 "use client";
 
-import { format } from "date-fns";
+import { ProductionTimeline } from "@/components/Order/ProductionTimeline";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/context/AuthProvider";
+import {
+  UPDATE_ORDER_MUTATION,
+  UPDATE_ORDER_STATUS_MUTATION,
+} from "@/lib/graphql/mutations";
+import { ORDER_BY_ID_QUERY } from "@/lib/graphql/queries";
 import {
   ArrowLeft,
-  Building,
   Calendar,
   DollarSign,
-  MapPin,
+  Edit,
+  Loader2,
   Package,
-  Truck,
   User,
 } from "lucide-react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useOrderQuery } from "../../../../../__generated__/graphql";
-import { Badge } from "../../../../../components/ui/badge";
-import { Button } from "../../../../../components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../../../../components/ui/card";
-import { Separator } from "../../../../../components/ui/separator";
-import { Skeleton } from "../../../../../components/ui/skeleton";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useMutation, useQuery } from "urql";
 
-const statusColors: { [key: string]: string } = {
-  PENDING: "bg-amber-100 text-amber-700",
-  REVIEWED: "bg-purple-100 text-purple-700",
-  QUOTE_SENT: "bg-blue-100 text-blue-700",
-  CONFIRMED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
-  IN_PRODUCTION: "bg-emerald-100 text-emerald-700",
-  PRODUCTION_COMPLETE: "bg-teal-100 text-teal-700",
-  QUALITY_CHECK: "bg-cyan-100 text-cyan-700",
-  SHIPPED: "bg-indigo-100 text-indigo-700",
-  DELIVERED: "bg-green-100 text-green-700",
-  CANCELLED: "bg-gray-100 text-gray-700",
-};
+const getOrderStatusBadge = (status: string) => {
+  const statusConfig: Record<string, { label: string; className: string }> = {
+    PENDING: { label: "Beklemede", className: "bg-blue-100 text-blue-800" },
+    REVIEWED: {
+      label: "İnceleniyor",
+      className: "bg-purple-100 text-purple-800",
+    },
+    QUOTE_SENT: {
+      label: "Teklif Gönderildi",
+      className: "bg-yellow-100 text-yellow-800",
+    },
+    CONFIRMED: { label: "Onaylandı", className: "bg-green-100 text-green-800" },
+    REJECTED: { label: "Reddedildi", className: "bg-red-100 text-red-800" },
+    IN_PRODUCTION: {
+      label: "Üretimde",
+      className: "bg-orange-100 text-orange-800",
+    },
+    PRODUCTION_COMPLETE: {
+      label: "Üretim Tamamlandı",
+      className: "bg-teal-100 text-teal-800",
+    },
+    QUALITY_CHECK: {
+      label: "Kalite Kontrolde",
+      className: "bg-indigo-100 text-indigo-800",
+    },
+    SHIPPED: { label: "Kargoda", className: "bg-cyan-100 text-cyan-800" },
+    DELIVERED: {
+      label: "Teslim Edildi",
+      className: "bg-green-100 text-green-800",
+    },
+    CANCELLED: {
+      label: "İptal Edildi",
+      className: "bg-gray-100 text-gray-800",
+    },
+  };
 
-const statusLabels: { [key: string]: string } = {
-  PENDING: "Beklemede",
-  REVIEWED: "İncelendi",
-  QUOTE_SENT: "Teklif Gönderildi",
-  CONFIRMED: "Onaylandı",
-  REJECTED: "Reddedildi",
-  IN_PRODUCTION: "Üretimde",
-  PRODUCTION_COMPLETE: "Üretim Tamamlandı",
-  QUALITY_CHECK: "Kalite Kontrolde",
-  SHIPPED: "Kargoya Verildi",
-  DELIVERED: "Teslim Edildi",
-  CANCELLED: "İptal Edildi",
+  const config = statusConfig[status] || {
+    label: status,
+    className: "bg-gray-100 text-gray-800",
+  };
+
+  return <Badge className={config.className}>{config.label}</Badge>;
 };
 
 export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const orderId = params.id as string;
 
-  const [{ data, fetching, error }] = useOrderQuery({
-    variables: { id: parseInt(orderId) },
-    requestPolicy: "network-only",
+  const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [actionType, setActionType] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [editFormData, setEditFormData] = useState({
+    status: "",
+    manufacturerResponse: "",
+    productionDays: "",
+    estimatedProductionDate: "",
   });
+
+  const [{ data, fetching, error }, reexecuteQuery] = useQuery({
+    query: ORDER_BY_ID_QUERY,
+    variables: { id: parseInt(orderId) },
+  });
+
+  const [, updateOrderStatus] = useMutation(UPDATE_ORDER_STATUS_MUTATION);
+  const [, updateOrder] = useMutation(UPDATE_ORDER_MUTATION);
+
+  const isManufacturer =
+    user?.role === "MANUFACTURE" ||
+    user?.role === "COMPANY_OWNER" ||
+    user?.role === "COMPANY_EMPLOYEE";
 
   if (fetching) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-6">
         <Skeleton className="h-10 w-48" />
-        <div className="grid gap-6 md:grid-cols-3">
-          <Skeleton className="h-[400px] md:col-span-2" />
-          <Skeleton className="h-[400px]" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-96" />
+          <Skeleton className="h-96" />
         </div>
       </div>
     );
@@ -76,16 +133,16 @@ export default function OrderDetailPage() {
 
   if (error || !data?.order) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="space-y-6">
+        <Button variant="outline" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Geri
+        </Button>
         <Card className="border-red-200">
           <CardContent className="pt-6">
             <p className="text-red-600">
-              {error?.message || "Order not found"}
+              {error?.message || "Sipariş bulunamadı"}
             </p>
-            <Button onClick={() => router.back()} className="mt-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Go Back
-            </Button>
           </CardContent>
         </Card>
       </div>
@@ -94,421 +151,569 @@ export default function OrderDetailPage() {
 
   const order = data.order;
 
+  const getCustomerName = () => {
+    if (!order.customer) return "Bilinmiyor";
+    const { firstName, lastName, name } = order.customer;
+    if (firstName && lastName) return `${firstName} ${lastName}`;
+    if (name) return name;
+    return order.customer.email;
+  };
+
+  const getManufactureName = () => {
+    if (!order.manufacture) return "Bilinmiyor";
+    const { firstName, lastName, name } = order.manufacture;
+    if (firstName && lastName) return `${firstName} ${lastName}`;
+    if (name) return name;
+    return order.manufacture.email;
+  };
+
+  const getOrderProgress = () => {
+    if (!order) return 0;
+
+    const {
+      status,
+      estimatedProductionDate,
+      actualProductionStart,
+      createdAt,
+    } = order;
+
+    if (status === "DELIVERED") return 100;
+    if (status === "REJECTED" || status === "CANCELLED") return 0;
+
+    if (
+      (status === "IN_PRODUCTION" ||
+        status === "PRODUCTION_COMPLETE" ||
+        status === "QUALITY_CHECK") &&
+      estimatedProductionDate
+    ) {
+      const startDate = actualProductionStart
+        ? new Date(actualProductionStart)
+        : new Date(createdAt);
+      const endDate = new Date(estimatedProductionDate);
+      const now = new Date();
+
+      const totalDuration = endDate.getTime() - startDate.getTime();
+      const elapsedDuration = now.getTime() - startDate.getTime();
+
+      if (totalDuration <= 0) return 50;
+
+      let calculatedProgress = (elapsedDuration / totalDuration) * 100;
+      calculatedProgress = Math.max(0, Math.min(100, calculatedProgress));
+
+      if (status === "IN_PRODUCTION") {
+        calculatedProgress = Math.max(30, calculatedProgress);
+      } else if (status === "PRODUCTION_COMPLETE") {
+        calculatedProgress = Math.max(70, calculatedProgress);
+      } else if (status === "QUALITY_CHECK") {
+        calculatedProgress = Math.max(85, calculatedProgress);
+      }
+
+      return Math.floor(calculatedProgress);
+    }
+
+    const progressMap: Record<string, number> = {
+      PENDING: 5,
+      REVIEWED: 10,
+      QUOTE_SENT: 15,
+      CONFIRMED: 20,
+      IN_PRODUCTION: 50,
+      PRODUCTION_COMPLETE: 70,
+      QUALITY_CHECK: 85,
+      SHIPPED: 95,
+      DELIVERED: 100,
+      REJECTED: 0,
+      CANCELLED: 0,
+    };
+    return progressMap[status] || 0;
+  };
+
+  const handleStatusAction = async (newStatus: string) => {
+    if (!order) return;
+
+    setIsSubmitting(true);
+    try {
+      const result = await updateOrderStatus({
+        id: order.id,
+        status: newStatus,
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      toast.success("Sipariş durumu güncellendi");
+      reexecuteQuery({ requestPolicy: "network-only" });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Durum güncellenirken bir hata oluştu";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditClick = () => {
+    if (!order) return;
+    setEditFormData({
+      status: order.status,
+      manufacturerResponse: order.manufacturerResponse || "",
+      productionDays: order.productionDays?.toString() || "",
+      estimatedProductionDate: order.estimatedProductionDate
+        ? new Date(order.estimatedProductionDate).toISOString().split("T")[0]
+        : "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSubmitEdit = async () => {
+    if (!order) return;
+
+    setIsSubmitting(true);
+    try {
+      const result = await updateOrder({
+        id: order.id,
+        status: editFormData.status || undefined,
+        manufacturerResponse: editFormData.manufacturerResponse || undefined,
+        productionDays: editFormData.productionDays
+          ? parseInt(editFormData.productionDays)
+          : undefined,
+        estimatedProductionDate: editFormData.estimatedProductionDate
+          ? new Date(editFormData.estimatedProductionDate).toISOString()
+          : undefined,
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      toast.success("Sipariş başarıyla güncellendi");
+      setIsEditDialogOpen(false);
+      reexecuteQuery({ requestPolicy: "network-only" });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Sipariş güncellenirken bir hata oluştu";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {order.orderNumber}
-            </h1>
-            <p className="text-muted-foreground">Order Details</p>
-          </div>
+      <div className="flex items-center gap-4">
+        <Button variant="outline" size="sm" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Geri
+        </Button>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold">{order.orderNumber}</h1>
+          <p className="text-gray-500 mt-1">Sipariş Detayları</p>
         </div>
-        <Badge className={statusColors[order.status]}>
-          {statusLabels[order.status] || order.status}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {getOrderStatusBadge(order.status)}
+
+          {/* Manufacturer Edit Button */}
+          {isManufacturer &&
+            order.status !== "DELIVERED" &&
+            order.status !== "CANCELLED" && (
+              <Button variant="outline" size="sm" onClick={handleEditClick}>
+                <Edit className="h-4 w-4 mr-2" />
+                Düzenle
+              </Button>
+            )}
+        </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Main Info */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Collection Info */}
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
-              Order Information
+              Koleksiyon Bilgileri
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Collection */}
             {order.collection && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                  Product Collection
-                </h3>
-                <div className="p-4 bg-gray-50 rounded-lg border">
-                  <p className="font-medium text-lg">{order.collection.name}</p>
+              <div className="flex gap-4">
+                {order.collection.images &&
+                  order.collection.images.length > 0 && (
+                    <div className="w-32 h-32 rounded-lg overflow-hidden border flex-shrink-0">
+                      <Image
+                        src={order.collection.images[0].replace(/\/\//g, "/")}
+                        alt={order.collection.name}
+                        width={128}
+                        height={128}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold mb-1">
+                    {order.collection.name}
+                  </h3>
                   {order.collection.description && (
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-sm text-gray-500 mb-2">
                       {order.collection.description}
                     </p>
                   )}
-                  {order.collection.price && (
-                    <p className="text-sm font-medium text-primary mt-2">
-                      Base Price: ₺
-                      {order.collection.price.toLocaleString("tr-TR")}
-                    </p>
-                  )}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-gray-500">Fiyat:</span>
+                      <span className="ml-2 font-medium">
+                        ₺{order.collection.price?.toFixed(2) || "-"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
 
-            <Separator />
-
-            {/* Order Details */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Quantity
-                </h3>
-                <p className="text-2xl font-bold">{order.quantity}</p>
-                <p className="text-xs text-muted-foreground">units</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Unit Price
-                </h3>
-                <p className="text-2xl font-bold">
-                  ₺{order.unitPrice.toLocaleString("tr-TR")}
-                </p>
-                <p className="text-xs text-muted-foreground">per unit</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Total Price
-                </h3>
-                <p className="text-2xl font-bold text-primary">
-                  ₺{order.totalPrice.toLocaleString("tr-TR")}
-                </p>
-                <p className="text-xs text-muted-foreground">grand total</p>
-              </div>
+        {/* Order Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Sipariş Özeti
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Miktar:</span>
+              <span className="font-medium">{order.quantity} adet</span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Birim Fiyat:</span>
+              <span className="font-medium">₺{order.unitPrice.toFixed(2)}</span>
+            </div>
+            <div className="border-t pt-3 flex justify-between">
+              <span className="font-semibold">Toplam:</span>
+              <span className="text-xl font-bold text-green-600">
+                ₺{order.totalPrice.toFixed(2)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-            <Separator />
+      {/* Production Timeline */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Üretim Süreci Timeline
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6 pb-8">
+          <ProductionTimeline
+            currentStatus={order.status}
+            onStatusChange={
+              isManufacturer
+                ? (newStatus) => handleStatusAction(newStatus)
+                : undefined
+            }
+            isManufacturer={isManufacturer}
+            progress={getOrderProgress()}
+          />
+        </CardContent>
+      </Card>
 
-            {/* Notes */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Customer Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Müşteri Bilgileri
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div>
+              <p className="text-sm text-gray-500">İsim</p>
+              <p className="font-medium">{getCustomerName()}</p>
+            </div>
+            {order.customer?.email && (
+              <div>
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="font-medium">{order.customer.email}</p>
+              </div>
+            )}
+            {order.customer?.phone && (
+              <div>
+                <p className="text-sm text-gray-500">Telefon</p>
+                <p className="font-medium">{order.customer.phone}</p>
+              </div>
+            )}
+            {order.company?.name && (
+              <div>
+                <p className="text-sm text-gray-500">Şirket</p>
+                <p className="font-medium">{order.company.name}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Manufacturer Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Üretici Bilgileri
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div>
+              <p className="text-sm text-gray-500">İsim</p>
+              <p className="font-medium">{getManufactureName()}</p>
+            </div>
+            {order.manufacture?.email && (
+              <div>
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="font-medium">{order.manufacture.email}</p>
+              </div>
+            )}
+            {order.manufacture?.phone && (
+              <div>
+                <p className="text-sm text-gray-500">Telefon</p>
+                <p className="font-medium">{order.manufacture.phone}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Timeline & Notes */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Production Timeline */}
+        {order.productionDays && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Üretim Takvimi
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div>
+                <p className="text-sm text-gray-500">Üretim Süresi</p>
+                <p className="font-medium">{order.productionDays} gün</p>
+              </div>
+              {order.estimatedProductionDate && (
+                <div>
+                  <p className="text-sm text-gray-500">Tahmini Bitiş</p>
+                  <p className="font-medium">
+                    {new Date(order.estimatedProductionDate).toLocaleDateString(
+                      "tr-TR"
+                    )}
+                  </p>
+                </div>
+              )}
+              {order.actualProductionStart && (
+                <div>
+                  <p className="text-sm text-gray-500">Fiili Başlangıç</p>
+                  <p className="font-medium">
+                    {new Date(order.actualProductionStart).toLocaleDateString(
+                      "tr-TR"
+                    )}
+                  </p>
+                </div>
+              )}
+              {order.actualProductionEnd && (
+                <div>
+                  <p className="text-sm text-gray-500">Fiili Bitiş</p>
+                  <p className="font-medium">
+                    {new Date(order.actualProductionEnd).toLocaleDateString(
+                      "tr-TR"
+                    )}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Notes */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Notlar</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             {order.customerNote && (
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Customer Note
-                </h3>
-                <p className="text-sm bg-blue-50 p-3 rounded-md border border-blue-200">
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Müşteri Notu:
+                </p>
+                <p className="text-sm p-3 bg-blue-50 rounded-lg">
                   {order.customerNote}
                 </p>
               </div>
             )}
-
             {order.manufacturerResponse && (
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Manufacturer Response
-                </h3>
-                <p className="text-sm bg-purple-50 p-3 rounded-md border border-purple-200">
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Üretici Yanıtı:
+                </p>
+                <p className="text-sm p-3 bg-green-50 rounded-lg">
                   {order.manufacturerResponse}
                 </p>
               </div>
             )}
+            {!order.customerNote && !order.manufacturerResponse && (
+              <p className="text-sm text-gray-500 italic">Henüz not yok</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-            <Separator />
-
-            {/* Production Schedule */}
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-3">
-                Production Schedule
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                {order.productionDays && (
-                  <div className="p-3 bg-gray-50 rounded-md">
-                    <p className="text-xs text-muted-foreground">
-                      Production Time
-                    </p>
-                    <p className="text-lg font-bold">
-                      {order.productionDays} days
-                    </p>
-                  </div>
-                )}
-
-                {order.estimatedProductionDate && (
-                  <div className="p-3 bg-gray-50 rounded-md">
-                    <p className="text-xs text-muted-foreground">
-                      Estimated Date
-                    </p>
-                    <p className="text-sm font-medium">
-                      {format(
-                        new Date(order.estimatedProductionDate),
-                        "dd MMM yyyy"
-                      )}
-                    </p>
-                  </div>
-                )}
-
-                {order.actualProductionStart && (
-                  <div className="p-3 bg-green-50 rounded-md border border-green-200">
-                    <p className="text-xs text-muted-foreground">
-                      Production Started
-                    </p>
-                    <p className="text-sm font-medium">
-                      {format(
-                        new Date(order.actualProductionStart),
-                        "dd MMM yyyy"
-                      )}
-                    </p>
-                  </div>
-                )}
-
-                {order.actualProductionEnd && (
-                  <div className="p-3 bg-green-50 rounded-md border border-green-200">
-                    <p className="text-xs text-muted-foreground">
-                      Production Completed
-                    </p>
-                    <p className="text-sm font-medium">
-                      {format(
-                        new Date(order.actualProductionEnd),
-                        "dd MMM yyyy"
-                      )}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Shipping Info */}
-            {(order.deliveryAddress ||
-              order.cargoTrackingNumber ||
-              order.shippingDate) && (
+      {/* Shipping Info */}
+      {(order.deliveryAddress ||
+        order.cargoTrackingNumber ||
+        order.shippingDate) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Teslimat Bilgileri</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {order.deliveryAddress && (
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-1">
-                  <Truck className="h-4 w-4" />
-                  Shipping Information
-                </h3>
-                <div className="space-y-3">
-                  {order.deliveryAddress && (
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          Delivery Address
-                        </p>
-                        <p className="text-sm">{order.deliveryAddress}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {order.cargoTrackingNumber && (
-                    <div className="flex items-start gap-2">
-                      <Package className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          Tracking Number
-                        </p>
-                        <p className="text-sm font-mono font-medium">
-                          {order.cargoTrackingNumber}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {order.shippingDate && (
-                    <div className="flex items-start gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          Shipped On
-                        </p>
-                        <p className="text-sm font-medium">
-                          {format(new Date(order.shippingDate), "dd MMM yyyy")}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <p className="text-sm text-gray-500">Teslimat Adresi</p>
+                <p className="font-medium">{order.deliveryAddress}</p>
+              </div>
+            )}
+            {order.cargoTrackingNumber && (
+              <div>
+                <p className="text-sm text-gray-500">Kargo Takip No</p>
+                <p className="font-medium font-mono">
+                  {order.cargoTrackingNumber}
+                </p>
+              </div>
+            )}
+            {order.shippingDate && (
+              <div>
+                <p className="text-sm text-gray-500">Kargo Tarihi</p>
+                <p className="font-medium">
+                  {new Date(order.shippingDate).toLocaleDateString("tr-TR")}
+                </p>
               </div>
             )}
           </CardContent>
         </Card>
+      )}
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Customer Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <User className="h-4 w-4" />
-                Customer
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="font-medium">
-                {order.customer.firstName} {order.customer.lastName}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {order.customer.email}
-              </p>
-              {order.customer.phone && (
-                <p className="text-sm text-muted-foreground">
-                  {order.customer.phone}
-                </p>
-              )}
-              {order.company && (
-                <div className="flex items-center gap-1 mt-2 pt-2 border-t">
-                  <Building className="h-3 w-3 text-muted-foreground" />
-                  <p className="text-sm font-medium">{order.company.name}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+      {/* Edit Order Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Siparişi Düzenle</DialogTitle>
+            <DialogDescription>
+              Sipariş bilgilerini ve üretici yanıtını güncelleyin
+            </DialogDescription>
+          </DialogHeader>
 
-          {/* Manufacturer Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Building className="h-4 w-4" />
-                Manufacturer
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="font-medium">
-                {order.manufacture.firstName} {order.manufacture.lastName}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {order.manufacture.email}
-              </p>
-              {order.manufacture.phone && (
-                <p className="text-sm text-muted-foreground">
-                  {order.manufacture.phone}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Financial Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <DollarSign className="h-4 w-4" />
-                Financial Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Quantity</span>
-                <span className="font-medium">{order.quantity} units</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  Unit Price
-                </span>
-                <span className="font-medium">
-                  ₺{order.unitPrice.toLocaleString("tr-TR")}
-                </span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Total</span>
-                <span className="text-xl font-bold text-primary">
-                  ₺{order.totalPrice.toLocaleString("tr-TR")}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Calendar className="h-4 w-4" />
-                Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Created</p>
-                <p className="text-sm font-medium">
-                  {format(new Date(order.createdAt), "dd MMM yyyy, HH:mm")}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Last Updated</p>
-                <p className="text-sm font-medium">
-                  {format(new Date(order.updatedAt), "dd MMM yyyy, HH:mm")}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Production History Timeline */}
-      {order.productionHistory && order.productionHistory.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Production History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative space-y-4">
-              {order.productionHistory.map((history: any, index: number) => (
-                <div key={history.id} className="flex gap-4">
-                  {/* Timeline dot */}
-                  <div className="relative flex flex-col items-center">
-                    <div
-                      className={`w-3 h-3 rounded-full ${
-                        index === 0 ? "bg-primary" : "bg-muted"
-                      }`}
-                    />
-                    {index < order.productionHistory.length - 1 && (
-                      <div className="w-0.5 h-full bg-muted absolute top-3" />
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 pb-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <Badge className={statusColors[history.status]}>
-                        {statusLabels[history.status] || history.status}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground">
-                        {format(
-                          new Date(history.createdAt),
-                          "dd MMM yyyy, HH:mm"
-                        )}
-                      </p>
-                    </div>
-                    {history.note && (
-                      <p className="text-sm text-muted-foreground mt-2">
-                        {history.note}
-                      </p>
-                    )}
-                    {history.estimatedDays && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Estimated: {history.estimatedDays} days for this stage
-                      </p>
-                    )}
-                    {history.updatedBy && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Updated by: {history.updatedBy.firstName}{" "}
-                        {history.updatedBy.lastName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Sipariş Durumu</Label>
+              <Select
+                value={editFormData.status}
+                onValueChange={(value) =>
+                  setEditFormData({ ...editFormData, status: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Beklemede</SelectItem>
+                  <SelectItem value="REVIEWED">İnceleniyor</SelectItem>
+                  <SelectItem value="QUOTE_SENT">Teklif Gönderildi</SelectItem>
+                  <SelectItem value="CONFIRMED">Onaylandı</SelectItem>
+                  <SelectItem value="REJECTED">Reddedildi</SelectItem>
+                  <SelectItem value="IN_PRODUCTION">Üretimde</SelectItem>
+                  <SelectItem value="PRODUCTION_COMPLETE">
+                    Üretim Tamamlandı
+                  </SelectItem>
+                  <SelectItem value="QUALITY_CHECK">
+                    Kalite Kontrolde
+                  </SelectItem>
+                  <SelectItem value="SHIPPED">Kargoda</SelectItem>
+                  <SelectItem value="DELIVERED">Teslim Edildi</SelectItem>
+                  <SelectItem value="CANCELLED">İptal Edildi</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Specifications (if any) */}
-      {order.specifications && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Specifications</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="text-sm bg-gray-50 p-4 rounded-md overflow-auto">
-              {JSON.stringify(JSON.parse(order.specifications), null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
-      )}
+            <div className="space-y-2">
+              <Label>Üretici Yanıtı</Label>
+              <Textarea
+                value={editFormData.manufacturerResponse}
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    manufacturerResponse: e.target.value,
+                  })
+                }
+                placeholder="Müşteriye yanıtınız, notlarınız..."
+                rows={4}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Üretim Süresi (Gün)</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={editFormData.productionDays}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      productionDays: e.target.value,
+                    })
+                  }
+                  placeholder="Örn: 30"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tahmini Bitiş Tarihi</Label>
+                <Input
+                  type="date"
+                  value={editFormData.estimatedProductionDate}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      estimatedProductionDate: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              İptal
+            </Button>
+            <Button onClick={handleSubmitEdit} disabled={isSubmitting}>
+              {isSubmitting && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

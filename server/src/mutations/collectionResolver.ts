@@ -344,13 +344,18 @@ export const collectionMutations = (t: any) => {
         }
       }
 
-      // Check if collection has dependencies
-      if (existingCollection.samples.length > 0) {
-        throw new Error("Cannot delete collection with associated samples");
+      // Check if collection has orders (cannot delete if orders exist)
+      if (existingCollection.orders.length > 0) {
+        throw new Error(
+          "Cannot delete collection with associated orders. Please cancel or delete orders first."
+        );
       }
 
-      if (existingCollection.orders.length > 0) {
-        throw new Error("Cannot delete collection with associated orders");
+      // Delete associated samples first (cascade delete)
+      if (existingCollection.samples.length > 0) {
+        await context.prisma.sample.deleteMany({
+          where: { collectionId: id },
+        });
       }
 
       // Delete collection

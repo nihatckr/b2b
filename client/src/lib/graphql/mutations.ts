@@ -453,6 +453,30 @@ export const UPDATE_ORDER_STATUS_MUTATION = gql`
   }
 `;
 
+export const UPDATE_ORDER_MUTATION = gql`
+  mutation UpdateOrder(
+    $id: Int!
+    $status: OrderStatus
+    $manufacturerResponse: String
+    $productionDays: Int
+    $estimatedProductionDate: DateTime
+  ) {
+    updateOrder(
+      id: $id
+      status: $status
+      manufacturerResponse: $manufacturerResponse
+      productionDays: $productionDays
+      estimatedProductionDate: $estimatedProductionDate
+    ) {
+      id
+      status
+      manufacturerResponse
+      productionDays
+      estimatedProductionDate
+    }
+  }
+`;
+
 export const DELETE_ORDER_MUTATION = gql`
   mutation DeleteOrder($id: Int!) {
     deleteOrder(id: $id) {

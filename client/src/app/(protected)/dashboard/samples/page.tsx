@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -28,116 +21,57 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthProvider";
 import {
   CREATE_SAMPLE_MUTATION,
-  DELETE_SAMPLE_MUTATION,
   UPDATE_SAMPLE_MUTATION,
 } from "@/lib/graphql/mutations";
 import {
   ALL_COLLECTIONS_QUERY,
-  ALL_MANUFACTURERS_QUERY,
   ALL_SAMPLES_QUERY,
   ASSIGNED_SAMPLES_QUERY,
   MY_SAMPLES_QUERY,
 } from "@/lib/graphql/queries";
-import { Eye, Loader2, Package, Plus, Search, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {
+  ArrowRight,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Eye,
+  Loader2,
+  Package,
+  Play,
+  Plus,
+  Search,
+  TrendingUp,
+  XCircle,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
 
-// Status badge utility - DOĞRU ENUM'LAR
-const getSampleStatusBadge = (status: string) => {
-  const statusConfig: Record<string, { label: string; className: string }> = {
-    REQUESTED: {
-      label: "Talep Edildi",
-      className: "bg-blue-100 text-blue-800",
-    },
-    RECEIVED: {
-      label: "Alındı",
-      className: "bg-indigo-100 text-indigo-800",
-    },
-    IN_DESIGN: {
-      label: "Tasarımda",
-      className: "bg-purple-100 text-purple-800",
-    },
-    PATTERN_READY: {
-      label: "Kalıp Hazır",
-      className: "bg-violet-100 text-violet-800",
-    },
-    IN_PRODUCTION: {
-      label: "Üretimde",
-      className: "bg-orange-100 text-orange-800",
-    },
-    QUALITY_CHECK: {
-      label: "Kalite Kontrolde",
-      className: "bg-yellow-100 text-yellow-800",
-    },
-    COMPLETED: {
-      label: "Tamamlandı",
-      className: "bg-teal-100 text-teal-800",
-    },
-    REJECTED: {
-      label: "Reddedildi",
-      className: "bg-red-100 text-red-800",
-    },
-    SHIPPED: {
-      label: "Kargoda",
-      className: "bg-cyan-100 text-cyan-800",
-    },
-  };
-
-  const config = statusConfig[status] || {
-    label: status,
-    className: "bg-gray-100 text-gray-800",
-  };
-
-  return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.className}`}
-    >
-      {config.label}
-    </span>
-  );
-};
-
-const getSampleTypeLabel = (type: string) => {
-  const types: Record<string, string> = {
-    STANDARD: "Standart Numune",
-    REVISION: "Revize Numune",
-    CUSTOM: "Özel Tasarım",
-    DEVELOPMENT: "Geliştirme",
-  };
-  return types[type] || type;
-};
-
 interface Sample {
   id: number;
   sampleNumber: string;
-  sampleType: string;
+  quantity: number;
   status: string;
-  customerNote?: string;
+  requestedBy: string;
+  notes?: string;
   manufacturerResponse?: string;
-  productionDays?: number;
-  estimatedProductionDate?: string;
-  actualProductionDate?: string;
-  shippingDate?: string;
-  cargoTrackingNumber?: string;
-  deliveryAddress?: string;
   createdAt: string;
-  updatedAt: string;
-  collection?: {
+  estimatedCompletionDate?: string;
+  actualStartDate?: string;
+  collection: {
     id: number;
     name: string;
     images?: string[];
+    modelCode?: string;
   };
-  originalCollection?: {
-    id: number;
-    name: string;
-  };
-  customer?: {
+  customer: {
     id: number;
     name?: string;
     firstName?: string;
@@ -150,239 +84,237 @@ interface Sample {
     firstName?: string;
     lastName?: string;
     email: string;
-  };
-  company?: {
-    id: number;
-    name: string;
+    company?: {
+      id: number;
+      name: string;
+    };
   };
 }
 
-interface CreateSampleFormData {
-  sampleType: string;
-  collectionId: string;
-  customerNote: string;
-  deliveryAddress: string;
-  customDesignImages: string[];
-  originalCollectionId: string;
-  revisionRequests: string;
-  manufactureId: string;
-  companyId: string;
-}
+const getStatusBadge = (status: string) => {
+  const config: Record<string, { label: string; className: string }> = {
+    PENDING: { label: "Beklemede", className: "bg-blue-100 text-blue-800" },
+    APPROVED: { label: "Onaylandı", className: "bg-green-100 text-green-800" },
+    REJECTED: { label: "Reddedildi", className: "bg-red-100 text-red-800" },
+    IN_PRODUCTION: {
+      label: "Üretimde",
+      className: "bg-orange-100 text-orange-800",
+    },
+    COMPLETED: {
+      label: "Tamamlandı",
+      className: "bg-teal-100 text-teal-800",
+    },
+    SHIPPED: { label: "Gönderildi", className: "bg-cyan-100 text-cyan-800" },
+    DELIVERED: {
+      label: "Teslim Edildi",
+      className: "bg-green-100 text-green-800",
+    },
+    CANCELLED: {
+      label: "İptal Edildi",
+      className: "bg-gray-100 text-gray-800",
+    },
+  };
+
+  const statusInfo = config[status] || {
+    label: status,
+    className: "bg-gray-100 text-gray-800",
+  };
+  return <Badge className={statusInfo.className}>{statusInfo.label}</Badge>;
+};
+
+const getSampleProgress = (sample: Sample) => {
+  const { status, estimatedCompletionDate, actualStartDate, createdAt } =
+    sample;
+
+  if (status === "DELIVERED") return 100;
+  if (status === "REJECTED" || status === "CANCELLED") return 0;
+
+  if (
+    (status === "IN_PRODUCTION" || status === "COMPLETED") &&
+    estimatedCompletionDate
+  ) {
+    const startDate = actualStartDate
+      ? new Date(actualStartDate)
+      : new Date(createdAt);
+    const endDate = new Date(estimatedCompletionDate);
+    const now = new Date();
+
+    const totalDuration = endDate.getTime() - startDate.getTime();
+    const elapsedDuration = now.getTime() - startDate.getTime();
+
+    if (totalDuration <= 0) return 50;
+
+    let calculatedProgress = (elapsedDuration / totalDuration) * 100;
+    calculatedProgress = Math.max(0, Math.min(100, calculatedProgress));
+
+    if (status === "IN_PRODUCTION") {
+      calculatedProgress = Math.max(30, calculatedProgress);
+    } else if (status === "COMPLETED") {
+      calculatedProgress = Math.max(80, calculatedProgress);
+    }
+
+    return Math.floor(calculatedProgress);
+  }
+
+  const progressMap: Record<string, number> = {
+    PENDING: 5,
+    APPROVED: 20,
+    IN_PRODUCTION: 50,
+    COMPLETED: 80,
+    SHIPPED: 90,
+    DELIVERED: 100,
+    REJECTED: 0,
+    CANCELLED: 0,
+  };
+  return progressMap[status] || 0;
+};
+
+const getNextStatus = (currentStatus: string): string | null => {
+  const statusFlow: Record<string, string> = {
+    PENDING: "APPROVED",
+    APPROVED: "IN_PRODUCTION",
+    IN_PRODUCTION: "COMPLETED",
+    COMPLETED: "SHIPPED",
+    SHIPPED: "DELIVERED",
+  };
+  return statusFlow[currentStatus] || null;
+};
 
 export default function SamplesPage() {
   const { user } = useAuth();
-  const router = useRouter();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<CreateSampleFormData>({
-    sampleType: "STANDARD",
+  const [formData, setFormData] = useState({
     collectionId: "",
-    customerNote: "",
-    deliveryAddress: "",
-    customDesignImages: [],
-    originalCollectionId: "",
-    revisionRequests: "",
-    manufactureId: "",
-    companyId: "",
+    quantity: "",
+    requestedBy: "",
+    notes: "",
   });
 
-  // Determine which query to use based on role
-  const userRole = user?.role || "CUSTOMER";
-  const isAdmin = userRole === "ADMIN";
-  const isManufacturer = userRole === "MANUFACTURE";
-  const isCustomer = userRole === "CUSTOMER";
-
-  // Select appropriate query based on role
-  const samplesQuery = isAdmin
-    ? ALL_SAMPLES_QUERY
-    : isManufacturer
-    ? ASSIGNED_SAMPLES_QUERY
-    : MY_SAMPLES_QUERY;
+  const isManufacturer =
+    user?.role === "MANUFACTURE" ||
+    user?.role === "COMPANY_OWNER" ||
+    user?.role === "COMPANY_EMPLOYEE";
+  const isCustomer = user?.role === "CUSTOMER";
 
   // Queries
-  const [samplesResult, reexecuteSamples] = useQuery({
-    query: samplesQuery,
-    variables: {
-      status: statusFilter !== "all" ? statusFilter : undefined,
-      sampleType: typeFilter !== "all" ? typeFilter : undefined,
-      search: searchTerm || undefined,
-    },
-  });
-
-  const [collectionsResult] = useQuery({
+  const [{ data: collectionsData }] = useQuery({
     query: ALL_COLLECTIONS_QUERY,
+    pause: !isCustomer,
   });
 
-  const [manufacturersResult] = useQuery({
-    query: ALL_MANUFACTURERS_QUERY,
+  const samplesQuery = isManufacturer
+    ? ASSIGNED_SAMPLES_QUERY
+    : isCustomer
+    ? MY_SAMPLES_QUERY
+    : ALL_SAMPLES_QUERY;
+
+  const [{ data: samplesData, fetching }, reexecuteQuery] = useQuery({
+    query: samplesQuery,
   });
 
   // Mutations
   const [, createSample] = useMutation(CREATE_SAMPLE_MUTATION);
   const [, updateSample] = useMutation(UPDATE_SAMPLE_MUTATION);
-  const [, deleteSample] = useMutation(DELETE_SAMPLE_MUTATION);
 
-  // Get samples based on query used
-  const samples =
-    samplesResult.data?.samples ||
-    samplesResult.data?.assignedSamples ||
-    samplesResult.data?.mySamples ||
+  const samples: Sample[] =
+    samplesData?.assignedSamples ||
+    samplesData?.mySamples ||
+    samplesData?.samples ||
     [];
-  const collections = collectionsResult.data?.collections || [];
-  const manufacturers = manufacturersResult.data?.allManufacturers || [];
 
-  const handleCreateClick = () => {
-    setFormData({
-      sampleType: "STANDARD",
-      collectionId: "",
-      customerNote: "",
-      deliveryAddress: "",
-      customDesignImages: [],
-      originalCollectionId: "",
-      revisionRequests: "",
-      manufactureId: "",
-      companyId: "",
-    });
-    setIsCreateDialogOpen(true);
+  // Filter samples
+  const filteredSamples = samples.filter((sample) => {
+    const matchesSearch =
+      sample.sampleNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sample.collection?.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "ALL" || sample.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Stats
+  const stats = {
+    total: samples.length,
+    pending: samples.filter((s) => s.status === "PENDING").length,
+    inProduction: samples.filter((s) => s.status === "IN_PRODUCTION").length,
+    completed: samples.filter((s) => s.status === "DELIVERED").length,
   };
 
-  const handleDetailClick = (sample: Sample) => {
-    router.push(`/dashboard/samples/${sample.id}`);
-  };
-
-  const handleDeleteClick = (sample: Sample) => {
-    setSelectedSample(sample);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleSubmitCreate = async () => {
-    if (!formData.sampleType) {
-      toast.error("Numune tipi seçilmeli");
-      return;
-    }
-
-    if (formData.sampleType === "STANDARD" && !formData.collectionId) {
-      toast.error("Standart numune için koleksiyon seçilmeli");
-      return;
-    }
-
-    if (formData.sampleType === "REVISION" && !formData.originalCollectionId) {
-      toast.error("Revize numune için orijinal koleksiyon seçilmeli");
-      return;
-    }
-
-    if (formData.sampleType === "CUSTOM" && !formData.manufactureId) {
-      toast.error("Özel tasarım için üretici seçilmeli");
+  const handleCreate = async () => {
+    if (!formData.collectionId || !formData.quantity) {
+      toast.error("Lütfen koleksiyon ve miktar alanlarını doldurun");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const input: any = {
-        sampleType: formData.sampleType,
-        customerNote: formData.customerNote || undefined,
-        deliveryAddress: formData.deliveryAddress || undefined,
-      };
-
-      if (formData.collectionId) {
-        input.collectionId = parseInt(formData.collectionId);
-      }
-
-      if (formData.sampleType === "REVISION" && formData.originalCollectionId) {
-        input.originalCollectionId = parseInt(formData.originalCollectionId);
-        input.revisionRequests = formData.revisionRequests || undefined;
-      }
-
-      if (
-        formData.sampleType === "CUSTOM" &&
-        formData.customDesignImages.length > 0
-      ) {
-        input.customDesignImages = formData.customDesignImages;
-      }
-
-      if (formData.manufactureId) {
-        input.manufactureId = parseInt(formData.manufactureId);
-      }
-
-      if (formData.companyId) {
-        input.companyId = parseInt(formData.companyId);
-      }
-
-      const result = await createSample({ input });
+      const result = await createSample({
+        collectionId: parseInt(formData.collectionId),
+        quantity: parseInt(formData.quantity),
+        requestedBy: formData.requestedBy || user?.email || "Unknown",
+        notes: formData.notes || undefined,
+      });
 
       if (result.error) {
         throw new Error(result.error.message);
       }
 
       toast.success("Numune talebi başarıyla oluşturuldu");
-      setIsCreateDialogOpen(false);
-      reexecuteSamples({ requestPolicy: "network-only" });
-    } catch (error) {
-      const err = error as Error;
-      toast.error(
-        err.message ||
-          error.message ||
-          "Numune talebi oluşturulurken bir hata oluştu"
-      );
+      setIsDialogOpen(false);
+      setFormData({
+        collectionId: "",
+        quantity: "",
+        requestedBy: "",
+        notes: "",
+      });
+      reexecuteQuery({ requestPolicy: "network-only" });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Numune oluşturulurken hata";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleConfirmDelete = async () => {
-    if (!selectedSample) return;
-
+  const handleQuickAction = async (sampleId: number, newStatus: string) => {
     setIsSubmitting(true);
     try {
-      const result = await deleteSample({ id: selectedSample.id });
+      const result = await updateSample({
+        id: sampleId,
+        status: newStatus,
+      });
 
       if (result.error) {
         throw new Error(result.error.message);
       }
 
-      toast.success("Numune talebi başarıyla silindi");
-      setIsDeleteDialogOpen(false);
-      setSelectedSample(null);
-      reexecuteSamples({ requestPolicy: "network-only" });
-    } catch (error) {
-      const err = error as Error;
-      toast.error(
-        err.message ||
-          error.message ||
-          "Numune talebi silinirken bir hata oluştu"
-      );
+      toast.success("Numune durumu güncellendi");
+      reexecuteQuery({ requestPolicy: "network-only" });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Durum güncellenirken hata";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getCustomerName = (sample: Sample) => {
-    if (!sample.customer) return "Bilinmiyor";
-    const { firstName, lastName, name } = sample.customer;
-    if (firstName && lastName) return `${firstName} ${lastName}`;
-    if (name) return name;
-    return sample.customer.email;
-  };
-
-  const getManufactureName = (sample: Sample) => {
-    if (!sample.manufacture) return "Bilinmiyor";
-    const { firstName, lastName, name } = sample.manufacture;
-    if (firstName && lastName) return `${firstName} ${lastName}`;
-    if (name) return name;
-    return sample.manufacture.email;
-  };
-
-  if (samplesResult.fetching) {
+  if (fetching) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid grid-cols-4 gap-4">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+        </div>
+        <Skeleton className="h-96" />
       </div>
     );
   }
@@ -392,371 +324,311 @@ export default function SamplesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Numune Talepleri</h1>
-          <p className="text-gray-500 mt-1">
-            {isAdmin && "Tüm numune taleplerini görüntüleyin ve yönetin"}
-            {isManufacturer &&
-              "Size atanan numune taleplerini görüntüleyin ve yönetin"}
-            {isCustomer && "Numune taleplerini görüntüleyin ve yönetin"}
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Numuneler</h1>
+          <p className="text-muted-foreground">Numune taleplerini yönetin</p>
         </div>
-        {/* Admin and Customer can create samples */}
-        {(isAdmin || isCustomer) && (
-          <Button onClick={handleCreateClick}>
-            <Plus className="h-4 w-4 mr-2" />
+        {isCustomer && (
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
             Yeni Numune Talebi
           </Button>
         )}
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Toplam</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
+              </div>
+              <Package className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Bekleyen</p>
+                <p className="text-2xl font-bold">{stats.pending}</p>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Üretimde</p>
+                <p className="text-2xl font-bold">{stats.inProduction}</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-orange-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Tamamlanan</p>
+                <p className="text-2xl font-bold">{stats.completed}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+      <div className="flex gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
-            type="text"
-            placeholder="Numune ara..."
+            placeholder="Numune numarası veya koleksiyon ara..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Durum Filtrele" />
+          <SelectTrigger className="w-48">
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tümü</SelectItem>
-            <SelectItem value="REQUESTED">Talep Edildi</SelectItem>
-            <SelectItem value="RECEIVED">Alındı</SelectItem>
-            <SelectItem value="IN_DESIGN">Tasarımda</SelectItem>
-            <SelectItem value="PATTERN_READY">Kalıp Hazır</SelectItem>
+            <SelectItem value="ALL">Tüm Durumlar</SelectItem>
+            <SelectItem value="PENDING">Beklemede</SelectItem>
+            <SelectItem value="APPROVED">Onaylandı</SelectItem>
             <SelectItem value="IN_PRODUCTION">Üretimde</SelectItem>
-            <SelectItem value="QUALITY_CHECK">Kalite Kontrolde</SelectItem>
             <SelectItem value="COMPLETED">Tamamlandı</SelectItem>
-            <SelectItem value="REJECTED">Reddedildi</SelectItem>
-            <SelectItem value="SHIPPED">Kargoda</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Tip Filtrele" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tümü</SelectItem>
-            <SelectItem value="STANDARD">Standart</SelectItem>
-            <SelectItem value="REVISION">Revize</SelectItem>
-            <SelectItem value="CUSTOM">Özel Tasarım</SelectItem>
+            <SelectItem value="DELIVERED">Teslim Edildi</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Samples List */}
-      {samples.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg border">
-          <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Numune bulunamadı
-          </h3>
-          <p className="text-gray-500 mb-4">Henüz hiç numune talebi yok</p>
-          <Button onClick={handleCreateClick}>
-            <Plus className="h-4 w-4 mr-2" />
-            İlk Numune Talebini Oluştur
-          </Button>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Numune No
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tip
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Koleksiyon
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {isManufacturer ? "Müşteri" : "Şirket/Marka"}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Durum
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tarih
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  İşlemler
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {samples.map((sample: Sample) => (
-                <tr key={sample.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {sample.sampleNumber}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {getSampleTypeLabel(sample.sampleType)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {sample.collection?.name ||
-                      sample.originalCollection?.name ||
-                      "-"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {isManufacturer ? (
-                      getCustomerName(sample)
-                    ) : (
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          {sample.company?.name || "Şirket Yok"}
+      {/* Samples Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredSamples.map((sample) => {
+          const progress = getSampleProgress(sample);
+          const nextStatus = getNextStatus(sample.status);
+
+          return (
+            <Card
+              key={sample.id}
+              className="overflow-hidden hover:shadow-lg transition-shadow"
+            >
+              <CardContent className="p-0">
+                {/* Image */}
+                {sample.collection?.images &&
+                  sample.collection.images.length > 0 && (
+                    <div className="relative h-48 w-full bg-gray-100">
+                      <Image
+                        src={sample.collection.images[0].replace(/\/\//g, "/")}
+                        alt={sample.collection.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+
+                <div className="p-4 space-y-3">
+                  {/* Header */}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg">
+                        {sample.sampleNumber}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {sample.collection?.name}
+                      </p>
+                      {sample.collection?.modelCode && (
+                        <p className="text-xs text-gray-400">
+                          {sample.collection.modelCode}
                         </p>
-                        <p className="text-xs text-gray-500">
-                          {getManufactureName(sample)}
-                        </p>
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getSampleStatusBadge(sample.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(sample.createdAt).toLocaleDateString("tr-TR")}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDetailClick(sample)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {/* Admin always, others only in early stages */}
-                      {(isAdmin ||
-                        sample.status === "REQUESTED" ||
-                        sample.status === "RECEIVED" ||
-                        sample.status === "REJECTED") && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClick(sample)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
                       )}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    {getStatusBadge(sample.status)}
+                  </div>
+
+                  {/* Details */}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-gray-500">Miktar</p>
+                      <p className="font-medium">{sample.quantity} adet</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Talep Eden</p>
+                      <p className="font-medium text-sm truncate">
+                        {sample.requestedBy}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Date */}
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Calendar className="h-3 w-3" />
+                    <span>
+                      {new Date(sample.createdAt).toLocaleDateString("tr-TR")}
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  {sample.status !== "REJECTED" &&
+                    sample.status !== "CANCELLED" && (
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-500">İlerleme</span>
+                          <span className="font-medium">{progress}%</span>
+                        </div>
+                        <Progress value={progress} className="h-2" />
+                      </div>
+                    )}
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-2 border-t">
+                    <Link
+                      href={`/dashboard/samples/${sample.id}`}
+                      className="flex-1"
+                    >
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Detay
+                      </Button>
+                    </Link>
+
+                    {isManufacturer &&
+                      nextStatus &&
+                      sample.status !== "DELIVERED" &&
+                      sample.status !== "CANCELLED" && (
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            handleQuickAction(sample.id, nextStatus)
+                          }
+                          disabled={isSubmitting}
+                          className="flex-1"
+                        >
+                          {nextStatus === "APPROVED" && (
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                          )}
+                          {nextStatus === "IN_PRODUCTION" && (
+                            <Play className="h-4 w-4 mr-2" />
+                          )}
+                          {nextStatus !== "APPROVED" &&
+                            nextStatus !== "IN_PRODUCTION" && (
+                              <ArrowRight className="h-4 w-4 mr-2" />
+                            )}
+                          {nextStatus === "APPROVED" && "Onayla"}
+                          {nextStatus === "IN_PRODUCTION" && "Başlat"}
+                          {nextStatus === "COMPLETED" && "Tamamla"}
+                          {nextStatus === "SHIPPED" && "Gönder"}
+                          {nextStatus === "DELIVERED" && "Teslim Et"}
+                        </Button>
+                      )}
+
+                    {isManufacturer && sample.status === "PENDING" && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleQuickAction(sample.id, "REJECTED")}
+                        disabled={isSubmitting}
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Reddet
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {filteredSamples.length === 0 && (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">Numune bulunamadı</p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Create Sample Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Yeni Numune Talebi</DialogTitle>
             <DialogDescription>
-              Numune talebi oluşturmak için formu doldurun
+              Koleksiyon seçin ve numune detaylarını girin
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            {/* Sample Type */}
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="sampleType">
-                Numune Tipi <span className="text-red-500">*</span>
-              </Label>
+              <Label>Koleksiyon</Label>
               <Select
-                value={formData.sampleType}
+                value={formData.collectionId}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, sampleType: value })
+                  setFormData({ ...formData, collectionId: value })
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Numune tipi seçin" />
+                  <SelectValue placeholder="Koleksiyon seçin" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="STANDARD">Standart Numune</SelectItem>
-                  <SelectItem value="REVISION">Revize Numune</SelectItem>
-                  <SelectItem value="CUSTOM">Özel Tasarım</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-sm text-gray-500">
-                {formData.sampleType === "STANDARD" &&
-                  "Mevcut koleksiyondan standart numune"}
-                {formData.sampleType === "REVISION" &&
-                  "Mevcut ürün için değişiklik istekli numune"}
-                {formData.sampleType === "CUSTOM" &&
-                  "Tamamen özel tasarım numune"}
-              </p>
-            </div>
-
-            {/* Collection Selection for STANDARD */}
-            {formData.sampleType === "STANDARD" && (
-              <div className="space-y-2">
-                <Label htmlFor="collectionId">
-                  Koleksiyon <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.collectionId}
-                  onValueChange={(value) => {
-                    const selectedCollection = collections.find(
-                      (c) => c.id.toString() === value
-                    );
-                    setFormData({
-                      ...formData,
-                      collectionId: value,
-                      manufactureId:
-                        selectedCollection?.author?.id?.toString() || "",
-                      companyId:
-                        selectedCollection?.company?.id?.toString() || "",
-                    });
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Koleksiyon seçin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {collections.map((collection) => (
+                  {collectionsData?.collections?.map(
+                    (collection: { id: number; name: string }) => (
                       <SelectItem
                         key={collection.id}
                         value={collection.id.toString()}
                       >
                         {collection.name}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Original Collection for REVISION */}
-            {formData.sampleType === "REVISION" && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="originalCollectionId">
-                    Orijinal Koleksiyon <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={formData.originalCollectionId}
-                    onValueChange={(value) => {
-                      const selectedCollection = collections.find(
-                        (c: any) => c.id.toString() === value
-                      );
-                      setFormData({
-                        ...formData,
-                        originalCollectionId: value,
-                        manufactureId:
-                          selectedCollection?.author?.id?.toString() || "",
-                        companyId:
-                          selectedCollection?.company?.id?.toString() || "",
-                      });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Revize edilecek ürünü seçin" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {collections.map((collection) => (
-                        <SelectItem
-                          key={collection.id}
-                          value={collection.id.toString()}
-                        >
-                          {collection.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="revisionRequests">Revize İstekleri</Label>
-                  <Textarea
-                    id="revisionRequests"
-                    value={formData.revisionRequests}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        revisionRequests: e.target.value,
-                      })
-                    }
-                    placeholder="Ne gibi değişiklikler istiyorsunuz?"
-                    rows={4}
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Manufacturer Selection for CUSTOM */}
-            {(formData.sampleType === "CUSTOM" || isAdmin) && (
-              <div className="space-y-2">
-                <Label htmlFor="manufactureId">
-                  Üretici{" "}
-                  {formData.sampleType === "CUSTOM" && (
-                    <span className="text-red-500">*</span>
+                    )
                   )}
-                </Label>
-                <Select
-                  value={formData.manufactureId}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, manufactureId: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Üretici seçin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {manufacturers.map((manufacturer: any) => (
-                      <SelectItem
-                        key={manufacturer.id}
-                        value={manufacturer.id.toString()}
-                      >
-                        {manufacturer.firstName && manufacturer.lastName
-                          ? `${manufacturer.firstName} ${manufacturer.lastName}`
-                          : manufacturer.name || manufacturer.email}
-                        {manufacturer.company && (
-                          <span className="text-xs text-gray-500 ml-2">
-                            - {manufacturer.company.name}
-                          </span>
-                        )}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Customer Note */}
-            <div className="space-y-2">
-              <Label htmlFor="customerNote">Not</Label>
-              <Textarea
-                id="customerNote"
-                value={formData.customerNote}
-                onChange={(e) =>
-                  setFormData({ ...formData, customerNote: e.target.value })
-                }
-                placeholder="Ek notlarınız..."
-                rows={3}
-              />
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Delivery Address */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Miktar</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={formData.quantity}
+                  onChange={(e) =>
+                    setFormData({ ...formData, quantity: e.target.value })
+                  }
+                  placeholder="Örn: 3"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Talep Eden</Label>
+                <Input
+                  value={formData.requestedBy}
+                  onChange={(e) =>
+                    setFormData({ ...formData, requestedBy: e.target.value })
+                  }
+                  placeholder="İsim veya Departman"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="deliveryAddress">Teslimat Adresi</Label>
+              <Label>Notlar (Opsiyonel)</Label>
               <Textarea
-                id="deliveryAddress"
-                value={formData.deliveryAddress}
+                value={formData.notes}
                 onChange={(e) =>
-                  setFormData({ ...formData, deliveryAddress: e.target.value })
+                  setFormData({ ...formData, notes: e.target.value })
                 }
-                placeholder="Numune gönderim adresi"
-                rows={2}
+                placeholder="Özel isteklerinizi belirtin..."
+                rows={3}
               />
             </div>
           </div>
@@ -764,12 +636,12 @@ export default function SamplesPage() {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setIsCreateDialogOpen(false)}
+              onClick={() => setIsDialogOpen(false)}
               disabled={isSubmitting}
             >
               İptal
             </Button>
-            <Button onClick={handleSubmitCreate} disabled={isSubmitting}>
+            <Button onClick={handleCreate} disabled={isSubmitting}>
               {isSubmitting && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
@@ -778,126 +650,6 @@ export default function SamplesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Sample Detail Dialog */}
-      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Numune Detayı</DialogTitle>
-            <DialogDescription>
-              {selectedSample?.sampleNumber}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedSample && (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-gray-500">Durum</Label>
-                  <div className="mt-1">
-                    {getSampleStatusBadge(selectedSample.status)}
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-gray-500">Tip</Label>
-                  <p className="mt-1">
-                    {getSampleTypeLabel(selectedSample.sampleType)}
-                  </p>
-                </div>
-                {selectedSample.collection && (
-                  <div>
-                    <Label className="text-gray-500">Koleksiyon</Label>
-                    <p className="mt-1">{selectedSample.collection.name}</p>
-                  </div>
-                )}
-                <div>
-                  <Label className="text-gray-500">Üretici</Label>
-                  <p className="mt-1">{getManufactureName(selectedSample)}</p>
-                </div>
-                <div>
-                  <Label className="text-gray-500">Oluşturulma Tarihi</Label>
-                  <p className="mt-1">
-                    {new Date(selectedSample.createdAt).toLocaleDateString(
-                      "tr-TR"
-                    )}
-                  </p>
-                </div>
-                {selectedSample.productionDays && (
-                  <div>
-                    <Label className="text-gray-500">Tahmini Süre</Label>
-                    <p className="mt-1">{selectedSample.productionDays} gün</p>
-                  </div>
-                )}
-              </div>
-
-              {selectedSample.customerNote && (
-                <div>
-                  <Label className="text-gray-500">Müşteri Notu</Label>
-                  <p className="mt-1 p-3 bg-gray-50 rounded">
-                    {selectedSample.customerNote}
-                  </p>
-                </div>
-              )}
-
-              {selectedSample.manufacturerResponse && (
-                <div>
-                  <Label className="text-gray-500">Üretici Yanıtı</Label>
-                  <p className="mt-1 p-3 bg-blue-50 rounded">
-                    {selectedSample.manufacturerResponse}
-                  </p>
-                </div>
-              )}
-
-              {selectedSample.cargoTrackingNumber && (
-                <div>
-                  <Label className="text-gray-500">Kargo Takip No</Label>
-                  <p className="mt-1 font-mono">
-                    {selectedSample.cargoTrackingNumber}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDetailDialogOpen(false)}
-            >
-              Kapat
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Dialog */}
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Numune Talebini Sil</AlertDialogTitle>
-            <AlertDialogDescription>
-              {selectedSample?.sampleNumber} numaralı numune talebini silmek
-              istediğinize emin misiniz? Bu işlem geri alınamaz.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSubmitting}>İptal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              disabled={isSubmitting}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              {isSubmitting && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
-              Sil
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

@@ -479,6 +479,7 @@ export type Mutation = {
   updateCompany?: Maybe<Company>;
   updateFabric?: Maybe<Fabric>;
   updateFit?: Maybe<FitItem>;
+  updateOrder?: Maybe<Order>;
   updateOrderStatus?: Maybe<Order>;
   updateProductionStage?: Maybe<ProductionTracking>;
   updateProfile?: Maybe<User>;
@@ -779,6 +780,15 @@ export type MutationUpdateFitArgs = {
 };
 
 
+export type MutationUpdateOrderArgs = {
+  estimatedProductionDate?: InputMaybe<Scalars['DateTime']['input']>;
+  id: Scalars['Int']['input'];
+  manufacturerResponse?: InputMaybe<Scalars['String']['input']>;
+  productionDays?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<OrderStatus>;
+};
+
+
 export type MutationUpdateOrderStatusArgs = {
   estimatedDays?: InputMaybe<Scalars['Int']['input']>;
   id: Scalars['Int']['input'];
@@ -982,6 +992,7 @@ export type Query = {
   allCategories?: Maybe<Array<Maybe<Category>>>;
   allCompanies?: Maybe<Array<Maybe<Company>>>;
   allManufacturers?: Maybe<Array<Maybe<User>>>;
+  allProductionTracking?: Maybe<Array<Maybe<ProductionTracking>>>;
   allUsers: Array<User>;
   assignedOrders?: Maybe<Array<Maybe<Order>>>;
   assignedSamples?: Maybe<Array<Maybe<Sample>>>;
@@ -1626,6 +1637,50 @@ export type DeleteEmployeeMutationVariables = Exact<{
 
 export type DeleteEmployeeMutation = { __typename?: 'Mutation', deleteUser?: { __typename?: 'User', id: number } | null };
 
+export type MyCertificationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyCertificationsQuery = { __typename?: 'Query', myCertifications?: Array<{ __typename?: 'Certification', id: number, name: string, code?: string | null, category: CertificationCategory, issuer?: string | null, validFrom?: any | null, validUntil?: any | null, certificateNumber?: string | null, certificateFile?: string | null, description?: string | null, isActive: boolean } | null> | null };
+
+export type CreateCertificationMutationVariables = Exact<{
+  name: Scalars['String']['input'];
+  code?: InputMaybe<Scalars['String']['input']>;
+  category: CertificationCategory;
+  issuer?: InputMaybe<Scalars['String']['input']>;
+  validFrom?: InputMaybe<Scalars['DateTime']['input']>;
+  validUntil?: InputMaybe<Scalars['DateTime']['input']>;
+  certificateNumber?: InputMaybe<Scalars['String']['input']>;
+  certificateFile?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CreateCertificationMutation = { __typename?: 'Mutation', createCertification?: { __typename?: 'Certification', id: number, name: string } | null };
+
+export type UpdateCertificationMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  code?: InputMaybe<Scalars['String']['input']>;
+  category?: InputMaybe<CertificationCategory>;
+  issuer?: InputMaybe<Scalars['String']['input']>;
+  validFrom?: InputMaybe<Scalars['DateTime']['input']>;
+  validUntil?: InputMaybe<Scalars['DateTime']['input']>;
+  certificateNumber?: InputMaybe<Scalars['String']['input']>;
+  certificateFile?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  isActive?: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type UpdateCertificationMutation = { __typename?: 'Mutation', updateCertification?: { __typename?: 'Certification', id: number, name: string } | null };
+
+export type DeleteCertificationMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteCertificationMutation = { __typename?: 'Mutation', deleteCertification?: { __typename?: 'Certification', id: number } | null };
+
 export type DashboardStatsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -2006,6 +2061,17 @@ export type UpdateOrderStatusMutationVariables = Exact<{
 
 export type UpdateOrderStatusMutation = { __typename?: 'Mutation', updateOrderStatus?: { __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, unitPrice: number, totalPrice: number, productionDays?: number | null, estimatedProductionDate?: any | null, updatedAt: any } | null };
 
+export type UpdateOrderMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  status?: InputMaybe<OrderStatus>;
+  manufacturerResponse?: InputMaybe<Scalars['String']['input']>;
+  productionDays?: InputMaybe<Scalars['Int']['input']>;
+  estimatedProductionDate?: InputMaybe<Scalars['DateTime']['input']>;
+}>;
+
+
+export type UpdateOrderMutation = { __typename?: 'Mutation', updateOrder?: { __typename?: 'Order', id: number, status: OrderStatus, manufacturerResponse?: string | null, productionDays?: number | null, estimatedProductionDate?: any | null } | null };
+
 export type DeleteOrderMutationVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
@@ -2210,7 +2276,7 @@ export type AllOrdersQueryVariables = Exact<{
 }>;
 
 
-export type AllOrdersQuery = { __typename?: 'Query', orders?: Array<{ __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, quantity: number, unitPrice: number, totalPrice: number, customerNote?: string | null, manufacturerResponse?: string | null, productionDays?: number | null, estimatedProductionDate?: any | null, actualProductionStart?: any | null, actualProductionEnd?: any | null, shippingDate?: any | null, cargoTrackingNumber?: string | null, createdAt: any, updatedAt: any, collection?: { __typename?: 'Collection', id: number, name: string, images?: Array<string | null> | null } | null, customer?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string } | null, company?: { __typename?: 'Company', id: number, name: string } | null } | null> | null };
+export type AllOrdersQuery = { __typename?: 'Query', orders?: Array<{ __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, quantity: number, unitPrice: number, totalPrice: number, customerNote?: string | null, manufacturerResponse?: string | null, productionDays?: number | null, estimatedProductionDate?: any | null, actualProductionStart?: any | null, actualProductionEnd?: any | null, shippingDate?: any | null, cargoTrackingNumber?: string | null, createdAt: any, updatedAt: any, collection?: { __typename?: 'Collection', id: number, name: string, modelCode: string, images?: Array<string | null> | null } | null, customer?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string, company?: { __typename?: 'Company', id: number, name: string } | null } | null, company?: { __typename?: 'Company', id: number, name: string } | null } | null> | null };
 
 export type OrderByIdQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -2224,14 +2290,14 @@ export type MyOrdersQueryVariables = Exact<{
 }>;
 
 
-export type MyOrdersQuery = { __typename?: 'Query', myOrders?: Array<{ __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, quantity: number, unitPrice: number, totalPrice: number, productionDays?: number | null, estimatedProductionDate?: any | null, createdAt: any, collection?: { __typename?: 'Collection', id: number, name: string, images?: Array<string | null> | null } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null, company?: { __typename?: 'Company', id: number, name: string } | null } | null } | null> | null };
+export type MyOrdersQuery = { __typename?: 'Query', myOrders?: Array<{ __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, quantity: number, unitPrice: number, totalPrice: number, productionDays?: number | null, estimatedProductionDate?: any | null, actualProductionStart?: any | null, customerNote?: string | null, manufacturerResponse?: string | null, createdAt: any, collection?: { __typename?: 'Collection', id: number, name: string, modelCode: string, images?: Array<string | null> | null } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string, company?: { __typename?: 'Company', id: number, name: string } | null } | null } | null> | null };
 
 export type AssignedOrdersQueryVariables = Exact<{
   status?: InputMaybe<OrderStatus>;
 }>;
 
 
-export type AssignedOrdersQuery = { __typename?: 'Query', assignedOrders?: Array<{ __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, quantity: number, unitPrice: number, totalPrice: number, productionDays?: number | null, estimatedProductionDate?: any | null, createdAt: any, collection?: { __typename?: 'Collection', id: number, name: string, images?: Array<string | null> | null } | null, customer?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string } | null } | null> | null };
+export type AssignedOrdersQuery = { __typename?: 'Query', assignedOrders?: Array<{ __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, quantity: number, unitPrice: number, totalPrice: number, productionDays?: number | null, estimatedProductionDate?: any | null, actualProductionStart?: any | null, customerNote?: string | null, manufacturerResponse?: string | null, createdAt: any, collection?: { __typename?: 'Collection', id: number, name: string, modelCode: string, images?: Array<string | null> | null } | null, customer?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string, company?: { __typename?: 'Company', id: number, name: string } | null } | null } | null> | null };
 
 export type CreateReviewMutationVariables = Exact<{
   input: CreateReviewInput;
@@ -2464,6 +2530,84 @@ export const DeleteEmployeeDocument = gql`
 
 export function useDeleteEmployeeMutation() {
   return Urql.useMutation<DeleteEmployeeMutation, DeleteEmployeeMutationVariables>(DeleteEmployeeDocument);
+};
+export const MyCertificationsDocument = gql`
+    query MyCertifications {
+  myCertifications {
+    id
+    name
+    code
+    category
+    issuer
+    validFrom
+    validUntil
+    certificateNumber
+    certificateFile
+    description
+    isActive
+  }
+}
+    `;
+
+export function useMyCertificationsQuery(options?: Omit<Urql.UseQueryArgs<MyCertificationsQueryVariables>, 'query'>) {
+  return Urql.useQuery<MyCertificationsQuery, MyCertificationsQueryVariables>({ query: MyCertificationsDocument, ...options });
+};
+export const CreateCertificationDocument = gql`
+    mutation CreateCertification($name: String!, $code: String, $category: CertificationCategory!, $issuer: String, $validFrom: DateTime, $validUntil: DateTime, $certificateNumber: String, $certificateFile: String, $description: String) {
+  createCertification(
+    name: $name
+    code: $code
+    category: $category
+    issuer: $issuer
+    validFrom: $validFrom
+    validUntil: $validUntil
+    certificateNumber: $certificateNumber
+    certificateFile: $certificateFile
+    description: $description
+  ) {
+    id
+    name
+  }
+}
+    `;
+
+export function useCreateCertificationMutation() {
+  return Urql.useMutation<CreateCertificationMutation, CreateCertificationMutationVariables>(CreateCertificationDocument);
+};
+export const UpdateCertificationDocument = gql`
+    mutation UpdateCertification($id: Int!, $name: String, $code: String, $category: CertificationCategory, $issuer: String, $validFrom: DateTime, $validUntil: DateTime, $certificateNumber: String, $certificateFile: String, $description: String, $isActive: Boolean) {
+  updateCertification(
+    id: $id
+    name: $name
+    code: $code
+    category: $category
+    issuer: $issuer
+    validFrom: $validFrom
+    validUntil: $validUntil
+    certificateNumber: $certificateNumber
+    certificateFile: $certificateFile
+    description: $description
+    isActive: $isActive
+  ) {
+    id
+    name
+  }
+}
+    `;
+
+export function useUpdateCertificationMutation() {
+  return Urql.useMutation<UpdateCertificationMutation, UpdateCertificationMutationVariables>(UpdateCertificationDocument);
+};
+export const DeleteCertificationDocument = gql`
+    mutation DeleteCertification($id: Int!) {
+  deleteCertification(id: $id) {
+    id
+  }
+}
+    `;
+
+export function useDeleteCertificationMutation() {
+  return Urql.useMutation<DeleteCertificationMutation, DeleteCertificationMutationVariables>(DeleteCertificationDocument);
 };
 export const DashboardStatsDocument = gql`
     query DashboardStats {
@@ -3426,6 +3570,27 @@ export const UpdateOrderStatusDocument = gql`
 export function useUpdateOrderStatusMutation() {
   return Urql.useMutation<UpdateOrderStatusMutation, UpdateOrderStatusMutationVariables>(UpdateOrderStatusDocument);
 };
+export const UpdateOrderDocument = gql`
+    mutation UpdateOrder($id: Int!, $status: OrderStatus, $manufacturerResponse: String, $productionDays: Int, $estimatedProductionDate: DateTime) {
+  updateOrder(
+    id: $id
+    status: $status
+    manufacturerResponse: $manufacturerResponse
+    productionDays: $productionDays
+    estimatedProductionDate: $estimatedProductionDate
+  ) {
+    id
+    status
+    manufacturerResponse
+    productionDays
+    estimatedProductionDate
+  }
+}
+    `;
+
+export function useUpdateOrderMutation() {
+  return Urql.useMutation<UpdateOrderMutation, UpdateOrderMutationVariables>(UpdateOrderDocument);
+};
 export const DeleteOrderDocument = gql`
     mutation DeleteOrder($id: Int!) {
   deleteOrder(id: $id) {
@@ -4350,6 +4515,7 @@ export const AllOrdersDocument = gql`
     collection {
       id
       name
+      modelCode
       images
     }
     customer {
@@ -4365,6 +4531,10 @@ export const AllOrdersDocument = gql`
       firstName
       lastName
       email
+      company {
+        id
+        name
+      }
     }
     company {
       id
@@ -4443,15 +4613,22 @@ export const MyOrdersDocument = gql`
     totalPrice
     productionDays
     estimatedProductionDate
+    actualProductionStart
+    customerNote
+    manufacturerResponse
     createdAt
     collection {
       id
       name
+      modelCode
       images
     }
     manufacture {
       id
       name
+      firstName
+      lastName
+      email
       company {
         id
         name
@@ -4475,10 +4652,14 @@ export const AssignedOrdersDocument = gql`
     totalPrice
     productionDays
     estimatedProductionDate
+    actualProductionStart
+    customerNote
+    manufacturerResponse
     createdAt
     collection {
       id
       name
+      modelCode
       images
     }
     customer {
@@ -4487,6 +4668,17 @@ export const AssignedOrdersDocument = gql`
       firstName
       lastName
       email
+    }
+    manufacture {
+      id
+      name
+      firstName
+      lastName
+      email
+      company {
+        id
+        name
+      }
     }
   }
 }

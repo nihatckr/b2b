@@ -1,4 +1,4 @@
-import { floatArg, intArg, nonNull } from "nexus";
+import { floatArg, intArg, nonNull, stringArg } from "nexus";
 import { Context } from "../context";
 import { isBuyer, requirePermission } from "../utils/permissions";
 import { getUserRole, requireAuth } from "../utils/user-role-helper";
@@ -306,6 +306,79 @@ export const orderMutations = (t: any) => {
       }
 
       return order;
+    },
+  });
+
+  // Update Order (Manufacturer Response & Details)
+  t.field("updateOrder", {
+    type: "Order",
+    args: {
+      id: nonNull(intArg()),
+      status: "OrderStatus",
+      manufacturerResponse: stringArg(),
+      productionDays: intArg(),
+      estimatedProductionDate: "DateTime",
+    },
+    resolve: async (_parent: unknown, args: any, context: Context) => {
+      const userId = requireAuth(context);
+
+      const user = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const userRole = getUserRole(user);
+
+      const existingOrder = await context.prisma.order.findUnique({
+        where: { id: args.id },
+        include: {
+          manufacture: true,
+        },
+      });
+
+      if (!existingOrder) {
+        throw new Error("Order not found");
+      }
+
+      // Permission check - Only manufacturer can update order details
+      const isManufacturer =
+        existingOrder.manufactureId === userId ||
+        (user.companyId &&
+          existingOrder.manufacture?.companyId === user.companyId);
+      const isAdmin = userRole === "ADMIN";
+
+      if (!isManufacturer && !isAdmin) {
+        throw new Error("Only manufacturer can update order details");
+      }
+
+      const updateData: any = {};
+
+      if (args.status) updateData.status = args.status;
+      if (args.manufacturerResponse !== undefined)
+        updateData.manufacturerResponse = args.manufacturerResponse;
+      if (args.productionDays) updateData.productionDays = args.productionDays;
+      if (args.estimatedProductionDate)
+        updateData.estimatedProductionDate = args.estimatedProductionDate;
+
+      // Update order
+      return context.prisma.order.update({
+        where: { id: args.id },
+        data: updateData,
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: {
+            include: {
+              company: true,
+            },
+          },
+          company: true,
+        },
+      });
     },
   });
 

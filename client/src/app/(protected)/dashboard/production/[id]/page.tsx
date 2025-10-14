@@ -1,11 +1,18 @@
 "use client";
 
 import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useProductionTrackingQuery } from "../../../../../__generated__/graphql";
 import { ProductionTrackingCard } from "../../../../../components/Production/ProductionTrackingCard";
+import { Badge } from "../../../../../components/ui/badge";
 import { Button } from "../../../../../components/ui/button";
-import { Card, CardContent } from "../../../../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "../../../../../components/ui/card";
+import { Progress } from "../../../../../components/ui/progress";
 import { Skeleton } from "../../../../../components/ui/skeleton";
 
 export default function ProductionTrackingPage() {
@@ -15,7 +22,7 @@ export default function ProductionTrackingPage() {
 
   const [{ data, fetching, error }] = useProductionTrackingQuery({
     variables: { id: parseInt(trackingId) },
-    requestPolicy: "network-only",
+    requestPolicy: "cache-and-network",
   });
 
   if (fetching) {
@@ -71,9 +78,10 @@ export default function ProductionTrackingPage() {
 
       {/* Production Tracking Card */}
       <ProductionTrackingCard
+        // @ts-expect-error - GraphQL type mismatch with component props
         tracking={tracking}
-        orderId={tracking.orderId || undefined}
-        sampleId={tracking.sampleId || undefined}
+        orderId={tracking.orderId ?? undefined}
+        sampleId={tracking.sampleId ?? undefined}
       />
 
       {/* Quality Controls */}
@@ -84,125 +92,128 @@ export default function ProductionTrackingPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {tracking.qualityControls.map((qc: any) => (
-                <div
-                  key={qc.id}
-                  className="p-4 border rounded-lg bg-gray-50 space-y-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">
-                        {qc.inspector
-                          ? `${qc.inspector.firstName} ${qc.inspector.lastName}`
-                          : "Quality Inspector"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(qc.checkDate).toLocaleDateString("tr-TR")}
-                      </p>
-                    </div>
-                    <Badge
-                      className={
-                        qc.result === "PASSED"
-                          ? "bg-green-100 text-green-700"
-                          : qc.result === "FAILED"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-amber-100 text-amber-700"
-                      }
-                    >
-                      {qc.result}
-                    </Badge>
-                  </div>
-
-                  {qc.score !== null && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Quality Score
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Progress value={qc.score} className="h-2 flex-1" />
-                        <span className="text-sm font-medium">
-                          {qc.score}/100
-                        </span>
+              {tracking.qualityControls
+                .filter((qc): qc is NonNullable<typeof qc> => qc !== null)
+                .map((qc) => (
+                  <div
+                    key={qc.id}
+                    className="p-4 border rounded-lg bg-gray-50 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">
+                          {qc.inspector
+                            ? `${qc.inspector.firstName} ${qc.inspector.lastName}`
+                            : "Quality Inspector"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(qc.checkDate).toLocaleDateString("tr-TR")}
+                        </p>
                       </div>
+                      <Badge
+                        className={
+                          qc.result === "PASSED"
+                            ? "bg-green-100 text-green-700"
+                            : qc.result === "FAILED"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-amber-100 text-amber-700"
+                        }
+                      >
+                        {qc.result}
+                      </Badge>
                     </div>
-                  )}
 
-                  {/* Defects */}
-                  {(qc.fabricDefects ||
-                    qc.sewingDefects ||
-                    qc.measureDefects ||
-                    qc.finishingDefects) && (
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      {qc.fabricDefects !== null && (
-                        <div>
-                          <span className="text-muted-foreground">
-                            Fabric Defects:
-                          </span>{" "}
-                          <span className="font-medium">
-                            {qc.fabricDefects}
+                    {qc.score !== null && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Quality Score
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Progress value={qc.score} className="h-2 flex-1" />
+                          <span className="text-sm font-medium">
+                            {qc.score}/100
                           </span>
                         </div>
-                      )}
-                      {qc.sewingDefects !== null && (
-                        <div>
-                          <span className="text-muted-foreground">
-                            Sewing Defects:
-                          </span>{" "}
-                          <span className="font-medium">
-                            {qc.sewingDefects}
-                          </span>
-                        </div>
-                      )}
-                      {qc.measureDefects !== null && (
-                        <div>
-                          <span className="text-muted-foreground">
-                            Measure Defects:
-                          </span>{" "}
-                          <span className="font-medium">
-                            {qc.measureDefects}
-                          </span>
-                        </div>
-                      )}
-                      {qc.finishingDefects !== null && (
-                        <div>
-                          <span className="text-muted-foreground">
-                            Finishing Defects:
-                          </span>{" "}
-                          <span className="font-medium">
-                            {qc.finishingDefects}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    )}
 
-                  {qc.notes && (
-                    <p className="text-sm text-muted-foreground border-t pt-2">
-                      {qc.notes}
-                    </p>
-                  )}
-
-                  {/* Photos */}
-                  {qc.photos && (
-                    <div className="grid grid-cols-4 gap-2">
-                      {JSON.parse(qc.photos).map(
-                        (photo: string, idx: number) => (
-                          <div
-                            key={idx}
-                            className="aspect-square rounded-md overflow-hidden border"
-                          >
-                            <img
-                              src={photo}
-                              alt={`QC Photo ${idx + 1}`}
-                              className="w-full h-full object-cover"
-                            />
+                    {/* Defects */}
+                    {(qc.fabricDefects ||
+                      qc.sewingDefects ||
+                      qc.measureDefects ||
+                      qc.finishingDefects) && (
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {qc.fabricDefects !== null && (
+                          <div>
+                            <span className="text-muted-foreground">
+                              Fabric Defects:
+                            </span>{" "}
+                            <span className="font-medium">
+                              {qc.fabricDefects}
+                            </span>
                           </div>
-                        )
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+                        )}
+                        {qc.sewingDefects !== null && (
+                          <div>
+                            <span className="text-muted-foreground">
+                              Sewing Defects:
+                            </span>{" "}
+                            <span className="font-medium">
+                              {qc.sewingDefects}
+                            </span>
+                          </div>
+                        )}
+                        {qc.measureDefects !== null && (
+                          <div>
+                            <span className="text-muted-foreground">
+                              Measure Defects:
+                            </span>{" "}
+                            <span className="font-medium">
+                              {qc.measureDefects}
+                            </span>
+                          </div>
+                        )}
+                        {qc.finishingDefects !== null && (
+                          <div>
+                            <span className="text-muted-foreground">
+                              Finishing Defects:
+                            </span>{" "}
+                            <span className="font-medium">
+                              {qc.finishingDefects}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {qc.notes && (
+                      <p className="text-sm text-muted-foreground border-t pt-2">
+                        {qc.notes}
+                      </p>
+                    )}
+
+                    {/* Photos */}
+                    {qc.photos && (
+                      <div className="grid grid-cols-4 gap-2">
+                        {JSON.parse(qc.photos).map(
+                          (photo: string, idx: number) => (
+                            <div
+                              key={idx}
+                              className="aspect-square rounded-md overflow-hidden border relative"
+                            >
+                              <Image
+                                src={photo}
+                                alt={`QC Photo ${idx + 1}`}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
             </div>
           </CardContent>
         </Card>

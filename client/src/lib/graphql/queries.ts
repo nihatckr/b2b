@@ -676,6 +676,7 @@ export const ALL_ORDERS_QUERY = gql`
       collection {
         id
         name
+        modelCode
         images
       }
       customer {
@@ -691,6 +692,10 @@ export const ALL_ORDERS_QUERY = gql`
         firstName
         lastName
         email
+        company {
+          id
+          name
+        }
       }
       company {
         id
@@ -763,15 +768,22 @@ export const MY_ORDERS_QUERY = gql`
       totalPrice
       productionDays
       estimatedProductionDate
+      actualProductionStart
+      customerNote
+      manufacturerResponse
       createdAt
       collection {
         id
         name
+        modelCode
         images
       }
       manufacture {
         id
         name
+        firstName
+        lastName
+        email
         company {
           id
           name
@@ -792,10 +804,14 @@ export const ASSIGNED_ORDERS_QUERY = gql`
       totalPrice
       productionDays
       estimatedProductionDate
+      actualProductionStart
+      customerNote
+      manufacturerResponse
       createdAt
       collection {
         id
         name
+        modelCode
         images
       }
       customer {
@@ -804,6 +820,17 @@ export const ASSIGNED_ORDERS_QUERY = gql`
         firstName
         lastName
         email
+      }
+      manufacture {
+        id
+        name
+        firstName
+        lastName
+        email
+        company {
+          id
+          name
+        }
       }
     }
   }

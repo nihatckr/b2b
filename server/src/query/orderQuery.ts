@@ -199,30 +199,62 @@ export const orderQueries = (t: any) => {
 
       const userRole = getUserRole(user);
 
-      if (userRole !== "MANUFACTURE" && userRole !== "ADMIN") {
+      if (
+        userRole !== "MANUFACTURE" &&
+        userRole !== "ADMIN" &&
+        userRole !== "COMPANY_OWNER" &&
+        userRole !== "COMPANY_EMPLOYEE"
+      ) {
         throw new Error(
           "Only manufacturers and admins can access assigned orders"
         );
       }
 
+      console.log(
+        `🔍 AssignedOrders - User: ${user.email}, Role: ${userRole}, UserId: ${userId}, CompanyId: ${user.companyId}`
+      );
+
+      // Manufacturer için: Kendisine veya şirketindeki herhangi birine atanan order'lar
       const where: any = {
-        OR: [{ manufactureId: userId }, { companyId: user.companyId || -1 }],
+        OR: [
+          { manufactureId: userId }, // Kullanıcıya atanan
+          {
+            manufacture: {
+              companyId: user.companyId || -1,
+            },
+          }, // Şirket çalışanlarına atanan
+        ],
       };
 
       if (args.status) {
         where.status = args.status;
       }
 
-      return context.prisma.order.findMany({
+      console.log(`🔍 Where clause:`, JSON.stringify(where, null, 2));
+
+      const orders = await context.prisma.order.findMany({
         where,
         include: {
           collection: true,
           customer: true,
-          manufacture: true,
+          manufacture: {
+            include: {
+              company: true,
+            },
+          },
           company: true,
         },
         orderBy: { createdAt: "desc" },
       });
+
+      console.log(`✅ Found ${orders.length} orders for user ${user.email}`);
+      orders.forEach((order) => {
+        console.log(
+          `  - Order ${order.orderNumber}: manufactureId=${order.manufactureId}, collection=${order.collection?.name}`
+        );
+      });
+
+      return orders;
     },
   });
 };

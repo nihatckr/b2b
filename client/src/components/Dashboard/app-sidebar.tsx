@@ -14,6 +14,7 @@ import {
   IconReport,
   IconSearch,
   IconSettings,
+  IconTruck,
   IconUsers,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -58,6 +59,11 @@ const getNavMainByRole = (userRole: string) => {
         icon: IconDatabase,
       },
       {
+        title: "Production Tracking",
+        url: "/dashboard/production",
+        icon: IconTruck,
+      },
+      {
         title: "Analytics",
         url: "/dashboard/analytics",
         icon: IconChartBar,
@@ -72,16 +78,6 @@ const getNavMainByRole = (userRole: string) => {
   ) {
     return [
       ...commonNav,
-      {
-        title: "Company Settings",
-        url: "/dashboard/company",
-        icon: IconBuilding,
-      },
-      {
-        title: "Employee Management",
-        url: "/dashboard/employees",
-        icon: IconUsers,
-      },
       {
         title: "Categories",
         url: "/dashboard/categories",
@@ -102,6 +98,11 @@ const getNavMainByRole = (userRole: string) => {
         url: "/dashboard/orders",
         icon: IconListDetails,
       },
+      {
+        title: "Production Tracking",
+        url: "/dashboard/production",
+        icon: IconTruck,
+      },
     ];
   }
 
@@ -117,6 +118,11 @@ const getNavMainByRole = (userRole: string) => {
       title: "My Orders",
       url: "/dashboard/orders",
       icon: IconListDetails,
+    },
+    {
+      title: "Production Tracking",
+      url: "/dashboard/production",
+      icon: IconTruck,
     },
   ];
 };
@@ -259,7 +265,7 @@ const data = {
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
+      url: "/dashboard/settings",
       icon: IconSettings,
     },
     {

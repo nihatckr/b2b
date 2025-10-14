@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -28,11 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthProvider";
 import {
   CREATE_ORDER_MUTATION,
-  DELETE_ORDER_MUTATION,
   UPDATE_ORDER_STATUS_MUTATION,
 } from "@/lib/graphql/mutations";
 import {
@@ -41,93 +34,44 @@ import {
   ASSIGNED_ORDERS_QUERY,
   MY_ORDERS_QUERY,
 } from "@/lib/graphql/queries";
-import { Eye, Loader2, Package, Plus, Search, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {
+  ArrowRight,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Eye,
+  Loader2,
+  Package,
+  Play,
+  Plus,
+  Search,
+  TrendingUp,
+  XCircle,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
 
-// Status badge utility
-const getOrderStatusBadge = (status: string) => {
-  const statusConfig: Record<string, { label: string; className: string }> = {
-    PENDING: {
-      label: "Beklemede",
-      className: "bg-blue-100 text-blue-800",
-    },
-    REVIEWED: {
-      label: "İnceleniyor",
-      className: "bg-purple-100 text-purple-800",
-    },
-    QUOTE_SENT: {
-      label: "Teklif Gönderildi",
-      className: "bg-yellow-100 text-yellow-800",
-    },
-    CONFIRMED: {
-      label: "Onaylandı",
-      className: "bg-green-100 text-green-800",
-    },
-    REJECTED: {
-      label: "Reddedildi",
-      className: "bg-red-100 text-red-800",
-    },
-    IN_PRODUCTION: {
-      label: "Üretimde",
-      className: "bg-orange-100 text-orange-800",
-    },
-    PRODUCTION_COMPLETE: {
-      label: "Üretim Tamamlandı",
-      className: "bg-teal-100 text-teal-800",
-    },
-    QUALITY_CHECK: {
-      label: "Kalite Kontrolde",
-      className: "bg-indigo-100 text-indigo-800",
-    },
-    SHIPPED: {
-      label: "Kargoda",
-      className: "bg-cyan-100 text-cyan-800",
-    },
-    DELIVERED: {
-      label: "Teslim Edildi",
-      className: "bg-green-100 text-green-800",
-    },
-    CANCELLED: {
-      label: "İptal Edildi",
-      className: "bg-gray-100 text-gray-800",
-    },
-  };
-
-  const config = statusConfig[status] || {
-    label: status,
-    className: "bg-gray-100 text-gray-800",
-  };
-
-  return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.className}`}
-    >
-      {config.label}
-    </span>
-  );
-};
-
 interface Order {
   id: number;
   orderNumber: string;
-  status: string;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
-  customerNote?: string;
-  manufacturerResponse?: string;
-  productionDays?: number;
-  estimatedProductionDate?: string;
+  status: string;
   createdAt: string;
-  collection?: {
+  estimatedProductionDate?: string;
+  actualProductionStart?: string;
+  productionDays?: number;
+  collection: {
     id: number;
     name: string;
     images?: string[];
+    modelCode?: string;
   };
-  customer?: {
+  customer: {
     id: number;
     name?: string;
     firstName?: string;
@@ -145,110 +89,200 @@ interface Order {
       name: string;
     };
   };
+  customerNote?: string;
+  manufacturerResponse?: string;
 }
 
-interface FormData {
-  collectionId: string;
-  quantity: string;
-  unitPrice: string;
-  customerNote: string;
-  deliveryAddress: string;
-}
+const getStatusBadge = (status: string) => {
+  const config: Record<string, { label: string; className: string }> = {
+    PENDING: { label: "Beklemede", className: "bg-blue-100 text-blue-800" },
+    REVIEWED: {
+      label: "İnceleniyor",
+      className: "bg-purple-100 text-purple-800",
+    },
+    QUOTE_SENT: {
+      label: "Teklif Gönderildi",
+      className: "bg-yellow-100 text-yellow-800",
+    },
+    CONFIRMED: { label: "Onaylandı", className: "bg-green-100 text-green-800" },
+    REJECTED: { label: "Reddedildi", className: "bg-red-100 text-red-800" },
+    IN_PRODUCTION: {
+      label: "Üretimde",
+      className: "bg-orange-100 text-orange-800",
+    },
+    PRODUCTION_COMPLETE: {
+      label: "Üretim Tamamlandı",
+      className: "bg-teal-100 text-teal-800",
+    },
+    QUALITY_CHECK: {
+      label: "Kalite Kontrolde",
+      className: "bg-indigo-100 text-indigo-800",
+    },
+    SHIPPED: { label: "Kargoda", className: "bg-cyan-100 text-cyan-800" },
+    DELIVERED: {
+      label: "Teslim Edildi",
+      className: "bg-green-100 text-green-800",
+    },
+    CANCELLED: {
+      label: "İptal Edildi",
+      className: "bg-gray-100 text-gray-800",
+    },
+  };
+
+  const statusInfo = config[status] || {
+    label: status,
+    className: "bg-gray-100 text-gray-800",
+  };
+  return <Badge className={statusInfo.className}>{statusInfo.label}</Badge>;
+};
+
+const getOrderProgress = (order: Order) => {
+  const { status, estimatedProductionDate, actualProductionStart, createdAt } =
+    order;
+
+  if (status === "DELIVERED") return 100;
+  if (status === "REJECTED" || status === "CANCELLED") return 0;
+
+  if (
+    (status === "IN_PRODUCTION" ||
+      status === "PRODUCTION_COMPLETE" ||
+      status === "QUALITY_CHECK") &&
+    estimatedProductionDate
+  ) {
+    const startDate = actualProductionStart
+      ? new Date(actualProductionStart)
+      : new Date(createdAt);
+    const endDate = new Date(estimatedProductionDate);
+    const now = new Date();
+
+    const totalDuration = endDate.getTime() - startDate.getTime();
+    const elapsedDuration = now.getTime() - startDate.getTime();
+
+    if (totalDuration <= 0) return 50;
+
+    let calculatedProgress = (elapsedDuration / totalDuration) * 100;
+    calculatedProgress = Math.max(0, Math.min(100, calculatedProgress));
+
+    if (status === "IN_PRODUCTION") {
+      calculatedProgress = Math.max(30, calculatedProgress);
+    } else if (status === "PRODUCTION_COMPLETE") {
+      calculatedProgress = Math.max(70, calculatedProgress);
+    } else if (status === "QUALITY_CHECK") {
+      calculatedProgress = Math.max(85, calculatedProgress);
+    }
+
+    return Math.floor(calculatedProgress);
+  }
+
+  const progressMap: Record<string, number> = {
+    PENDING: 5,
+    REVIEWED: 10,
+    QUOTE_SENT: 15,
+    CONFIRMED: 20,
+    IN_PRODUCTION: 50,
+    PRODUCTION_COMPLETE: 70,
+    QUALITY_CHECK: 85,
+    SHIPPED: 95,
+    DELIVERED: 100,
+    REJECTED: 0,
+    CANCELLED: 0,
+  };
+  return progressMap[status] || 0;
+};
+
+const getNextStatus = (currentStatus: string): string | null => {
+  const statusFlow: Record<string, string> = {
+    PENDING: "CONFIRMED",
+    CONFIRMED: "IN_PRODUCTION",
+    IN_PRODUCTION: "PRODUCTION_COMPLETE",
+    PRODUCTION_COMPLETE: "QUALITY_CHECK",
+    QUALITY_CHECK: "SHIPPED",
+    SHIPPED: "DELIVERED",
+  };
+  return statusFlow[currentStatus] || null;
+};
 
 export default function OrdersPage() {
   const { user } = useAuth();
-  const router = useRouter();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     collectionId: "",
-    quantity: "1",
+    quantity: "",
     unitPrice: "",
     customerNote: "",
-    deliveryAddress: "",
   });
 
-  const userRole = user?.role || "CUSTOMER";
-  const isAdmin = userRole === "ADMIN";
-  const isManufacturer = userRole === "MANUFACTURE";
-  const isCustomer = userRole === "CUSTOMER";
+  const isManufacturer =
+    user?.role === "MANUFACTURE" ||
+    user?.role === "COMPANY_OWNER" ||
+    user?.role === "COMPANY_EMPLOYEE";
+  const isCustomer = user?.role === "CUSTOMER";
 
-  const ordersQuery = isAdmin
-    ? ALL_ORDERS_QUERY
-    : isManufacturer
-    ? ASSIGNED_ORDERS_QUERY
-    : MY_ORDERS_QUERY;
-
-  const [ordersResult, reexecuteOrders] = useQuery({
-    query: ordersQuery,
-    variables: {
-      status: statusFilter !== "all" ? statusFilter : undefined,
-      search: searchTerm || undefined,
-    },
-  });
-
-  const [collectionsResult] = useQuery({
+  // Queries
+  const [{ data: collectionsData }] = useQuery({
     query: ALL_COLLECTIONS_QUERY,
+    pause: !isCustomer,
   });
 
+  const ordersQuery = isManufacturer
+    ? ASSIGNED_ORDERS_QUERY
+    : isCustomer
+    ? MY_ORDERS_QUERY
+    : ALL_ORDERS_QUERY;
+
+  const [{ data: ordersData, fetching }, reexecuteQuery] = useQuery({
+    query: ordersQuery,
+  });
+
+  // Mutations
   const [, createOrder] = useMutation(CREATE_ORDER_MUTATION);
   const [, updateOrderStatus] = useMutation(UPDATE_ORDER_STATUS_MUTATION);
-  const [, deleteOrder] = useMutation(DELETE_ORDER_MUTATION);
 
-  const orders =
-    ordersResult.data?.orders ||
-    ordersResult.data?.assignedOrders ||
-    ordersResult.data?.myOrders ||
+  const orders: Order[] =
+    ordersData?.assignedOrders ||
+    ordersData?.myOrders ||
+    ordersData?.orders ||
     [];
-  const collections = collectionsResult.data?.collections || [];
 
-  const handleCreateClick = () => {
-    setFormData({
-      collectionId: "",
-      quantity: "1",
-      unitPrice: "",
-      customerNote: "",
-      deliveryAddress: "",
-    });
-    setIsCreateDialogOpen(true);
+  // Filter orders
+  const filteredOrders = orders.filter((order) => {
+    const matchesSearch =
+      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.collection?.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "ALL" || order.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Stats
+  const stats = {
+    total: orders.length,
+    pending: orders.filter((o) => o.status === "PENDING").length,
+    inProduction: orders.filter((o) => o.status === "IN_PRODUCTION").length,
+    completed: orders.filter((o) => o.status === "DELIVERED").length,
   };
 
-  const handleDetailClick = (order: Order) => {
-    router.push(`/dashboard/orders/${order.id}`);
-  };
-
-  const handleDeleteClick = (order: Order) => {
-    setSelectedOrder(order);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleSubmitCreate = async () => {
-    if (!formData.collectionId) {
-      toast.error("Koleksiyon seçilmeli");
-      return;
-    }
-
-    if (!formData.quantity || parseInt(formData.quantity) < 1) {
-      toast.error("Geçerli bir miktar girilmeli");
+  const handleCreate = async () => {
+    if (!formData.collectionId || !formData.quantity || !formData.unitPrice) {
+      toast.error("Lütfen tüm alanları doldurun");
       return;
     }
 
     setIsSubmitting(true);
     try {
+      const totalAmount =
+        parseFloat(formData.unitPrice) * parseInt(formData.quantity);
+
       const result = await createOrder({
         collectionId: parseInt(formData.collectionId),
         quantity: parseInt(formData.quantity),
-        unitPrice: formData.unitPrice
-          ? parseFloat(formData.unitPrice)
-          : undefined,
+        unitPrice: parseFloat(formData.unitPrice),
+        totalPrice: totalAmount,
         customerNote: formData.customerNote || undefined,
-        deliveryAddress: formData.deliveryAddress || undefined,
       });
 
       if (result.error) {
@@ -256,57 +290,57 @@ export default function OrdersPage() {
       }
 
       toast.success("Sipariş başarıyla oluşturuldu");
-      setIsCreateDialogOpen(false);
-      reexecuteOrders({ requestPolicy: "network-only" });
-    } catch (error: any) {
-      toast.error(error.message || "Sipariş oluşturulurken bir hata oluştu");
+      setIsDialogOpen(false);
+      setFormData({
+        collectionId: "",
+        quantity: "",
+        unitPrice: "",
+        customerNote: "",
+      });
+      reexecuteQuery({ requestPolicy: "network-only" });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Sipariş oluşturulurken hata";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleConfirmDelete = async () => {
-    if (!selectedOrder) return;
-
+  const handleQuickAction = async (orderId: number, newStatus: string) => {
     setIsSubmitting(true);
     try {
-      const result = await deleteOrder({ id: selectedOrder.id });
+      const result = await updateOrderStatus({
+        id: orderId,
+        status: newStatus,
+      });
 
       if (result.error) {
         throw new Error(result.error.message);
       }
 
-      toast.success("Sipariş başarıyla silindi");
-      setIsDeleteDialogOpen(false);
-      setSelectedOrder(null);
-      reexecuteOrders({ requestPolicy: "network-only" });
-    } catch (error: any) {
-      toast.error(error.message || "Sipariş silinirken bir hata oluştu");
+      toast.success("Sipariş durumu güncellendi");
+      reexecuteQuery({ requestPolicy: "network-only" });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Durum güncellenirken hata";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getCustomerName = (order: Order) => {
-    if (!order.customer) return "Bilinmiyor";
-    const { firstName, lastName, name } = order.customer;
-    if (firstName && lastName) return `${firstName} ${lastName}`;
-    if (name) return name;
-    return order.customer.email;
-  };
-
-  const getManufactureName = (order: Order) => {
-    if (!order.manufacture) return "Bilinmiyor";
-    const { firstName, lastName, name } = order.manufacture;
-    if (firstName && lastName) return `${firstName} ${lastName}`;
-    if (name) return name;
-    return order.manufacture.email;
-  };
-
-  if (ordersResult.fetching) {
+  if (fetching) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid grid-cols-4 gap-4">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+        </div>
+        <Skeleton className="h-96" />
       </div>
     );
   }
@@ -316,287 +350,339 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Siparişler</h1>
-          <p className="text-gray-500 mt-1">
-            {isAdmin && "Tüm siparişleri görüntüleyin ve yönetin"}
-            {isManufacturer &&
-              "Size atanan siparişleri görüntüleyin ve yönetin"}
-            {isCustomer && "Siparişlerinizi görüntüleyin ve yönetin"}
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Siparişler</h1>
+          <p className="text-muted-foreground">Tüm siparişlerinizi yönetin</p>
         </div>
-        {(isAdmin || isCustomer) && (
-          <Button onClick={handleCreateClick}>
-            <Plus className="h-4 w-4 mr-2" />
+        {isCustomer && (
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
             Yeni Sipariş
           </Button>
         )}
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Toplam</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
+              </div>
+              <Package className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Bekleyen</p>
+                <p className="text-2xl font-bold">{stats.pending}</p>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Üretimde</p>
+                <p className="text-2xl font-bold">{stats.inProduction}</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-orange-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Tamamlanan</p>
+                <p className="text-2xl font-bold">{stats.completed}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+      <div className="flex gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
-            type="text"
-            placeholder="Sipariş ara..."
+            placeholder="Sipariş numarası veya koleksiyon ara..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Durum Filtrele" />
+          <SelectTrigger className="w-48">
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tümü</SelectItem>
+            <SelectItem value="ALL">Tüm Durumlar</SelectItem>
             <SelectItem value="PENDING">Beklemede</SelectItem>
-            <SelectItem value="REVIEWED">İnceleniyor</SelectItem>
-            <SelectItem value="QUOTE_SENT">Teklif Gönderildi</SelectItem>
             <SelectItem value="CONFIRMED">Onaylandı</SelectItem>
-            <SelectItem value="REJECTED">Reddedildi</SelectItem>
             <SelectItem value="IN_PRODUCTION">Üretimde</SelectItem>
-            <SelectItem value="PRODUCTION_COMPLETE">
-              Üretim Tamamlandı
-            </SelectItem>
-            <SelectItem value="QUALITY_CHECK">Kalite Kontrolde</SelectItem>
-            <SelectItem value="SHIPPED">Kargoda</SelectItem>
             <SelectItem value="DELIVERED">Teslim Edildi</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Orders List */}
-      {orders.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg border">
-          <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Sipariş bulunamadı
-          </h3>
-          <p className="text-gray-500 mb-4">Henüz hiç sipariş yok</p>
-          {(isAdmin || isCustomer) && (
-            <Button onClick={handleCreateClick}>
-              <Plus className="h-4 w-4 mr-2" />
-              İlk Siparişi Oluştur
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sipariş No
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Koleksiyon
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {isManufacturer ? "Müşteri" : "Şirket/Marka"}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Miktar
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Toplam
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Durum
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  İşlemler
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {orders.map((order: Order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {order.orderNumber}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {order.collection?.name || "-"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {isManufacturer ? (
-                      getCustomerName(order)
-                    ) : (
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          {order.manufacture?.company?.name || "Şirket Yok"}
+      {/* Orders Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredOrders.map((order) => {
+          const progress = getOrderProgress(order);
+          const nextStatus = getNextStatus(order.status);
+
+          return (
+            <Card
+              key={order.id}
+              className="overflow-hidden hover:shadow-lg transition-shadow"
+            >
+              <CardContent className="p-0">
+                {/* Image */}
+                {order.collection?.images &&
+                  order.collection.images.length > 0 && (
+                    <div className="relative h-48 w-full bg-gray-100">
+                      <Image
+                        src={order.collection.images[0].replace(/\/\//g, "/")}
+                        alt={order.collection.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+
+                <div className="p-4 space-y-3">
+                  {/* Header */}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg">
+                        {order.orderNumber}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {order.collection?.name}
+                      </p>
+                      {order.collection?.modelCode && (
+                        <p className="text-xs text-gray-400">
+                          {order.collection.modelCode}
                         </p>
-                        <p className="text-xs text-gray-500">
-                          {getManufactureName(order)}
-                        </p>
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {order.quantity} adet
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                    ₺{order.totalPrice.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getOrderStatusBadge(order.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDetailClick(order)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {(isAdmin ||
-                        order.status === "PENDING" ||
-                        order.status === "REVIEWED" ||
-                        order.status === "REJECTED") && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClick(order)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
                       )}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    {getStatusBadge(order.status)}
+                  </div>
+
+                  {/* Details */}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-gray-500">Miktar</p>
+                      <p className="font-medium">{order.quantity} adet</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Toplam</p>
+                      <p className="font-medium text-green-600">
+                        ₺{order.totalPrice.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Date */}
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Calendar className="h-3 w-3" />
+                    <span>
+                      {new Date(order.createdAt).toLocaleDateString("tr-TR")}
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  {order.status !== "REJECTED" &&
+                    order.status !== "CANCELLED" && (
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-500">İlerleme</span>
+                          <span className="font-medium">{progress}%</span>
+                        </div>
+                        <Progress value={progress} className="h-2" />
+                      </div>
+                    )}
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-2 border-t">
+                    <Link
+                      href={`/dashboard/orders/${order.id}`}
+                      className="flex-1"
+                    >
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Detay
+                      </Button>
+                    </Link>
+
+                    {isManufacturer &&
+                      nextStatus &&
+                      order.status !== "DELIVERED" &&
+                      order.status !== "CANCELLED" && (
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            handleQuickAction(order.id, nextStatus)
+                          }
+                          disabled={isSubmitting}
+                          className="flex-1"
+                        >
+                          {nextStatus === "CONFIRMED" && (
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                          )}
+                          {nextStatus === "IN_PRODUCTION" && (
+                            <Play className="h-4 w-4 mr-2" />
+                          )}
+                          {nextStatus !== "CONFIRMED" &&
+                            nextStatus !== "IN_PRODUCTION" && (
+                              <ArrowRight className="h-4 w-4 mr-2" />
+                            )}
+                          {nextStatus === "CONFIRMED" && "Onayla"}
+                          {nextStatus === "IN_PRODUCTION" && "Başlat"}
+                          {nextStatus === "PRODUCTION_COMPLETE" && "Tamamla"}
+                          {nextStatus === "QUALITY_CHECK" && "Kontrole Al"}
+                          {nextStatus === "SHIPPED" && "Kargola"}
+                          {nextStatus === "DELIVERED" && "Teslim Et"}
+                        </Button>
+                      )}
+
+                    {isManufacturer && order.status === "PENDING" && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleQuickAction(order.id, "REJECTED")}
+                        disabled={isSubmitting}
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Reddet
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {filteredOrders.length === 0 && (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">Sipariş bulunamadı</p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Create Order Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-2xl">
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Yeni Sipariş</DialogTitle>
+            <DialogTitle>Yeni Sipariş Oluştur</DialogTitle>
             <DialogDescription>
-              Sipariş oluşturmak için formu doldurun
+              Koleksiyon seçin ve sipariş detaylarını girin
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="collectionId">
-                Koleksiyon <span className="text-red-500">*</span>
-              </Label>
+              <Label>Koleksiyon</Label>
               <Select
                 value={formData.collectionId}
-                onValueChange={(value) => {
-                  const selected = collections.find(
-                    (c: any) => c.id.toString() === value
-                  );
-                  setFormData({
-                    ...formData,
-                    collectionId: value,
-                    unitPrice: selected?.price?.toString() || "",
-                  });
-                }}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, collectionId: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Koleksiyon seçin" />
                 </SelectTrigger>
                 <SelectContent>
-                  {collections.map((collection: any) => (
-                    <SelectItem
-                      key={collection.id}
-                      value={collection.id.toString()}
-                    >
-                      {collection.name} - ₺{collection.price}
-                    </SelectItem>
-                  ))}
+                  {collectionsData?.collections?.map(
+                    (collection: { id: number; name: string }) => (
+                      <SelectItem
+                        key={collection.id}
+                        value={collection.id.toString()}
+                      >
+                        {collection.name}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="quantity">
-                  Miktar <span className="text-red-500">*</span>
-                </Label>
+                <Label>Miktar</Label>
                 <Input
-                  id="quantity"
                   type="number"
                   min="1"
                   value={formData.quantity}
                   onChange={(e) =>
                     setFormData({ ...formData, quantity: e.target.value })
                   }
+                  placeholder="Örn: 100"
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="unitPrice">Birim Fiyat (₺)</Label>
+                <Label>Birim Fiyat (₺)</Label>
                 <Input
-                  id="unitPrice"
                   type="number"
-                  step="0.01"
                   min="0"
+                  step="0.01"
                   value={formData.unitPrice}
                   onChange={(e) =>
                     setFormData({ ...formData, unitPrice: e.target.value })
                   }
-                  placeholder="Koleksiyon fiyatı kullanılacak"
+                  placeholder="Örn: 42.50"
                 />
               </div>
             </div>
 
+            {formData.quantity && formData.unitPrice && (
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-gray-600">Toplam Tutar:</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  ₺
+                  {(
+                    parseFloat(formData.unitPrice) * parseInt(formData.quantity)
+                  ).toFixed(2)}
+                </p>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="customerNote">Not</Label>
+              <Label>Not (Opsiyonel)</Label>
               <Textarea
-                id="customerNote"
                 value={formData.customerNote}
                 onChange={(e) =>
                   setFormData({ ...formData, customerNote: e.target.value })
                 }
-                placeholder="Özel talepleriniz..."
+                placeholder="Özel isteklerinizi belirtin..."
                 rows={3}
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="deliveryAddress">Teslimat Adresi</Label>
-              <Textarea
-                id="deliveryAddress"
-                value={formData.deliveryAddress}
-                onChange={(e) =>
-                  setFormData({ ...formData, deliveryAddress: e.target.value })
-                }
-                placeholder="Teslimat adresi"
-                rows={2}
-              />
-            </div>
-
-            {formData.quantity && formData.unitPrice && (
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Toplam Tutar:</span>
-                  <span className="text-lg font-bold">
-                    ₺
-                    {(
-                      parseInt(formData.quantity) *
-                      parseFloat(formData.unitPrice)
-                    ).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
 
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setIsCreateDialogOpen(false)}
+              onClick={() => setIsDialogOpen(false)}
               disabled={isSubmitting}
             >
               İptal
             </Button>
-            <Button onClick={handleSubmitCreate} disabled={isSubmitting}>
+            <Button onClick={handleCreate} disabled={isSubmitting}>
               {isSubmitting && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
@@ -605,109 +691,6 @@ export default function OrdersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Order Detail Dialog */}
-      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Sipariş Detayı</DialogTitle>
-            <DialogDescription>{selectedOrder?.orderNumber}</DialogDescription>
-          </DialogHeader>
-
-          {selectedOrder && (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-gray-500">Durum</Label>
-                  <div className="mt-1">
-                    {getOrderStatusBadge(selectedOrder.status)}
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-gray-500">Koleksiyon</Label>
-                  <p className="mt-1">{selectedOrder.collection?.name}</p>
-                </div>
-                <div>
-                  <Label className="text-gray-500">Miktar</Label>
-                  <p className="mt-1">{selectedOrder.quantity} adet</p>
-                </div>
-                <div>
-                  <Label className="text-gray-500">Birim Fiyat</Label>
-                  <p className="mt-1">₺{selectedOrder.unitPrice.toFixed(2)}</p>
-                </div>
-                <div>
-                  <Label className="text-gray-500">Toplam Tutar</Label>
-                  <p className="mt-1 text-lg font-bold">
-                    ₺{selectedOrder.totalPrice.toFixed(2)}
-                  </p>
-                </div>
-                {selectedOrder.productionDays && (
-                  <div>
-                    <Label className="text-gray-500">Üretim Süresi</Label>
-                    <p className="mt-1">{selectedOrder.productionDays} gün</p>
-                  </div>
-                )}
-              </div>
-
-              {selectedOrder.customerNote && (
-                <div>
-                  <Label className="text-gray-500">Müşteri Notu</Label>
-                  <p className="mt-1 p-3 bg-gray-50 rounded">
-                    {selectedOrder.customerNote}
-                  </p>
-                </div>
-              )}
-
-              {selectedOrder.manufacturerResponse && (
-                <div>
-                  <Label className="text-gray-500">Üretici Yanıtı</Label>
-                  <p className="mt-1 p-3 bg-blue-50 rounded">
-                    {selectedOrder.manufacturerResponse}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDetailDialogOpen(false)}
-            >
-              Kapat
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Dialog */}
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Siparişi Sil</AlertDialogTitle>
-            <AlertDialogDescription>
-              {selectedOrder?.orderNumber} numaralı siparişi silmek istediğinize
-              emin misiniz? Bu işlem geri alınamaz.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSubmitting}>İptal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              disabled={isSubmitting}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              {isSubmitting && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
-              Sil
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

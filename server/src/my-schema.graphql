@@ -457,6 +457,7 @@ type Mutation {
   updateCompany(address: String, description: String, email: String, id: Int!, isActive: Boolean, name: String, phone: String, website: String): Company
   updateFabric(input: UpdateFabricInput!): Fabric
   updateFit(category: String, code: String, description: String, id: Int!, isActive: Boolean, name: String): FitItem
+  updateOrder(estimatedProductionDate: DateTime, id: Int!, manufacturerResponse: String, productionDays: Int, status: OrderStatus): Order
   updateOrderStatus(estimatedDays: Int, id: Int!, note: String, quotedPrice: Float, status: OrderStatus!): Order
   updateProductionStage(input: UpdateProductionStageInput!): ProductionTracking
   updateProfile(input: UserUpdateInput!): User
@@ -608,6 +609,7 @@ type Query {
   allCategories: [Category]
   allCompanies: [Company]
   allManufacturers: [User]
+  allProductionTracking: [ProductionTracking]
   allUsers(role: Role, searchString: String, skip: Int, take: Int): [User!]!
   assignedOrders(status: OrderStatus): [Order]
   assignedSamples(sampleType: SampleType, status: SampleStatus): [Sample]

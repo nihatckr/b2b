@@ -115,14 +115,22 @@ export const libraryQueries = (t: any) => {
   // Certifications
   t.list.field("myCertifications", {
     type: "Certification",
-    resolve: async (_, __, context: Context) => {
-      const user = await requireAuth(context);
-      if (!user.companyId) {
+    resolve: async (_parent: any, _args: any, context: Context) => {
+      const userId = await requireAuth(context);
+      // The subsequent code correctly fetches the user's companyId using this userId.
+      // The original check `if (!user.companyId)` was incorrect as `user` was actually the userId (a number).
+
+      const userWithCompanyId = await context.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      if (!userWithCompanyId?.companyId) {
         throw new Error("Must be associated with a company");
       }
 
       return context.prisma.certification.findMany({
-        where: { companyId: user.companyId, isActive: true },
+        where: { companyId: userWithCompanyId.companyId, isActive: true },
         orderBy: [{ category: "asc" }, { name: "asc" }],
       });
     },
