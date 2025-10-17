@@ -357,4 +357,191 @@ export class TaskHelper {
       console.error("Error completing related tasks:", error);
     }
   }
+
+  /**
+   * Üretim aşaması başladığında görev oluştur
+   * Her aşama için üretici için görev var
+   */
+  async createProductionStageTask(
+    orderId: number,
+    manufacturerId: number,
+    stage: string,
+    estimatedDays: number
+  ) {
+    try {
+      const stageLabels: Record<string, string> = {
+        PLANNING: "📋 Planlama",
+        FABRIC: "🧵 Kumaş Tedariki",
+        CUTTING: "✂️ Kesim",
+        SEWING: "🪡 Dikiş",
+        QUALITY: "✔️ Kalite Kontrolü",
+        PACKAGING: "📦 Paketleme",
+        SHIPPING: "🚚 Kargo",
+      };
+
+      const stageDescriptions: Record<string, string> = {
+        PLANNING: "Üretim planlaması yapılmalı ve kaynaklar hazırlanmalı",
+        FABRIC: "Gerekli kumaşlar tedarik edilmeli",
+        CUTTING: "Kumaş kesilmesi başlamalı",
+        SEWING: "Dikiş işleri gerçekleştirilmeli",
+        QUALITY: "Kalite kontrolü yapılmalı",
+        PACKAGING: "Ürünler paketlenmeye hazırlanmalı",
+        SHIPPING: "Ürünler kargoya verilerek gönderilmeli",
+      };
+
+      await this.prisma.task.create({
+        data: {
+          title: `${stageLabels[stage] || stage} - Aşama Başlama`,
+          description: stageDescriptions[stage] || `${stage} aşaması başlamalı`,
+          type: "PRODUCTION_STAGE" as any,
+          status: "TODO" as any,
+          priority: "LOW" as any, // Başlangıçta LOW, zaman geçince HIGH olacak
+          dueDate: new Date(Date.now() + estimatedDays * 24 * 60 * 60 * 1000),
+          userId: manufacturerId,
+          assignedToId: manufacturerId,
+          orderId: orderId,
+          notes: `${stage} aşaması için tahmini süre: ${estimatedDays} gün`,
+        },
+      });
+    } catch (error) {
+      console.error("Error creating production stage task:", error);
+    }
+  }
+
+  /**
+   * Aşama tamamlandığında: mevcut aşama görevini tamamla, sonraki aşama görevini oluştur
+   */
+  async handleStageCompletion(
+    orderId: number,
+    completedStage: string,
+    nextStage: string | null,
+    manufacturerId: number,
+    estimatedDaysForNext: number
+  ) {
+    try {
+      // Tamamlanan aşama görevini COMPLETED olarak işaretle
+      await this.prisma.task.updateMany({
+        where: {
+          orderId: orderId,
+          type: "PRODUCTION_STAGE" as any,
+          title: { contains: completedStage },
+          status: { not: "COMPLETED" },
+        },
+        data: {
+          status: "COMPLETED",
+          completedAt: new Date(),
+        },
+      });
+
+      // Sonraki aşama varsa görev oluştur
+      if (nextStage) {
+        await this.createProductionStageTask(
+          orderId,
+          manufacturerId,
+          nextStage,
+          estimatedDaysForNext
+        );
+      }
+    } catch (error) {
+      console.error("Error handling stage completion:", error);
+    }
+  }
+
+  /**
+   * Aşama geri alındığında: mevcut aşama görevini yeniden TODO yap, sonraki aşama görevini sil
+   */
+  async handleStageRevert(
+    orderId: number,
+    revertedStage: string,
+    nextStage: string | null
+  ) {
+    try {
+      // Geri alınan aşama görevini yeniden TODO olarak işaretle
+      await this.prisma.task.updateMany({
+        where: {
+          orderId: orderId,
+          type: "PRODUCTION_STAGE" as any,
+          title: { contains: revertedStage },
+          status: "COMPLETED",
+        },
+        data: {
+          status: "TODO",
+          completedAt: null,
+        },
+      });
+
+      // Sonraki aşama görevini sil (varsa)
+      if (nextStage) {
+        await this.prisma.task.deleteMany({
+          where: {
+            orderId: orderId,
+            type: "PRODUCTION_STAGE" as any,
+            title: { contains: nextStage },
+            status: "TODO",
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error handling stage revert:", error);
+    }
+  }
+
+  /**
+   * Zamanı kontrol et: aşama sonuna yaklaştıkça önceliği arttır
+   * 75% geçildi: MEDIUM, 90% geçildi: HIGH
+   */
+  async updateTaskPriorityByTime(orderId: number, stage: string, elapsedDays: number, estimatedDays: number) {
+    try {
+      let newPriority = "LOW";
+      const percentage = (elapsedDays / estimatedDays) * 100;
+
+      if (percentage >= 90) {
+        newPriority = "HIGH";
+      } else if (percentage >= 75) {
+        newPriority = "MEDIUM";
+      }
+
+      await this.prisma.task.updateMany({
+        where: {
+          type: "PRODUCTION_STAGE" as any,
+          title: { contains: stage },
+          orderId: orderId,
+          status: "TODO",
+        },
+        data: {
+          priority: newPriority as any,
+        },
+      });
+    } catch (error) {
+      console.error("Error updating task priority:", error);
+    }
+  }
+
+  /**
+   * Sonraki aşamaya geçme uyarısı görevini oluştur
+   */
+  async createNextStageWarningTask(
+    orderId: number,
+    completedStage: string,
+    nextStageName: string,
+    manufacturerId: number
+  ) {
+    try {
+      await this.prisma.task.create({
+        data: {
+          title: `Sonraki Aşama: ${nextStageName}`,
+          description: `${completedStage} aşaması tamamlandı. Şimdi ${nextStageName} aşamasına hazırlanmalısınız.`,
+          type: "STAGE_TRANSITION_WARNING" as any,
+          status: "TODO" as any,
+          priority: "LOW" as any, // Uyarı görevleri LOW priority
+          userId: manufacturerId,
+          assignedToId: manufacturerId,
+          orderId: orderId,
+          dueDate: new Date(), // Hemen
+        },
+      });
+    } catch (error) {
+      console.error("Error creating next stage warning task:", error);
+    }
+  }
 }
