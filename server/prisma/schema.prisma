@@ -161,6 +161,7 @@ model ProductionTracking {
   qualityControls     QualityControl[]
   productionRevisions ProductionRevision[]
   revisions           Revision[] // Legacy
+  tasks               Task[] @relation("ProductionTrackingTasks")
   notifications       Notification[] @relation("ProductionNotifications")
 
   @@map("production_tracking")
@@ -249,6 +250,10 @@ model User {
   // Notifications
   notifications Notification[] @relation("UserNotifications")
 
+  // Tasks
+  tasks Task[] @relation("UserTasks")
+  assignedTasks Task[] @relation("AssignedTasks")
+
   @@map("users")
 }
 
@@ -336,6 +341,7 @@ model Collection {
   orders         Order[]
   questions      Question[]
   reviews        Review[]
+  tasks          Task[]     @relation("CollectionTasks")
 
   // Company relation
   company   Company? @relation(fields: [companyId], references: [id])
@@ -411,6 +417,9 @@ model Sample {
 
   // AI Analysis relation
   aiAnalysis AIAnalysis?
+
+  // Tasks
+  tasks Task[] @relation("SampleTasks")
 
   // Notifications
   notifications Notification[] @relation("SampleNotifications")
@@ -510,6 +519,9 @@ model Order {
   // Company relation
   company   Company? @relation(fields: [companyId], references: [id])
   companyId Int?
+
+  // Tasks
+  tasks Task[] @relation("OrderTasks")
 
   // Notifications
   notifications Notification[] @relation("OrderNotifications")
@@ -932,6 +944,94 @@ model Notification {
   @@index([userId, isRead])
   @@index([userId, createdAt])
   @@map("notifications")
+}
+
+// ========================================
+// Task Model - Müşteri/Kullanıcı Aksiyonları
+// ========================================
+
+enum TaskStatus {
+  TODO // Yapılması gerekenler
+  IN_PROGRESS // Devam ediyor
+  COMPLETED // Tamamlandı
+  CANCELLED // İptal edildi
+}
+
+enum TaskPriority {
+  LOW // Düşük öncelik
+  MEDIUM // Orta öncelik
+  HIGH // Yüksek öncelik
+}
+
+enum TaskType {
+  // === MÜŞTERI TASKLERİ ===
+  SAMPLE_REQUEST // Örnek talebesi gönder
+  PURCHASE_ORDER // Satın alma siparişi gönder
+  APPROVE_SAMPLE // Örnek onay/ret
+  PAYMENT_PENDING // Ödeme yap
+  DOCUMENT_SUBMIT // Belge gönder (iş ortağı kontratı, vb)
+  REVIEW_PRODUCTION // Üretim progress'ini incele
+  
+  // === ÜRETİCİ TASKLERİ ===
+  SAMPLE_PRODUCTION // Örnek üret
+  SAMPLE_RESPONSE // Örnek talebine cevap ver
+  QUOTATION // Fiyat teklifi ver
+  PRODUCTION_START // Üretimi başlat
+  PRODUCTION_QUALITY_CHECK // Kalite kontrolü yap
+  PRODUCTION_SHIPMENT // Malları kargoya ver
+  MATERIAL_PROCUREMENT // Malzeme tedarik et
+  REVISION_REQUEST // Revize isteğine cevap ver
+  
+  // === GENEL ===
+  MEETING // Toplantı
+  DOCUMENT_REVIEW // Belge inceleme
+  OTHER // Diğer
+}
+
+model Task {
+  id            Int      @id @default(autoincrement())
+  title         String   // Görev başlığı (örn: "Örnek Onayı Beklemede")
+  description   String?  @db.LongText // Detaylı açıklama
+  status        TaskStatus @default(TODO)
+  priority      TaskPriority @default(MEDIUM)
+  type          TaskType
+  
+  // Kullanıcı ve İlişkilendirmeler
+  userId        Int      // Görevin oluşturduğu kullanıcı (müşteri veya üretici)
+  user          User     @relation("UserTasks", fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Gözlemci (Üretici taraf için gelen görevlerde atanan kişi)
+  assignedToId  Int?     // Kime atanıyor (null ise kendisine atanmış)
+  assignedTo    User?    @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
+  
+  // Opsiyonel İlişkiler
+  collectionId  Int?     // Koleksiyonla ilgili görev
+  collection    Collection? @relation("CollectionTasks", fields: [collectionId], references: [id], onDelete: SetNull)
+  
+  sampleId      Int?     // Örnek talebesiyle ilgili görev
+  sample        Sample?  @relation("SampleTasks", fields: [sampleId], references: [id], onDelete: SetNull)
+  
+  orderId       Int?     // Sipariş talebesiyle ilgili görev
+  order         Order?   @relation("OrderTasks", fields: [orderId], references: [id], onDelete: SetNull)
+  
+  productionTrackingId Int?
+  productionTracking ProductionTracking? @relation("ProductionTrackingTasks", fields: [productionTrackingId], references: [id], onDelete: SetNull)
+  
+  // Tarihler
+  dueDate       DateTime? // Son teslim tarihi
+  completedAt   DateTime? // Tamamlanma tarihi
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Metadata
+  notes         String?  @db.LongText // Notlar
+  assignedBy    Int? // Kimin tarafından atandığı
+  
+  @@index([userId, status])
+  @@index([userId, dueDate])
+  @@index([status, priority])
+  @@index([createdAt])
+  @@map("tasks")
 }
 
 // ========================================

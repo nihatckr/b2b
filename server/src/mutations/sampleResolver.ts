@@ -2,6 +2,7 @@ import { intArg, nonNull } from "nexus";
 import { Context } from "../context";
 import { createNotification } from "../utils/notificationHelper";
 import { isBuyer, requirePermission } from "../utils/permissions";
+import { TaskHelper } from "../utils/taskHelper";
 import { getUserRole, requireAuth } from "../utils/user-role-helper";
 
 export const sampleMutations = (t: any) => {
@@ -122,9 +123,12 @@ export const sampleMutations = (t: any) => {
                 detectedFabric: input.aiAnalysis.detectedFabric || null,
                 detectedPattern: input.aiAnalysis.detectedPattern || null,
                 detectedGender: input.aiAnalysis.detectedGender || null,
-                detectedClassification: input.aiAnalysis.detectedClassification || null,
-                detectedAccessories: input.aiAnalysis.detectedAccessories || null,
-                technicalDescription: input.aiAnalysis.technicalDescription || null,
+                detectedClassification:
+                  input.aiAnalysis.detectedClassification || null,
+                detectedAccessories:
+                  input.aiAnalysis.detectedAccessories || null,
+                technicalDescription:
+                  input.aiAnalysis.technicalDescription || null,
                 qualityAnalysis: input.aiAnalysis.qualityAnalysis || null,
                 qualityScore: input.aiAnalysis.qualityScore || null,
                 costAnalysis: input.aiAnalysis.costAnalysis || null,
@@ -166,11 +170,22 @@ export const sampleMutations = (t: any) => {
       await createNotification(context.prisma, {
         type: "SAMPLE",
         title: "🎨 New Sample Request",
-        message: `You have received a new sample request #${sampleNumber}${input.collectionId ? " for a collection" : ""}. Please review and respond.`,
+        message: `You have received a new sample request #${sampleNumber}${
+          input.collectionId ? " for a collection" : ""
+        }. Please review and respond.`,
         userId: manufactureId,
         link: `/dashboard/samples/${sample.id}`,
         sampleId: sample.id,
       });
+
+      // Create tasks automatically for sample workflow
+      const taskHelper = new TaskHelper(context.prisma);
+      await taskHelper.createSampleRequestTasks(
+        sample.id,
+        userId,
+        manufactureId,
+        input.collectionId || 0
+      );
 
       // Also notify company members if exists
       if (companyId) {
@@ -496,6 +511,91 @@ export const sampleMutations = (t: any) => {
         }
       }
 
+      // AUTO-CREATE TASKS based on status change
+      // Get collection owner (customer) - Collection has userId, not customerId
+      let customerId: number | null = sample.customerId;
+
+      // Task creation based on sample status transitions
+      if (
+        input.status === "PATTERN_READY" &&
+        sample.status !== "PATTERN_READY"
+      ) {
+        // Sample approved and ready for pattern - Create approval task for customer
+        if (customerId) {
+          await context.prisma.task.create({
+            data: {
+              title: `Approve Sample Pattern - ${sample.sampleNumber}`,
+              description: `Sample ${sample.sampleNumber} pattern is ready. Please review and approve to proceed with production.`,
+              status: "TODO" as any,
+              priority: "HIGH" as any,
+              type: "APPROVE_SAMPLE" as any,
+              assignedToId: customerId,
+              userId: userId,
+              sampleId: sample.id,
+              collectionId: sample.collectionId || undefined,
+              dueDate: new Date(Date.now() + 72 * 60 * 60 * 1000), // 3 days
+              notes: `Auto-created when sample pattern is ready for approval`,
+            },
+          });
+        }
+      }
+
+      if (
+        input.status === "IN_PRODUCTION" &&
+        sample.status !== "IN_PRODUCTION"
+      ) {
+        // Sample production started - Create task for manufacturer
+        if (sample.manufactureId) {
+          await context.prisma.task.create({
+            data: {
+              title: `Start Sample Production - ${sample.sampleNumber}`,
+              description: `Begin production for sample ${
+                sample.sampleNumber
+              }. Production days: ${
+                input.estimatedDays || sample.productionDays || 15
+              }`,
+              status: "TODO" as any,
+              priority: "HIGH" as any,
+              type: "SAMPLE_PRODUCTION" as any,
+              assignedToId: sample.manufactureId,
+              userId: userId,
+              sampleId: sample.id,
+              collectionId: sample.collectionId || undefined,
+              dueDate: new Date(
+                Date.now() +
+                  (input.estimatedDays || sample.productionDays || 15) *
+                    24 *
+                    60 *
+                    60 *
+                    1000
+              ),
+              notes: `Auto-created when sample production starts`,
+            },
+          });
+        }
+      }
+
+      if (input.status === "REJECTED" && sample.status !== "REJECTED") {
+        // Sample rejected - Create revision task for manufacturer
+        if (sample.manufactureId) {
+          await context.prisma.task.create({
+            data: {
+              title: `Revise Sample - ${sample.sampleNumber}`,
+              description: `Sample ${sample.sampleNumber} was rejected. Please revise and resubmit for inspection.`,
+              status: "TODO" as any,
+              priority: "HIGH" as any,
+              type: "REVISION_REQUEST" as any,
+              assignedToId: sample.manufactureId,
+              userId: userId,
+              sampleId: sample.id,
+              collectionId: sample.collectionId || undefined,
+              dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days for revision
+              notes: `Auto-created when sample is rejected - unlimited revisions allowed`,
+            },
+          });
+        }
+      }
+
       return sample;
     },
   });
@@ -511,7 +611,17 @@ export const sampleMutations = (t: any) => {
     },
     resolve: async (
       _parent: unknown,
-      { id, approve, manufacturerNote, estimatedDays }: { id: number; approve: boolean; manufacturerNote?: string; estimatedDays?: number },
+      {
+        id,
+        approve,
+        manufacturerNote,
+        estimatedDays,
+      }: {
+        id: number;
+        approve: boolean;
+        manufacturerNote?: string;
+        estimatedDays?: number;
+      },
       context: Context
     ) => {
       const userId = requireAuth(context);
@@ -541,7 +651,9 @@ export const sampleMutations = (t: any) => {
       const isAdmin = userRole === "ADMIN";
 
       if (!isAdmin && !isManufacture) {
-        throw new Error("Only the assigned manufacturer can approve this sample request");
+        throw new Error(
+          "Only the assigned manufacturer can approve this sample request"
+        );
       }
 
       // Check if sample is in PENDING_APPROVAL status
@@ -553,7 +665,9 @@ export const sampleMutations = (t: any) => {
       let estimatedProductionDate = null;
       if (approve && estimatedDays) {
         estimatedProductionDate = new Date();
-        estimatedProductionDate.setDate(estimatedProductionDate.getDate() + estimatedDays);
+        estimatedProductionDate.setDate(
+          estimatedProductionDate.getDate() + estimatedDays
+        );
       }
 
       // Update sample
@@ -581,13 +695,60 @@ export const sampleMutations = (t: any) => {
           sampleId: sample.id,
           status: newStatus,
           note: approve
-            ? `Sample request approved by manufacturer${manufacturerNote ? ': ' + manufacturerNote : ''}`
-            : `Sample request rejected by manufacturer${manufacturerNote ? ': ' + manufacturerNote : ''}`,
+            ? `Sample request approved by manufacturer${
+                manufacturerNote ? ": " + manufacturerNote : ""
+              }`
+            : `Sample request rejected by manufacturer${
+                manufacturerNote ? ": " + manufacturerNote : ""
+              }`,
           estimatedDays: estimatedDays || null,
           actualDate: new Date(),
           updatedById: userId,
         },
       });
+
+      // AUTO-CREATE TASK when manufacturer responds to sample request
+      if (sample.customerId) {
+        if (approve) {
+          // Sample approved by manufacturer - Create task for customer to review pattern
+          await context.prisma.task.create({
+            data: {
+              title: `Sample Ready for Review - ${sample.sampleNumber}`,
+              description: `Manufacturer approved your sample request. The sample is ready for your review and approval before production.`,
+              status: "TODO" as any,
+              priority: "HIGH" as any,
+              type: "APPROVE_SAMPLE" as any,
+              assignedToId: sample.customerId,
+              userId: userId,
+              sampleId: sample.id,
+              collectionId: sample.collectionId || undefined,
+              dueDate: new Date(Date.now() + 72 * 60 * 60 * 1000), // 3 days
+              notes: `Auto-created when manufacturer approved sample request`,
+            },
+          });
+        } else {
+          // Sample rejected by manufacturer - Create task for customer (with note reason)
+          await context.prisma.task.create({
+            data: {
+              title: `Sample Request Rejected - ${sample.sampleNumber}`,
+              description: `Your sample request was rejected by the manufacturer. ${
+                manufacturerNote
+                  ? "Reason: " + manufacturerNote
+                  : "Please contact the manufacturer for details."
+              }`,
+              status: "TODO" as any,
+              priority: "HIGH" as any,
+              type: "REVISION_REQUEST" as any,
+              assignedToId: sample.customerId,
+              userId: userId,
+              sampleId: sample.id,
+              collectionId: sample.collectionId || undefined,
+              dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
+              notes: `Auto-created when sample request was rejected - customer can submit revised request`,
+            },
+          });
+        }
+      }
 
       return sample;
     },
@@ -742,7 +903,14 @@ export const sampleMutations = (t: any) => {
       }
 
       // Can only hold if in progress
-      const allowedStatuses = ["REQUESTED", "RECEIVED", "IN_DESIGN", "PATTERN_READY", "IN_PRODUCTION", "QUALITY_CHECK"];
+      const allowedStatuses = [
+        "REQUESTED",
+        "RECEIVED",
+        "IN_DESIGN",
+        "PATTERN_READY",
+        "IN_PRODUCTION",
+        "QUALITY_CHECK",
+      ];
       if (!allowedStatuses.includes(existingSample.status)) {
         throw new Error("Sample cannot be held in current status");
       }
@@ -822,7 +990,10 @@ export const sampleMutations = (t: any) => {
       }
 
       // Cannot cancel if already completed or shipped
-      if (existingSample.status === "COMPLETED" || existingSample.status === "SHIPPED") {
+      if (
+        existingSample.status === "COMPLETED" ||
+        existingSample.status === "SHIPPED"
+      ) {
         throw new Error("Cannot cancel completed or shipped samples");
       }
 
@@ -847,7 +1018,9 @@ export const sampleMutations = (t: any) => {
         data: {
           sampleId: sample.id,
           status: "CANCELLED",
-          note: reason || `Sample cancelled by ${isCustomer ? 'customer' : 'manufacturer'}`,
+          note:
+            reason ||
+            `Sample cancelled by ${isCustomer ? "customer" : "manufacturer"}`,
           actualDate: new Date(),
           updatedById: userId,
         },

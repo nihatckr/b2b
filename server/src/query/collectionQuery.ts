@@ -46,10 +46,15 @@ export const collectionQueries = (t: any) => {
       const userRole = getUserRole(user);
 
       // Build where clause based on permissions and filters
-      const where: any = {};
+      let where: any = {};
+      const andConditions: any[] = [];
 
       // Role-based filtering
-      if (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") {
+      if (
+        userRole === "MANUFACTURE" ||
+        userRole === "COMPANY_OWNER" ||
+        userRole === "COMPANY_EMPLOYEE"
+      ) {
         // Manufacturers can only see their company's collections
         if (user.company?.type === "MANUFACTURER") {
           where.companyId = user.companyId;
@@ -57,7 +62,10 @@ export const collectionQueries = (t: any) => {
           // Buyers see all active collections
           where.isActive = true;
         }
-      } else if (userRole === "CUSTOMER" || userRole === "INDIVIDUAL_CUSTOMER") {
+      } else if (
+        userRole === "CUSTOMER" ||
+        userRole === "INDIVIDUAL_CUSTOMER"
+      ) {
         // Customers can only see active collections
         where.isActive = true;
       }
@@ -73,7 +81,9 @@ export const collectionQueries = (t: any) => {
         if (userRole === "ADMIN") {
           where.companyId = args.companyId;
         } else if (
-          (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") &&
+          (userRole === "MANUFACTURE" ||
+            userRole === "COMPANY_OWNER" ||
+            userRole === "COMPANY_EMPLOYEE") &&
           args.companyId === user.companyId
         ) {
           where.companyId = args.companyId;
@@ -88,29 +98,38 @@ export const collectionQueries = (t: any) => {
         where.isFeatured = args.isFeatured;
       }
 
+      // Search filter - using OR for multiple fields
       if (args.search) {
-        where.OR = [
-          ...(where.OR || []),
-          { name: { contains: args.search, mode: "insensitive" } },
-          { description: { contains: args.search, mode: "insensitive" } },
-          { sku: { contains: args.search, mode: "insensitive" } },
-        ];
+        andConditions.push({
+          OR: [
+            { name: { contains: args.search, mode: "insensitive" } },
+            { description: { contains: args.search, mode: "insensitive" } },
+            { sku: { contains: args.search, mode: "insensitive" } },
+          ],
+        });
       }
 
-      // Lokasyon filtresi
+      // Location filter - using company relation
       if (args.location) {
-        where.company = {
-          ...where.company,
-          location: { contains: args.location, mode: "insensitive" },
-        };
+        andConditions.push({
+          company: {
+            location: { contains: args.location, mode: "insensitive" },
+          },
+        });
       }
 
-      // Üretici ismi filtresi
+      // Manufacturer name filter
       if (args.manufacturerName) {
-        where.company = {
-          ...where.company,
-          name: { contains: args.manufacturerName, mode: "insensitive" },
-        };
+        andConditions.push({
+          company: {
+            name: { contains: args.manufacturerName, mode: "insensitive" },
+          },
+        });
+      }
+
+      // Combine all AND conditions
+      if (andConditions.length > 0) {
+        where.AND = andConditions;
       }
 
       return context.prisma.collection.findMany({
@@ -169,14 +188,21 @@ export const collectionQueries = (t: any) => {
       };
 
       // Role-based filtering
-      if (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") {
+      if (
+        userRole === "MANUFACTURE" ||
+        userRole === "COMPANY_OWNER" ||
+        userRole === "COMPANY_EMPLOYEE"
+      ) {
         // Manufacturers can only see their company's collections
         if (user.company?.type === "MANUFACTURER") {
           where.companyId = user.companyId;
         } else {
           where.isActive = true;
         }
-      } else if (userRole === "CUSTOMER" || userRole === "INDIVIDUAL_CUSTOMER") {
+      } else if (
+        userRole === "CUSTOMER" ||
+        userRole === "INDIVIDUAL_CUSTOMER"
+      ) {
         where.isActive = true;
       }
 
@@ -230,13 +256,23 @@ export const collectionQueries = (t: any) => {
       }
 
       // Permission check
-      if ((userRole === "CUSTOMER" || userRole === "INDIVIDUAL_CUSTOMER") && !collection.isActive) {
+      if (
+        (userRole === "CUSTOMER" || userRole === "INDIVIDUAL_CUSTOMER") &&
+        !collection.isActive
+      ) {
         throw new Error("Collection not accessible");
       }
 
-      if (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") {
+      if (
+        userRole === "MANUFACTURE" ||
+        userRole === "COMPANY_OWNER" ||
+        userRole === "COMPANY_EMPLOYEE"
+      ) {
         // Manufacturers can only see their company's collections
-        if (user.company?.type === "MANUFACTURER" && collection.companyId !== user.companyId) {
+        if (
+          user.company?.type === "MANUFACTURER" &&
+          collection.companyId !== user.companyId
+        ) {
           throw new Error("Not authorized to view this collection");
         }
       }
@@ -271,7 +307,12 @@ export const collectionQueries = (t: any) => {
       const userRole = getUserRole(user);
 
       // Permission check
-      if ((userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") && args.companyId !== user.companyId) {
+      if (
+        (userRole === "MANUFACTURE" ||
+          userRole === "COMPANY_OWNER" ||
+          userRole === "COMPANY_EMPLOYEE") &&
+        args.companyId !== user.companyId
+      ) {
         throw new Error(
           "Not authorized to view collections from different company"
         );
@@ -283,7 +324,10 @@ export const collectionQueries = (t: any) => {
 
       if (args.isActive !== undefined) {
         where.isActive = args.isActive;
-      } else if (userRole === "CUSTOMER" || userRole === "INDIVIDUAL_CUSTOMER") {
+      } else if (
+        userRole === "CUSTOMER" ||
+        userRole === "INDIVIDUAL_CUSTOMER"
+      ) {
         where.isActive = true;
       }
 
@@ -322,7 +366,11 @@ export const collectionQueries = (t: any) => {
 
       const where: any = {};
 
-      if (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") {
+      if (
+        userRole === "MANUFACTURE" ||
+        userRole === "COMPANY_OWNER" ||
+        userRole === "COMPANY_EMPLOYEE"
+      ) {
         // Manufacturers see only their company's collections
         where.companyId = user.companyId;
       } else if (userRole === "ADMIN") {

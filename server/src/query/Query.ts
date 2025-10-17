@@ -10,25 +10,26 @@ import { productionQueries } from "./productionQuery";
 import { questionQueries } from "./questionQuery";
 import { reviewQueries } from "./reviewQuery";
 import { sampleQueries } from "./sampleQuery";
+import { taskQueries } from "./taskQuery";
 import { userQueries } from "./userQuery";
 export {
-    AnalyticsQuery,
-    CategoryBreakdown,
-    CollectionGenderBreakdown,
-    CountrySuppliers,
-    DashboardStats,
-    GrowthMetrics,
-    LatestCollection,
-    MonthlyStats,
-    PlatformFeature,
-    ProductionAnalytics,
-    PublicAnalyticsQuery,
-    PublicPlatformStats,
-    RecentActivity,
-    StageBreakdown,
-    SupplierInfo,
-    SustainabilityMetrics,
-    Testimonial
+  AnalyticsQuery,
+  CategoryBreakdown,
+  CollectionGenderBreakdown,
+  CountrySuppliers,
+  DashboardStats,
+  GrowthMetrics,
+  LatestCollection,
+  MonthlyStats,
+  PlatformFeature,
+  ProductionAnalytics,
+  PublicAnalyticsQuery,
+  PublicPlatformStats,
+  RecentActivity,
+  StageBreakdown,
+  SupplierInfo,
+  SustainabilityMetrics,
+  Testimonial,
 } from "./analyticsQuery";
 export { WorkshopQuery } from "./workshopQuery";
 
@@ -69,5 +70,8 @@ export const Query = queryType({
 
     // Add notification queries
     notificationQueries(t);
+
+    // Add task queries
+    taskQueries(t);
   },
 });

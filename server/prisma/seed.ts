@@ -42,9 +42,11 @@ async function fetchUnsplashImages(
 
     console.log(`✅ Successfully fetched ${imageUrls.length} images`);
     return imageUrls;
-
   } catch (error: any) {
-    console.error(`❌ Error fetching Unsplash images for "${query}":`, error.message);
+    console.error(
+      `❌ Error fetching Unsplash images for "${query}":`,
+      error.message
+    );
 
     // Fallback to Source API (simpler, no auth needed)
     console.log(`⚠️  Falling back to Source API...`);
@@ -64,6 +66,7 @@ async function main() {
   console.log("🧹 Cleaning existing seed data...");
 
   // Delete in correct order (child tables first)
+  await prisma.task.deleteMany({}); // New Task model
   await prisma.review.deleteMany({});
   await prisma.question.deleteMany({});
   await prisma.message.deleteMany({});
@@ -77,6 +80,9 @@ async function main() {
   await prisma.order.deleteMany({});
   await prisma.sample.deleteMany({});
   await prisma.revision.deleteMany({});
+  await prisma.aIAnalysis.deleteMany({});
+  await prisma.notification.deleteMany({});
+  await prisma.userFavoriteCollection.deleteMany({});
   await prisma.collection.deleteMany({});
   await prisma.category.deleteMany({});
   await prisma.seasonItem.deleteMany({});
@@ -105,6 +111,9 @@ async function main() {
           "joao@porto-textiles.com",
           "rajesh@mumbai-fabrics.com",
           "youssef@casablanca-textile.com",
+          "derya.kaya@email.com",
+          "rana.khan@international.com",
+          "mert@thirdparty.com",
         ],
       },
     },
@@ -121,6 +130,7 @@ async function main() {
           "info@porto-textiles.com",
           "info@mumbai-fabrics.com",
           "info@casablanca-textile.com",
+          "info@thirdparty.com",
         ],
       },
     },
@@ -559,7 +569,9 @@ async function main() {
     data: { companyId: moroccoCompany.id },
   });
 
-  console.log(`✅ Created 6 international manufacturers (Bangladesh, China, Vietnam, Portugal, India, Morocco)`);
+  console.log(
+    `✅ Created 6 international manufacturers (Bangladesh, China, Vietnam, Portugal, India, Morocco)`
+  );
 
   // 7. Create sample categories for Defacto
   const categories = await prisma.category.createMany({
@@ -1211,14 +1223,35 @@ async function main() {
   console.log("📸 Fetching images from Unsplash...");
 
   // Fetch images for different collection types - Fashion & Moda focused
-  const tshirtImages = await fetchUnsplashImages("mens fashion tshirt model", 3);
-  const blouseImages = await fetchUnsplashImages("womens fashion blouse elegant", 2);
-  const sweatshirtImages = await fetchUnsplashImages("streetwear fashion hoodie sweatshirt", 3);
-  const jacketImages = await fetchUnsplashImages("sustainable fashion jacket outerwear", 2);
-  const pantsImages = await fetchUnsplashImages("mens fashion denim jeans pants", 3);
-  const knitwearImages = await fetchUnsplashImages("womens fashion sweater knitwear", 2);
+  const tshirtImages = await fetchUnsplashImages(
+    "mens fashion tshirt model",
+    3
+  );
+  const blouseImages = await fetchUnsplashImages(
+    "womens fashion blouse elegant",
+    2
+  );
+  const sweatshirtImages = await fetchUnsplashImages(
+    "streetwear fashion hoodie sweatshirt",
+    3
+  );
+  const jacketImages = await fetchUnsplashImages(
+    "sustainable fashion jacket outerwear",
+    2
+  );
+  const pantsImages = await fetchUnsplashImages(
+    "mens fashion denim jeans pants",
+    3
+  );
+  const knitwearImages = await fetchUnsplashImages(
+    "womens fashion sweater knitwear",
+    2
+  );
   const underwearImages = await fetchUnsplashImages("kids fashion clothing", 2);
-  const sportswearImages = await fetchUnsplashImages("athletic fashion sportswear activewear", 3);
+  const sportswearImages = await fetchUnsplashImages(
+    "athletic fashion sportswear activewear",
+    3
+  );
 
   console.log("✅ Images fetched from Unsplash");
 
@@ -1377,7 +1410,8 @@ async function main() {
   const collection4 = await prisma.collection.create({
     data: {
       name: "Eco-Friendly Dış Giyim Kış 2025",
-      description: "Geri dönüştürülmüş malzemelerden üretilmiş sürdürülebilir dış giyim koleksiyonu.",
+      description:
+        "Geri dönüştürülmüş malzemelerden üretilmiş sürdürülebilir dış giyim koleksiyonu.",
       modelCode: "ECO-FW25-004",
       season: "FW25",
       gender: "UNISEX",
@@ -1388,7 +1422,7 @@ async function main() {
       accessories: JSON.stringify({
         zipper: "Geri dönüştürülmüş YKK fermuarı",
         buttons: "Ahşap düğme",
-        label: "Organik pamuk etiket"
+        label: "Organik pamuk etiket",
       }),
       images: JSON.stringify(jacketImages),
       moq: 400,
@@ -1428,7 +1462,7 @@ async function main() {
       accessories: JSON.stringify({
         rivets: "Metal rivet",
         button: "Metal düğme",
-        zipper: "YKK metal fermuarı"
+        zipper: "YKK metal fermuarı",
       }),
       images: JSON.stringify(pantsImages),
       moq: 600,
@@ -1534,7 +1568,7 @@ async function main() {
       fabricComposition: "88% Polyester 12% Elastan (Moisture Wicking)",
       accessories: JSON.stringify({
         reflective: "Yansıtıcı bant",
-        label: "Lazer kesim etiket"
+        label: "Lazer kesim etiket",
       }),
       images: JSON.stringify(sportswearImages),
       moq: 500,
@@ -1560,7 +1594,9 @@ async function main() {
     },
   });
 
-  console.log(`✅ Created 8 collections (including eco-friendly and diverse categories)`);
+  console.log(
+    `✅ Created 8 collections (including eco-friendly and diverse categories)`
+  );
 
   // 9. Create Samples
   const sample1 = await prisma.sample.create({
@@ -1961,7 +1997,9 @@ async function main() {
     ],
   });
 
-  console.log(`✅ 🧪 TEST: Created urgent order with stage completion in 3 hours`);
+  console.log(
+    `✅ 🧪 TEST: Created urgent order with stage completion in 3 hours`
+  );
 
   // Get quality inspector
   const sedaUser = await prisma.user.findUnique({
@@ -2147,35 +2185,40 @@ async function main() {
     data: [
       {
         rating: 5,
-        comment: "ProtexFlow sayesinde üretim sürecimiz %40 hızlandı. Gerçek zamanlı takip sistemi harika!",
+        comment:
+          "ProtexFlow sayesinde üretim sürecimiz %40 hızlandı. Gerçek zamanlı takip sistemi harika!",
         isApproved: true,
         collectionId: collection1.id,
         customerId: lcwOwner.id,
       },
       {
         rating: 5,
-        comment: "Kalite kontrol modülü sayesinde hatalı ürün oranımız minimuma indi. Çok memnunuz!",
+        comment:
+          "Kalite kontrol modülü sayesinde hatalı ürün oranımız minimuma indi. Çok memnunuz!",
         isApproved: true,
         collectionId: collection2.id,
         customerId: lcwBuyingManager!.id,
       },
       {
         rating: 5,
-        comment: "AI destekli tasarım analizi çok kullanışlı. Teknik özellikleri otomatik çıkarması bize çok zaman kazandırıyor.",
+        comment:
+          "AI destekli tasarım analizi çok kullanışlı. Teknik özellikleri otomatik çıkarması bize çok zaman kazandırıyor.",
         isApproved: true,
         collectionId: collection3.id,
         customerId: lcwProductionTracker!.id,
       },
       {
         rating: 4,
-        comment: "Platform çok kapsamlı ve kullanıcı dostu. Müşteri desteği de oldukça yardımcı.",
+        comment:
+          "Platform çok kapsamlı ve kullanıcı dostu. Müşteri desteği de oldukça yardımcı.",
         isApproved: true,
         collectionId: collection1.id,
         customerId: lcwQualityManager!.id,
       },
       {
         rating: 5,
-        comment: "Sipariş yönetimi ve mesajlaşma sistemi çok pratik. Tüm iletişim tek platformda!",
+        comment:
+          "Sipariş yönetimi ve mesajlaşma sistemi çok pratik. Tüm iletişim tek platformda!",
         isApproved: true,
         collectionId: collection2.id,
         customerId: lcwOwner.id,
@@ -2184,6 +2227,1317 @@ async function main() {
   });
 
   console.log(`✅ Created 8 total customer testimonials (all approved)`);
+
+  // 20. Create Production Revisions
+  const productionRevision = await prisma.productionRevision.create({
+    data: {
+      productionId: productionTracking.id,
+      reason: "Dikiş kalitesi iyileştirilmeli, bazı iplikler görülüyor",
+      description: "Kalite kontrol sırasında bazı dikiş hataları tespit edildi",
+      extraDays: 2,
+      extraCost: 500.0,
+      isApproved: false,
+      requestedById: sedaUser!.id,
+    },
+  });
+
+  console.log(`✅ Created 1 production revision`);
+
+  // 21. Create AI Analysis for Sample
+  await prisma.aIAnalysis.create({
+    data: {
+      sampleId: sample1.id,
+      detectedProduct: "Erkek Tişört",
+      detectedColor: "Lacivert",
+      detectedFabric: "Jersey Pamuk",
+      detectedPattern: "Solid",
+      detectedGender: "MEN",
+      detectedClassification: "Casual",
+      detectedAccessories: "Etiket",
+      technicalDescription:
+        "Klasik pamuk tişört, standart kesim, kaliteli dikiş",
+      qualityAnalysis:
+        "Kumaş kalitesi mükemmel, dikiş hatları temiz ve dört, renkler canlı",
+      qualityScore: 9.2,
+      costAnalysis:
+        "Pamuk hammaddesi maliyet açısından ekonomik, dikiş otomasyonu iyi",
+      estimatedCostMin: 8.5,
+      estimatedCostMax: 12.0,
+      suggestedMinOrder: 500,
+      trendAnalysis:
+        "Klasik tişört tasarımı, dayanıklı trend, tüm sezonlarda satılır",
+      trendScore: 8.5,
+      targetMarket: "Casual giyim kullanan 18-45 yaş erkekler",
+      salesPotential: "HIGH",
+      designSuggestions: JSON.stringify({
+        suggestions: [
+          "Retro logo patch eklenebilir",
+          "Parlak efektli baskı yapılabilir",
+          "Kontrastlı desen kombinasyon",
+        ],
+        colors: ["Lacivert", "Beyaz", "Gri", "Siyah"],
+        styles: ["Minimalist", "Vintage", "Sporty"],
+      }),
+      designStyle: "Casual Minimalist",
+      designFocus: JSON.stringify(["Quality", "Comfort", "Versatility"]),
+    },
+  });
+
+  console.log(`✅ Created AI Analysis for sample`);
+
+  // 22. Create Notifications
+  await prisma.notification.createMany({
+    data: [
+      {
+        userId: lcwOwner.id,
+        title: "Numune Tamamlandı",
+        message:
+          "Talep ettiğiniz numune (SMP-2025-00001) tamamlanmış ve kargoya verilmiştir.",
+        type: "SAMPLE",
+        link: "/samples/1",
+        isRead: false,
+        sampleId: sample1.id,
+      },
+      {
+        userId: defactoOwner.id,
+        title: "Sipariş Onayı Bekleniyor",
+        message:
+          "LC Waikiki tarafından fiyat teklifi gönderilen sipariş (ORD-2025-00002) var.",
+        type: "ORDER",
+        link: "/orders/2",
+        isRead: true,
+        orderId: order2.id,
+      },
+      {
+        userId: canUser!.id,
+        title: "Üretim Aşaması Değişikliği",
+        message: "Sipariş ORD-2025-00001 SEWING aşamasına geçti.",
+        type: "PRODUCTION",
+        link: "/production/1",
+        isRead: false,
+        productionTrackingId: productionTracking.id,
+        orderId: order1.id,
+      },
+      {
+        userId: sedaUser!.id,
+        title: "Kalite Kontrol İsteği",
+        message: "ORD-2025-00001 siparişi kalite kontrol için hazır.",
+        type: "QUALITY",
+        link: "/quality/1",
+        isRead: false,
+      },
+      {
+        userId: lcwOwner.id,
+        title: "Sipariş Üretimde",
+        message: "Siparişiniz (ORD-2025-00001) üretim başladı. %65 tamamlandı.",
+        type: "ORDER",
+        link: "/orders/1",
+        isRead: false,
+        orderId: order1.id,
+      },
+      {
+        userId: defactoOwner.id,
+        title: "Yeni Numune Talebine Yanıt",
+        message: "Müşteri (LC Waikiki) numune ile ilgili yeni soru sormuş.",
+        type: "SAMPLE",
+        link: "/samples/1",
+        isRead: true,
+        sampleId: sample1.id,
+      },
+      {
+        userId: lcwOwner.id,
+        title: "Revizyon Talebi Alındı",
+        message: "Numune SMP-2025-00002 revizyon talebiniz onaylandı.",
+        type: "SAMPLE",
+        link: "/samples/2",
+        isRead: false,
+        sampleId: sample2.id,
+      },
+      {
+        userId: canUser!.id,
+        title: "⏰ UYARI: Üretim Aşaması Bitiş Zamanı Yaklaşıyor",
+        message:
+          "🧪 Sipariş ORD-2025-TEST-URGENT'in FABRIC aşaması 3 saat içinde bitecek!",
+        type: "PRODUCTION",
+        link: "/production/test",
+        isRead: false,
+        productionTrackingId: testProductionTracking.id,
+      },
+    ],
+  });
+
+  console.log(`✅ Created 8 notifications`);
+
+  // 23. Create User Favorite Collections
+  await prisma.userFavoriteCollection.createMany({
+    data: [
+      {
+        userId: lcwOwner.id,
+        collectionId: collection1.id,
+      },
+      {
+        userId: lcwOwner.id,
+        collectionId: collection3.id,
+      },
+      {
+        userId: lcwBuyingManager!.id,
+        collectionId: collection2.id,
+      },
+      {
+        userId: lcwBuyingManager!.id,
+        collectionId: collection1.id,
+      },
+    ],
+  });
+
+  console.log(`✅ Created user favorite collections (likes)`);
+
+  // 24. Create Certifications linking to Collections (many-to-many)
+  // This requires updating Certification model to link with collections
+  // For now, we ensure collections have certification data
+  await prisma.collection.update({
+    where: { id: collection4.id }, // Eco-friendly collection
+    data: {
+      // Link to GOTS and GRS certifications via company
+    },
+  });
+
+  // 25. Create Revisions for existing orders
+  await prisma.revision.createMany({
+    data: [
+      {
+        orderId: order1.id,
+        revisionNumber: 1,
+        requestMessage:
+          "Beden dağılımı talebimiz oldu: S:100, M:150, L:150, XL:100",
+        responseMessage: "Talebiniz not alındı, üretim planı güncellendi.",
+        status: "completed",
+        requestedAt: new Date("2025-10-12"),
+        completedAt: new Date("2025-10-13"),
+      },
+      {
+        sampleId: sample2.id,
+        revisionNumber: 1,
+        requestMessage: "Beden: M→L, Renk: Mavi→Lacivert olsun",
+        responseMessage: "Revizyon talebi onaylandı, yeni kalıp hazırlanıyor",
+        status: "in_progress",
+        requestedAt: new Date("2025-10-14"),
+      },
+    ],
+  });
+
+  console.log(`✅ Created 2 revisions (1 completed, 1 in-progress)`);
+
+  // 26. Create more comprehensive collection data with all fields populated
+  const collection9 = await prisma.collection.create({
+    data: {
+      name: "Lüks Pamuk Premium Erkek Koleksiyonu",
+      description:
+        "Yüksek kaliteli malzemeler ve üstün işçiliği ile seçilmiş erkek giyim koleksiyonu",
+      modelCode: "LUX-FW25-009",
+      season: "FW25",
+      gender: "MEN",
+      fit: "Tailored Fit",
+      trend: "Premium Casual",
+      colors: JSON.stringify(["Krem", "Kahverengi", "Haki", "Antrasit"]),
+      sizeGroups: JSON.stringify([7, 8]), // Erkek Standart ve Plus Size groups
+      sizeRange: "S-3XL",
+      measurementChart: "/uploads/measurements/luxury-mens-fw25.pdf",
+      fabricComposition: "%100 Premium Pima Pamuk",
+      accessories: JSON.stringify({
+        buttons: "Bone/Horn düğmeler",
+        label: "Nakış işlemeli etiket",
+        packaging: "Lüks hediye kutusu",
+        hangtag: "Metalik baskılı etiket",
+      }),
+      images: JSON.stringify(tshirtImages.slice(0, 2)),
+      techPack: "/uploads/techpacks/luxury-mens-fw25.pdf",
+      moq: 200,
+      targetPrice: 45.0,
+      targetLeadTime: 60,
+      notes: "Premium koleksiyon, el yapımı detaylar, sınırlı edition",
+      price: 285.0,
+      sku: "LUX-2025-M-001",
+      stock: 250,
+      productionSchedule: {
+        PLANNING: 5,
+        FABRIC: 8,
+        CUTTING: 5,
+        SEWING: 20,
+        QUALITY: 4,
+        PACKAGING: 3,
+        SHIPPING: 2,
+      },
+      isActive: true,
+      isFeatured: true,
+      slug: "lux-pamuk-premium-erkek-koleksiyonu",
+      categoryId: erkekGiyim?.id,
+      authorId: defactoOwner.id,
+      companyId: defacto.id,
+    },
+  });
+
+  // Link certification to this collection
+  const gortscert = await prisma.certification.findFirst({
+    where: { code: "GOTS-2024-TR-001" },
+  });
+  if (gortscert) {
+    // Note: We need a many-to-many table for this, currently it's not in schema
+    // But we can reference it through company certifications
+  }
+
+  const collection10 = await prisma.collection.create({
+    data: {
+      name: "Çevre Dostu Unisex Aktivwear Koleksiyonu",
+      description:
+        "Geri dönüştürülmüş malzemelerden üretilmiş, performans odaklı spor giyim",
+      modelCode: "ECO-ACT-2025-010",
+      season: "SS25",
+      gender: "UNISEX",
+      fit: "Athletic Fit",
+      trend: "Sustainable Sport",
+      colors: JSON.stringify([
+        "Doğal Beyaz",
+        "Orman Yeşili",
+        "Yer Grisi",
+        "Okyanus Mavisi",
+      ]),
+      sizeGroups: JSON.stringify([1, 2]),
+      sizeRange: "XS-3XL",
+      fabricComposition:
+        "88% Geri Dönüştürülmüş Polyester 12% Elastan (3D Breathable)",
+      accessories: JSON.stringify({
+        zipper: "YKK Aquaguard fermuarı",
+        label: "Organik pamuk dikişli etiket",
+        thread: "Geri dönüştürülmüş polyester iplik",
+        branding: "Baskı ile yapılmış logo",
+      }),
+      images: JSON.stringify(sportswearImages),
+      techPack: "/uploads/techpacks/eco-activwear-ss25.pdf",
+      moq: 600,
+      targetPrice: 22.5,
+      targetLeadTime: 50,
+      notes:
+        "Carbon neutral, plastik çanta geri dönüşümü kullanıyor, vegan tasarım",
+      price: 99.0,
+      sku: "ECO-ACT-2025-001",
+      stock: 1200,
+      productionSchedule: {
+        PLANNING: 3,
+        FABRIC: 5,
+        CUTTING: 3,
+        SEWING: 12,
+        QUALITY: 2,
+        PACKAGING: 2,
+        SHIPPING: 1,
+      },
+      isActive: true,
+      isFeatured: true,
+      slug: "eco-unisex-aktivwear",
+      categoryId: erkekGiyim?.id,
+      authorId: defactoOwner.id,
+      companyId: defacto.id,
+    },
+  });
+
+  console.log(`✅ Created 2 premium collections with complete data`);
+
+  // 27. Create more Orders with different statuses for dashboard variety
+  const order4 = await prisma.order.create({
+    data: {
+      orderNumber: "ORD-2025-00004",
+      quantity: 2000,
+      unitPrice: 38.0,
+      totalPrice: 76000.0,
+      status: "PENDING",
+      customerNote: "Yüksek hacim sipariş, ödeme koşulları özel olabilir mi?",
+      productionDays: 45,
+      deliveryAddress: "LC Waikiki Lojistik Merkezi, İzmir",
+      collectionId: collection4.id,
+      customerId: lcwOwner.id,
+      manufactureId: defactoOwner.id,
+      companyId: lcwaikiki.id,
+    },
+  });
+
+  const order5 = await prisma.order.create({
+    data: {
+      orderNumber: "ORD-2025-00005",
+      quantity: 150,
+      unitPrice: 95.0,
+      totalPrice: 14250.0,
+      status: "DELIVERED",
+      customerNote: "Standart sipariş",
+      manufacturerResponse: "Tamamlandı ve kargoya verildi",
+      estimatedProductionDate: new Date("2025-09-20"),
+      actualProductionStart: new Date("2025-09-01"),
+      actualProductionEnd: new Date("2025-09-18"),
+      shippingDate: new Date("2025-09-20"),
+      cargoTrackingNumber: "TR123456789",
+      deliveryAddress: "LC Waikiki Mağaza, Ankara",
+      collectionId: collection2.id,
+      customerId: lcwOwner.id,
+      manufactureId: defactoOwner.id,
+      companyId: lcwaikiki.id,
+    },
+  });
+
+  const order6 = await prisma.order.create({
+    data: {
+      orderNumber: "ORD-2025-00006",
+      quantity: 75,
+      unitPrice: 280.0,
+      totalPrice: 21000.0,
+      status: "CANCELLED",
+      customerNote: "Sipariş iptal, müşteri tarafından talep edildi",
+      manufacturerResponse: "Sipariş iptal edildi, malzeme tedariki durduruldu",
+      collectionId: collection9.id,
+      customerId: lcwOwner.id,
+      manufactureId: defactoOwner.id,
+      companyId: lcwaikiki.id,
+    },
+  });
+
+  console.log(`✅ Created 3 more orders (PENDING, COMPLETED, CANCELLED)`);
+
+  // 28. Create Order Production History for completed order
+  const canUser2 = await prisma.user.findUnique({
+    where: { email: "can@defacto.com" },
+  });
+
+  await prisma.orderProduction.createMany({
+    data: [
+      {
+        orderId: order5.id,
+        status: "PRODUCTION_COMPLETE",
+        note: "Sipariş tamamlandı ve teslimat yapıldı",
+        actualDate: new Date("2025-09-18"),
+        updatedById: canUser2!.id,
+      },
+    ],
+  });
+
+  // 29. Create Production Tracking for completed order
+  const completedProductionTracking = await prisma.productionTracking.create({
+    data: {
+      orderId: order5.id,
+      currentStage: "SHIPPING",
+      overallStatus: "COMPLETED",
+      progress: 100,
+      estimatedStartDate: new Date("2025-09-01"),
+      estimatedEndDate: new Date("2025-09-20"),
+      actualStartDate: new Date("2025-09-01"),
+      actualEndDate: new Date("2025-09-18"),
+      notes: "Üretim %10 erken tamamlandı, kalite standartları aşıldı",
+      companyId: defacto.id,
+    },
+  });
+
+  // All stages completed for this order
+  await prisma.productionStageUpdate.createMany({
+    data: [
+      {
+        productionId: completedProductionTracking.id,
+        stage: "PLANNING",
+        status: "COMPLETED",
+        actualStartDate: new Date("2025-09-01"),
+        actualEndDate: new Date("2025-09-02"),
+        estimatedDays: 1,
+        notes: "✅ Tamamlandı",
+      },
+      {
+        productionId: completedProductionTracking.id,
+        stage: "FABRIC",
+        status: "COMPLETED",
+        actualStartDate: new Date("2025-09-02"),
+        actualEndDate: new Date("2025-09-05"),
+        estimatedDays: 3,
+        notes: "✅ Tamamlandı",
+      },
+      {
+        productionId: completedProductionTracking.id,
+        stage: "CUTTING",
+        status: "COMPLETED",
+        actualStartDate: new Date("2025-09-05"),
+        actualEndDate: new Date("2025-09-07"),
+        estimatedDays: 2,
+        notes: "✅ Tamamlandı",
+      },
+      {
+        productionId: completedProductionTracking.id,
+        stage: "SEWING",
+        status: "COMPLETED",
+        actualStartDate: new Date("2025-09-07"),
+        actualEndDate: new Date("2025-09-15"),
+        estimatedDays: 8,
+        notes: "✅ Tamamlandı",
+      },
+      {
+        productionId: completedProductionTracking.id,
+        stage: "QUALITY",
+        status: "COMPLETED",
+        actualStartDate: new Date("2025-09-15"),
+        actualEndDate: new Date("2025-09-16"),
+        estimatedDays: 1,
+        notes: "✅ Tamamlandı - Kusursuz kalite",
+      },
+      {
+        productionId: completedProductionTracking.id,
+        stage: "PACKAGING",
+        status: "COMPLETED",
+        actualStartDate: new Date("2025-09-16"),
+        actualEndDate: new Date("2025-09-17"),
+        estimatedDays: 1,
+        notes: "✅ Tamamlandı",
+      },
+      {
+        productionId: completedProductionTracking.id,
+        stage: "SHIPPING",
+        status: "COMPLETED",
+        actualStartDate: new Date("2025-09-17"),
+        actualEndDate: new Date("2025-09-18"),
+        estimatedDays: 1,
+        notes: "✅ Tamamlandı - Müşteriye teslim edildi",
+      },
+    ],
+  });
+
+  console.log(`✅ Created completed production tracking (all 7 stages)`);
+
+  // 30. Create Quality Control for completed order
+  await prisma.qualityControl.create({
+    data: {
+      productionId: completedProductionTracking.id,
+      inspectorId: sedaUser!.id,
+      checkDate: new Date("2025-09-16"),
+      result: "PASSED",
+      score: 98,
+      notes: "Kusursuz kalite, tüm standartlar aşıldı",
+      fabricDefects: false,
+      sewingDefects: false,
+      measureDefects: false,
+      finishingDefects: false,
+    },
+  });
+
+  console.log(`✅ Created quality control for completed order`);
+
+  // 31. Create sample with all AI fields populated
+  const sample4 = await prisma.sample.create({
+    data: {
+      sampleNumber: "SMP-2025-00004",
+      sampleType: "STANDARD",
+      status: "COMPLETED",
+      customerNote: "Premium kalite, dikkat detayları kontrol edin",
+      manufacturerResponse: "Numune hazır, tüm detaylar kontrol edildi",
+      productionDays: 8,
+      estimatedProductionDate: new Date("2025-10-25"),
+      actualProductionDate: new Date("2025-10-23"),
+      shippingDate: new Date("2025-10-24"),
+      deliveryAddress: "LC Waikiki Merkez Ofis, İstanbul",
+      cargoTrackingNumber: "987654321",
+      name: "Premium Erkek Tişört Numunesi",
+      description: "Yüksek kaliteli Pima pamuktan yapılmış, minimalist tasarım",
+      images: JSON.stringify(tshirtImages.slice(1, 3)),
+      aiGenerated: false,
+      collectionId: collection9.id,
+      customerId: lcwOwner.id,
+      manufactureId: defactoOwner.id,
+      companyId: lcwaikiki.id,
+    },
+  });
+
+  // Create AI Analysis for this sample
+  await prisma.aIAnalysis.create({
+    data: {
+      sampleId: sample4.id,
+      detectedProduct: "Premium Erkek Tişört",
+      detectedColor: "Krem",
+      detectedFabric: "Pima Pamuk",
+      detectedPattern: "Solid",
+      detectedGender: "MEN",
+      detectedClassification: "Premium Casual",
+      detectedAccessories: "Bone düğme, nakışlı etiket",
+      technicalDescription:
+        "Yüksek kaliteli Pima pamuktan üretilmiş, premium kalite dikişler",
+      qualityAnalysis:
+        "Mükemmel kumaş kalitesi, profesyonel dikiş, renk derinliği, UV stabiliyesi",
+      qualityScore: 9.8,
+      costAnalysis: "Pima pamuk premium segment'te, işçilik ve detaylar üstün",
+      estimatedCostMin: 35.0,
+      estimatedCostMax: 50.0,
+      suggestedMinOrder: 200,
+      trendAnalysis: "Premium casual trend, yüksek demand, dayanıklı trend",
+      trendScore: 9.2,
+      targetMarket:
+        "Premium segment, 25-55 yaş, gelir seviyesi yüksek erkekler",
+      salesPotential: "HIGH",
+      designSuggestions: JSON.stringify({
+        suggestions: [
+          "Limited edition koleksiyonuna uygun",
+          "Lüks mağazaları hedefle",
+          "Premium pricing stratejisi",
+        ],
+        market: "Premium Retail",
+        positioning: "Luxury Casual",
+      }),
+      designStyle: "Premium Minimalist",
+      designFocus: JSON.stringify(["Quality", "Heritage", "Exclusivity"]),
+    },
+  });
+
+  console.log(`✅ Created advanced sample with full AI analysis`);
+
+  // 32. Create More User Favorites
+  const defactoDesigner = await prisma.user.findUnique({
+    where: { email: "ayse@defacto.com" },
+  });
+
+  if (defactoDesigner) {
+    await prisma.userFavoriteCollection.createMany({
+      data: [
+        {
+          userId: defactoDesigner.id,
+          collectionId: collection9.id,
+        },
+        {
+          userId: defactoDesigner.id,
+          collectionId: collection10.id,
+        },
+      ],
+    });
+  }
+
+  console.log(`✅ Created more user favorites`);
+
+  // 33. Create More Messages for Communication
+  const aliUser = await prisma.user.findUnique({
+    where: { email: "ali@lcwaikiki.com" },
+  });
+
+  await prisma.message.createMany({
+    data: [
+      {
+        content: "Üretim durumu hakkında güncellemeler var mı?",
+        senderId: aliUser!.id,
+        receiverId: canUser!.id,
+        type: "direct",
+        isRead: false,
+        orderId: order1.id,
+        companyId: lcwaikiki.id,
+      },
+      {
+        content:
+          "Evet, SEWING aşamasında %65 tamamlanmıştır. Kalite kontrole 2 gün kaldı.",
+        senderId: canUser!.id,
+        receiverId: aliUser!.id,
+        type: "direct",
+        isRead: false,
+        orderId: order1.id,
+        companyId: defacto.id,
+      },
+      {
+        content:
+          "Tasarım ekibi, yeni koleksiyon önerileri için gözden geçirme yapabilir mi?",
+        senderId: lcwBuyingManager!.id,
+        receiverId: defactoOwner.id,
+        type: "direct",
+        isRead: true,
+      },
+      {
+        content:
+          "Tasarımlarla ilgili sorunuz var mı? En kısa sürede cevaplayabilirim.",
+        senderId: defactoOwner.id,
+        receiverId: lcwBuyingManager!.id,
+        type: "direct",
+        isRead: true,
+      },
+    ],
+  });
+
+  console.log(`✅ Created 4 more direct messages`);
+
+  // 34. Create Individual Customer (INDIVIDUAL_CUSTOMER role)
+  const individualCustomer = await prisma.user.create({
+    data: {
+      firstName: "Derya",
+      lastName: "Kaya",
+      email: "derya.kaya@email.com",
+      password: "$2a$10$k2rXCFgdmO84Vhkyb6trJ.oH6MYLf141uTPf81w04BImKVqDbBivi",
+      phone: "+90 532 999 8888",
+      role: "INDIVIDUAL_CUSTOMER",
+      isActive: true,
+    },
+  });
+
+  console.log(`✅ Created individual customer: ${individualCustomer.email}`);
+
+  // 35. Create sample with AI generated flag
+  const sample5 = await prisma.sample.create({
+    data: {
+      sampleNumber: "SMP-2025-00005",
+      sampleType: "STANDARD",
+      status: "AI_DESIGN",
+      name: "AI Tasarım: Futuristik Erkek Tişört",
+      description:
+        "Yapay zeka tarafından oluşturulan tasarım, minimalist future stil",
+      aiGenerated: true,
+      aiPrompt:
+        "modern minimalist futuristic mens tshirt design 2025 fashion trend sustainable",
+      aiSketchUrl: "https://source.unsplash.com/800x600/?ai-design,minimalist",
+      images: JSON.stringify(tshirtImages.slice(0, 2)),
+      customerNote: "AI tasarımı beğendik, lütfen numunesi yapabilir misiniz?",
+      customerId: individualCustomer.id,
+      manufactureId: defactoOwner.id,
+      companyId: defacto.id,
+    },
+  });
+
+  console.log(`✅ Created AI generated sample`);
+
+  // 36. Create Revision for Sample 5 (AI Design)
+  await prisma.revision.create({
+    data: {
+      sampleId: sample5.id,
+      revisionNumber: 1,
+      requestMessage:
+        "AI tasarımında renk paleti değiştirilsin: Siyah yerine Lacivert, Gri yerine Krem",
+      status: "pending",
+      requestedAt: new Date(),
+    },
+  });
+
+  // 37. Create Order from Individual Customer
+  const orderFromIndividual = await prisma.order.create({
+    data: {
+      orderNumber: "ORD-2025-INDIV-001",
+      quantity: 50,
+      unitPrice: 45.0,
+      totalPrice: 2250.0,
+      status: "PENDING",
+      customerNote:
+        "Bireysel müşteri olarak ilk siparişim. Kaliteli ürün arıyorum.",
+      collectionId: collection1.id,
+      customerId: individualCustomer.id,
+      manufactureId: defactoOwner.id,
+      companyId: defacto.id,
+    },
+  });
+
+  console.log(`✅ Created order from individual customer`);
+
+  // 38. Create Question from Individual Customer
+  await prisma.question.create({
+    data: {
+      question: "Bu ürün hassas cilde uygun mu?",
+      answer:
+        "Evet, %100 organik pamuk, hypoallergenic, dermatolog tarafından test edilmiş",
+      isAnswered: true,
+      isPublic: true,
+      collectionId: collection1.id,
+      customerId: individualCustomer.id,
+      manufactureId: defactoOwner.id,
+    },
+  });
+
+  console.log(`✅ Created question from individual customer`);
+
+  // 39. Create international customer orders (more diverse scenarios)
+  const bangladeshCustomer = await prisma.user.create({
+    data: {
+      firstName: "Rana",
+      lastName: "Khan",
+      email: "rana.khan@international.com",
+      password: "$2a$10$k2rXCFgdmO84Vhkyb6trJ.oH6MYLf141uTPf81w04BImKVqDbBivi",
+      role: "INDIVIDUAL_CUSTOMER",
+      isActive: true,
+      phone: "+880 1712 345678",
+    },
+  });
+
+  const internationalOrder = await prisma.order.create({
+    data: {
+      orderNumber: "ORD-2025-INTL-001",
+      quantity: 200,
+      unitPrice: 38.0,
+      totalPrice: 7600.0,
+      status: "IN_PRODUCTION",
+      customerNote: "Bangladesh'e ihraç için, kalite önemli",
+      manufacturerResponse: "Onaylandı, üretim başladı",
+      productionDays: 35,
+      estimatedProductionDate: new Date("2025-11-10"),
+      actualProductionStart: new Date("2025-10-15"),
+      deliveryAddress: "Dhaka, Bangladesh",
+      collectionId: collection5.id,
+      customerId: bangladeshCustomer.id,
+      manufactureId: defactoOwner.id,
+      companyId: defacto.id,
+    },
+  });
+
+  console.log(`✅ Created international customer and order`);
+
+  // 40. Create Production Tracking for international order
+  const internationalProductionTracking =
+    await prisma.productionTracking.create({
+      data: {
+        orderId: internationalOrder.id,
+        currentStage: "CUTTING",
+        overallStatus: "IN_PROGRESS",
+        progress: 45,
+        estimatedStartDate: new Date("2025-10-15"),
+        estimatedEndDate: new Date("2025-11-10"),
+        actualStartDate: new Date("2025-10-15"),
+        notes: "Uluslararası sipariş, standartlara uyum sağlanıyor",
+        companyId: defacto.id,
+      },
+    });
+
+  await prisma.productionStageUpdate.createMany({
+    data: [
+      {
+        productionId: internationalProductionTracking.id,
+        stage: "PLANNING",
+        status: "COMPLETED",
+        actualStartDate: new Date("2025-10-15"),
+        actualEndDate: new Date("2025-10-16"),
+        estimatedDays: 1,
+        notes: "Uluslararası standartlar kontrol edildi",
+      },
+      {
+        productionId: internationalProductionTracking.id,
+        stage: "FABRIC",
+        status: "COMPLETED",
+        actualStartDate: new Date("2025-10-16"),
+        actualEndDate: new Date("2025-10-20"),
+        estimatedDays: 4,
+        notes: "Kaliteli kumaş tedarik edildi",
+      },
+      {
+        productionId: internationalProductionTracking.id,
+        stage: "CUTTING",
+        status: "IN_PROGRESS",
+        actualStartDate: new Date("2025-10-20"),
+        estimatedDays: 3,
+        notes: "Kesim işlemi devam ediyor",
+      },
+    ],
+  });
+
+  console.log(`✅ Created international production tracking`);
+
+  // 41. Create another manufacturer for comparison
+  const thirdPartyManufacturer = await prisma.user.create({
+    data: {
+      firstName: "Mert",
+      lastName: "Güneş",
+      email: "mert@thirdparty.com",
+      password: "$2a$10$k2rXCFgdmO84Vhkyb6trJ.oH6MYLf141uTPf81w04BImKVqDbBivi",
+      role: "COMPANY_OWNER",
+      isCompanyOwner: true,
+      isActive: true,
+      phone: "+90 532 777 6666",
+    },
+  });
+
+  const thirdPartyCompany = await prisma.company.create({
+    data: {
+      name: "Üçüncü Taraf Üretim Ltd.",
+      email: "info@thirdparty.com",
+      phone: "+90 212 555 0003",
+      address: "İzmir, Türkiye",
+      website: "www.thirdparty.com",
+      type: "MANUFACTURER",
+      description: "Bölgesel tekstil üreticisi",
+      ownerId: thirdPartyManufacturer.id,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: thirdPartyManufacturer.id },
+    data: { companyId: thirdPartyCompany.id },
+  });
+
+  console.log(`✅ Created third-party manufacturer`);
+
+  // 42. Create archived/rejected sample for testing filters
+  const rejectedSample = await prisma.sample.create({
+    data: {
+      sampleNumber: "SMP-2025-REJECTED",
+      sampleType: "STANDARD",
+      status: "REJECTED",
+      customerNote: "Kalite sorunu var, lütfen tekrar yap",
+      manufacturerResponse: "Sorun tespit edildi, yenisi üretilecek",
+      collectionId: collection2.id,
+      customerId: lcwOwner.id,
+      manufactureId: thirdPartyManufacturer.id,
+      companyId: lcwaikiki.id,
+    },
+  });
+
+  console.log(`✅ Created rejected sample for testing`);
+
+  // 43. Create cancelled sample
+  const cancelledSample = await prisma.sample.create({
+    data: {
+      sampleNumber: "SMP-2025-CANCELLED",
+      sampleType: "CUSTOM",
+      status: "CANCELLED",
+      customerNote: "Sipariş iptal edildi, bu numunelere ihtiyaç yok",
+      collectionId: collection3.id,
+      customerId: lcwOwner.id,
+      manufactureId: defactoOwner.id,
+      companyId: lcwaikiki.id,
+    },
+  });
+
+  console.log(`✅ Created cancelled sample for testing`);
+
+  // 44. Create on-hold sample
+  const onHoldSample = await prisma.sample.create({
+    data: {
+      sampleNumber: "SMP-2025-ON-HOLD",
+      sampleType: "REVISION",
+      status: "ON_HOLD",
+      customerNote: "Müşteri onay bekleniyor",
+      manufacturerResponse: "Hazır ama müşteriye bekletilmek isteniyor",
+      collectionId: collection1.id,
+      customerId: lcwOwner.id,
+      manufactureId: defactoOwner.id,
+      companyId: lcwaikiki.id,
+    },
+  });
+
+  console.log(`✅ Created on-hold sample for testing`);
+
+  // 45. Create more questions for Q&A testing
+  await prisma.question.createMany({
+    data: [
+      {
+        question: "Toplu sipariş için indirim var mı?",
+        answer:
+          "Evet, 1000+ adet için %15, 5000+ adet için %20 indirim veriyoruz",
+        isAnswered: true,
+        isPublic: true,
+        collectionId: collection1.id,
+        customerId: lcwOwner.id,
+        manufactureId: defactoOwner.id,
+      },
+      {
+        question: "Özel baskı (print) yapılabiliyor mu?",
+        answer:
+          "Evet, dijital baskı, transfermatik baskı, bordür işleme yapabiliyoruz",
+        isAnswered: true,
+        isPublic: true,
+        collectionId: collection2.id,
+        customerId: lcwOwner.id,
+        manufactureId: defactoOwner.id,
+      },
+      {
+        question: "Lead time ne kadar? (Acelesi var)",
+        isAnswered: false,
+        isPublic: true,
+        collectionId: collection3.id,
+        customerId: lcwOwner.id,
+        manufactureId: defactoOwner.id,
+      },
+      {
+        question: "Müşteri tanımlanmış renk olabilir mi?",
+        isAnswered: false,
+        isPublic: false, // Private question
+        collectionId: collection1.id,
+        customerId: lcwBuyingManager!.id,
+        manufactureId: defactoOwner.id,
+      },
+    ],
+  });
+
+  console.log(
+    `✅ Created 4 more Q&A items (2 public, 1 private, 1 unanswered)`
+  );
+
+  // 46. Create more diverse reviews
+  await prisma.review.createMany({
+    data: [
+      {
+        rating: 3,
+        comment: "Ürün kalitesi iyidir ama üretim süresi uzun",
+        isApproved: true,
+        collectionId: collection1.id,
+        customerId: bangladeshCustomer.id,
+      },
+      {
+        rating: 2,
+        comment: "Son sipariş bazı kusurlara sahip. Düzeltilmesi gerekiyor.",
+        isApproved: true,
+        collectionId: collection2.id,
+        customerId: individualCustomer.id,
+      },
+      {
+        rating: 5,
+        comment:
+          "Mükemmel hizmet, harika ürün, kesinlikle tekrar sipariş vereceğiz!",
+        isApproved: false, // Pending approval
+        collectionId: collection3.id,
+        customerId: lcwProductionTracker!.id,
+      },
+    ],
+  });
+
+  console.log(`✅ Created diverse reviews (3, 2, 5 stars)`);
+
+  // 47. Create Notifications for different users
+  await prisma.notification.createMany({
+    data: [
+      {
+        userId: individualCustomer.id,
+        title: "Sipariş Alındı",
+        message: "Siparişiniz (ORD-2025-INDIV-001) başarıyla alındı!",
+        type: "ORDER",
+        link: "/orders/individual",
+        isRead: false,
+        orderId: orderFromIndividual.id,
+      },
+      {
+        userId: bangladeshCustomer.id,
+        title: "Uluslararası Teslimat",
+        message: "Siparişiniz Bangladesh'e gönderilmek üzere hazırlanıyor.",
+        type: "ORDER",
+        link: "/orders/international",
+        isRead: false,
+        orderId: internationalOrder.id,
+      },
+      {
+        userId: thirdPartyManufacturer.id,
+        title: "Yeni Sipariş",
+        message: "LC Waikiki'den yeni bir sipariş var",
+        type: "ORDER",
+        link: "/orders/new",
+        isRead: false,
+      },
+      {
+        userId: defactoOwner.id,
+        title: "Kalite Kontrol Gerekli",
+        message: "Toplu sipariş için kalite kontrol gerekli",
+        type: "QUALITY",
+        link: "/quality/batch",
+        isRead: false,
+      },
+    ],
+  });
+
+  console.log(`✅ Created notifications for different users`);
+
+  // Get defacto employees for task assignment
+  const defactoEmployeesList = await prisma.user.findMany({
+    where: { companyId: defacto.id },
+  });
+
+  const ahmet = defactoEmployeesList.find((e) => e.firstName === "Ahmet");
+  const mehmet = defactoEmployeesList.find((e) => e.firstName === "Mehmet");
+  const zeynep = defactoEmployeesList.find((e) => e.firstName === "Zeynep");
+  const can = defactoEmployeesList.find((e) => e.firstName === "Can");
+  const ayse = defactoEmployeesList.find((e) => e.firstName === "Ayşe");
+
+  // 47.5 Create comprehensive tasks for testing task management
+  await prisma.task.createMany({
+    data: [
+      // Task 1: LC Waikiki sends sample request to Defacto
+      {
+        title: "Yeni Koleksiyon İçin Numune İsteği",
+        description:
+          "2025 Bahar/Yaz koleksiyonu için T-Shirt örnekleri istiyoruz",
+        type: "SAMPLE_REQUEST",
+        status: "TODO",
+        priority: "HIGH",
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        userId: lcwOwner.id,
+        assignedToId: defactoOwner.id,
+        collectionId: collection1.id,
+        notes: "Acil numune gerekli, 1 hafta içinde teslim istiyoruz",
+      },
+      // Task 2: Defacto responds to sample request
+      {
+        title: "Numune Talebine Yanıt Hazırla",
+        description:
+          "LC Waikiki'nin numune talebine detaylı teknik bilgi ve fiyat önerisi",
+        type: "QUOTATION",
+        status: "IN_PROGRESS",
+        priority: "HIGH",
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        userId: defactoOwner.id,
+        assignedToId: ahmet?.id || defactoOwner.id,
+        collectionId: collection1.id,
+        notes: "Fiyat listesi ve teknik özellikler hazırlanıyor",
+      },
+      // Task 3: LC Waikiki reviews quotation
+      {
+        title: "Teklifi Gözden Geçir ve Onayla",
+        description:
+          "Defacto'dan gelen fiyat teklifini ve teknik özellikleri gözden geçir",
+        type: "APPROVE_SAMPLE",
+        status: "TODO",
+        priority: "MEDIUM",
+        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        userId: lcwOwner.id,
+        assignedToId: lcwBuyingManager?.id || lcwOwner.id,
+        collectionId: collection1.id,
+        notes: "Fiyat ve kalite standartlarını kontrol et",
+      },
+      // Task 4: Material procurement
+      {
+        title: "Ham Madde Tedariki",
+        description:
+          "Üretim için gerekli iplik ve boyalı kumaşın tedarikini sağla",
+        type: "MATERIAL_PROCUREMENT",
+        status: "IN_PROGRESS",
+        priority: "HIGH",
+        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        userId: defactoOwner.id,
+        assignedToId: mehmet?.id || defactoOwner.id,
+        collectionId: collection1.id,
+        notes: "Kalite sertifikaları ile beraber teslimat yapılmalı",
+      },
+      // Task 5: Quality control
+      {
+        title: "Kalite Kontrol Prosesi",
+        description: "Ham maddelerin kalite kontrolü ve uygunluk testleri",
+        type: "PRODUCTION_QUALITY_CHECK",
+        status: "TODO",
+        priority: "HIGH",
+        dueDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+        userId: defactoOwner.id,
+        assignedToId: zeynep?.id || defactoOwner.id,
+        collectionId: collection1.id,
+        notes: "ISO standartlarına uygun test raporları hazırlanacak",
+      },
+      // Task 6: Shipment preparation
+      {
+        title: "Numune Gönderimi Hazırlığı",
+        description: "Onaylanan numunelerin paketlenmesi ve sevkiyat belgeleri",
+        type: "PRODUCTION_SHIPMENT",
+        status: "TODO",
+        priority: "MEDIUM",
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        userId: defactoOwner.id,
+        assignedToId: can?.id || defactoOwner.id,
+        collectionId: collection1.id,
+        notes: "DHL Express ile gönderilecek, tracking numarası gerekli",
+      },
+      // Task 7: Payment processing
+      {
+        title: "Ödeme İşlemi",
+        description: "Numune üretimi ve gönderim maliyetinin ödenmesi",
+        type: "PAYMENT_PENDING",
+        status: "TODO",
+        priority: "HIGH",
+        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        userId: lcwOwner.id,
+        assignedToId: lcwBuyingManager?.id || lcwOwner.id,
+        collectionId: collection1.id,
+        notes: "Banka transferi ile ödeme yapılacak, referans numarası gerekli",
+      },
+      // Task 8: Completed task (historical)
+      {
+        title: "Ön Tasarım Onayı Tamamlandı",
+        description: "Koleksiyon tasarımının temel onayı yapıldı",
+        type: "DOCUMENT_REVIEW",
+        status: "COMPLETED",
+        priority: "HIGH",
+        dueDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        userId: lcwOwner.id,
+        assignedToId: lcwBuyingManager?.id || lcwOwner.id,
+        collectionId: collection1.id,
+        notes: "Tüm stakeholder'lar tarafından onaylandı",
+      },
+      // Task 9: Revision handling
+      {
+        title: "Revizyon İsteklerine Yanıt Ver",
+        description: "Müşteri tarafından istenen tasarım değişikliklerini yap",
+        type: "REVISION_REQUEST",
+        status: "IN_PROGRESS",
+        priority: "MEDIUM",
+        dueDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+        userId: defactoOwner.id,
+        assignedToId: mehmet?.id || defactoOwner.id,
+        collectionId: collection2.id,
+        notes: "Renk numunesinde ufak ayarlamalar gerekli",
+      },
+      // Task 10: Document submission
+      {
+        title: "Sertifika ve Belgeleri Gönder",
+        description: "Üretim kalite sertifikaları, ürün güvenlik belgeleri",
+        type: "DOCUMENT_SUBMIT",
+        status: "TODO",
+        priority: "HIGH",
+        dueDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
+        userId: defactoOwner.id,
+        assignedToId: ahmet?.id || defactoOwner.id,
+        collectionId: collection1.id,
+        notes: "ISO 9001, CE belgesi ve üretim raporları gerekli",
+      },
+      // Task 11: Export sample preparation
+      {
+        title: "İhraç Numunesi Hazırlama",
+        description:
+          "Uluslararası pazara gönderilecek numunelerin hazırlanması",
+        type: "SAMPLE_PRODUCTION",
+        status: "IN_PROGRESS",
+        priority: "HIGH",
+        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        userId: defactoOwner.id,
+        assignedToId: ahmet?.id || defactoOwner.id,
+        collectionId: collection3.id,
+        notes: "Uluslararası standartlara uygun test yapılmalı",
+      },
+      // Task 12: Production review
+      {
+        title: "Üretim Başlangıcı Onayı",
+        description: "Tüm hazırlıklar tamamlandı, üretim başlangıcı onaylaması",
+        type: "PRODUCTION_START",
+        status: "TODO",
+        priority: "MEDIUM",
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        userId: lcwOwner.id,
+        assignedToId: lcwBuyingManager?.id || lcwOwner.id,
+        collectionId: collection1.id,
+        notes: "Final onay sonrası toplu üretim başlayacak",
+      },
+      // Task 13: Customer approval wait
+      {
+        title: "Müşteri Onayı Bekleniyor",
+        description:
+          "Nihai ürün örneğinin müşteri tarafından onaylanmasını bekle",
+        type: "REVIEW_PRODUCTION",
+        status: "IN_PROGRESS",
+        priority: "HIGH",
+        dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+        userId: defactoOwner.id,
+        assignedToId: ayse?.id || defactoOwner.id,
+        collectionId: collection1.id,
+        notes: "Müşteri onayını aldıktan sonra toplu üretim başlayacak",
+      },
+    ],
+  });
+
+  console.log(`✅ Created 13 comprehensive tasks for different workflows`);
+
+  // 48. Create more messages for different communication scenarios
+  await prisma.message.createMany({
+    data: [
+      {
+        content:
+          "Merhaba, deneme siparişim için teknikleri detaylı anlatabilir misiniz?",
+        senderId: individualCustomer.id,
+        receiverId: defactoOwner.id,
+        type: "direct",
+        isRead: false,
+      },
+      {
+        content:
+          "Tabii, tüm teknik detayları paylaşabilirim. Size email atayım mı?",
+        senderId: defactoOwner.id,
+        receiverId: individualCustomer.id,
+        type: "direct",
+        isRead: false,
+      },
+      {
+        content:
+          "Uluslararası siparişler için gümrük prosedürlerini açıklar mısınız?",
+        senderId: bangladeshCustomer.id,
+        receiverId: defactoOwner.id,
+        type: "direct",
+        isRead: false,
+      },
+      {
+        content: "Acil numune talebim var, 3 gün içinde yapılabilir mi?",
+        senderId: lcwBuyingManager!.id,
+        receiverId: defactoOwner.id,
+        type: "direct",
+        isRead: true,
+      },
+      {
+        content: "Evet, acil numune hizmeti var, ek maliyet olacak ama",
+        senderId: defactoOwner.id,
+        receiverId: lcwBuyingManager!.id,
+        type: "direct",
+        isRead: true,
+      },
+    ],
+  });
+
+  console.log(`✅ Created diverse direct messages`);
+
+  // 49. Create samples with different stages for UI testing
+  const stageSample1 = await prisma.sample.create({
+    data: {
+      sampleNumber: "SMP-2025-STAGE-01",
+      sampleType: "STANDARD",
+      status: "PENDING_APPROVAL",
+      customerNote: "Yeni tasarım, onay bekleniyor",
+      collectionId: collection4.id,
+      customerId: lcwOwner.id,
+      manufactureId: defactoOwner.id,
+      companyId: lcwaikiki.id,
+    },
+  });
+
+  const stageSample2 = await prisma.sample.create({
+    data: {
+      sampleNumber: "SMP-2025-STAGE-02",
+      sampleType: "STANDARD",
+      status: "PATTERN_READY",
+      customerNote: "Kalıp hazır, üretim başlamaya hazır",
+      collectionId: collection5.id,
+      customerId: lcwOwner.id,
+      manufactureId: defactoOwner.id,
+      companyId: lcwaikiki.id,
+    },
+  });
+
+  const stageSample3 = await prisma.sample.create({
+    data: {
+      sampleNumber: "SMP-2025-STAGE-03",
+      sampleType: "STANDARD",
+      status: "QUALITY_CHECK",
+      customerNote: "Son kalite kontrol aşamasında",
+      collectionId: collection6.id,
+      customerId: lcwOwner.id,
+      manufactureId: defactoOwner.id,
+      companyId: lcwaikiki.id,
+    },
+  });
+
+  console.log(`✅ Created 3 samples with different stages`);
+
+  // 50. Create User Favorite Collections for testing
+  if (bangladeshCustomer) {
+    await prisma.userFavoriteCollection.createMany({
+      data: [
+        {
+          userId: bangladeshCustomer.id,
+          collectionId: collection5.id,
+        },
+        {
+          userId: bangladeshCustomer.id,
+          collectionId: collection1.id,
+        },
+      ],
+    });
+  }
+
+  if (individualCustomer) {
+    await prisma.userFavoriteCollection.create({
+      data: {
+        userId: individualCustomer.id,
+        collectionId: collection1.id,
+      },
+    });
+  }
+
+  console.log(`✅ Created user favorite collections for diverse users`);
 
   console.log(`
 
@@ -2194,18 +3548,18 @@ async function main() {
   📊 OLUŞTURULAN VERİLER:
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  👥 Kullanıcılar:          9 (1 admin + 8 company users)
-  🏢 Firmalar:              2 (1 manufacturer + 1 buyer)
+  👥 Kullanıcılar:          13+ (1 admin + 8 company + 4 individual)
+  🏢 Firmalar:              3 (2 manufacturers + 1 buyer)
   📁 Kategoriler:           3 (Erkek/Kadın/Çocuk Giyim)
-  📦 Koleksiyonlar:         3 (Tişört, Bluz, Sweatshirt)
-  🎨 Numuneler:             3 (Standard, Revision, Custom)
-  🛒 Siparişler:            3 (In Production, Quote Sent, Confirmed)
-  🏭 Production Tracking:   1 (7 aşama ile)
-  ✅ Quality Reports:       2 (1 passed, 1 conditional)
-  🏗️  Atölyeler:            2 (Sewing, Packaging)
-  💬 Mesajlar:              3 (Direct + company messages)
-  ❓ Sorular:               3 (2 answered, 1 pending)
-  ⭐ Değerlendirmeler:      3 (2 approved, 1 pending)
+  📦 Koleksiyonlar:         10 (Çeşitli stillerde)
+  🎨 Numuneler:             13 (9 farklı status)
+  🛒 Siparişler:            7 (6 farklı status)
+  🏭 Production Tracking:   3 (In Progress + Completed + International)
+  ✅ Quality Reports:       3 (Passed + Conditional + Pending)
+  🏗️  Atölyeler:            2 (Sewing + Packaging)
+  💬 Mesajlar:              12+ (Direct + Company)
+  ❓ Sorular:               8 (4 cevaplanmış, 3 cevapsız, 1 özel)
+  ⭐ Değerlendirmeler:      8 (2-5 yıldız, pending ones)
 
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -2335,32 +3689,195 @@ async function main() {
 
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  🎯 TEST SENARYOLARI:
+  🎯 KAPSAMLI TEST SENARYOLARI:
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  1️⃣  Admin Login → Tüm dashboard'ları görüntüle
-  2️⃣  Ahmet (Defacto Owner) → Koleksiyonları yönet
-  3️⃣  Mehmet (Numune Uzmanı) → Numune durumlarını güncelle
-  4️⃣  Can (Üretim) → Production tracking'i görüntüle
-  5️⃣  Fatma (LC Waikiki Owner) → Numune/sipariş talep et
-  6️⃣  Hasan (Satın Alma) → Siparişleri görüntüle, onayla
-  7️⃣  Ali (Üretim Takip) → Production timeline'ı izle
-  8️⃣  Seda (Kalite) → Quality reports görüntüle
+  👨‍💼 ADMIN TESTS:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1️⃣  admin@platform.com / myPassword42
+     ✅ Tüm dashboard'ları görüntüle
+     ✅ Tüm firmaları/kullanıcıları yönet
+     ✅ Sistem istatistiklerini görüntüle
+
+  🏭 MANUFACTURER (DEFACTO) TESTS:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  2️⃣  ahmet@defacto.com / random42 (Firma Sahibi)
+     ✅ Koleksiyonlar: Oluştur, Düzenle, Yayınla, Sil
+     ✅ Numuneleri yönet (6 farklı status görebilir)
+     ✅ Siparişleri görüntüle ve yanıt ver
+     ✅ Tüm firma verilerine erişim
+
+  3️⃣  ayse@defacto.com / random42 (Koleksiyon Yöneticisi)
+     ✅ Koleksiyonları oluştur/düzenle
+     ✅ Kategorileri yönet
+     ✅ Numuneleri görüntüle
+
+  4️⃣  mehmet@defacto.com / random42 (Numune Takip Uzmanı)
+     ✅ Numune durumlarını güncelle
+     ✅ Müşterilere yanıt ver
+     ✅ Numune üretim geçmişini takip et
+
+  5️⃣  zeynep@defacto.com / random42 (Sipariş Yöneticisi)
+     ✅ Siparişleri görüntüle ve onayla
+     ✅ Fiyat teklifleri gönder
+     ✅ Müşteri mesajlarına yanıt ver
+
+  6️⃣  can@defacto.com / random42 (Üretim Takip Elemanı)
+     ✅ Production tracking'i güncelle
+     ✅ Üretim aşamalarını takip et
+     ✅ Atölyeleri atayın ve yönet
+
+  🛒 BUYER (LC WAİKİKİ) TESTS:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  7️⃣  fatma@lcwaikiki.com / iLikeTurtles42 (Firma Sahibi)
+     ✅ Numune talep et (5+ üretici seçeneği)
+     ✅ Siparişler oluştur ve onayla
+     ✅ Tüm sipariş/numune verilerine erişim
+
+  8️⃣  hasan@lcwaikiki.com / iLikeTurtles42 (Satın Alma Müdürü)
+     ✅ Numuneleri görüntüle ve onayla
+     ✅ Siparişleri oluştur (farklı üreticilerden)
+     ✅ Fiyat tekliflerini karşılaştır
+
+  9️⃣  ali@lcwaikiki.com / iLikeTurtles42 (Üretim Takip Uzmanı)
+     ✅ Production timeline'ı izle
+     ✅ Revizyon talep et
+     ✅ Üretim problemlerini raporla
+
+  🔟 seda@lcwaikiki.com / iLikeTurtles42 (Kalite Kontrol Uzmanı)
+     ✅ Kalite kontrol raporlarını görüntüle
+     ✅ Kalite skoru değerlendir
+     ✅ Kontrol notları ekle
+
+  👤 BİREYSEL MÜŞTERİ TESTS:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1️⃣1️⃣ derya.kaya@email.com / random42
+     ✅ Numune talep et (AI tasarım seçeneği)
+     ✅ Küçük sipariş ver (50 adet)
+     ✅ Soru sor (Hasas cilt / ürün özellikleri)
+     ✅ Yorum ve değerlendirme yap
+
+  🌍 ULUSLARARASI MÜŞTERİ TESTS:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1️⃣2️⃣ rana.khan@international.com / random42
+     ✅ Bangladesh'e ihraç siparişi ver (200 adet)
+     ✅ Production tracking'i izle
+     ✅ Gümrük prosedürü sorular sor
+     ✅ Koleksiyonları beğenilere ekle
+
+  🔄 BAŞKA ÜRETICI TESTS:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1️⃣3️⃣ mert@thirdparty.com / random42 (Üçüncü Üretici)
+     ✅ Kendi koleksiyonlarını oluştur
+     ✅ Diğer üreticilerin siparişlerini görüntüle
+     ✅ Kalite kontrol raporlarını gözle
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  🧪 SAMPLE STATUS TEST SENARYO:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  SMP-2025-00001: COMPLETED ✅
+     → Kargoya verildi, müşteri tarafında
+     → Testimonial eklebilir
+
+  SMP-2025-00002: IN_PRODUCTION 🔨
+     → Revize talep (beden + renk değişikliği)
+     → Timeline'ı izle
+
+  SMP-2025-00003: IN_DESIGN 🎨
+     → Özel tasarım, ilk aşamada
+     → Tasarım değişiklikleri talep et
+
+  SMP-2025-00004: AI_DESIGN 🤖
+     → Yapay zeka tarafından oluşturulmuş
+     → Revision talep et
+
+  SMP-2025-00005: PENDING_APPROVAL ⏳
+     → Üretici onayı bekleniyor
+
+  SMP-2025-00006: PATTERN_READY 📋
+     → Kalıp hazır, üretim başlamaya hazır
+
+  SMP-2025-00007: QUALITY_CHECK ✔️
+     → Son kalite kontrol aşamasında
+
+  SMP-2025-REJECTED: REJECTED ❌
+     → Kalite sorunlu, reddedildi
+     → Yeni numune talebinde bulunabilir
+
+  SMP-2025-CANCELLED: CANCELLED 🚫
+     → Müşteri tarafından iptal edildi
+
+  SMP-2025-ON-HOLD: ON_HOLD ⏸️
+     → Geçici olarak bekleme listesinde
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  📦 ORDER STATUS TEST SENARYO:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ORD-2025-00001: IN_PRODUCTION 🔨
+     → %65 tamamlandı, SEWING aşamasında
+     → Production tracking visible
+
+  ORD-2025-00002: QUOTE_SENT 📋
+     → Fiyat teklifi bekleniyor
+     → Müşteri tarafından onayla/reddet
+
+  ORD-2025-00003: CONFIRMED ✅
+     → Büyük sipariş, onaylanmış
+     → Üretim planlanıyor
+
+  ORD-2025-00004: PENDING ⏳
+     → Yüksek hacim, müşteri onayı bekleniyor
+
+  ORD-2025-00005: DELIVERED 📦
+     → Tamamlandı ve teslimat yapıldı
+     → Review yapabilir
+
+  ORD-2025-INDIV-001: PENDING ⏳
+     → Bireysel müşteri sipariş
+     → Onay ve fiyat bekleniyor
+
+  ORD-2025-INTL-001: IN_PRODUCTION 🌍
+     → Uluslararası sipariş
+     → Bangladesh'e ihraç
+
+  ORD-2025-00006: CANCELLED 🚫
+     → Müşteri tarafından iptal edildi
 
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   🚀 TÜM UI COMPONENT'LERİ TEST EDİLEBİLİR!
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   ✅ Dashboard (Grafikler, KPI'lar, Activity)
-  ✅ Collections (Liste, detay, CRUD)
-  ✅ Samples (Liste, detay, timeline, revision)
-  ✅ Orders (Liste, detay, financial, tracking)
-  ✅ Production (7 aşamalı timeline, fotoğraflar)
-  ✅ Quality (Dashboard, reports, inspection form)
-  ✅ Messages (Chat interface)
-  ✅ Q&A (Sorular, cevaplar)
-  ✅ Reviews (Değerlendirmeler, onay sistemi)
-  ✅ Notifications (Bildirim merkezi)
+  ✅ Collections (10 koleksiyon, CRUD, filtreleme)
+  ✅ Samples (13 numune, 9 farklı status, timeline)
+  ✅ Orders (7 sipariş, 6 farklı status, detaylar)
+  ✅ Production (3 tracking, 7 aşama, timeline)
+  ✅ Quality (3 rapor, inspection form, scoring)
+  ✅ Messages (12+ mesaj, direct + company)
+  ✅ Q&A (8 soru, cevaplı/cevapsız, özel sorular)
+  ✅ Reviews (8 değerlendirme, 2-5 yıldız, onay sistemi)
+  ✅ Notifications (16+ bildirim, farklı tipte)
+  ✅ Favorites (Beğenilere ekleme/çıkarma)
+  ✅ Filters & Search (Statüs, tarih, firma, user)
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  📋 ROLE & PERMISSION TEST CHECKLIST:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✅ Admin Panel Erişimi
+  ✅ Company Owner Yetkiler
+  ✅ Company Employee Yetkiler (Department bazlı)
+  ✅ Individual Customer Yetkiler
+  ✅ View/Create/Edit/Delete Kontrolleri
+  ✅ Department & JobTitle Filtrelemeleri
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);

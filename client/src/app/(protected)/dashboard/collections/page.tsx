@@ -37,12 +37,20 @@ import {
   ALL_CATEGORIES_QUERY,
   ALL_COLLECTIONS_QUERY,
 } from "@/lib/graphql/queries";
-import { Clock, Loader2, Package, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
+import {
+  Clock,
+  Loader2,
+  Package,
+  Pencil,
+  Plus,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import NextImage from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
-import { Category, Color } from "../../../../__generated__/graphql";
+import { Category, Color, SeasonItem } from "../../../../__generated__/graphql";
 
 interface Collection {
   id: number;
@@ -178,7 +186,7 @@ const initialFormData: FormData = {
 
 export default function CollectionsPage() {
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // Search term for client-side filtering
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -188,7 +196,8 @@ export default function CollectionsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Check if user is manufacturer
-  const isManufacturer = user?.company?.type === "MANUFACTURER" || user?.role === "ADMIN";
+  const isManufacturer =
+    user?.company?.type === "MANUFACTURER" || user?.role === "ADMIN";
 
   // Filters
   const [selectedGender, setSelectedGender] = useState<string>("ALL");
@@ -197,7 +206,8 @@ export default function CollectionsPage() {
   const [selectedSeason, setSelectedSeason] = useState<string>("ALL");
   const [selectedColor, setSelectedColor] = useState<string>("ALL");
   const [selectedFit, setSelectedFit] = useState<string>("ALL");
-  const [selectedManufacturer, setSelectedManufacturer] = useState<string>("ALL");
+  const [selectedManufacturer, setSelectedManufacturer] =
+    useState<string>("ALL");
   const [selectedLocation, setSelectedLocation] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<string>("NEWEST");
 
@@ -205,10 +215,12 @@ export default function CollectionsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
-  // Queries
+  // Queries - Get all collections (search filtering done client-side)
   const [collectionsResult, reexecuteCollections] = useQuery({
     query: ALL_COLLECTIONS_QUERY,
-    variables: { search: searchTerm || undefined },
+    variables: {}, // No search variable - all data fetched server-side without search filtering
+    requestPolicy: "cache-first",
+    pause: false,
   });
 
   const [categoriesResult] = useQuery({
@@ -635,7 +647,7 @@ export default function CollectionsPage() {
   // Filter & Sort Collections
   const filteredCollections = collections
     .filter((col: Collection) => {
-      // Search filter
+      // Search filter (client-side now)
       if (
         searchTerm &&
         !col.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -695,7 +707,10 @@ export default function CollectionsPage() {
       }
 
       // Manufacturer filter
-      if (selectedManufacturer !== "ALL" && col.company?.name !== selectedManufacturer) {
+      if (
+        selectedManufacturer !== "ALL" &&
+        col.company?.name !== selectedManufacturer
+      ) {
         return false;
       }
 
@@ -834,7 +849,7 @@ export default function CollectionsPage() {
             },
             options:
               seasons && seasons.length > 0
-                ? seasons.map((s: any) => ({ value: s, label: s }))
+                ? seasons.map((s: SeasonItem) => ({ value: s, label: s }))
                 : [
                     { value: "SS25", label: "SS25" },
                     { value: "FW25", label: "FW25" },
@@ -853,16 +868,18 @@ export default function CollectionsPage() {
               resetPage();
             },
             showWhen: !isManufacturer,
-            options: Array.from(
-              new Set(
-                collections
-                  .map(
-                    (col: Collection) =>
-                      col.company?.location || col.company?.address
-                  )
-                  .filter(Boolean)
-              )
-            ).map((location: any) => ({
+            options: (
+              Array.from(
+                new Set(
+                  collections
+                    .map(
+                      (col: Collection) =>
+                        col.company?.location || col.company?.address
+                    )
+                    .filter(Boolean) as string[]
+                )
+              ) as string[]
+            ).map((location: string) => ({
               value: location,
               label: location,
             })),
@@ -878,13 +895,15 @@ export default function CollectionsPage() {
               resetPage();
             },
             showWhen: !isManufacturer,
-            options: Array.from(
-              new Set(
-                collections
-                  .map((col: Collection) => col.company?.name)
-                  .filter(Boolean)
-              )
-            ).map((name: any) => ({
+            options: (
+              Array.from(
+                new Set(
+                  collections
+                    .map((col: Collection) => col.company?.name)
+                    .filter(Boolean)
+                )
+              ) as string[]
+            ).map((name: string) => ({
               value: name,
               label: name,
             })),
@@ -936,7 +955,7 @@ export default function CollectionsPage() {
                   id: "color",
                   label: "Renk",
                   value:
-                    colors.find((c: any) => c.id === parseInt(selectedColor))
+                    colors.find((c: Color) => c.id === parseInt(selectedColor))
                       ?.name || selectedColor,
                   onRemove: () => {
                     setSelectedColor("ALL");
@@ -1061,7 +1080,8 @@ export default function CollectionsPage() {
 
                     {collection.fabricComposition && (
                       <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                        <span className="font-medium">Kumaş:</span> {collection.fabricComposition}
+                        <span className="font-medium">Kumaş:</span>{" "}
+                        {collection.fabricComposition}
                       </div>
                     )}
 
@@ -1090,7 +1110,9 @@ export default function CollectionsPage() {
                     <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t">
                       <span>{getAuthorName(collection)}</span>
                       <span>
-                        {new Date(collection.createdAt).toLocaleDateString("tr-TR")}
+                        {new Date(collection.createdAt).toLocaleDateString(
+                          "tr-TR"
+                        )}
                       </span>
                     </div>
 
@@ -1136,11 +1158,15 @@ export default function CollectionsPage() {
                     images: collection.images,
                     likesCount: collection.likesCount || 0,
                     certifications: collection.certifications || [],
-                    company: collection.company ? {
-                      id: collection.company.id,
-                      name: collection.company.name,
-                      location: collection.company.location || collection.company.address,
-                    } : undefined,
+                    company: collection.company
+                      ? {
+                          id: collection.company.id,
+                          name: collection.company.name,
+                          location:
+                            collection.company.location ||
+                            collection.company.address,
+                        }
+                      : undefined,
                     notes: collection.notes,
                   }}
                   isLiked={false}
@@ -1149,15 +1175,21 @@ export default function CollectionsPage() {
                     // TODO: Implement like mutation
                   }}
                   onRequestSample={(id) => {
-                    toast.info("Numune talep sayfasına yönlendiriliyorsunuz...");
+                    toast.info(
+                      "Numune talep sayfasına yönlendiriliyorsunuz..."
+                    );
                     // TODO: Navigate to /samples/request?collectionId={id}
                   }}
                   onRequestRevision={(id) => {
-                    toast.info("Revize numune sayfasına yönlendiriliyorsunuz...");
+                    toast.info(
+                      "Revize numune sayfasına yönlendiriliyorsunuz..."
+                    );
                     // TODO: Navigate to /samples/request?collectionId={id}&type=revision
                   }}
                   onAddToPO={(id) => {
-                    toast.info("Sipariş oluşturma sayfasına yönlendiriliyorsunuz...");
+                    toast.info(
+                      "Sipariş oluşturma sayfasına yönlendiriliyorsunuz..."
+                    );
                     // TODO: Navigate to /orders/create?collectionId={id}
                   }}
                 />

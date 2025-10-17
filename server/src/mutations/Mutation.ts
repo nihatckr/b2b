@@ -13,6 +13,7 @@ import { productionMutations } from "./productionResolver";
 import { questionMutations } from "./questionResolver";
 import { reviewMutations } from "./reviewResolver";
 import { sampleMutations } from "./sampleResolver";
+import { taskMutations } from "./taskMutation";
 import { userMutations } from "./userResolver";
 export { WorkshopMutation } from "./workshopResolver";
 
@@ -56,6 +57,9 @@ export const Mutation = mutationType({
 
     // Add notification mutations
     notificationMutations(t);
+
+    // Add task mutations
+    taskMutations(t);
 
     // Add AI sample mutations
     aiSampleMutations(t);

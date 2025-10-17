@@ -27,6 +27,7 @@ export * from "./Sample";
 export * from "./SeasonItem";
 export * from "./SignupInput";
 export * from "./SizeGroup";
+export * from "./task";
 export * from "./User";
 export * from "./UserStats";
 export * from "./UserUpdateInput";

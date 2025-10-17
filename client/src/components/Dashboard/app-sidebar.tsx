@@ -5,6 +5,7 @@ import {
   IconCamera,
   IconChartBar,
   IconClipboardCheck,
+  IconClipboardList,
   IconDashboard,
   IconDatabase,
   IconFolder,
@@ -16,7 +17,7 @@ import {
   IconSettings,
   IconSparkles,
   IconTool,
-  IconUsers
+  IconUsers,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import * as React from "react";
@@ -119,6 +120,11 @@ const getNavMainByRole = (userRole: string, companyType?: string) => {
         icon: IconListDetails,
       },
       {
+        title: "Tasks",
+        url: "/dashboard/tasks/manufacturer",
+        icon: IconClipboardList,
+      },
+      {
         title: "Quality Control",
         url: "/dashboard/quality",
         icon: IconClipboardCheck,
@@ -148,6 +154,11 @@ const getNavMainByRole = (userRole: string, companyType?: string) => {
       title: "My Orders",
       url: "/dashboard/orders",
       icon: IconListDetails,
+    },
+    {
+      title: "Tasks",
+      url: "/dashboard/tasks",
+      icon: IconClipboardList,
     },
   ];
 };
@@ -306,9 +317,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={getNavMainByRole(user?.role || "CUSTOMER", companyType)} />
+        <NavMain
+          items={getNavMainByRole(user?.role || "CUSTOMER", companyType)}
+        />
         {user?.role === "ADMIN" && <NavMain items={data.adminNav} />}
-        <NavBusiness items={getBusinessNavByRole(user?.role || "CUSTOMER", companyType)} />
+        <NavBusiness
+          items={getBusinessNavByRole(user?.role || "CUSTOMER", companyType)}
+        />
         {user?.role === "ADMIN" && <NavDocuments items={data.documents} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>

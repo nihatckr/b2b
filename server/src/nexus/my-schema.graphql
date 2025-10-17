@@ -558,6 +558,7 @@ type Mutation {
   checkOllamaStatus: OllamaStatus
   checkProductionDeadlines: Boolean!
   completeProductionStage(productionId: Int!, stage: ProductionStage!): ProductionTracking
+  completeTask(id: Int!): Task
   createCategory(companyId: Int, description: String, name: String!, parentCategoryId: Int): Category
   createCertification(category: CertificationCategory!, certificateFile: String, certificateNumber: String, code: String, description: String, issuer: String, name: String!, validFrom: DateTime, validUntil: DateTime): Certification
   createCollection(input: CreateCollectionInput!): Collection
@@ -571,6 +572,7 @@ type Mutation {
   createSample(input: CreateSampleInput!): Sample
   createSeason(description: String, endDate: DateTime, fullName: String!, name: String!, startDate: DateTime, type: String!, year: Int!): SeasonItem
   createSizeGroup(input: CreateSizeGroupInput!): SizeGroup
+  createTask(assignedToId: Int, collectionId: Int, description: String, dueDate: String, notes: String, orderId: Int, priority: String, productionTrackingId: Int, sampleId: Int, status: String, title: String!, type: String!): Task
   createUser(email: String!, name: String!, password: String!, role: Role!): User
   createWorkshop(input: CreateWorkshopInput!): Workshop
   deleteCategory(id: Int!): Category
@@ -588,6 +590,7 @@ type Mutation {
   deleteSample(id: Int!): Sample
   deleteSeason(id: Int!): SeasonItem
   deleteSizeGroup(id: Int!): SizeGroup
+  deleteTask(id: Int!): Task
   deleteUser(id: Int!): User
   deleteWorkshop(id: Int!): Workshop
   generateDesignFromText(cfgScale: Float = 7.5, collectionId: Int, description: String, height: Int = 512, negativePrompt: String, prompt: String!, sampleName: String, steps: Int = 20, width: Int = 512, workflowName: String): Sample
@@ -620,6 +623,7 @@ type Mutation {
   updateSampleStatus(input: UpdateSampleStatusInput!): Sample
   updateSeason(description: String, endDate: DateTime, fullName: String, id: Int!, isActive: Boolean, name: String, startDate: DateTime, type: String, year: Int): SeasonItem
   updateSizeGroup(input: UpdateSizeGroupInput!): SizeGroup
+  updateTask(assignedToId: Int, completedAt: String, description: String, dueDate: String, id: Int!, notes: String, priority: String, status: String, title: String): Task
   updateUser(input: UserUpdateInput!): User
   updateUserRole(role: Role!, userId: Int!): User
   updateWorkshop(input: UpdateWorkshopInput!): Workshop
@@ -856,6 +860,7 @@ type Query {
   collectionAverageRating(collectionId: Int): Float
   collectionQuestions(collectionId: Int, includePrivate: Boolean): [Question]
   collectionReviews(approvedOnly: Boolean, collectionId: Int): [Review]
+  collectionTasks(collectionId: Int!): [Task]
   collections(categoryId: Int, companyId: Int, isActive: Boolean, isFeatured: Boolean, limit: Int, location: String, manufacturerName: String, offset: Int, search: String): [Collection]
   collectionsByCategory(categoryId: Int!, includeSubcategories: Boolean): [Collection]
   collectionsByCompany(companyId: Int!, isActive: Boolean): [Collection]
@@ -880,9 +885,11 @@ type Query {
   mySamples(sampleType: SampleType, status: SampleStatus): [Sample]
   mySeasons: [SeasonItem]
   mySizeGroups: [SizeGroup]
+  myTasks(priority: String, status: String, type: String): [Task]
   myWorkshops: [Workshop]
   notification(id: Int!): Notification
   order(id: Int!): Order
+  orderTasks(orderId: Int!): [Task]
   orders(companyId: Int, customerId: Int, limit: Int, manufactureId: Int, offset: Int, search: String, status: OrderStatus): [Order]
   pendingReviews: [Review]
   productMessages(orderId: Int, sampleId: Int): [Message]
@@ -892,7 +899,9 @@ type Query {
   rootCategories: [Category]
   sample(id: Int!): Sample
   sampleProductionHistory(sampleId: Int!): [SampleProduction]
+  sampleTasks(sampleId: Int!): [Task]
   samples(companyId: Int, customerId: Int, limit: Int, manufactureId: Int, offset: Int, sampleType: SampleType, search: String, status: SampleStatus): [Sample]
+  task(id: Int!): Task
   unansweredQuestions: [Question]
   unreadMessageCount: Int
   unreadNotificationCount: Int!
@@ -1111,6 +1120,59 @@ type SustainabilityMetrics {
   gotsChronumCertified: Int!
   recycledMaterialUsage: Float!
   waterSavedLiters: Int!
+}
+
+type Task {
+  assignedTo: User
+  collection: Collection
+  completedAt: DateTime
+  createdAt: DateTime!
+  description: String
+  dueDate: DateTime
+  id: Int!
+  notes: String
+  order: Order
+  priority: TaskPriority!
+  productionTracking: ProductionTracking
+  sample: Sample
+  status: TaskStatus!
+  title: String!
+  type: TaskType!
+  updatedAt: DateTime!
+  user: User!
+}
+
+enum TaskPriority {
+  HIGH
+  LOW
+  MEDIUM
+}
+
+enum TaskStatus {
+  CANCELLED
+  COMPLETED
+  IN_PROGRESS
+  TODO
+}
+
+enum TaskType {
+  APPROVE_SAMPLE
+  DOCUMENT_REVIEW
+  DOCUMENT_SUBMIT
+  MATERIAL_PROCUREMENT
+  MEETING
+  OTHER
+  PAYMENT_PENDING
+  PRODUCTION_QUALITY_CHECK
+  PRODUCTION_SHIPMENT
+  PRODUCTION_START
+  PURCHASE_ORDER
+  QUOTATION
+  REVIEW_PRODUCTION
+  REVISION_REQUEST
+  SAMPLE_PRODUCTION
+  SAMPLE_REQUEST
+  SAMPLE_RESPONSE
 }
 
 type Testimonial {

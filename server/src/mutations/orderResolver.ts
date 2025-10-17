@@ -2,6 +2,7 @@ import { floatArg, intArg, nonNull, stringArg } from "nexus";
 import { Context } from "../context";
 import { createNotification } from "../utils/notificationHelper";
 import { isBuyer, requirePermission } from "../utils/permissions";
+import { TaskHelper } from "../utils/taskHelper";
 import { getUserRole, requireAuth } from "../utils/user-role-helper";
 
 export const orderMutations = (t: any) => {
@@ -145,6 +146,15 @@ export const orderMutations = (t: any) => {
         }
       }
 
+      // AUTO-CREATE TASKS for order workflow
+      const taskHelper = new TaskHelper(context.prisma);
+      await taskHelper.createOrderTasks(
+        order.id,
+        userId, // customerId
+        manufactureId,
+        args.collectionId
+      );
+
       return order;
     },
   });
@@ -256,10 +266,19 @@ export const orderMutations = (t: any) => {
       });
 
       // Send notifications based on status change
-      const statusMessages: Record<string, { title: string; customerMsg: string; manufacturerMsg?: string }> = {
+      const statusMessages: Record<
+        string,
+        { title: string; customerMsg: string; manufacturerMsg?: string }
+      > = {
         QUOTE_SENT: {
           title: "💰 Quote Received",
-          customerMsg: `Manufacturer has sent a quote for order #${order.orderNumber}. ${args.estimatedDays ? `Estimated delivery: ${args.estimatedDays} days.` : ""} Please review and confirm.`,
+          customerMsg: `Manufacturer has sent a quote for order #${
+            order.orderNumber
+          }. ${
+            args.estimatedDays
+              ? `Estimated delivery: ${args.estimatedDays} days.`
+              : ""
+          } Please review and confirm.`,
           manufacturerMsg: `You sent a quote for order #${order.orderNumber}.`,
         },
         CONFIRMED: {
@@ -283,7 +302,11 @@ export const orderMutations = (t: any) => {
         },
         SHIPPED: {
           title: "📦 Order Shipped",
-          customerMsg: `Your order #${order.orderNumber} has been shipped! ${order.cargoTrackingNumber ? `Tracking: ${order.cargoTrackingNumber}` : ""}`,
+          customerMsg: `Your order #${order.orderNumber} has been shipped! ${
+            order.cargoTrackingNumber
+              ? `Tracking: ${order.cargoTrackingNumber}`
+              : ""
+          }`,
           manufacturerMsg: `Order #${order.orderNumber} has been shipped.`,
         },
         DELIVERED: {
@@ -669,9 +692,7 @@ export const orderMutations = (t: any) => {
             existingOrder.status === "SHIPPED" ||
             existingOrder.status === "DELIVERED"
           ) {
-            throw new Error(
-              "Cannot cancel order after production has started"
-            );
+            throw new Error("Cannot cancel order after production has started");
           }
         }
       }
@@ -693,7 +714,9 @@ export const orderMutations = (t: any) => {
         data: {
           orderId: order.id,
           status: "CANCELLED",
-          note: args.reason || `Order cancelled by ${isCustomer ? "customer" : "manufacturer"}`,
+          note:
+            args.reason ||
+            `Order cancelled by ${isCustomer ? "customer" : "manufacturer"}`,
           updatedById: userId,
         },
       });
