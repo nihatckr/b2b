@@ -23,18 +23,18 @@ const TASK_DETAIL_QUERY = `
       notes
       user {
         id
-        name
         firstName
         lastName
+        email
         company {
           name
         }
       }
       assignedTo {
         id
-        name
         firstName
         lastName
+        email
       }
       collection {
         id
@@ -79,18 +79,18 @@ interface Task {
   notes?: string;
   user: {
     id: number;
-    name?: string;
     firstName?: string;
     lastName?: string;
+    email?: string;
     company?: {
       name: string;
     };
   };
   assignedTo?: {
     id: number;
-    name?: string;
     firstName?: string;
     lastName?: string;
+    email?: string;
   };
   collection?: {
     id: number;
@@ -166,12 +166,15 @@ export default function TaskDetailPage() {
     dueDate && dueDate < new Date() && task?.status !== "COMPLETED";
 
   const getUserName = (user?: {
-    name?: string;
     firstName?: string;
     lastName?: string;
+    email?: string;
   }) => {
     if (!user) return "-";
-    return user.name || `${user.firstName} ${user.lastName}`.trim();
+    if (user.firstName || user.lastName) {
+      return `${user.firstName || ""} ${user.lastName || ""}`.trim();
+    }
+    return user.email || "-";
   };
 
   if (isLoading) {
