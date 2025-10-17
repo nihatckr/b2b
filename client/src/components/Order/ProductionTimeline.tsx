@@ -90,6 +90,7 @@ export function ProductionTimeline({
   };
 
   const handleStageClick = (stage: ProductionStage, index: number) => {
+    // Müşteriler icon'lara tıklayamaz
     if (!isManufacturer || !onStatusChange) return;
 
     // Sadece geçmiş veya mevcut aşamaya tıklanabilir
@@ -121,8 +122,9 @@ export function ProductionTimeline({
           {PRODUCTION_STAGES.map((stage, index) => {
             const Icon = stage.icon;
             const status = getStageStatus(index);
+            // Sadece üreticiler için tıklanabilir
             const isClickable =
-              isManufacturer && index <= currentStageIndex + 1;
+              isManufacturer && onStatusChange && index <= currentStageIndex + 1;
             const isHovered = hoveredStage === stage.key;
 
             return (
@@ -130,38 +132,57 @@ export function ProductionTimeline({
                 key={stage.key}
                 className="flex flex-col items-center"
                 style={{ width: `${100 / PRODUCTION_STAGES.length}%` }}
-                onMouseEnter={() => setHoveredStage(stage.key)}
+                onMouseEnter={() => isClickable ? setHoveredStage(stage.key) : null}
                 onMouseLeave={() => setHoveredStage(null)}
               >
                 {/* Icon Circle */}
-                <button
-                  onClick={() => handleStageClick(stage, index)}
-                  disabled={!isClickable}
-                  className={`
-                    relative z-10 w-12 h-12 rounded-full flex items-center justify-center
-                    transition-all duration-300 transform
-                    ${
-                      status === "completed"
-                        ? "bg-green-500 text-white shadow-lg"
-                        : ""
-                    }
-                    ${
-                      status === "active"
-                        ? "bg-blue-600 text-white shadow-xl scale-110 ring-4 ring-blue-200 animate-pulse"
-                        : ""
-                    }
-                    ${status === "upcoming" ? "bg-gray-200 text-gray-400" : ""}
-                    ${
-                      isClickable
-                        ? "cursor-pointer hover:scale-125 hover:shadow-2xl"
-                        : "cursor-default"
-                    }
-                    ${isHovered && isClickable ? "scale-125" : ""}
-                  `}
-                  title={isClickable ? `${stage.label}'e geç` : stage.label}
-                >
-                  <Icon className="h-6 w-6" />
-                </button>
+                {isClickable ? (
+                  <button
+                    onClick={() => handleStageClick(stage, index)}
+                    className={`
+                      relative z-10 w-12 h-12 rounded-full flex items-center justify-center
+                      transition-all duration-300 transform
+                      ${
+                        status === "completed"
+                          ? "bg-green-500 text-white shadow-lg"
+                          : ""
+                      }
+                      ${
+                        status === "active"
+                          ? "bg-blue-600 text-white shadow-xl scale-110 ring-4 ring-blue-200 animate-pulse"
+                          : ""
+                      }
+                      ${status === "upcoming" ? "bg-gray-200 text-gray-400" : ""}
+                      cursor-pointer hover:scale-125 hover:shadow-2xl
+                      ${isHovered ? "scale-125" : ""}
+                    `}
+                    title={`${stage.label}'e geç`}
+                  >
+                    <Icon className="h-6 w-6" />
+                  </button>
+                ) : (
+                  <div
+                    className={`
+                      relative z-10 w-12 h-12 rounded-full flex items-center justify-center
+                      transition-all duration-300
+                      ${
+                        status === "completed"
+                          ? "bg-green-500 text-white shadow-lg"
+                          : ""
+                      }
+                      ${
+                        status === "active"
+                          ? "bg-blue-600 text-white shadow-xl scale-110 ring-4 ring-blue-200 animate-pulse"
+                          : ""
+                      }
+                      ${status === "upcoming" ? "bg-gray-200 text-gray-400" : ""}
+                      cursor-default
+                    `}
+                    title={stage.label}
+                  >
+                    <Icon className="h-6 w-6" />
+                  </div>
+                )}
 
                 {/* Label */}
                 <div className="mt-3 text-center">
@@ -206,7 +227,7 @@ export function ProductionTimeline({
       </div>
 
       {/* Info */}
-      {isManufacturer && (
+      {isManufacturer && onStatusChange && (
         <p className="text-xs text-gray-500 mt-3 text-center">
           💡 İpucu: Aşama iconlarına tıklayarak sipariş durumunu
           güncelleyebilirsiniz

@@ -1,57 +1,59 @@
 "use client";
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthProvider";
 import {
-  ChevronRight,
-  FolderPlus,
-  FolderTree,
-  Layers,
-  Loader2,
-  Pencil,
-  Plus,
-  Trash2,
+    ChevronRight,
+    FolderPlus,
+    FolderTree,
+    Layers,
+    Loader2,
+    Pencil,
+    Plus,
+    ShieldX,
+    Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Fragment, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { gql, useMutation, useQuery } from "urql";
 
@@ -132,6 +134,7 @@ const DELETE_CATEGORY_MUTATION = gql`
 
 export default function CategoryManagementPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -142,6 +145,20 @@ export default function CategoryManagementPage() {
     description: "",
     parentCategoryId: null as number | null,
   });
+
+  // Check if user is manufacturer
+  const isManufacturer =
+    (user?.role === "MANUFACTURE" ||
+      user?.role === "COMPANY_OWNER" ||
+      user?.role === "COMPANY_EMPLOYEE") &&
+    user?.company?.type === "MANUFACTURER";
+
+  // Redirect non-manufacturers
+  useEffect(() => {
+    if (user && !isManufacturer && user.role !== "ADMIN") {
+      router.push("/dashboard");
+    }
+  }, [user, isManufacturer, router]);
 
   const [{ data, fetching }] = useQuery({
     query: MY_CATEGORIES_QUERY,
@@ -260,6 +277,19 @@ export default function CategoryManagementPage() {
     }
   };
 
+  // Show access denied for non-manufacturers
+  if (user && !isManufacturer && user.role !== "ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <ShieldX className="h-16 w-16 text-red-500" />
+        <h2 className="text-2xl font-bold text-gray-900">Erişim Reddedildi</h2>
+        <p className="text-gray-600 text-center max-w-md">
+          Kategori yönetimi sayfasına yalnızca üretici firmaların çalışanları erişebilir.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -270,7 +300,7 @@ export default function CategoryManagementPage() {
             Ürün kategorilerinizi oluşturun ve düzenleyin
           </p>
         </div>
-        <Button onClick={handleCreateClick}>
+        <Button onClick={() => handleCreateClick()}>
           <Plus className="h-4 w-4 mr-2" />
           Yeni Kategori
         </Button>
@@ -338,7 +368,7 @@ export default function CategoryManagementPage() {
               <p className="text-gray-500">Henüz kategori yok</p>
               <Button
                 variant="outline"
-                onClick={handleCreateClick}
+                onClick={() => handleCreateClick()}
                 className="mt-4"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -358,9 +388,9 @@ export default function CategoryManagementPage() {
               </TableHeader>
               <TableBody>
                 {rootCategories.map((category: any) => (
-                  <>
+                  <Fragment key={category.id}>
                     {/* Root Category */}
-                    <TableRow key={category.id} className="bg-blue-50/50">
+                    <TableRow className="bg-blue-50/50">
                       <TableCell className="font-semibold">
                         <div className="flex items-center gap-2">
                           <FolderTree className="h-4 w-4 text-blue-600" />
@@ -466,7 +496,7 @@ export default function CategoryManagementPage() {
                           </TableCell>
                         </TableRow>
                       ))}
-                  </>
+                  </Fragment>
                 ))}
               </TableBody>
             </Table>

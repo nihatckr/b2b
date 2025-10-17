@@ -27,17 +27,21 @@ export const SampleType = enumType({
 export const SampleStatus = enumType({
   name: "SampleStatus",
   members: [
+    "AI_DESIGN", // AI-generated design not sent to manufacturer yet
+    "PENDING_APPROVAL",
     "REQUESTED",
     "RECEIVED",
     "IN_DESIGN",
     "PATTERN_READY",
     "IN_PRODUCTION",
+    "ON_HOLD",
     "QUALITY_CHECK",
     "COMPLETED",
     "REJECTED",
+    "CANCELLED",
     "SHIPPED",
   ],
-  description: "Status workflow for sample production - 9 stages",
+  description: "Status workflow for sample production - 13 stages (including AI design, hold and cancel options)",
 });
 export const Role = enumType({
   name: "Role",
@@ -126,18 +130,6 @@ export const Fit = enumType({
   name: "Fit",
   members: ["REGULAR", "SLIM", "RELAXED", "OVERSIZED", "FITTED", "LOOSE"],
   description: "Clothing fit types",
-});
-
-export const CertificationCategory = enumType({
-  name: "CertificationCategory",
-  members: [
-    "FIBER", // Lif/Hammadde: GOTS, OCS, RCS, GRS, BCI
-    "CHEMICAL", // Üretim/Kimyasal: OEKO-TEX, bluesign, ZDHC
-    "SOCIAL", // Sosyal/Etik: BSCI, SA8000, WRAP
-    "ENVIRONMENTAL", // Çevresel: LCA, ISO 14067, Carbon Footprint
-    "TRACEABILITY", // İzlenebilirlik: DPP, Blockchain, QR
-  ],
-  description: "Certification categories for products",
 });
 
 export const CertificationCategory = enumType({

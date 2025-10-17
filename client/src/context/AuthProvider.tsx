@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Handle URQL query results
   useEffect(() => {
     if (meResult.data?.me) {
-      setUser(meResult.data.me);
+      setUser(meResult.data.me as any);
       localStorage.setItem("user", JSON.stringify(meResult.data.me));
     } else if (meResult.error) {
       console.error("Failed to fetch user:", meResult.error);

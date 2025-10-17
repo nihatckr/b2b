@@ -4,12 +4,33 @@ import { collectionQueries } from "./collectionQuery";
 import { companyQueries } from "./companyQuery";
 import { libraryQueries } from "./libraryQuery";
 import { messageQueries } from "./messageQuery";
+import { notificationQueries } from "./notificationQuery";
 import { orderQueries } from "./orderQuery";
 import { productionQueries } from "./productionQuery";
 import { questionQueries } from "./questionQuery";
 import { reviewQueries } from "./reviewQuery";
 import { sampleQueries } from "./sampleQuery";
 import { userQueries } from "./userQuery";
+export {
+    AnalyticsQuery,
+    CategoryBreakdown,
+    CollectionGenderBreakdown,
+    CountrySuppliers,
+    DashboardStats,
+    GrowthMetrics,
+    LatestCollection,
+    MonthlyStats,
+    PlatformFeature,
+    ProductionAnalytics,
+    PublicAnalyticsQuery,
+    PublicPlatformStats,
+    RecentActivity,
+    StageBreakdown,
+    SupplierInfo,
+    SustainabilityMetrics,
+    Testimonial
+} from "./analyticsQuery";
+export { WorkshopQuery } from "./workshopQuery";
 
 export const Query = queryType({
   definition(t) {
@@ -45,5 +66,8 @@ export const Query = queryType({
 
     // Add library queries
     libraryQueries(t);
+
+    // Add notification queries
+    notificationQueries(t);
   },
 });

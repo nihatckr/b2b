@@ -1,5 +1,6 @@
 import { arg, booleanArg, intArg, nonNull, stringArg } from "nexus";
 import { Context } from "../context";
+import { isManufacturer } from "../utils/permissions";
 import { getUserRole, requireAuth } from "../utils/user-role-helper";
 
 export const libraryMutations = (t: any) => {
@@ -13,11 +14,17 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true },
+        select: { companyId: true, role: true, company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can create colors
+      const userRole = getUserRole(user as any);
+      if (userRole !== "ADMIN" && !isManufacturer(user as any)) {
+        throw new Error("Only manufacturer companies can create colors");
       }
 
       return context.prisma.color.create({
@@ -47,8 +54,14 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true, role: true },
+        select: { companyId: true, role: true, company: true },
       });
+
+      // Only manufacturers can update colors
+      const userRole = getUserRole(user as any);
+      if (userRole !== "ADMIN" && !isManufacturer(user as any)) {
+        throw new Error("Only manufacturer companies can update colors");
+      }
 
       if (user?.role !== "ADMIN" && existing.companyId !== user?.companyId) {
         throw new Error("Not authorized");
@@ -82,8 +95,14 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true, role: true },
+        select: { companyId: true, role: true, company: true },
       });
+
+      // Only manufacturers can delete colors
+      const userRole = getUserRole(user as any);
+      if (userRole !== "ADMIN" && !isManufacturer(user as any)) {
+        throw new Error("Only manufacturer companies can delete colors");
+      }
 
       if (user?.role !== "ADMIN" && existing.companyId !== user?.companyId) {
         throw new Error("Not authorized");
@@ -103,11 +122,17 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true },
+        select: { companyId: true, role: true, company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can create fabrics
+      const userRole = getUserRole(user as any);
+      if (userRole !== "ADMIN" && !isManufacturer(user as any)) {
+        throw new Error("Only manufacturer companies can create fabrics");
       }
 
       return context.prisma.fabric.create({
@@ -144,8 +169,14 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true, role: true },
+        select: { companyId: true, role: true, company: true },
       });
+
+      // Only manufacturers can update fabrics
+      const userRole = getUserRole(user as any);
+      if (userRole !== "ADMIN" && !isManufacturer(user as any)) {
+        throw new Error("Only manufacturer companies can update fabrics");
+      }
 
       if (user?.role !== "ADMIN" && existing.companyId !== user?.companyId) {
         throw new Error("Not authorized");
@@ -188,8 +219,14 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true, role: true },
+        select: { companyId: true, role: true, company: true },
       });
+
+      // Only manufacturers can delete fabrics
+      const userRole = getUserRole(user as any);
+      if (userRole !== "ADMIN" && !isManufacturer(user as any)) {
+        throw new Error("Only manufacturer companies can delete fabrics");
+      }
 
       if (user?.role !== "ADMIN" && existing.companyId !== user?.companyId) {
         throw new Error("Not authorized");
@@ -209,11 +246,17 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true },
+        select: { companyId: true, role: true, company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can create size groups
+      const userRole = getUserRole(user as any);
+      if (userRole !== "ADMIN" && !isManufacturer(user as any)) {
+        throw new Error("Only manufacturer companies can create size groups");
       }
 
       return context.prisma.sizeGroup.create({
@@ -243,8 +286,14 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true, role: true },
+        select: { companyId: true, role: true, company: true },
       });
+
+      // Only manufacturers can update size groups
+      const userRole = getUserRole(user as any);
+      if (userRole !== "ADMIN" && !isManufacturer(user as any)) {
+        throw new Error("Only manufacturer companies can update size groups");
+      }
 
       if (user?.role !== "ADMIN" && existing.companyId !== user?.companyId) {
         throw new Error("Not authorized");
@@ -280,8 +329,14 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true, role: true },
+        select: { companyId: true, role: true, company: true },
       });
+
+      // Only manufacturers can delete size groups
+      const userRole = getUserRole(user as any);
+      if (userRole !== "ADMIN" && !isManufacturer(user as any)) {
+        throw new Error("Only manufacturer companies can delete size groups");
+      }
 
       if (user?.role !== "ADMIN" && existing.companyId !== user?.companyId) {
         throw new Error("Not authorized");
@@ -309,10 +364,17 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
+        include: { company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can create seasons
+      const userRole = getUserRole(user);
+      if (userRole !== "ADMIN" && !isManufacturer(user)) {
+        throw new Error("Only manufacturer companies can create seasons");
       }
 
       return context.prisma.seasonItem.create({
@@ -348,10 +410,17 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
+        include: { company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can update seasons
+      const userRole = getUserRole(user);
+      if (userRole !== "ADMIN" && !isManufacturer(user)) {
+        throw new Error("Only manufacturer companies can update seasons");
       }
 
       const season = await context.prisma.seasonItem.findUnique({
@@ -390,10 +459,17 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
+        include: { company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can delete seasons
+      const userRole = getUserRole(user);
+      if (userRole !== "ADMIN" && !isManufacturer(user)) {
+        throw new Error("Only manufacturer companies can delete seasons");
       }
 
       const season = await context.prisma.seasonItem.findUnique({
@@ -425,10 +501,17 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
+        include: { company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can create fits
+      const userRole = getUserRole(user);
+      if (userRole !== "ADMIN" && !isManufacturer(user)) {
+        throw new Error("Only manufacturer companies can create fits");
       }
 
       return context.prisma.fitItem.create({
@@ -458,10 +541,17 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
+        include: { company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can update fits
+      const userRole = getUserRole(user);
+      if (userRole !== "ADMIN" && !isManufacturer(user)) {
+        throw new Error("Only manufacturer companies can update fits");
       }
 
       const fit = await context.prisma.fitItem.findUnique({
@@ -497,10 +587,17 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
+        include: { company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can delete fits
+      const userRole = getUserRole(user);
+      if (userRole !== "ADMIN" && !isManufacturer(user)) {
+        throw new Error("Only manufacturer companies can delete fits");
       }
 
       const fit = await context.prisma.fitItem.findUnique({
@@ -539,12 +636,19 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
+        include: { company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
       }
+
+      // Only manufacturers can create certifications
       const role = getUserRole(user);
+      if (role !== "ADMIN" && !isManufacturer(user)) {
+        throw new Error("Only manufacturer companies can create certifications");
+      }
+
       const hasPermission =
         role === "COMPANY_OWNER" ||
         role === "ADMIN" ||
@@ -591,14 +695,20 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
+        include: { company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
       }
 
-      // Permission check
+      // Only manufacturers can update certifications
       const role = getUserRole(user);
+      if (role !== "ADMIN" && !isManufacturer(user)) {
+        throw new Error("Only manufacturer companies can update certifications");
+      }
+
+      // Permission check
       const hasPermission =
         role === "COMPANY_OWNER" ||
         role === "ADMIN" ||
@@ -649,14 +759,20 @@ export const libraryMutations = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
+        include: { company: true },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
       }
 
-      // Permission check
+      // Only manufacturers can delete certifications
       const role = getUserRole(user);
+      if (role !== "ADMIN" && !isManufacturer(user)) {
+        throw new Error("Only manufacturer companies can delete certifications");
+      }
+
+      // Permission check
       const hasPermission =
         role === "COMPANY_OWNER" ||
         role === "ADMIN" ||

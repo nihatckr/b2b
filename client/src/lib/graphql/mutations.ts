@@ -340,6 +340,17 @@ export const CREATE_SAMPLE_MUTATION = gql`
         id
         name
       }
+      aiAnalysis {
+        id
+        detectedProduct
+        detectedColor
+        detectedFabric
+        qualityScore
+        estimatedCostMin
+        estimatedCostMax
+        trendScore
+        designStyle
+      }
     }
   }
 `;
@@ -381,6 +392,65 @@ export const DELETE_SAMPLE_MUTATION = gql`
     deleteSample(id: $id) {
       id
       sampleNumber
+    }
+  }
+`;
+
+export const APPROVE_SAMPLE_MUTATION = gql`
+  mutation ApproveSample(
+    $id: Int!
+    $approve: Boolean!
+    $manufacturerNote: String
+    $estimatedDays: Int
+  ) {
+    approveSample(
+      id: $id
+      approve: $approve
+      manufacturerNote: $manufacturerNote
+      estimatedDays: $estimatedDays
+    ) {
+      id
+      sampleNumber
+      status
+      manufacturerResponse
+      productionDays
+      estimatedProductionDate
+      updatedAt
+    }
+  }
+`;
+
+export const HOLD_SAMPLE_MUTATION = gql`
+  mutation HoldSample($id: Int!, $reason: String) {
+    holdSample(id: $id, reason: $reason) {
+      id
+      sampleNumber
+      status
+      manufacturerResponse
+      updatedAt
+    }
+  }
+`;
+
+export const CANCEL_SAMPLE_MUTATION = gql`
+  mutation CancelSample($id: Int!, $reason: String) {
+    cancelSample(id: $id, reason: $reason) {
+      id
+      sampleNumber
+      status
+      manufacturerResponse
+      updatedAt
+    }
+  }
+`;
+
+export const RESUME_SAMPLE_MUTATION = gql`
+  mutation ResumeSample($id: Int!, $note: String) {
+    resumeSample(id: $id, note: $note) {
+      id
+      sampleNumber
+      status
+      updatedAt
     }
   }
 `;
@@ -473,6 +543,45 @@ export const UPDATE_ORDER_MUTATION = gql`
       manufacturerResponse
       productionDays
       estimatedProductionDate
+    }
+  }
+`;
+
+export const UPDATE_CUSTOMER_ORDER_MUTATION = gql`
+  mutation UpdateCustomerOrder(
+    $id: Int!
+    $quantity: Int
+    $unitPrice: Float
+    $customerNote: String
+    $deliveryAddress: String
+  ) {
+    updateCustomerOrder(
+      id: $id
+      quantity: $quantity
+      unitPrice: $unitPrice
+      customerNote: $customerNote
+      deliveryAddress: $deliveryAddress
+    ) {
+      id
+      orderNumber
+      status
+      quantity
+      unitPrice
+      totalPrice
+      customerNote
+      deliveryAddress
+      updatedAt
+    }
+  }
+`;
+
+export const CANCEL_ORDER_MUTATION = gql`
+  mutation CancelOrder($id: Int!, $reason: String) {
+    cancelOrder(id: $id, reason: $reason) {
+      id
+      orderNumber
+      status
+      updatedAt
     }
   }
 `;

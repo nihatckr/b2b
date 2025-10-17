@@ -1,101 +1,144 @@
 "use client";
 
+import {
+    DELETE_NOTIFICATION_MUTATION,
+    MARK_ALL_NOTIFICATIONS_AS_READ_MUTATION,
+    MARK_NOTIFICATION_AS_READ_MUTATION,
+    MY_NOTIFICATIONS_QUERY,
+} from "@/lib/graphql/notificationOperations";
 import { formatDistanceToNow } from "date-fns";
 import { Bell, CheckCheck, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "urql";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
 } from "../ui/sheet";
 
 interface Notification {
-  id: string;
+  id: number;
   title: string;
   message: string;
-  type: "order" | "sample" | "message" | "production" | "system";
+  type: "ORDER" | "SAMPLE" | "MESSAGE" | "PRODUCTION" | "QUALITY" | "SYSTEM";
   isRead: boolean;
-  timestamp: string;
-  link?: string;
+  createdAt: string;
+  link?: string | null;
 }
 
 interface NotificationCenterProps {
   unreadCount?: number;
 }
 
-export function NotificationCenter({
-  unreadCount = 0,
-}: NotificationCenterProps) {
+export function NotificationCenter() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      title: "New Order Received",
-      message: "Order #ORD-2025-001 has been placed",
-      type: "order",
-      isRead: false,
-      timestamp: new Date().toISOString(),
-      link: "/dashboard/orders/1",
-    },
-    {
-      id: "2",
-      title: "Sample Status Updated",
-      message: "SMP-2025-001 is now IN_PRODUCTION",
-      type: "sample",
-      isRead: false,
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-      link: "/dashboard/samples/1",
-    },
-    {
-      id: "3",
-      title: "New Message",
-      message: "You have a new message from Ahmet Yılmaz",
-      type: "message",
-      isRead: true,
-      timestamp: new Date(Date.now() - 7200000).toISOString(),
-      link: "/dashboard/messages",
-    },
-  ]);
 
+  const [{ data, fetching, error }, refetchNotifications] = useQuery({
+    query: MY_NOTIFICATIONS_QUERY,
+    requestPolicy: "network-only", // Always fetch from network for fresh data
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetchNotifications({ requestPolicy: "network-only" });
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [refetchNotifications]);
+
+  const [, markAsRead] = useMutation(MARK_NOTIFICATION_AS_READ_MUTATION);
+  const [, markAllAsRead] = useMutation(
+    MARK_ALL_NOTIFICATIONS_AS_READ_MUTATION,
+  );
+  const [, deleteNotification] = useMutation(DELETE_NOTIFICATION_MUTATION);
+
+  const notifications: Notification[] = data?.myNotifications || [];
   const unreadNotifications = notifications.filter((n) => !n.isRead);
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-    );
+  const handleMarkAsRead = async (id: number) => {
+    await markAsRead({ id });
+    // Small delay to ensure database update is complete
+    setTimeout(() => {
+      refetchNotifications({ requestPolicy: "network-only" });
+    }, 100);
   };
 
-  const handleMarkAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  const handleMarkAllAsRead = async () => {
+    await markAllAsRead({});
+    // Small delay to ensure database update is complete
+    setTimeout(() => {
+      refetchNotifications({ requestPolicy: "network-only" });
+    }, 100);
   };
 
-  const handleDelete = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const handleDelete = async (id: number) => {
+    await deleteNotification({ id });
+    // Small delay to ensure database update is complete
+    setTimeout(() => {
+      refetchNotifications({ requestPolicy: "network-only" });
+    }, 100);
   };
 
   const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case "order":
-        return "📦";
-      case "sample":
-        return "🎨";
-      case "message":
-        return "💬";
-      case "production":
-        return "🏭";
-      case "system":
+    switch (type.toUpperCase()) {
+      case "ORDER":
+        return "���";
+      case "SAMPLE":
+        return "���";
+      case "MESSAGE":
+        return "���";
+      case "PRODUCTION":
+        return "���";
+      case "QUALITY":
+        return "✅";
+      case "SYSTEM":
         return "⚙️";
       default:
-        return "📌";
+        return "���";
     }
   };
+
+  if (fetching && !data) {
+    return (
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="w-[400px] sm:w-[540px]">
+          <div className="flex items-center justify-center h-full">
+            <p className="text-muted-foreground">Loading notifications...</p>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  if (error) {
+    return (
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="w-[400px] sm:w-[540px]">
+          <div className="flex items-center justify-center h-full">
+            <p className="text-red-500">Error loading notifications</p>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -133,9 +176,7 @@ export function NotificationCenter({
             {unreadNotifications.length !== 1 ? "s" : ""}
           </SheetDescription>
         </SheetHeader>
-
         <Separator className="my-4" />
-
         <ScrollArea className="h-[calc(100vh-200px)] pr-4">
           {notifications.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
@@ -150,19 +191,12 @@ export function NotificationCenter({
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 rounded-lg border transition-colors ${
-                    !notification.isRead
-                      ? "bg-blue-50 border-blue-200"
-                      : "bg-white border-gray-200 hover:bg-gray-50"
-                  }`}
+                  className={`p-4 rounded-lg border transition-colors ${!notification.isRead ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200 hover:bg-gray-50"}`}
                 >
                   <div className="flex items-start gap-3">
-                    {/* Icon */}
                     <div className="text-2xl">
                       {getNotificationIcon(notification.type)}
                     </div>
-
-                    {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="font-semibold text-sm">
@@ -176,20 +210,22 @@ export function NotificationCenter({
                         {notification.message}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
-                        {formatDistanceToNow(new Date(notification.timestamp), {
+                        {formatDistanceToNow(new Date(notification.createdAt), {
                           addSuffix: true,
                         })}
                       </p>
-
-                      {/* Actions */}
                       <div className="flex items-center gap-2 mt-3">
                         {notification.link && (
                           <Button
                             variant="link"
                             size="sm"
                             className="h-auto p-0 text-xs"
-                            onClick={() => {
-                              window.location.href = notification.link!;
+                            onClick={async () => {
+                              // Mark as read when clicking View Details
+                              if (!notification.isRead) {
+                                await handleMarkAsRead(notification.id);
+                              }
+                              router.push(notification.link!);
                               setIsOpen(false);
                             }}
                           >

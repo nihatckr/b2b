@@ -12,6 +12,8 @@ export const collectionQueries = (t: any) => {
       isActive: booleanArg(),
       isFeatured: booleanArg(),
       search: stringArg(),
+      location: stringArg(), // Üretici lokasyonu filtresi
+      manufacturerName: stringArg(), // Üretici ismi filtresi
       limit: intArg(),
       offset: intArg(),
     },
@@ -23,6 +25,8 @@ export const collectionQueries = (t: any) => {
         isActive?: boolean;
         isFeatured?: boolean;
         search?: string;
+        location?: string;
+        manufacturerName?: string;
         limit?: number;
         offset?: number;
       },
@@ -45,13 +49,19 @@ export const collectionQueries = (t: any) => {
       const where: any = {};
 
       // Role-based filtering
-      if (userRole === "MANUFACTURER") {
-        // Manufacturers can only see their company's collections and global collections
-        where.OR = [{ companyId: user.companyId }, { companyId: null }];
-      } else if (userRole === "CUSTOMER") {
+      if (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") {
+        // Manufacturers can only see their company's collections
+        if (user.company?.type === "MANUFACTURER") {
+          where.companyId = user.companyId;
+        } else {
+          // Buyers see all active collections
+          where.isActive = true;
+        }
+      } else if (userRole === "CUSTOMER" || userRole === "INDIVIDUAL_CUSTOMER") {
         // Customers can only see active collections
         where.isActive = true;
       }
+      // Admins see all collections
 
       // Apply additional filters
       if (args.categoryId) {
@@ -63,7 +73,7 @@ export const collectionQueries = (t: any) => {
         if (userRole === "ADMIN") {
           where.companyId = args.companyId;
         } else if (
-          userRole === "MANUFACTURER" &&
+          (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") &&
           args.companyId === user.companyId
         ) {
           where.companyId = args.companyId;
@@ -87,12 +97,29 @@ export const collectionQueries = (t: any) => {
         ];
       }
 
+      // Lokasyon filtresi
+      if (args.location) {
+        where.company = {
+          ...where.company,
+          location: { contains: args.location, mode: "insensitive" },
+        };
+      }
+
+      // Üretici ismi filtresi
+      if (args.manufacturerName) {
+        where.company = {
+          ...where.company,
+          name: { contains: args.manufacturerName, mode: "insensitive" },
+        };
+      }
+
       return context.prisma.collection.findMany({
         where,
         include: {
           category: true,
           company: true,
           author: true,
+          certifications: true, // Sertifikaları dahil et
         },
         orderBy: { createdAt: "desc" },
         take: args.limit || undefined,
@@ -142,9 +169,14 @@ export const collectionQueries = (t: any) => {
       };
 
       // Role-based filtering
-      if (userRole === "MANUFACTURER") {
-        where.OR = [{ companyId: user.companyId }, { companyId: null }];
-      } else if (userRole === "CUSTOMER") {
+      if (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") {
+        // Manufacturers can only see their company's collections
+        if (user.company?.type === "MANUFACTURER") {
+          where.companyId = user.companyId;
+        } else {
+          where.isActive = true;
+        }
+      } else if (userRole === "CUSTOMER" || userRole === "INDIVIDUAL_CUSTOMER") {
         where.isActive = true;
       }
 
@@ -198,13 +230,13 @@ export const collectionQueries = (t: any) => {
       }
 
       // Permission check
-      if (userRole === "CUSTOMER" && !collection.isActive) {
+      if ((userRole === "CUSTOMER" || userRole === "INDIVIDUAL_CUSTOMER") && !collection.isActive) {
         throw new Error("Collection not accessible");
       }
 
-      if (userRole === "MANUFACTURER") {
-        // Manufacturers can only see their company's collections and global collections
-        if (collection.companyId && collection.companyId !== user.companyId) {
+      if (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") {
+        // Manufacturers can only see their company's collections
+        if (user.company?.type === "MANUFACTURER" && collection.companyId !== user.companyId) {
           throw new Error("Not authorized to view this collection");
         }
       }
@@ -239,7 +271,7 @@ export const collectionQueries = (t: any) => {
       const userRole = getUserRole(user);
 
       // Permission check
-      if (userRole === "MANUFACTURER" && args.companyId !== user.companyId) {
+      if ((userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") && args.companyId !== user.companyId) {
         throw new Error(
           "Not authorized to view collections from different company"
         );
@@ -251,7 +283,7 @@ export const collectionQueries = (t: any) => {
 
       if (args.isActive !== undefined) {
         where.isActive = args.isActive;
-      } else if (userRole === "CUSTOMER") {
+      } else if (userRole === "CUSTOMER" || userRole === "INDIVIDUAL_CUSTOMER") {
         where.isActive = true;
       }
 
@@ -284,16 +316,16 @@ export const collectionQueries = (t: any) => {
 
       const userRole = getUserRole(user);
 
-      if (userRole === "CUSTOMER") {
+      if (userRole === "CUSTOMER" || userRole === "INDIVIDUAL_CUSTOMER") {
         throw new Error("Customers cannot access this query");
       }
 
       const where: any = {};
 
-      if (userRole === "MANUFACTURER") {
-        // Manufacturers see their own collections and their company's collections
-        where.OR = [{ authorId: userId }, { companyId: user.companyId }];
-      } else {
+      if (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") {
+        // Manufacturers see only their company's collections
+        where.companyId = user.companyId;
+      } else if (userRole === "ADMIN") {
         // Admins see all collections
       }
 

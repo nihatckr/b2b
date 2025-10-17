@@ -25,19 +25,12 @@ export const categoryMutations = (t: any) => {
         throw new Error("User not found");
       }
 
-      // Role-based validation
-      if (currentUser.role === "CUSTOMER") {
-        throw new Error("Customers cannot create categories");
+      // Only ADMIN can create categories (platform-wide system)
+      if (currentUser.role !== "ADMIN") {
+        throw new Error("Only administrators can create categories");
       }
 
-      // If MANUFACTURER, can only create categories for their own company
-      let companyId = args.companyId;
-      if (currentUser.role === "MANUFACTURE") {
-        if (!currentUser.companyId) {
-          throw new Error("Manufacturer must be assigned to a company");
-        }
-        companyId = currentUser.companyId; // Force their company
-      }
+      let companyId = args.companyId || null;
 
       // Validate parent category exists and belongs to same company if specified
       if (args.parentCategoryId) {
@@ -108,6 +101,7 @@ export const categoryMutations = (t: any) => {
       const [currentUser, category] = await Promise.all([
         context.prisma.user.findUnique({
           where: { id: userId },
+          include: { company: true },
         }),
         context.prisma.category.findUnique({
           where: { id: args.id },
@@ -118,19 +112,9 @@ export const categoryMutations = (t: any) => {
         throw new Error("User or category not found");
       }
 
-      // Permission checks
-      if (currentUser.role === "CUSTOMER") {
-        throw new Error("Customers cannot update categories");
-      }
-
-      // MANUFACTURER can only update their own company's categories
-      if (currentUser.role === "MANUFACTURE") {
-        if (
-          !currentUser.companyId ||
-          category.companyId !== currentUser.companyId
-        ) {
-          throw new Error("You can only update your company's categories");
-        }
+      // Only ADMIN can update categories (platform-wide system)
+      if (currentUser.role !== "ADMIN") {
+        throw new Error("Only administrators can update categories");
       }
 
       // Build update object
@@ -225,6 +209,7 @@ export const categoryMutations = (t: any) => {
       const [currentUser, category] = await Promise.all([
         context.prisma.user.findUnique({
           where: { id: userId },
+          include: { company: true },
         }),
         context.prisma.category.findUnique({
           where: { id: args.id },
@@ -238,19 +223,9 @@ export const categoryMutations = (t: any) => {
         throw new Error("User or category not found");
       }
 
-      // Permission checks
-      if (currentUser.role === "CUSTOMER") {
-        throw new Error("Customers cannot delete categories");
-      }
-
-      // MANUFACTURER can only delete their own company's categories
-      if (currentUser.role === "MANUFACTURE") {
-        if (
-          !currentUser.companyId ||
-          category.companyId !== currentUser.companyId
-        ) {
-          throw new Error("You can only delete your company's categories");
-        }
+      // Only ADMIN can delete categories (platform-wide system)
+      if (currentUser.role !== "ADMIN") {
+        throw new Error("Only administrators can delete categories");
       }
 
       // Check if category has subcategories

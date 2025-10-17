@@ -1,5 +1,6 @@
 import { intArg, nonNull } from "nexus";
 import { Context } from "../context";
+import { createNotification } from "../utils/notificationHelper";
 import { isBuyer, requirePermission } from "../utils/permissions";
 import { getUserRole, requireAuth } from "../utils/user-role-helper";
 
@@ -91,12 +92,12 @@ export const sampleMutations = (t: any) => {
       const timestamp = Date.now();
       const sampleNumber = `SMPL-${timestamp}`;
 
-      // Create sample
+      // Create sample with PENDING_APPROVAL status
       const sample = await context.prisma.sample.create({
         data: {
           sampleNumber,
           sampleType: input.sampleType,
-          status: "REQUESTED",
+          status: "PENDING_APPROVAL",
           customerNote: input.customerNote || null,
           customDesignImages: input.customDesignImages
             ? JSON.stringify(input.customDesignImages)
@@ -108,6 +109,38 @@ export const sampleMutations = (t: any) => {
           customerId: userId,
           manufactureId,
           companyId: companyId || null,
+          // AI Generated sample fields
+          aiGenerated: input.aiGenerated || false,
+          aiSketchUrl: input.aiSketchUrl || null,
+          images: input.images ? JSON.stringify(input.images) : null,
+          // Create AI Analysis if provided
+          ...(input.aiAnalysis && {
+            aiAnalysis: {
+              create: {
+                detectedProduct: input.aiAnalysis.detectedProduct || null,
+                detectedColor: input.aiAnalysis.detectedColor || null,
+                detectedFabric: input.aiAnalysis.detectedFabric || null,
+                detectedPattern: input.aiAnalysis.detectedPattern || null,
+                detectedGender: input.aiAnalysis.detectedGender || null,
+                detectedClassification: input.aiAnalysis.detectedClassification || null,
+                detectedAccessories: input.aiAnalysis.detectedAccessories || null,
+                technicalDescription: input.aiAnalysis.technicalDescription || null,
+                qualityAnalysis: input.aiAnalysis.qualityAnalysis || null,
+                qualityScore: input.aiAnalysis.qualityScore || null,
+                costAnalysis: input.aiAnalysis.costAnalysis || null,
+                estimatedCostMin: input.aiAnalysis.estimatedCostMin || null,
+                estimatedCostMax: input.aiAnalysis.estimatedCostMax || null,
+                suggestedMinOrder: input.aiAnalysis.suggestedMinOrder || null,
+                trendAnalysis: input.aiAnalysis.trendAnalysis || null,
+                trendScore: input.aiAnalysis.trendScore || null,
+                targetMarket: input.aiAnalysis.targetMarket || null,
+                salesPotential: input.aiAnalysis.salesPotential || null,
+                designSuggestions: input.aiAnalysis.designSuggestions || null,
+                designStyle: input.aiAnalysis.designStyle || null,
+                designFocus: input.aiAnalysis.designFocus || null,
+              },
+            },
+          }),
         },
         include: {
           collection: true,
@@ -115,6 +148,7 @@ export const sampleMutations = (t: any) => {
           customer: true,
           manufacture: true,
           company: true,
+          aiAnalysis: true,
         },
       });
 
@@ -122,11 +156,44 @@ export const sampleMutations = (t: any) => {
       await context.prisma.sampleProduction.create({
         data: {
           sampleId: sample.id,
-          status: "REQUESTED",
-          note: "Sample request created",
+          status: "PENDING_APPROVAL",
+          note: "Sample request created, awaiting manufacturer approval",
           updatedById: userId,
         },
       });
+
+      // Send notification to manufacturer
+      await createNotification(context.prisma, {
+        type: "SAMPLE",
+        title: "🎨 New Sample Request",
+        message: `You have received a new sample request #${sampleNumber}${input.collectionId ? " for a collection" : ""}. Please review and respond.`,
+        userId: manufactureId,
+        link: `/dashboard/samples/${sample.id}`,
+        sampleId: sample.id,
+      });
+
+      // Also notify company members if exists
+      if (companyId) {
+        const companyMembers = await context.prisma.user.findMany({
+          where: {
+            companyId: companyId,
+            role: { in: ["COMPANY_OWNER", "COMPANY_EMPLOYEE"] },
+            id: { not: manufactureId },
+          },
+          select: { id: true },
+        });
+
+        for (const member of companyMembers) {
+          await createNotification(context.prisma, {
+            type: "SAMPLE",
+            title: "🎨 New Sample Request",
+            message: `Your company received a new sample request #${sampleNumber}.`,
+            userId: member.id,
+            link: `/dashboard/samples/${sample.id}`,
+            sampleId: sample.id,
+          });
+        }
+      }
 
       return sample;
     },
@@ -177,7 +244,12 @@ export const sampleMutations = (t: any) => {
       // Prepare update data
       const updateData: any = {};
 
+      if (input.name !== undefined) updateData.name = input.name;
+      if (input.description !== undefined)
+        updateData.description = input.description;
       if (input.status !== undefined) updateData.status = input.status;
+      if (input.manufactureId !== undefined)
+        updateData.manufactureId = input.manufactureId;
       if (input.customerNote !== undefined)
         updateData.customerNote = input.customerNote;
       if (input.manufacturerResponse !== undefined)
@@ -428,6 +500,99 @@ export const sampleMutations = (t: any) => {
     },
   });
 
+  // Approve Sample Request (Manufacturer only)
+  t.field("approveSample", {
+    type: "Sample",
+    args: {
+      id: nonNull(intArg()),
+      approve: nonNull("Boolean"),
+      manufacturerNote: "String",
+      estimatedDays: intArg(),
+    },
+    resolve: async (
+      _parent: unknown,
+      { id, approve, manufacturerNote, estimatedDays }: { id: number; approve: boolean; manufacturerNote?: string; estimatedDays?: number },
+      context: Context
+    ) => {
+      const userId = requireAuth(context);
+
+      const user = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const userRole = getUserRole(user);
+
+      // Find existing sample
+      const existingSample = await context.prisma.sample.findUnique({
+        where: { id },
+      });
+
+      if (!existingSample) {
+        throw new Error("Sample not found");
+      }
+
+      // Permission check: Only assigned manufacturer or admin can approve
+      const isManufacture = existingSample.manufactureId === userId;
+      const isAdmin = userRole === "ADMIN";
+
+      if (!isAdmin && !isManufacture) {
+        throw new Error("Only the assigned manufacturer can approve this sample request");
+      }
+
+      // Check if sample is in PENDING_APPROVAL status
+      if (existingSample.status !== "PENDING_APPROVAL") {
+        throw new Error("Sample is not in pending approval status");
+      }
+
+      // Calculate estimated production date if days provided
+      let estimatedProductionDate = null;
+      if (approve && estimatedDays) {
+        estimatedProductionDate = new Date();
+        estimatedProductionDate.setDate(estimatedProductionDate.getDate() + estimatedDays);
+      }
+
+      // Update sample
+      const newStatus = approve ? "REQUESTED" : "REJECTED";
+      const sample = await context.prisma.sample.update({
+        where: { id },
+        data: {
+          status: newStatus,
+          manufacturerResponse: manufacturerNote || null,
+          productionDays: estimatedDays || null,
+          estimatedProductionDate: estimatedProductionDate,
+        },
+        include: {
+          collection: true,
+          originalCollection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+      });
+
+      // Create production history entry
+      await context.prisma.sampleProduction.create({
+        data: {
+          sampleId: sample.id,
+          status: newStatus,
+          note: approve
+            ? `Sample request approved by manufacturer${manufacturerNote ? ': ' + manufacturerNote : ''}`
+            : `Sample request rejected by manufacturer${manufacturerNote ? ': ' + manufacturerNote : ''}`,
+          estimatedDays: estimatedDays || null,
+          actualDate: new Date(),
+          updatedById: userId,
+        },
+      });
+
+      return sample;
+    },
+  });
+
   // Delete Sample
   t.field("deleteSample", {
     type: "Sample",
@@ -469,14 +634,15 @@ export const sampleMutations = (t: any) => {
         throw new Error("Not authorized to delete this sample");
       }
 
-      // Can only delete if in REQUESTED or REJECTED status (unless admin)
-      if (!isAdmin) {
+      // Can only delete if in PENDING_APPROVAL, REQUESTED or REJECTED status (unless admin or AI sample)
+      if (!isAdmin && !existingSample.aiGenerated) {
         if (
+          existingSample.status !== "PENDING_APPROVAL" &&
           existingSample.status !== "REQUESTED" &&
           existingSample.status !== "REJECTED"
         ) {
           throw new Error(
-            "Can only delete samples in REQUESTED or REJECTED status"
+            "Can only delete samples in PENDING_APPROVAL, REQUESTED or REJECTED status"
           );
         }
       }
@@ -486,12 +652,285 @@ export const sampleMutations = (t: any) => {
         where: { sampleId: id },
       });
 
+      // Delete AI generated images if exists
+      if (existingSample.aiGenerated && existingSample.images) {
+        try {
+          const images = JSON.parse(existingSample.images);
+          const fs = require("fs");
+          const path = require("path");
+
+          for (const imageUrl of images) {
+            // imageUrl format: /uploads/production/ai_sample_XXX.png
+            const filePath = path.join(
+              process.cwd(),
+              "uploads",
+              ...imageUrl.split("/").filter((p: string) => p && p !== "uploads")
+            );
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+            }
+          }
+
+          // Delete sketch if exists
+          if (existingSample.aiSketchUrl) {
+            const sketchPath = path.join(
+              process.cwd(),
+              "uploads",
+              ...existingSample.aiSketchUrl
+                .split("/")
+                .filter((p: string) => p && p !== "uploads")
+            );
+            if (fs.existsSync(sketchPath)) {
+              fs.unlinkSync(sketchPath);
+            }
+          }
+        } catch (error) {
+          console.error("Error deleting AI images:", error);
+          // Continue with deletion even if file deletion fails
+        }
+      }
+
       // Delete sample
       const deletedSample = await context.prisma.sample.delete({
         where: { id },
       });
 
       return deletedSample;
+    },
+  });
+
+  // Hold/Pause Sample (Numune Durdur)
+  t.field("holdSample", {
+    type: "Sample",
+    args: {
+      id: nonNull(intArg()),
+      reason: "String",
+    },
+    resolve: async (
+      _parent: unknown,
+      { id, reason }: { id: number; reason?: string },
+      context: Context
+    ) => {
+      const userId = requireAuth(context);
+
+      const user = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const userRole = getUserRole(user);
+
+      // Find existing sample
+      const existingSample = await context.prisma.sample.findUnique({
+        where: { id },
+      });
+
+      if (!existingSample) {
+        throw new Error("Sample not found");
+      }
+
+      // Permission check: Manufacturer or admin can hold
+      const isManufacture = existingSample.manufactureId === userId;
+      const isAdmin = userRole === "ADMIN";
+
+      if (!isAdmin && !isManufacture) {
+        throw new Error("Only manufacturer or admin can hold sample");
+      }
+
+      // Can only hold if in progress
+      const allowedStatuses = ["REQUESTED", "RECEIVED", "IN_DESIGN", "PATTERN_READY", "IN_PRODUCTION", "QUALITY_CHECK"];
+      if (!allowedStatuses.includes(existingSample.status)) {
+        throw new Error("Sample cannot be held in current status");
+      }
+
+      // Update sample to ON_HOLD
+      const sample = await context.prisma.sample.update({
+        where: { id },
+        data: {
+          status: "ON_HOLD",
+          manufacturerResponse: reason || existingSample.manufacturerResponse,
+        },
+        include: {
+          collection: true,
+          originalCollection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+      });
+
+      // Create production history entry
+      await context.prisma.sampleProduction.create({
+        data: {
+          sampleId: sample.id,
+          status: "ON_HOLD",
+          note: reason || "Sample production paused",
+          actualDate: new Date(),
+          updatedById: userId,
+        },
+      });
+
+      return sample;
+    },
+  });
+
+  // Cancel Sample (Numune İptal Et)
+  t.field("cancelSample", {
+    type: "Sample",
+    args: {
+      id: nonNull(intArg()),
+      reason: "String",
+    },
+    resolve: async (
+      _parent: unknown,
+      { id, reason }: { id: number; reason?: string },
+      context: Context
+    ) => {
+      const userId = requireAuth(context);
+
+      const user = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const userRole = getUserRole(user);
+
+      // Find existing sample
+      const existingSample = await context.prisma.sample.findUnique({
+        where: { id },
+      });
+
+      if (!existingSample) {
+        throw new Error("Sample not found");
+      }
+
+      // Permission check: Customer, manufacturer or admin can cancel
+      const isCustomer = existingSample.customerId === userId;
+      const isManufacture = existingSample.manufactureId === userId;
+      const isAdmin = userRole === "ADMIN";
+
+      if (!isAdmin && !isCustomer && !isManufacture) {
+        throw new Error("Not authorized to cancel this sample");
+      }
+
+      // Cannot cancel if already completed or shipped
+      if (existingSample.status === "COMPLETED" || existingSample.status === "SHIPPED") {
+        throw new Error("Cannot cancel completed or shipped samples");
+      }
+
+      // Update sample to CANCELLED
+      const sample = await context.prisma.sample.update({
+        where: { id },
+        data: {
+          status: "CANCELLED",
+          manufacturerResponse: reason || existingSample.manufacturerResponse,
+        },
+        include: {
+          collection: true,
+          originalCollection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+      });
+
+      // Create production history entry
+      await context.prisma.sampleProduction.create({
+        data: {
+          sampleId: sample.id,
+          status: "CANCELLED",
+          note: reason || `Sample cancelled by ${isCustomer ? 'customer' : 'manufacturer'}`,
+          actualDate: new Date(),
+          updatedById: userId,
+        },
+      });
+
+      return sample;
+    },
+  });
+
+  // Resume Sample from ON_HOLD (Durdurulmuş Numune Devam Ettir)
+  t.field("resumeSample", {
+    type: "Sample",
+    args: {
+      id: nonNull(intArg()),
+      note: "String",
+    },
+    resolve: async (
+      _parent: unknown,
+      { id, note }: { id: number; note?: string },
+      context: Context
+    ) => {
+      const userId = requireAuth(context);
+
+      const user = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const userRole = getUserRole(user);
+
+      // Find existing sample
+      const existingSample = await context.prisma.sample.findUnique({
+        where: { id },
+      });
+
+      if (!existingSample) {
+        throw new Error("Sample not found");
+      }
+
+      // Permission check: Manufacturer or admin can resume
+      const isManufacture = existingSample.manufactureId === userId;
+      const isAdmin = userRole === "ADMIN";
+
+      if (!isAdmin && !isManufacture) {
+        throw new Error("Only manufacturer or admin can resume sample");
+      }
+
+      // Can only resume if currently ON_HOLD
+      if (existingSample.status !== "ON_HOLD") {
+        throw new Error("Sample is not on hold");
+      }
+
+      // Resume to IN_PRODUCTION
+      const sample = await context.prisma.sample.update({
+        where: { id },
+        data: {
+          status: "IN_PRODUCTION",
+        },
+        include: {
+          collection: true,
+          originalCollection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+      });
+
+      // Create production history entry
+      await context.prisma.sampleProduction.create({
+        data: {
+          sampleId: sample.id,
+          status: "IN_PRODUCTION",
+          note: note || "Sample production resumed",
+          actualDate: new Date(),
+          updatedById: userId,
+        },
+      });
+
+      return sample;
     },
   });
 };

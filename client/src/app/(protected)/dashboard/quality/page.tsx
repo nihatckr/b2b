@@ -1,35 +1,52 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/context/AuthProvider";
 import { format } from "date-fns";
 import {
-  AlertCircle,
-  CheckCircle2,
-  Minus,
-  TrendingDown,
-  TrendingUp,
-  XCircle,
+    AlertCircle,
+    CheckCircle2,
+    Minus,
+    ShieldX,
+    TrendingDown,
+    TrendingUp,
+    XCircle,
 } from "lucide-react";
-import { useState } from "react";
-import { Badge } from "../../../../components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../../../components/ui/card";
-import { Progress } from "../../../../components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../../components/ui/select";
-import { useAuth } from "../../../../context/AuthProvider";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function QualityDashboardPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [timeRange, setTimeRange] = useState("month");
+
+  // Check if user is manufacturer
+  const isManufacturer =
+    (user?.role === "MANUFACTURE" ||
+      user?.role === "COMPANY_OWNER" ||
+      user?.role === "COMPANY_EMPLOYEE") &&
+    user?.company?.type === "MANUFACTURER";
+
+  // Redirect non-manufacturers
+  useEffect(() => {
+    if (user && !isManufacturer && user.role !== "ADMIN") {
+      router.push("/dashboard");
+    }
+  }, [user, isManufacturer, router]);
 
   // Mock data - replace with real GraphQL query
   const qualityReports = [
@@ -93,16 +110,27 @@ export default function QualityDashboardPage() {
 
   const passRate = ((passedReports / totalReports) * 100).toFixed(1);
 
+  // Show access denied for non-manufacturers
+  if (user && !isManufacturer && user.role !== "ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <ShieldX className="h-16 w-16 text-red-500" />
+        <h2 className="text-2xl font-bold text-gray-900">Erişim Reddedildi</h2>
+        <p className="text-gray-600 text-center max-w-md">
+          Kalite kontrol sayfasına yalnızca üretici firmaların çalışanları erişebilir.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Quality Control Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Monitor and manage quality inspections
+          <h1 className="text-3xl font-bold">Kalite Kontrol</h1>
+          <p className="text-gray-500 mt-1">
+            Kalite denetimlerini izleyin ve yönetin
           </p>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
@@ -110,10 +138,10 @@ export default function QualityDashboardPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="week">This Week</SelectItem>
-            <SelectItem value="month">This Month</SelectItem>
-            <SelectItem value="quarter">This Quarter</SelectItem>
-            <SelectItem value="year">This Year</SelectItem>
+            <SelectItem value="week">Bu Hafta</SelectItem>
+            <SelectItem value="month">Bu Ay</SelectItem>
+            <SelectItem value="quarter">Bu Çeyrek</SelectItem>
+            <SelectItem value="year">Bu Yıl</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -122,21 +150,21 @@ export default function QualityDashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">Başarı Oranı</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{passRate}%</div>
             <Progress value={parseFloat(passRate)} className="h-2 mt-2" />
             <p className="text-xs text-muted-foreground mt-2">
-              {passedReports} of {totalReports} passed
+              {passedReports} / {totalReports} başarılı
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Score</CardTitle>
+            <CardTitle className="text-sm font-medium">Ortalama Skor</CardTitle>
             {averageScore >= 90 ? (
               <TrendingUp className="h-4 w-4 text-green-600" />
             ) : averageScore >= 70 ? (
@@ -150,13 +178,13 @@ export default function QualityDashboardPage() {
               {averageScore.toFixed(1)}/100
             </div>
             <Progress value={averageScore} className="h-2 mt-2" />
-            <p className="text-xs text-muted-foreground mt-2">Quality metric</p>
+            <p className="text-xs text-muted-foreground mt-2">Kalite metriği</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Failed</CardTitle>
+            <CardTitle className="text-sm font-medium">Başarısız</CardTitle>
             <XCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
@@ -164,21 +192,21 @@ export default function QualityDashboardPage() {
               {failedReports}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Requires revision
+              Revizyon gerekli
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conditional</CardTitle>
+            <CardTitle className="text-sm font-medium">Koşullu Geçti</CardTitle>
             <AlertCircle className="h-4 w-4 text-amber-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">
               {conditionalReports}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">Minor issues</p>
+            <p className="text-xs text-muted-foreground mt-2">Minör hatalar</p>
           </CardContent>
         </Card>
       </div>
@@ -186,7 +214,7 @@ export default function QualityDashboardPage() {
       {/* Reports Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Quality Reports</CardTitle>
+          <CardTitle>Kalite Kontrol Raporları</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -194,22 +222,22 @@ export default function QualityDashboardPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Order/Sample
+                    Sipariş/Numune
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
+                    Tarih
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Inspector
+                    Kontrol Eden
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Score
+                    Skor
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Defects
+                    Hatalar
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Result
+                    Sonuç
                   </th>
                 </tr>
               </thead>
@@ -234,11 +262,11 @@ export default function QualityDashboardPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="space-y-1">
                         <div className="text-xs">
-                          F:{report.fabricDefects} S:{report.sewingDefects} M:
-                          {report.measureDefects} F:{report.finishingDefects}
+                          K:{report.fabricDefects} D:{report.sewingDefects} Ö:
+                          {report.measureDefects} B:{report.finishingDefects}
                         </div>
                         <div className="text-xs font-medium">
-                          Total:{" "}
+                          Toplam:{" "}
                           {report.fabricDefects +
                             report.sewingDefects +
                             report.measureDefects +
@@ -256,7 +284,11 @@ export default function QualityDashboardPage() {
                             : "bg-amber-100 text-amber-700"
                         }
                       >
-                        {report.result}
+                        {report.result === "PASSED"
+                          ? "Başarılı"
+                          : report.result === "FAILED"
+                          ? "Başarısız"
+                          : "Koşullu Geçti"}
                       </Badge>
                     </td>
                   </tr>
@@ -266,8 +298,9 @@ export default function QualityDashboardPage() {
           </div>
 
           {qualityReports.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No quality reports yet
+            <div className="text-center py-12">
+              <XCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">Henüz kalite kontrol raporu yok</p>
             </div>
           )}
         </CardContent>

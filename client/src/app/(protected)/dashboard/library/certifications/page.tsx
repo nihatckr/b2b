@@ -3,31 +3,33 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Award, Edit, FileText, Plus, Trash } from "lucide-react";
-import { useState } from "react";
+import { useAuth } from "@/context/AuthProvider";
+import { Award, Edit, FileText, Plus, ShieldX, Trash } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { gql, useMutation, useQuery } from "urql";
 import { Certification } from "../../../../../__generated__/graphql";
 
@@ -144,10 +146,37 @@ const categoryColors: Record<CertificationCategory, string> = {
 };
 
 export default function CertificationsPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [{ data }] = useQuery({ query: MY_CERTIFICATIONS_QUERY });
   const [, createCertification] = useMutation(CREATE_CERTIFICATION_MUTATION);
   const [, updateCertification] = useMutation(UPDATE_CERTIFICATION_MUTATION);
   const [, deleteCertification] = useMutation(DELETE_CERTIFICATION_MUTATION);
+
+  // Access control
+  const isManufacturer =
+    (user?.role === "MANUFACTURE" ||
+      user?.role === "COMPANY_OWNER" ||
+      user?.role === "COMPANY_EMPLOYEE") &&
+    user?.company?.type === "MANUFACTURER";
+
+  useEffect(() => {
+    if (user && !isManufacturer && user.role !== "ADMIN") {
+      router.push("/dashboard");
+    }
+  }, [user, isManufacturer, router]);
+
+  if (user && !isManufacturer && user.role !== "ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <ShieldX className="h-16 w-16 text-red-500" />
+        <h2 className="text-2xl font-bold text-gray-900">Erişim Reddedildi</h2>
+        <p className="text-gray-600 text-center max-w-md">
+          Sertifika yönetimi sayfasına yalnızca üretici firmaların çalışanları erişebilir.
+        </p>
+      </div>
+    );
+  }
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);

@@ -1,5 +1,6 @@
 export * from "../mutations/Mutation";
 export * from "../query/Query";
+export * from "./AIAnalysisType";
 export * from "./AuthPayload";
 export * from "./Category";
 export * from "./Certification";
@@ -15,7 +16,9 @@ export * from "./File";
 export * from "./FitItem";
 export * from "./LoginInput";
 export * from "./Message";
+export * from "./notificationTypes";
 export * from "./Order";
+export * from "./ProductAnalysis";
 export * from "./ProductionTracking";
 export * from "./QualityControl";
 export * from "./Question";

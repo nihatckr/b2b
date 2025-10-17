@@ -6,9 +6,11 @@ export const Message = objectType({
     t.nonNull.int("id");
     t.nonNull.string("content");
     t.nonNull.int("senderId");
-    t.string("receiver");
+    t.int("receiverId"); // Alıcı kullanıcı ID
     t.nonNull.boolean("isRead");
-    t.nonNull.string("type");
+    t.nonNull.string("type"); // "order", "sample", "general"
+    t.int("orderId"); // Sipariş ID
+    t.int("sampleId"); // Numune ID
     t.int("companyId");
     t.nonNull.string("createdAt", {
       resolve: (parent) => parent.createdAt.toISOString(),
@@ -23,6 +25,36 @@ export const Message = objectType({
       resolve: async (parent, _args, context) => {
         return context.prisma.user.findUnique({
           where: { id: parent.senderId },
+        });
+      },
+    });
+
+    t.field("receiver", {
+      type: "User",
+      resolve: async (parent, _args, context) => {
+        if (!parent.receiverId) return null;
+        return context.prisma.user.findUnique({
+          where: { id: parent.receiverId },
+        });
+      },
+    });
+
+    t.field("order", {
+      type: "Order",
+      resolve: async (parent, _args, context) => {
+        if (!parent.orderId) return null;
+        return context.prisma.order.findUnique({
+          where: { id: parent.orderId },
+        });
+      },
+    });
+
+    t.field("sample", {
+      type: "Sample",
+      resolve: async (parent, _args, context) => {
+        if (!parent.sampleId) return null;
+        return context.prisma.sample.findUnique({
+          where: { id: parent.sampleId },
         });
       },
     });
@@ -43,9 +75,11 @@ export const CreateMessageInput = inputObjectType({
   name: "CreateMessageInput",
   definition(t) {
     t.nonNull.string("content");
-    t.string("receiver"); // User ID or "all" for company-wide
-    t.string("type"); // "direct", "company", "system"
-    t.int("companyId"); // Target company for cross-company messages
+    t.int("receiverId"); // Alıcı kullanıcı ID
+    t.string("type"); // "order", "sample", "general"
+    t.int("orderId"); // Sipariş ID (ürün bazlı mesaj için)
+    t.int("sampleId"); // Numune ID (ürün bazlı mesaj için)
+    t.int("companyId"); // Şirket ID
   },
 });
 
@@ -54,6 +88,8 @@ export const MessageFilterInput = inputObjectType({
   definition(t) {
     t.boolean("unreadOnly");
     t.string("type");
+    t.int("orderId"); // Belirli bir siparişin mesajlarını filtrele
+    t.int("sampleId"); // Belirli bir numunenin mesajlarını filtrele
     t.int("companyId");
   },
 });

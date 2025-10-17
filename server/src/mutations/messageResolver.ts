@@ -1,6 +1,5 @@
 import { intArg, nonNull } from "nexus";
 import { Context } from "../context";
-import { requirePermission } from "../utils/permissions";
 import { requireAuth } from "../utils/user-role-helper";
 
 export const messageMutations = (t: any) => {
@@ -26,9 +25,39 @@ export const messageMutations = (t: any) => {
         throw new Error("User not found");
       }
 
-      // Permission check
-      if (user.role !== "ADMIN") {
-        requirePermission(user, "messages", "send");
+      // Ürün bazlı mesaj için order veya sample kontrolü
+      if (input.orderId) {
+        const order = await context.prisma.order.findUnique({
+          where: { id: input.orderId },
+        });
+        if (!order) {
+          throw new Error("Order not found");
+        }
+        // Kullanıcı bu siparişin müşterisi veya üreticisi olmalı
+        if (
+          order.customerId !== userId &&
+          order.manufactureId !== userId &&
+          user.role !== "ADMIN"
+        ) {
+          throw new Error("Not authorized to send message for this order");
+        }
+      }
+
+      if (input.sampleId) {
+        const sample = await context.prisma.sample.findUnique({
+          where: { id: input.sampleId },
+        });
+        if (!sample) {
+          throw new Error("Sample not found");
+        }
+        // Kullanıcı bu numunenin müşterisi veya üreticisi olmalı
+        if (
+          sample.customerId !== userId &&
+          sample.manufactureId !== userId &&
+          user.role !== "ADMIN"
+        ) {
+          throw new Error("Not authorized to send message for this sample");
+        }
       }
 
       // Create message
@@ -36,13 +65,18 @@ export const messageMutations = (t: any) => {
         data: {
           content: input.content,
           senderId: userId,
-          receiver: input.receiver || null,
-          type: input.type || "direct",
+          receiverId: input.receiverId || null,
+          type: input.type || "general",
+          orderId: input.orderId || null,
+          sampleId: input.sampleId || null,
           companyId: input.companyId || user.companyId || null,
           isRead: false,
         },
         include: {
           sender: true,
+          receiver: true,
+          order: true,
+          sample: true,
           company: true,
         },
       });
@@ -73,11 +107,7 @@ export const messageMutations = (t: any) => {
       }
 
       // Only receiver can mark as read
-      if (
-        message.receiver &&
-        message.receiver !== userId.toString() &&
-        message.receiver !== "all"
-      ) {
+      if (message.receiverId && message.receiverId !== userId) {
         throw new Error("Not authorized to mark this message as read");
       }
 
@@ -86,6 +116,9 @@ export const messageMutations = (t: any) => {
         data: { isRead: true },
         include: {
           sender: true,
+          receiver: true,
+          order: true,
+          sample: true,
           company: true,
         },
       });
@@ -132,6 +165,9 @@ export const messageMutations = (t: any) => {
         where: { id },
         include: {
           sender: true,
+          receiver: true,
+          order: true,
+          sample: true,
           company: true,
         },
       });

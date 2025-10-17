@@ -1,31 +1,6 @@
 import { gql } from "urql";
 
-export const DASHBOARD_STATS_QUERY = gql`
-  query DashboardStats {
-    collections(isActive: true) {
-      id
-      name
-      createdAt
-    }
-    samples {
-      id
-      status
-      createdAt
-    }
-    orders {
-      id
-      status
-      totalPrice
-      createdAt
-    }
-    allUsers {
-      id
-      role
-      createdAt
-    }
-  }
-`;
-
+// Legacy queries - to be replaced by analytics-operations.graphql
 export const USER_STATS_QUERY = gql`
   query UserStats {
     userStats {

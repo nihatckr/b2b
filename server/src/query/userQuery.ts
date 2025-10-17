@@ -127,8 +127,12 @@ export const userQueries = (t: any) => {
 
       return context.prisma.user.findMany({
         where: {
-          role: "MANUFACTURE",
           isActive: true,
+          role: "COMPANY_OWNER",
+          company: {
+            type: "MANUFACTURER",
+            isActive: true,
+          },
         },
         include: {
           company: true,

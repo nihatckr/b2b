@@ -9,6 +9,7 @@ import multer from "multer";
 import path from "path";
 import { Context, createContext } from "./context";
 import { schema } from "./schema";
+import "./utils/productionScheduler"; // Auto-start production deadline checker
 
 // Constants
 const port = process.env.PORT || 4000;
@@ -82,7 +83,11 @@ const upload = multer({
 // Middleware Initialization
 
 function initializeMiddleware(appRef: typeof app) {
-  appRef.use(cors());
+  // CORS configuration - allow credentials with specific origin
+  appRef.use(cors({
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    credentials: true,
+  }));
 
   // Static files serving for uploads
   appRef.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
@@ -100,13 +105,41 @@ const apolloServer = new ApolloServer<Context>({
 
 async function startServer() {
   console.log(`Starting server in ${env} mode on port ${port}`);
+
+  // Ensure upload directories exist
+  const fs = require("fs");
+  const uploadDirs = ["collections", "documents", "production", "sketches", "temp"];
+  uploadDirs.forEach((dir) => {
+    const dirPath = path.join(process.cwd(), "uploads", dir);
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+      console.log(`📁 Created directory: ${dirPath}`);
+    }
+  });
+
   await apolloServer.start();
 
   initializeMiddleware(app);
 
+  // Handle preflight requests for upload endpoint
+  app.options("/api/upload", (req, res) => {
+    res.header("Access-Control-Allow-Origin", process.env.CLIENT_URL || "http://localhost:3000");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    res.sendStatus(200);
+  });
+
   // REST endpoint for file uploads
   app.post("/api/upload", (req, res) => {
-    upload.single("file")(req, res, async (err: any) => {
+    // Set CORS headers for upload endpoint
+    res.header("Access-Control-Allow-Origin", process.env.CLIENT_URL || "http://localhost:3000");
+    res.header("Access-Control-Allow-Credentials", "true");
+
+    // Parse form data to get subfolder before multer processes
+    const multerUpload = upload.single("file");
+
+    multerUpload(req, res, async (err: any) => {
       if (err) {
         console.error("❌ Multer error:", err);
         if (err.code === "LIMIT_FILE_SIZE") {
@@ -126,23 +159,43 @@ async function startServer() {
           `📤 File received: ${req.file.originalname} (${req.file.mimetype})`
         );
 
-        // Determine subfolder from mimetype (same logic as multer)
-        let subfolder = "temp";
-        if (req.file.mimetype.startsWith("image/")) {
-          subfolder = "collections";
-        } else if (
-          req.file.mimetype === "application/pdf" ||
-          req.file.mimetype ===
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-          req.file.mimetype === "application/vnd.ms-excel"
-        ) {
-          subfolder = "documents";
+        // Get subfolder from request body or determine from mimetype
+        let subfolder = (req.body as any).subfolder || "temp";
+
+        // If no subfolder specified, use mimetype logic
+        if (subfolder === "temp") {
+          if (req.file.mimetype.startsWith("image/")) {
+            subfolder = "collections";
+          } else if (
+            req.file.mimetype === "application/pdf" ||
+            req.file.mimetype ===
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+            req.file.mimetype === "application/vnd.ms-excel"
+          ) {
+            subfolder = "documents";
+          }
+        }
+
+        // Move file to correct subfolder if needed
+        const fs = require("fs");
+        const currentPath = req.file.path;
+        const targetDir = path.join(process.cwd(), "uploads", subfolder);
+        const targetPath = path.join(targetDir, req.file.filename);
+
+        // Create target directory if it doesn't exist
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
+
+        // Move file if not already in correct location
+        if (currentPath !== targetPath) {
+          fs.renameSync(currentPath, targetPath);
         }
 
         const fileInfo = {
           id: req.file.filename,
           filename: req.file.originalname,
-          path: `/uploads/${subfolder}/${req.file.filename}`, // Include subfolder
+          path: `/uploads/${subfolder}/${req.file.filename}`,
           size: req.file.size,
           mimetype: req.file.mimetype,
           encoding: req.file.encoding || "7bit",

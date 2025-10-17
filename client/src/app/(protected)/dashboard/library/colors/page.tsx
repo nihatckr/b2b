@@ -1,35 +1,37 @@
 "use client";
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthProvider";
 import {
-  CREATE_COLOR_MUTATION,
-  DELETE_COLOR_MUTATION,
-  MY_COLORS_QUERY,
-  UPDATE_COLOR_MUTATION,
+    CREATE_COLOR_MUTATION,
+    DELETE_COLOR_MUTATION,
+    MY_COLORS_QUERY,
+    UPDATE_COLOR_MUTATION,
 } from "@/lib/graphql/library-operations";
-import { Loader2, Palette, Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Palette, Pencil, Plus, ShieldX, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
 
@@ -57,6 +59,8 @@ const initialFormData: FormData = {
 };
 
 export default function ColorManagementPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -75,6 +79,33 @@ export default function ColorManagementPage() {
   const [, deleteColor] = useMutation(DELETE_COLOR_MUTATION);
 
   const colors: Color[] = data?.myColors || [];
+
+  // Check if user is manufacturer
+  const isManufacturer =
+    (user?.role === "MANUFACTURE" ||
+      user?.role === "COMPANY_OWNER" ||
+      user?.role === "COMPANY_EMPLOYEE") &&
+    user?.company?.type === "MANUFACTURER";
+
+  // Redirect non-manufacturers
+  useEffect(() => {
+    if (user && !isManufacturer && user.role !== "ADMIN") {
+      router.push("/dashboard");
+    }
+  }, [user, isManufacturer, router]);
+
+  // Show access denied for non-manufacturers
+  if (user && !isManufacturer && user.role !== "ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <ShieldX className="h-16 w-16 text-red-500" />
+        <h2 className="text-2xl font-bold text-gray-900">Erişim Reddedildi</h2>
+        <p className="text-gray-600 text-center max-w-md">
+          Renk yönetimi sayfasına yalnızca üretici firmaların çalışanları erişebilir.
+        </p>
+      </div>
+    );
+  }
 
   const handleCreateClick = () => {
     setFormData(initialFormData);

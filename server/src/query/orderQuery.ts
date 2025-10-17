@@ -24,6 +24,9 @@ export const orderQueries = (t: any) => {
       });
 
       if (!user) {
+        if (process.env.NODE_ENV !== "production") {
+          console.log("❌ User not found in database for ID:", userId);
+        }
         throw new Error("User not found");
       }
 
@@ -34,11 +37,17 @@ export const orderQueries = (t: any) => {
 
       // Role-based filtering
       if (userRole === "CUSTOMER") {
+        // Customers only see their own orders
         where.customerId = userId;
-      } else if (userRole === "MANUFACTURE") {
+      } else if (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") {
+        // Manufacturers only see orders assigned to them or their company members
         where.OR = [
-          { manufactureId: userId },
-          { companyId: user.companyId || -1 },
+          { manufactureId: userId }, // Directly assigned to this user
+          {
+            manufacture: {
+              companyId: user.companyId || -1,
+            }
+          }, // Assigned to someone in their company
         ];
       }
       // Admins see all
@@ -103,6 +112,9 @@ export const orderQueries = (t: any) => {
       });
 
       if (!user) {
+        if (process.env.NODE_ENV !== "production") {
+          console.log("❌ User not found in database for ID:", userId);
+        }
         throw new Error("User not found");
       }
 
@@ -175,6 +187,40 @@ export const orderQueries = (t: any) => {
     },
   });
 
+  // Get manufacturer orders (orders assigned to manufacturer)
+  t.list.field("manufacturerOrders", {
+    type: "Order",
+    args: {
+      status: "OrderStatus",
+    },
+    resolve: async (
+      _parent: unknown,
+      args: { status?: string },
+      context: Context
+    ) => {
+      const userId = requireAuth(context);
+
+      const where: any = {
+        manufactureId: userId,
+      };
+
+      if (args.status) {
+        where.status = args.status;
+      }
+
+      return context.prisma.order.findMany({
+        where,
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    },
+  });
+
   // Get assigned orders (manufacturer)
   t.list.field("assignedOrders", {
     type: "Order",
@@ -194,6 +240,9 @@ export const orderQueries = (t: any) => {
       });
 
       if (!user) {
+        if (process.env.NODE_ENV !== "production") {
+          console.log("❌ User not found in database for ID:", userId);
+        }
         throw new Error("User not found");
       }
 

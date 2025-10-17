@@ -1,67 +1,67 @@
 "use client";
 
 import {
-  IconEdit,
-  IconPlus,
-  IconSearch,
-  IconTrash,
-  IconUsers,
+    IconEdit,
+    IconPlus,
+    IconSearch,
+    IconTrash,
+    IconUsers,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "urql";
 import {
-  Role,
-  useAllUsersQuery,
-  useCreateUserMutation,
-  useDeleteUserMutation,
-  useUpdateUserMutation,
+    Role,
+    useAllUsersQuery,
+    useCreateUserMutation,
+    useDeleteUserMutation,
+    useUpdateUserMutation,
 } from "../../../../__generated__/graphql";
 import { Alert, AlertDescription } from "../../../../components/ui/alert";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "../../../../components/ui/alert-dialog";
 import { Badge } from "../../../../components/ui/badge";
 import { Button } from "../../../../components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "../../../../components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "../../../../components/ui/dialog";
 import { Input } from "../../../../components/ui/input";
 import { Label } from "../../../../components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "../../../../components/ui/select";
 import { Skeleton } from "../../../../components/ui/skeleton";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "../../../../components/ui/table";
 import { useAuth } from "../../../../context/AuthProvider";
 import { ALL_COMPANIES_QUERY } from "../../../../lib/graphql/queries";
@@ -71,7 +71,7 @@ interface UserData {
   name?: string | null;
   email: string;
   role: Role;
-  companyId?: string | null;
+  companyId?: number | null;
 }
 
 interface CompanyData {
@@ -173,7 +173,7 @@ export default function AdminUsersPage() {
       email: user.email,
       role: user.role,
       isActive: true,
-      companyId: user.companyId || "",
+      companyId: user.companyId?.toString() || "",
     });
     setIsEditDialogOpen(true);
   };
@@ -194,7 +194,7 @@ export default function AdminUsersPage() {
 
     setIsDeleting(userToDelete.id);
     try {
-      const result = await deleteUser({ userId: userToDelete.id });
+      const result = await deleteUser({ id: userToDelete.id });
       if (result.error) {
         setAlert({
           type: "error",
@@ -260,11 +260,13 @@ export default function AdminUsersPage() {
     setIsUpdating(true);
     try {
       const result = await updateUser({
-        userId: selectedUser.id,
-        name: editForm.name,
-        email: editForm.email,
-        role: editForm.role,
-        isActive: editForm.isActive,
+        input: {
+          id: selectedUser.id,
+          name: editForm.name,
+          email: editForm.email,
+          role: editForm.role,
+          isActive: editForm.isActive,
+        },
       });
 
       if (result.error) {

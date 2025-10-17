@@ -1,16 +1,20 @@
 import { mutationType } from "nexus";
+import { aiSampleMutations } from "./aiSampleResolver";
 import { categoryMutations } from "./categoryResolver";
 import { collectionMutations } from "./collectionResolver";
 import { companyMutations } from "./companyResolver";
 import { libraryMutations } from "./libraryResolver";
 import { likeMutations } from "./likeResolver";
 import { messageMutations } from "./messageResolver";
+import { notificationMutations } from "./notificationResolver";
 import { orderMutations } from "./orderResolver";
+import { productAnalysisMutations } from "./productAnalysisResolver";
 import { productionMutations } from "./productionResolver";
 import { questionMutations } from "./questionResolver";
 import { reviewMutations } from "./reviewResolver";
 import { sampleMutations } from "./sampleResolver";
 import { userMutations } from "./userResolver";
+export { WorkshopMutation } from "./workshopResolver";
 
 export const Mutation = mutationType({
   definition(t) {
@@ -49,5 +53,14 @@ export const Mutation = mutationType({
 
     // Add like mutations
     likeMutations(t);
+
+    // Add notification mutations
+    notificationMutations(t);
+
+    // Add AI sample mutations
+    aiSampleMutations(t);
+
+    // Add product analysis mutations (Ollama)
+    productAnalysisMutations(t);
   },
 });

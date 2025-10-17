@@ -1,35 +1,35 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthProvider";
 import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import {
-  CompanyFlowInput,
-  User,
-  useSignupMutation,
+    CompanyFlowInput,
+    User,
+    useSignupMutation,
 } from "../../../__generated__/graphql";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -636,16 +636,16 @@ export function MultiStepSignupForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle>{getStepTitle()}</CardTitle>
-          <CardDescription>
+      <Card className="border-0 shadow-2xl">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">{getStepTitle()}</CardTitle>
+          <CardDescription className="text-center">
             Adım {currentStep} / {totalSteps}
           </CardDescription>
           {/* Progress bar */}
-          <div className="w-full bg-muted h-2 rounded-full overflow-hidden mt-2">
+          <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden mt-4">
             <div
-              className="bg-primary h-full transition-all"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 h-full transition-all duration-500 ease-out"
               style={{ width: `${(currentStep / totalSteps) * 100}%` }}
             />
           </div>
@@ -668,13 +668,14 @@ export function MultiStepSignupForm({
                 </div>
               )}
 
-              <div className="flex justify-between pt-4">
+              <div className="flex justify-between pt-4 gap-4">
                 {currentStep > 1 && (
                   <Button
                     type="button"
                     variant="outline"
                     onClick={prevStep}
                     disabled={isLoading}
+                    className="h-11"
                   >
                     <ChevronLeft className="mr-2 h-4 w-4" />
                     Geri
@@ -686,7 +687,7 @@ export function MultiStepSignupForm({
                     type="button"
                     onClick={nextStep}
                     disabled={isLoading}
-                    className="ml-auto"
+                    className="ml-auto h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
                     İleri
                     <ChevronRight className="ml-2 h-4 w-4" />
@@ -737,11 +738,19 @@ export function MultiStepSignupForm({
                       await onSubmit(allValues as SignupFormData);
                     }}
                     disabled={isLoading}
-                    className="ml-auto"
+                    className="ml-auto h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
                     {isLoading ? "Kaydediliyor..." : "Kayıt Ol"}
                   </Button>
                 )}
+              </div>
+
+              {/* Login Link */}
+              <div className="text-center text-sm text-gray-600 pt-4 border-t">
+                Zaten hesabınız var mı?{" "}
+                <a href="/login" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+                  Giriş Yapın
+                </a>
               </div>
             </form>
           </Form>

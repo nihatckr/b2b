@@ -15,7 +15,7 @@ const schemaWithoutPermissions = makeSchema({
       "nexus-typegen",
       "index.d.ts"
     ),
-    schema: join(process.cwd(), "src", "my-schema.graphql"),
+    schema: join(process.cwd(), "src/nexus", "my-schema.graphql"),
   },
   contextType: {
     module: join(process.cwd(), "src", "context.ts"),

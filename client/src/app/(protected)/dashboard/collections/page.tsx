@@ -1,5 +1,7 @@
 "use client";
+import { CustomerCollectionCard } from "@/components/Collection/CustomerCollectionCard";
 import { MultiStepCollectionForm } from "@/components/Collection/MultiStepCollectionForm";
+import { SearchAndFiltering } from "@/components/SearchAndFiltering/SearchAndFiltering";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthProvider";
 import {
   MY_COLORS_QUERY,
   MY_FABRICS_QUERY,
@@ -35,20 +37,12 @@ import {
   ALL_CATEGORIES_QUERY,
   ALL_COLLECTIONS_QUERY,
 } from "@/lib/graphql/queries";
-import { Loader2, Package, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Clock, Loader2, Package, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import NextImage from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
-import { Category, Color, FitItem } from "../../../../__generated__/graphql";
-import { Label } from "../../../../components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../../components/ui/select";
+import { Category, Color } from "../../../../__generated__/graphql";
 
 interface Collection {
   id: number;
@@ -71,6 +65,8 @@ interface Collection {
   company?: {
     id: number;
     name: string;
+    address?: string;
+    location?: string;
   };
   author?: {
     id: number;
@@ -99,6 +95,14 @@ interface Collection {
   targetPrice?: number;
   targetLeadTime?: number;
   notes?: string;
+  // Beğeni ve Sertifikalar
+  likesCount?: number;
+  certifications?: Array<{
+    id: number;
+    name: string;
+    category: string;
+    code?: string;
+  }>;
 }
 
 interface FormData {
@@ -173,6 +177,7 @@ const initialFormData: FormData = {
 };
 
 export default function CollectionsPage() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -182,6 +187,9 @@ export default function CollectionsPage() {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Check if user is manufacturer
+  const isManufacturer = user?.company?.type === "MANUFACTURER" || user?.role === "ADMIN";
+
   // Filters
   const [selectedGender, setSelectedGender] = useState<string>("ALL");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
@@ -189,7 +197,13 @@ export default function CollectionsPage() {
   const [selectedSeason, setSelectedSeason] = useState<string>("ALL");
   const [selectedColor, setSelectedColor] = useState<string>("ALL");
   const [selectedFit, setSelectedFit] = useState<string>("ALL");
+  const [selectedManufacturer, setSelectedManufacturer] = useState<string>("ALL");
+  const [selectedLocation, setSelectedLocation] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<string>("NEWEST");
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   // Queries
   const [collectionsResult, reexecuteCollections] = useQuery({
@@ -680,6 +694,19 @@ export default function CollectionsPage() {
         return false;
       }
 
+      // Manufacturer filter
+      if (selectedManufacturer !== "ALL" && col.company?.name !== selectedManufacturer) {
+        return false;
+      }
+
+      // Location filter (using company location or address)
+      if (selectedLocation !== "ALL") {
+        const companyLocation = col.company?.location || col.company?.address;
+        if (companyLocation !== selectedLocation) {
+          return false;
+        }
+      }
+
       return true;
     })
     .sort((a: Collection, b: Collection) => {
@@ -712,6 +739,16 @@ export default function CollectionsPage() {
       return 0;
     });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredCollections.length / itemsPerPage);
+  const paginatedCollections = filteredCollections.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset to page 1 when filters change
+  const resetPage = () => setCurrentPage(1);
+
   if (collectionsResult.fetching) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -725,218 +762,220 @@ export default function CollectionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Koleksiyonlar</h1>
+          <h1 className="text-3xl font-bold">
+            {isManufacturer ? "Koleksiyonlar" : "Koleksiyonları Keşfet"}
+          </h1>
           <p className="text-gray-500 mt-1">
-            Tüm koleksiyonları görüntüleyin ve yönetin
+            {isManufacturer
+              ? "Tüm koleksiyonları görüntüleyin ve yönetin"
+              : "Üreticilerin koleksiyonlarını görüntüleyin ve numune talep edin"}
           </p>
         </div>
-        <Button onClick={handleCreateClick}>
-          <Plus className="h-4 w-4 mr-2" />
-          Yeni Koleksiyon
-        </Button>
+        {isManufacturer && (
+          <Button onClick={handleCreateClick}>
+            <Plus className="h-4 w-4 mr-2" />
+            Yeni Koleksiyon
+          </Button>
+        )}
       </div>
 
       {/* Search & Filters */}
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Koleksiyon ara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        {/* Filters Bar - Tek Satır */}
-        <div className="flex items-end gap-2 bg-gray-50 p-3 rounded-lg overflow-x-auto">
-          {/* Gender Filter */}
-          <div className="min-w-[130px]">
-            <Label className="text-xs text-muted-foreground mb-1.5">
-              Cinsiyet
-            </Label>
-            <Select value={selectedGender} onValueChange={setSelectedGender}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Tümü" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tümü</SelectItem>
-                <SelectItem value="MEN">Erkek</SelectItem>
-                <SelectItem value="WOMEN">Kadın</SelectItem>
-                <SelectItem value="BOYS">Erkek Çocuk</SelectItem>
-                <SelectItem value="GIRLS">Kız Çocuk</SelectItem>
-                <SelectItem value="UNISEX">Unisex</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Category Filter (Leaf Categories) */}
-          <div className="min-w-[150px]">
-            <Label className="text-xs text-muted-foreground mb-1.5">
-              Klasman
-            </Label>
-            <Select
-              value={selectedCategory}
-              onValueChange={setSelectedCategory}
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Tümü" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tümü</SelectItem>
-                {leafCategories.map((cat: Category) => (
-                  <SelectItem key={cat.id} value={cat.id.toString()}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Season Filter */}
-          <div className="min-w-[120px]">
-            <Label className="text-xs text-muted-foreground mb-1.5">
-              Sezon
-            </Label>
-            <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Tümü" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tümü</SelectItem>
-                <SelectItem value="SS25">SS25</SelectItem>
-                <SelectItem value="FW25">FW25</SelectItem>
-                <SelectItem value="SS26">SS26</SelectItem>
-                <SelectItem value="FW26">FW26</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Color Filter */}
-          <div className="min-w-[130px]">
-            <Label className="text-xs text-muted-foreground mb-1.5">Renk</Label>
-            <Select value={selectedColor} onValueChange={setSelectedColor}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Tümü" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tümü</SelectItem>
-                {colors.slice(0, 20).map((color: Color) => (
-                  <SelectItem key={color.id} value={color.id.toString()}>
-                    <div className="flex items-center gap-2">
-                      {color.hexCode && (
-                        <div
-                          className="w-3 h-3 rounded-full border"
-                          style={{ backgroundColor: color.hexCode }}
-                        />
-                      )}
-                      {color.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Fit Filter */}
-          <div className="min-w-[130px]">
-            <Label className="text-xs text-muted-foreground mb-1.5">Fit</Label>
-            <Select value={selectedFit} onValueChange={setSelectedFit}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Tümü" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tümü</SelectItem>
-                {fits.map((fit: FitItem) => (
-                  <SelectItem key={fit.id} value={fit.name}>
-                    {fit.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Lead Time Filter */}
-          <div className="min-w-[120px]">
-            <Label className="text-xs text-muted-foreground mb-1.5">
-              Termin
-            </Label>
-            <Select
-              value={selectedLeadTime}
-              onValueChange={setSelectedLeadTime}
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Tümü" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tümü</SelectItem>
-                <SelectItem value="0-7">0-7 Gün</SelectItem>
-                <SelectItem value="8-14">8-14 Gün</SelectItem>
-                <SelectItem value="15-30">15-30 Gün</SelectItem>
-                <SelectItem value="31+">31+ Gün</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Sort By */}
-          <div className="min-w-[170px]">
-            <Label className="text-xs text-muted-foreground mb-1.5">
-              Sıralama
-            </Label>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Sırala" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NEWEST">En Yeniler</SelectItem>
-                <SelectItem value="OLDEST">En Eskiler</SelectItem>
-                <SelectItem value="NAME_ASC">İsim (A-Z)</SelectItem>
-                <SelectItem value="NAME_DESC">İsim (Z-A)</SelectItem>
-                <SelectItem value="PRICE_ASC">Fiyat (Düşük-Yüksek)</SelectItem>
-                <SelectItem value="PRICE_DESC">Fiyat (Yüksek-Düşük)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Reset Filters */}
-          {(selectedGender !== "ALL" ||
-            selectedCategory !== "ALL" ||
-            selectedLeadTime !== "ALL" ||
-            selectedSeason !== "ALL" ||
-            selectedColor !== "ALL" ||
-            selectedFit !== "ALL" ||
-            sortBy !== "NEWEST") && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSelectedGender("ALL");
-                setSelectedCategory("ALL");
-                setSelectedLeadTime("ALL");
-                setSelectedSeason("ALL");
-                setSelectedColor("ALL");
-                setSelectedFit("ALL");
-                setSortBy("NEWEST");
-              }}
-              className="h-9 whitespace-nowrap"
-            >
-              Temizle
-            </Button>
-          )}
-        </div>
-
-        {/* Filter Results Info */}
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            {filteredCollections.length} koleksiyon bulundu
-            {collections.length !== filteredCollections.length &&
-              ` (${collections.length} toplam)`}
-          </span>
-        </div>
-      </div>
+      <SearchAndFiltering
+        searchValue={searchTerm}
+        searchPlaceholder="Koleksiyon ara..."
+        onSearchChange={(value) => {
+          setSearchTerm(value);
+          resetPage();
+        }}
+        filters={[
+          {
+            id: "sort",
+            label: "Sıralama",
+            placeholder: "Seçiniz",
+            width: "w-[140px]",
+            value: sortBy,
+            onChange: (val) => {
+              setSortBy(val);
+              resetPage();
+            },
+            options: [
+              { value: "NEWEST", label: "En Yeniler" },
+              { value: "OLDEST", label: "En Eskiler" },
+              { value: "NAME_ASC", label: "İsim (A-Z)" },
+              { value: "NAME_DESC", label: "İsim (Z-A)" },
+              { value: "PRICE_ASC", label: "Fiyat ↑" },
+              { value: "PRICE_DESC", label: "Fiyat ↓" },
+            ],
+          },
+          {
+            id: "category",
+            label: "Kategori",
+            placeholder: "Seçiniz",
+            width: "w-[140px]",
+            value: selectedCategory,
+            onChange: (val) => {
+              setSelectedCategory(val);
+              resetPage();
+            },
+            options: leafCategories.map((cat: Category) => ({
+              value: cat.id.toString(),
+              label: cat.name,
+            })),
+          },
+          {
+            id: "season",
+            label: "Sezon",
+            placeholder: "Seçiniz",
+            width: "w-[120px]",
+            value: selectedSeason,
+            onChange: (val) => {
+              setSelectedSeason(val);
+              resetPage();
+            },
+            options:
+              seasons && seasons.length > 0
+                ? seasons.map((s: any) => ({ value: s, label: s }))
+                : [
+                    { value: "SS25", label: "SS25" },
+                    { value: "FW25", label: "FW25" },
+                    { value: "SS26", label: "SS26" },
+                    { value: "FW26", label: "FW26" },
+                  ],
+          },
+          {
+            id: "location",
+            label: "Lokasyon",
+            placeholder: "Seçiniz",
+            width: "w-[140px]",
+            value: selectedLocation,
+            onChange: (val) => {
+              setSelectedLocation(val);
+              resetPage();
+            },
+            showWhen: !isManufacturer,
+            options: Array.from(
+              new Set(
+                collections
+                  .map(
+                    (col: Collection) =>
+                      col.company?.location || col.company?.address
+                  )
+                  .filter(Boolean)
+              )
+            ).map((location: any) => ({
+              value: location,
+              label: location,
+            })),
+          },
+          {
+            id: "manufacturer",
+            label: "Üretici",
+            placeholder: "Seçiniz",
+            width: "w-[160px]",
+            value: selectedManufacturer,
+            onChange: (val) => {
+              setSelectedManufacturer(val);
+              resetPage();
+            },
+            showWhen: !isManufacturer,
+            options: Array.from(
+              new Set(
+                collections
+                  .map((col: Collection) => col.company?.name)
+                  .filter(Boolean)
+              )
+            ).map((name: any) => ({
+              value: name,
+              label: name,
+            })),
+          },
+        ]}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        hasActiveFilters={
+          selectedGender !== "ALL" ||
+          selectedCategory !== "ALL" ||
+          selectedSeason !== "ALL" ||
+          selectedColor !== "ALL" ||
+          selectedFit !== "ALL" ||
+          selectedLeadTime !== "ALL" ||
+          selectedManufacturer !== "ALL" ||
+          selectedLocation !== "ALL" ||
+          sortBy !== "NEWEST"
+        }
+        onClearAll={() => {
+          setSelectedGender("ALL");
+          setSelectedCategory("ALL");
+          setSelectedLeadTime("ALL");
+          setSelectedSeason("ALL");
+          setSelectedColor("ALL");
+          setSelectedFit("ALL");
+          setSelectedManufacturer("ALL");
+          setSelectedLocation("ALL");
+          setSortBy("NEWEST");
+          resetPage();
+        }}
+        secondaryFilterChips={[
+          ...(selectedGender !== "ALL"
+            ? [
+                {
+                  id: "gender",
+                  label: "Cinsiyet",
+                  value: selectedGender,
+                  onRemove: () => {
+                    setSelectedGender("ALL");
+                    resetPage();
+                  },
+                },
+              ]
+            : []),
+          ...(selectedColor !== "ALL"
+            ? [
+                {
+                  id: "color",
+                  label: "Renk",
+                  value:
+                    colors.find((c: any) => c.id === parseInt(selectedColor))
+                      ?.name || selectedColor,
+                  onRemove: () => {
+                    setSelectedColor("ALL");
+                    resetPage();
+                  },
+                },
+              ]
+            : []),
+          ...(selectedFit !== "ALL"
+            ? [
+                {
+                  id: "fit",
+                  label: "Kalıp",
+                  value: selectedFit,
+                  onRemove: () => {
+                    setSelectedFit("ALL");
+                    resetPage();
+                  },
+                },
+              ]
+            : []),
+          ...(selectedLeadTime !== "ALL"
+            ? [
+                {
+                  id: "leadTime",
+                  label: "Termin",
+                  value: selectedLeadTime,
+                  onRemove: () => {
+                    setSelectedLeadTime("ALL");
+                    resetPage();
+                  },
+                },
+              ]
+            : []),
+        ]}
+        resultsCount={filteredCollections.length}
+        totalCount={collections.length}
+        showPagination={true}
+      />
 
       {/* Collections Grid */}
       {filteredCollections.length === 0 ? (
@@ -945,132 +984,184 @@ export default function CollectionsPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Koleksiyon bulunamadı
           </h3>
-          <p className="text-gray-500 mb-4">Henüz hiç koleksiyon eklenmemiş</p>
-          <Button onClick={handleCreateClick}>
-            <Plus className="h-4 w-4 mr-2" />
-            İlk Koleksiyonu Oluştur
-          </Button>
+          <p className="text-gray-500 mb-4">
+            {isManufacturer
+              ? "Henüz hiç koleksiyon eklenmemiş"
+              : "Arama kriterlerinize uygun koleksiyon bulunamadı"}
+          </p>
+          {isManufacturer && (
+            <Button onClick={handleCreateClick}>
+              <Plus className="h-4 w-4 mr-2" />
+              İlk Koleksiyonu Oluştur
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCollections.map((collection: Collection) => (
-            <div
-              key={collection.id}
-              className="bg-white rounded-lg border overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              {/* Image */}
-              <div className="aspect-video bg-gray-100 relative">
-                {collection.images && collection.images.length > 0 ? (
-                  <NextImage
-                    src={collection.images[0].replace(/\/\//g, "/")} // Fix double slash
-                    alt={collection.name}
-                    className="w-full h-full object-cover"
-                    width={500}
-                    height={500}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="h-12 w-12 text-gray-300" />
+          {paginatedCollections.map((collection: Collection) => (
+            <div key={collection.id}>
+              {isManufacturer ? (
+                // Manufacturer View - Old Card Style
+                <div className="bg-white rounded-lg border overflow-hidden hover:shadow-lg transition-shadow">
+                  {/* Image */}
+                  <div className="aspect-video bg-gray-100 relative">
+                    {collection.images && collection.images.length > 0 ? (
+                      <NextImage
+                        src={collection.images[0].replace(/\/\//g, "/")}
+                        alt={collection.name}
+                        className="w-full h-full object-cover"
+                        width={500}
+                        height={500}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="h-12 w-12 text-gray-300" />
+                      </div>
+                    )}
+                    {!collection.isActive && (
+                      <div className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs rounded">
+                        Pasif
+                      </div>
+                    )}
+                    {collection.isFeatured && (
+                      <div className="absolute top-2 left-2 px-2 py-1 bg-yellow-500 text-white text-xs rounded">
+                        Öne Çıkan
+                      </div>
+                    )}
                   </div>
-                )}
-                {!collection.isActive && (
-                  <div className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs rounded">
-                    Pasif
-                  </div>
-                )}
-                {collection.isFeatured && (
-                  <div className="absolute top-2 left-2 px-2 py-1 bg-yellow-500 text-white text-xs rounded">
-                    Öne Çıkan
-                  </div>
-                )}
-              </div>
 
-              {/* Content */}
-              <div className="p-4 space-y-3">
-                <div>
-                  <h3 className="font-semibold text-lg line-clamp-1">
-                    {collection.name}
-                  </h3>
-                  {collection.description && (
-                    <p className="text-sm text-gray-500 line-clamp-2 mt-1">
-                      {collection.description}
-                    </p>
-                  )}
+                  {/* Content */}
+                  <div className="p-4 space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-lg line-clamp-1">
+                        {collection.name}
+                      </h3>
+                      {collection.description && (
+                        <p className="text-sm text-gray-500 line-clamp-2 mt-1">
+                          {collection.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Enhanced Details */}
+                    <div className="flex flex-wrap gap-2">
+                      {collection.targetLeadTime && (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
+                          <Clock className="h-3 w-3" />
+                          <span>{collection.targetLeadTime} gün</span>
+                        </div>
+                      )}
+                      {collection.trend && (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded-full">
+                          <Sparkles className="h-3 w-3" />
+                          <span>{collection.trend}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {collection.fabricComposition && (
+                      <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                        <span className="font-medium">Kumaş:</span> {collection.fabricComposition}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-sm">
+                      <div>
+                        <span className="text-gray-500">Fiyat:</span>
+                        <span className="font-semibold ml-1">
+                          ₺{collection.price.toFixed(2)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Stok:</span>
+                        <span className="font-semibold ml-1">
+                          {collection.stock}
+                        </span>
+                      </div>
+                    </div>
+
+                    {collection.category && (
+                      <div className="text-sm">
+                        <span className="text-gray-500">Kategori:</span>
+                        <span className="ml-1">{collection.category.name}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t">
+                      <span>{getAuthorName(collection)}</span>
+                      <span>
+                        {new Date(collection.createdAt).toLocaleDateString("tr-TR")}
+                      </span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleEditClick(collection)}
+                      >
+                        <Pencil className="h-3 w-3 mr-1" />
+                        Düzenle
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleDeleteClick(collection)}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Sil
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="flex items-center justify-between text-sm">
-                  <div>
-                    <span className="text-gray-500">Fiyat:</span>
-                    <span className="font-semibold ml-1">
-                      ₺{collection.price.toFixed(2)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Stok:</span>
-                    <span className="font-semibold ml-1">
-                      {collection.stock}
-                    </span>
-                  </div>
-                </div>
-
-                {collection.sku && (
-                  <div className="text-sm text-gray-500">
-                    SKU: {collection.sku}
-                  </div>
-                )}
-
-                {collection.category && (
-                  <div className="text-sm">
-                    <span className="text-gray-500">Kategori:</span>
-                    <span className="ml-1">{collection.category.name}</span>
-                  </div>
-                )}
-
-                {collection.company && (
-                  <div className="text-sm">
-                    <span className="text-gray-500">Marka:</span>
-                    <span className="ml-1 font-semibold text-primary">
-                      {collection.company.name}
-                    </span>
-                  </div>
-                )}
-
-                {collection.author && (
-                  <div className="text-xs text-gray-400">
-                    İlgili:{" "}
-                    {collection.author.name || collection.author.firstName}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t">
-                  <span>{getAuthorName(collection)}</span>
-                  <span>
-                    {new Date(collection.createdAt).toLocaleDateString("tr-TR")}
-                  </span>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleEditClick(collection)}
-                  >
-                    <Pencil className="h-3 w-3 mr-1" />
-                    Düzenle
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleDeleteClick(collection)}
-                  >
-                    <Trash2 className="h-3 w-3 mr-1" />
-                    Sil
-                  </Button>
-                </div>
-              </div>
+              ) : (
+                // Customer View - New CustomerCollectionCard
+                <CustomerCollectionCard
+                  collection={{
+                    id: collection.id,
+                    name: collection.name,
+                    description: collection.description,
+                    modelCode: collection.modelCode || "",
+                    season: collection.season,
+                    gender: collection.gender,
+                    fit: collection.fit,
+                    trend: collection.trend,
+                    fabricComposition: collection.fabricComposition,
+                    targetLeadTime: collection.targetLeadTime,
+                    targetPrice: collection.targetPrice || collection.price,
+                    moq: collection.moq,
+                    images: collection.images,
+                    likesCount: collection.likesCount || 0,
+                    certifications: collection.certifications || [],
+                    company: collection.company ? {
+                      id: collection.company.id,
+                      name: collection.company.name,
+                      location: collection.company.location || collection.company.address,
+                    } : undefined,
+                    notes: collection.notes,
+                  }}
+                  isLiked={false}
+                  onLike={(id) => {
+                    toast.success("Koleksiyon beğenildi!");
+                    // TODO: Implement like mutation
+                  }}
+                  onRequestSample={(id) => {
+                    toast.info("Numune talep sayfasına yönlendiriliyorsunuz...");
+                    // TODO: Navigate to /samples/request?collectionId={id}
+                  }}
+                  onRequestRevision={(id) => {
+                    toast.info("Revize numune sayfasına yönlendiriliyorsunuz...");
+                    // TODO: Navigate to /samples/request?collectionId={id}&type=revision
+                  }}
+                  onAddToPO={(id) => {
+                    toast.info("Sipariş oluşturma sayfasına yönlendiriliyorsunuz...");
+                    // TODO: Navigate to /orders/create?collectionId={id}
+                  }}
+                />
+              )}
             </div>
           ))}
         </div>

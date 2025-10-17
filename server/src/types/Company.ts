@@ -8,6 +8,7 @@ export const Company = objectType({
     t.string("description");
     t.string("website");
     t.string("address");
+    t.string("location"); // Şehir/Bölge
     t.string("phone");
     t.nonNull.string("email");
     t.nonNull.field("type", { type: "CompanyType" });
@@ -68,6 +69,7 @@ export const CreateCompanyInput = inputObjectType({
     t.string("description");
     t.string("website");
     t.string("address");
+    t.string("location"); // Şehir/Bölge
     t.string("phone");
     t.nonNull.string("email");
   },
@@ -80,6 +82,7 @@ export const UpdateCompanyInput = inputObjectType({
     t.string("description");
     t.string("website");
     t.string("address");
+    t.string("location"); // Şehir/Bölge
     t.string("phone");
     t.string("email");
     t.boolean("isActive");

@@ -4,11 +4,13 @@ import {
   IconCreditCard,
   IconDotsVertical,
   IconLogout,
+  IconMessage,
   IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +26,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { UNREAD_COUNT_QUERY } from "@/lib/graphql/message-operations";
 import { useRouter } from "next/navigation";
+import { useQuery } from "urql";
 import { useAuth } from "../../context/AuthProvider";
 
 type NavUserProps = {
@@ -38,6 +42,14 @@ export function NavUser({ user }: NavUserProps) {
   const { isMobile } = useSidebar();
   const { logout } = useAuth();
   const router = useRouter();
+
+  // Get unread message count
+  const [{ data: unreadData }] = useQuery({
+    query: UNREAD_COUNT_QUERY,
+    requestPolicy: "network-only",
+  });
+
+  const unreadCount = unreadData?.unreadMessageCount || 0;
 
   const handleLogout = () => {
     logout();
@@ -88,9 +100,18 @@ export function NavUser({ user }: NavUserProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/dashboard/account")}>
                 <IconUserCircle />
                 Account
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/dashboard/messages")}>
+                <IconMessage />
+                Messages
+                {unreadCount > 0 && (
+                  <Badge variant="destructive" className="ml-auto">
+                    {unreadCount}
+                  </Badge>
+                )}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconCreditCard />

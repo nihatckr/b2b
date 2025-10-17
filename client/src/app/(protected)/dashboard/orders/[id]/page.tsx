@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -25,22 +26,31 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthProvider";
 import {
+  MARK_MESSAGE_READ_MUTATION,
+  MY_MESSAGES_QUERY,
+  SEND_MESSAGE_MUTATION,
+} from "@/lib/graphql/message-operations";
+import {
   UPDATE_ORDER_MUTATION,
   UPDATE_ORDER_STATUS_MUTATION,
 } from "@/lib/graphql/mutations";
 import { ORDER_BY_ID_QUERY } from "@/lib/graphql/queries";
+import { formatDistanceToNow } from "date-fns";
+import { tr } from "date-fns/locale";
 import {
   ArrowLeft,
   Calendar,
   DollarSign,
   Edit,
   Loader2,
+  MessageSquare,
   Package,
-  User,
+  Send,
+  User
 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
 
@@ -98,6 +108,9 @@ export default function OrderDetailPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [messageContent, setMessageContent] = useState("");
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [editFormData, setEditFormData] = useState({
     status: "",
@@ -113,11 +126,37 @@ export default function OrderDetailPage() {
 
   const [, updateOrderStatus] = useMutation(UPDATE_ORDER_STATUS_MUTATION);
   const [, updateOrder] = useMutation(UPDATE_ORDER_MUTATION);
+  const [, sendMessage] = useMutation(SEND_MESSAGE_MUTATION);
+  const [, markAsRead] = useMutation(MARK_MESSAGE_READ_MUTATION);
 
+  // Get messages for this order
+  const [{ data: messagesData, fetching: messagesFetching }, refetchMessages] = useQuery({
+    query: MY_MESSAGES_QUERY,
+    variables: {
+      filter: { orderId: parseInt(orderId) },
+    },
+    requestPolicy: "network-only",
+  });
+
+  const messages = messagesData?.myMessages || [];
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages.length]);
+
+  // Üretici kontrolü: Sadece manufacturer rolüne sahip olanlar için true
   const isManufacturer =
     user?.role === "MANUFACTURE" ||
     user?.role === "COMPANY_OWNER" ||
     user?.role === "COMPANY_EMPLOYEE";
+
+  // Müşteri kontrolü: Müşteri rolüne sahip olanlar için true
+  const isCustomer =
+    user?.role === "CUSTOMER" ||
+    user?.role === "INDIVIDUAL_CUSTOMER";
 
   if (fetching) {
     return (
@@ -150,6 +189,13 @@ export default function OrderDetailPage() {
   }
 
   const order = data.order;
+
+  // GERÇEK KONTROL: Bu siparişteki rolüme göre karar ver
+  const isCurrentUserManufacturer = user?.id === order.manufacture?.id;
+  const isCurrentUserCustomer = user?.id === order.customer?.id;
+
+  // Sadece bu siparişteki üretici ise düzenleyebilir
+  const canEditOrderStatus = isCurrentUserManufacturer;
 
   const getCustomerName = () => {
     if (!order.customer) return "Bilinmiyor";
@@ -302,6 +348,38 @@ export default function OrderDetailPage() {
     }
   };
 
+  const handleSendMessage = async () => {
+    if (!messageContent.trim() || !order || isSendingMessage) return;
+
+    setIsSendingMessage(true);
+
+    const receiverId = isManufacturer ? order.customer.id : order.manufacture?.id;
+    if (!receiverId) {
+      toast.error("Alıcı bulunamadı");
+      setIsSendingMessage(false);
+      return;
+    }
+
+    const input = {
+      content: messageContent,
+      type: "order",
+      orderId: order.id,
+      receiverId: receiverId,
+    };
+
+    const result = await sendMessage({ input });
+
+    if (!result.error) {
+      setMessageContent("");
+      refetchMessages({ requestPolicy: "network-only" });
+      toast.success("Mesaj gönderildi");
+    } else {
+      toast.error("Mesaj gönderilemedi: " + result.error.message);
+    }
+
+    setIsSendingMessage(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -406,22 +484,25 @@ export default function OrderDetailPage() {
       {/* Production Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Üretim Süreci Timeline
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Sipariş Durumu
+            </CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="pt-6 pb-8">
           <ProductionTimeline
             currentStatus={order.status}
             onStatusChange={
-              isManufacturer
+              canEditOrderStatus
                 ? (newStatus) => handleStatusAction(newStatus)
                 : undefined
             }
-            isManufacturer={isManufacturer}
+            isManufacturer={canEditOrderStatus}
             progress={getOrderProgress()}
           />
+
         </CardContent>
       </Card>
 
@@ -488,6 +569,79 @@ export default function OrderDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Messages Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Mesajlaşma
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Messages List */}
+            <div className="border rounded-lg">
+              <ScrollArea className="h-[400px] p-4">
+                {messagesFetching ? (
+                  <div className="text-center text-sm text-gray-500">Yükleniyor...</div>
+                ) : messages.length === 0 ? (
+                  <div className="text-center text-sm text-gray-500 py-8">
+                    Henüz mesaj yok. İlk mesajı siz gönderin!
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {messages.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((msg: any) => {
+                      const isMe = msg.senderId === user?.id;
+                      return (
+                        <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                          <div className={`max-w-[70%] rounded-lg p-3 ${isMe ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                            {!isMe && (
+                              <p className="mb-1 text-xs font-medium">
+                                {msg.sender.firstName} {msg.sender.lastName}
+                              </p>
+                            )}
+                            <p className="text-sm">{msg.content}</p>
+                            <p className={`mt-1 text-xs ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                              {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true, locale: tr })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+
+            {/* Message Input */}
+            <div className="flex gap-2">
+              <Textarea
+                placeholder="Mesajınızı yazın..."
+                value={messageContent}
+                onChange={(e) => setMessageContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                disabled={isSendingMessage}
+                rows={2}
+              />
+              <Button
+                onClick={handleSendMessage}
+                disabled={isSendingMessage || !messageContent.trim()}
+                size="icon"
+                className="h-auto"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Timeline & Notes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

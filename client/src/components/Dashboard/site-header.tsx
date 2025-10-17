@@ -14,7 +14,6 @@ const getPageTitle = (pathname: string) => {
   if (pathname.includes("/dashboard/orders")) return "Orders";
   if (pathname.includes("/dashboard/messages")) return "Messages";
   if (pathname.includes("/dashboard/quality")) return "Quality Control";
-  if (pathname.includes("/dashboard/production")) return "Production";
   if (pathname.includes("/dashboard/analytics")) return "Analytics";
   if (pathname.includes("/dashboard")) return "Dashboard";
   return "B2B Platform";
@@ -35,7 +34,7 @@ export function SiteHeader() {
         />
         <h1 className="text-base font-medium">{pageTitle}</h1>
         <div className="ml-auto flex items-center gap-2">
-          <NotificationCenter unreadCount={3} />
+          <NotificationCenter />
           {user && (
             <div className="hidden md:flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">

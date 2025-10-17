@@ -1,5 +1,6 @@
 import { floatArg, intArg, nonNull, stringArg } from "nexus";
 import { Context } from "../context";
+import { createNotification } from "../utils/notificationHelper";
 import { isBuyer, requirePermission } from "../utils/permissions";
 import { getUserRole, requireAuth } from "../utils/user-role-helper";
 
@@ -42,7 +43,11 @@ export const orderMutations = (t: any) => {
       // Validate collection
       const collection = await context.prisma.collection.findUnique({
         where: { id: args.collectionId },
-        include: { author: true, company: true },
+        include: {
+          author: true,
+          company: true,
+          category: true,
+        },
       });
 
       if (!collection) {
@@ -82,7 +87,6 @@ export const orderMutations = (t: any) => {
           status: "PENDING",
           customerNote: args.customerNote || null,
           deliveryAddress: args.deliveryAddress || null,
-          estimatedDelivery: args.estimatedDelivery || null,
           collectionId: args.collectionId,
           customerId: userId,
           manufactureId,
@@ -105,6 +109,41 @@ export const orderMutations = (t: any) => {
           updatedById: userId,
         },
       });
+
+      // Send notification to manufacturer
+      await createNotification(context.prisma, {
+        type: "ORDER",
+        title: "🎉 New Order Received",
+        message: `You have received a new order #${orderNumber} for ${args.quantity} units of "${collection.name}". Please review and respond.`,
+        userId: manufactureId,
+        link: `/dashboard/orders/${order.id}`,
+        orderId: order.id,
+      });
+
+      // Also notify company members if exists
+      if (companyId) {
+        const companyMembers = await context.prisma.user.findMany({
+          where: {
+            companyId: companyId,
+            role: {
+              in: ["COMPANY_OWNER", "COMPANY_EMPLOYEE"],
+            },
+            id: { not: manufactureId }, // Don't send duplicate
+          },
+          select: { id: true },
+        });
+
+        for (const member of companyMembers) {
+          await createNotification(context.prisma, {
+            type: "ORDER",
+            title: "🎉 New Order Received",
+            message: `Your company received a new order #${orderNumber} for ${args.quantity} units of "${collection.name}".`,
+            userId: member.id,
+            link: `/dashboard/orders/${order.id}`,
+            orderId: order.id,
+          });
+        }
+      }
 
       return order;
     },
@@ -215,6 +254,100 @@ export const orderMutations = (t: any) => {
           updatedById: userId,
         },
       });
+
+      // Send notifications based on status change
+      const statusMessages: Record<string, { title: string; customerMsg: string; manufacturerMsg?: string }> = {
+        QUOTE_SENT: {
+          title: "💰 Quote Received",
+          customerMsg: `Manufacturer has sent a quote for order #${order.orderNumber}. ${args.estimatedDays ? `Estimated delivery: ${args.estimatedDays} days.` : ""} Please review and confirm.`,
+          manufacturerMsg: `You sent a quote for order #${order.orderNumber}.`,
+        },
+        CONFIRMED: {
+          title: "✅ Order Confirmed",
+          customerMsg: `Your order #${order.orderNumber} has been confirmed and production will begin soon.`,
+          manufacturerMsg: `Order #${order.orderNumber} has been confirmed by customer. You can start production.`,
+        },
+        REJECTED: {
+          title: "❌ Order Rejected",
+          customerMsg: `Order #${order.orderNumber} has been rejected.`,
+          manufacturerMsg: `Customer rejected order #${order.orderNumber}.`,
+        },
+        IN_PRODUCTION: {
+          title: "🏭 Production Started",
+          customerMsg: `Your order #${order.orderNumber} is now in production.`,
+          manufacturerMsg: `Production started for order #${order.orderNumber}.`,
+        },
+        QUALITY_CHECK: {
+          title: "✔️ Quality Check",
+          customerMsg: `Order #${order.orderNumber} is undergoing quality inspection.`,
+        },
+        SHIPPED: {
+          title: "📦 Order Shipped",
+          customerMsg: `Your order #${order.orderNumber} has been shipped! ${order.cargoTrackingNumber ? `Tracking: ${order.cargoTrackingNumber}` : ""}`,
+          manufacturerMsg: `Order #${order.orderNumber} has been shipped.`,
+        },
+        DELIVERED: {
+          title: "🎉 Order Delivered",
+          customerMsg: `Order #${order.orderNumber} has been delivered. Thank you!`,
+          manufacturerMsg: `Order #${order.orderNumber} delivered successfully.`,
+        },
+        CANCELLED: {
+          title: "🚫 Order Cancelled",
+          customerMsg: `Order #${order.orderNumber} has been cancelled.`,
+          manufacturerMsg: `Order #${order.orderNumber} was cancelled.`,
+        },
+      };
+
+      const notificationData = statusMessages[args.status];
+
+      if (notificationData) {
+        // Notify customer
+        if (isManufacture && notificationData.customerMsg) {
+          await createNotification(context.prisma, {
+            type: "ORDER",
+            title: notificationData.title,
+            message: notificationData.customerMsg,
+            userId: order.customerId,
+            link: `/dashboard/orders/${order.id}`,
+            orderId: order.id,
+          });
+        }
+
+        // Notify manufacturer
+        if (isCustomer && notificationData.manufacturerMsg) {
+          await createNotification(context.prisma, {
+            type: "ORDER",
+            title: notificationData.title,
+            message: notificationData.manufacturerMsg,
+            userId: order.manufactureId,
+            link: `/dashboard/orders/${order.id}`,
+            orderId: order.id,
+          });
+
+          // Also notify company members
+          if (order.companyId) {
+            const companyMembers = await context.prisma.user.findMany({
+              where: {
+                companyId: order.companyId,
+                role: { in: ["COMPANY_OWNER", "COMPANY_EMPLOYEE"] },
+                id: { not: order.manufactureId },
+              },
+              select: { id: true },
+            });
+
+            for (const member of companyMembers) {
+              await createNotification(context.prisma, {
+                type: "ORDER",
+                title: notificationData.title,
+                message: notificationData.manufacturerMsg,
+                userId: member.id,
+                link: `/dashboard/orders/${order.id}`,
+                orderId: order.id,
+              });
+            }
+          }
+        }
+      }
 
       // Auto-create Production Tracking when order is CONFIRMED
       if (args.status === "CONFIRMED") {
@@ -379,6 +512,193 @@ export const orderMutations = (t: any) => {
           company: true,
         },
       });
+    },
+  });
+
+  // Update Customer Order (Before Manufacturer Approval)
+  t.field("updateCustomerOrder", {
+    type: "Order",
+    args: {
+      id: nonNull(intArg()),
+      quantity: intArg(),
+      unitPrice: floatArg(),
+      customerNote: stringArg(),
+      deliveryAddress: stringArg(),
+    },
+    resolve: async (_parent: unknown, args: any, context: Context) => {
+      const userId = requireAuth(context);
+
+      const user = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const userRole = getUserRole(user);
+
+      const existingOrder = await context.prisma.order.findUnique({
+        where: { id: args.id },
+      });
+
+      if (!existingOrder) {
+        throw new Error("Order not found");
+      }
+
+      // Permission check - Only customer can update their own order
+      const isCustomer = existingOrder.customerId === userId;
+      const isAdmin = userRole === "ADMIN";
+
+      if (!isCustomer && !isAdmin) {
+        throw new Error("Not authorized to update this order");
+      }
+
+      // Can only update if in PENDING or REVIEWED status
+      if (
+        existingOrder.status !== "PENDING" &&
+        existingOrder.status !== "REVIEWED"
+      ) {
+        throw new Error(
+          "Can only update orders in PENDING or REVIEWED status (before manufacturer approval)"
+        );
+      }
+
+      const updateData: any = {};
+
+      if (args.quantity) {
+        updateData.quantity = args.quantity;
+        // Recalculate total price if quantity changes
+        updateData.totalPrice =
+          args.quantity * (args.unitPrice || existingOrder.unitPrice);
+      }
+      if (args.unitPrice) {
+        updateData.unitPrice = args.unitPrice;
+        updateData.totalPrice =
+          (args.quantity || existingOrder.quantity) * args.unitPrice;
+      }
+      if (args.customerNote !== undefined)
+        updateData.customerNote = args.customerNote;
+      if (args.deliveryAddress !== undefined)
+        updateData.deliveryAddress = args.deliveryAddress;
+
+      // Update order
+      const order = await context.prisma.order.update({
+        where: { id: args.id },
+        data: updateData,
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+      });
+
+      // Create production history
+      await context.prisma.orderProduction.create({
+        data: {
+          orderId: order.id,
+          status: order.status,
+          note: "Customer updated order details",
+          updatedById: userId,
+        },
+      });
+
+      return order;
+    },
+  });
+
+  // Cancel Order
+  t.field("cancelOrder", {
+    type: "Order",
+    args: {
+      id: nonNull(intArg()),
+      reason: stringArg(),
+    },
+    resolve: async (_parent: unknown, args: any, context: Context) => {
+      const userId = requireAuth(context);
+
+      const user = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const userRole = getUserRole(user);
+
+      const existingOrder = await context.prisma.order.findUnique({
+        where: { id: args.id },
+      });
+
+      if (!existingOrder) {
+        throw new Error("Order not found");
+      }
+
+      // Permission check
+      const isCustomer = existingOrder.customerId === userId;
+      const isManufacturer = existingOrder.manufactureId === userId;
+      const isAdmin = userRole === "ADMIN";
+
+      if (!isCustomer && !isManufacturer && !isAdmin) {
+        throw new Error("Not authorized to cancel this order");
+      }
+
+      // Customer can cancel before CONFIRMED, Manufacturer can cancel before IN_PRODUCTION
+      if (!isAdmin) {
+        if (isCustomer) {
+          if (
+            existingOrder.status !== "PENDING" &&
+            existingOrder.status !== "REVIEWED" &&
+            existingOrder.status !== "QUOTE_SENT"
+          ) {
+            throw new Error(
+              "Customer can only cancel orders before confirmation (PENDING, REVIEWED, QUOTE_SENT)"
+            );
+          }
+        }
+
+        if (isManufacturer) {
+          if (
+            existingOrder.status === "IN_PRODUCTION" ||
+            existingOrder.status === "PRODUCTION_COMPLETE" ||
+            existingOrder.status === "QUALITY_CHECK" ||
+            existingOrder.status === "SHIPPED" ||
+            existingOrder.status === "DELIVERED"
+          ) {
+            throw new Error(
+              "Cannot cancel order after production has started"
+            );
+          }
+        }
+      }
+
+      // Update order status to CANCELLED
+      const order = await context.prisma.order.update({
+        where: { id: args.id },
+        data: { status: "CANCELLED" },
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+      });
+
+      // Create production history
+      await context.prisma.orderProduction.create({
+        data: {
+          orderId: order.id,
+          status: "CANCELLED",
+          note: args.reason || `Order cancelled by ${isCustomer ? "customer" : "manufacturer"}`,
+          updatedById: userId,
+        },
+      });
+
+      return order;
     },
   });
 

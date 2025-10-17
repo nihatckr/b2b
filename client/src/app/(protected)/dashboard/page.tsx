@@ -1,19 +1,21 @@
 "use client";
 
 import {
-  Clock,
-  FileText,
-  Package,
-  ShoppingCart,
-  TrendingUp,
-  Users,
+    Clock,
+    FileText,
+    Package,
+    ShoppingCart,
+    TrendingUp,
+    Users,
 } from "lucide-react";
 import { useMemo } from "react";
+import { useQuery } from "urql";
 import {
-  useDashboardStatsQuery,
-  useMyStatsQuery,
-  useUserStatsQuery,
+    useDashboardStatsQuery,
+    useMyStatsQuery,
+    useUserStatsQuery,
 } from "../../../__generated__/graphql";
+import { PendingStageApprovals } from "../../../components/Dashboard/PendingStageApprovals";
 import { RecentActivity } from "../../../components/Dashboard/RecentActivity";
 import { SalesChart } from "../../../components/Dashboard/SalesChart";
 import { StatCard } from "../../../components/Dashboard/StatCard";
@@ -25,11 +27,14 @@ export default function DashboardPage() {
   const { user } = useAuth();
 
   // Queries based on role
-  const [{ data: dashboardData, fetching: dashboardFetching }] =
+  const [{ data: dashboardQueryData, fetching: dashboardFetching }] =
     useDashboardStatsQuery({
       pause: user?.role !== "ADMIN",
       requestPolicy: "cache-and-network",
     });
+
+  // Extract dashboard stats for easier access
+  const dashboardData = dashboardQueryData?.dashboardStats;
 
   const [{ data: userStatsData }] = useUserStatsQuery({
     pause: user?.role !== "ADMIN",
@@ -41,10 +46,26 @@ export default function DashboardPage() {
     requestPolicy: "cache-and-network",
   });
 
+  // Get manufacturer orders for manufacturer users
+  const [{ data: manufacturerOrdersData }] = useQuery({
+    query: `
+      query ManufacturerOrders {
+        manufacturerOrders {
+          id
+          orderNumber
+          status
+          totalPrice
+        }
+      }
+    `,
+    pause: !user || (user.role !== "MANUFACTURE" && user.role !== "COMPANY_OWNER" && user.role !== "COMPANY_EMPLOYEE"),
+    requestPolicy: "cache-and-network",
+  });
+
   // Calculate totals BEFORE any conditional returns
   const totalRevenue = useMemo(() => {
     return (
-      dashboardData?.orders?.reduce(
+      dashboardData?.recentOrders?.reduce(
         (sum: number, order: any) => sum + (order.totalPrice || 0),
         0
       ) || 0
@@ -62,22 +83,22 @@ export default function DashboardPage() {
 
   // Process data for charts
   const salesChartData = useMemo(() => {
-    if (!dashboardData?.orders || !dashboardData?.samples) return [];
+    if (!dashboardData?.recentOrders || !dashboardData?.recentSamples) return [];
 
     // Group by month
     const monthlyData: { [key: string]: { orders: number; samples: number } } =
       {};
 
-    dashboardData.orders.forEach((order: any) => {
+    dashboardData.recentOrders.forEach((order: any) => {
       const month = new Date(order.createdAt).toLocaleDateString("tr-TR", {
         month: "short",
         year: "numeric",
       });
       if (!monthlyData[month]) monthlyData[month] = { orders: 0, samples: 0 };
-      monthlyData[month].orders += 1;
+      monthlyData[month].orders += order.totalPrice || 0;
     });
 
-    dashboardData.samples.forEach((sample: any) => {
+    dashboardData.recentSamples.forEach((sample: any) => {
       const month = new Date(sample.createdAt).toLocaleDateString("tr-TR", {
         month: "short",
         year: "numeric",
@@ -95,10 +116,10 @@ export default function DashboardPage() {
   }, [dashboardData]);
 
   const sampleStatusData = useMemo(() => {
-    if (!dashboardData?.samples) return [];
+    if (!dashboardData?.recentSamples) return [];
 
     const statusCount: { [key: string]: number } = {};
-    dashboardData.samples.forEach((sample: any) => {
+    dashboardData.recentSamples.forEach((sample: any) => {
       statusCount[sample.status] = (statusCount[sample.status] || 0) + 1;
     });
 
@@ -122,10 +143,10 @@ export default function DashboardPage() {
   }, [dashboardData]);
 
   const orderStatusData = useMemo(() => {
-    if (!dashboardData?.orders) return [];
+    if (!dashboardData?.recentOrders) return [];
 
     const statusCount: { [key: string]: number } = {};
-    dashboardData.orders.forEach((order: any) => {
+    dashboardData.recentOrders.forEach((order: any) => {
       statusCount[order.status] = (statusCount[order.status] || 0) + 1;
     });
 
@@ -155,7 +176,7 @@ export default function DashboardPage() {
     const activities: any[] = [];
 
     // Add recent orders
-    dashboardData.orders?.slice(0, 3).forEach((order: any) => {
+    dashboardData.recentOrders?.slice(0, 3).forEach((order: any) => {
       activities.push({
         id: `order-${order.id}`,
         type: "order",
@@ -167,7 +188,7 @@ export default function DashboardPage() {
     });
 
     // Add recent samples
-    dashboardData.samples?.slice(0, 3).forEach((sample: any) => {
+    dashboardData.recentSamples?.slice(0, 3).forEach((sample: any) => {
       activities.push({
         id: `sample-${sample.id}`,
         type: "sample",
@@ -178,16 +199,16 @@ export default function DashboardPage() {
       });
     });
 
-    // Add recent users
-    dashboardData.allUsers?.slice(0, 2).forEach((user: any) => {
-      activities.push({
-        id: `user-${user.id}`,
-        type: "user",
-        title: "New user registered",
-        description: `${user.role} user joined`,
-        timestamp: user.createdAt,
-      });
-    });
+    // Add recent users (if available in future)
+    // dashboardData.recentUsers?.slice(0, 2).forEach((user: any) => {
+    //   activities.push({
+    //     id: `user-${user.id}`,
+    //     type: "user",
+    //     title: "New user registered",
+    //     description: `${user.role} user joined`,
+    //     timestamp: user.createdAt,
+    //   });
+    // });
 
     return activities.sort(
       (a, b) =>
@@ -243,13 +264,13 @@ export default function DashboardPage() {
             />
             <StatCard
               title="Active Collections"
-              value={dashboardData?.collections?.length || 0}
+              value={dashboardData?.totalCollections || 0}
               icon={Package}
               description="Published collections"
             />
             <StatCard
               title="Total Orders"
-              value={dashboardData?.orders?.length || 0}
+              value={dashboardData?.totalOrders || 0}
               icon={ShoppingCart}
               description="All time orders"
             />
@@ -286,6 +307,9 @@ export default function DashboardPage() {
         user?.role === "COMPANY_EMPLOYEE") &&
         user?.company?.type !== "BUYER" && (
           <>
+            {/* Pending Stage Approvals */}
+            <PendingStageApprovals />
+
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <StatCard
                 title="My Samples"
@@ -295,7 +319,11 @@ export default function DashboardPage() {
               />
               <StatCard
                 title="My Orders"
-                value={myStatsData?.myOrders?.length || 0}
+                value={
+                  user?.role === "MANUFACTURE" || user?.role === "COMPANY_OWNER" || user?.role === "COMPANY_EMPLOYEE"
+                    ? manufacturerOrdersData?.manufacturerOrders?.length || 0
+                    : myStatsData?.myOrders?.length || 0
+                }
                 icon={ShoppingCart}
                 description="Active orders"
               />

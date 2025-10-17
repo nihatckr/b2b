@@ -4,9 +4,9 @@ import {
   IconBuilding,
   IconCamera,
   IconChartBar,
+  IconClipboardCheck,
   IconDashboard,
   IconDatabase,
-  IconFileWord,
   IconFolder,
   IconHelp,
   IconInnerShadowTop,
@@ -14,8 +14,9 @@ import {
   IconReport,
   IconSearch,
   IconSettings,
-  IconTruck,
-  IconUsers,
+  IconSparkles,
+  IconTool,
+  IconUsers
 } from "@tabler/icons-react";
 import Link from "next/link";
 import * as React from "react";
@@ -36,15 +37,32 @@ import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
 import { NavUser } from "./nav-user";
 
-const getNavMainByRole = (userRole: string) => {
+const getNavMainByRole = (userRole: string, companyType?: string) => {
   const commonNav = [
     {
       title: "Dashboard",
       url: "/dashboard",
       icon: IconDashboard,
     },
+    {
+      title: "AI Numune Asistanı",
+      url: "/dashboard/ai-features",
+      icon: IconSparkles,
+      isActive: true,
+      items: [
+        {
+          title: "Eskizden Tasarım",
+          url: "/dashboard/ai-features/sketch-to-design",
+        },
+        {
+          title: "Referans Ürün Analizi",
+          url: "/dashboard/ai-features/reference-product",
+        },
+      ],
+    },
   ];
 
+  // Admin - Full Access
   if (userRole === "ADMIN") {
     return [
       ...commonNav,
@@ -59,9 +77,14 @@ const getNavMainByRole = (userRole: string) => {
         icon: IconDatabase,
       },
       {
-        title: "Production Tracking",
-        url: "/dashboard/production",
-        icon: IconTruck,
+        title: "Quality Control",
+        url: "/dashboard/quality",
+        icon: IconClipboardCheck,
+      },
+      {
+        title: "Workshop Management",
+        url: "/dashboard/workshops",
+        icon: IconTool,
       },
       {
         title: "Analytics",
@@ -71,18 +94,15 @@ const getNavMainByRole = (userRole: string) => {
     ];
   }
 
+  // Manufacturer - Full Production Features
   if (
-    userRole === "MANUFACTURE" ||
-    userRole === "COMPANY_OWNER" ||
-    userRole === "COMPANY_EMPLOYEE"
+    (userRole === "MANUFACTURE" ||
+      userRole === "COMPANY_OWNER" ||
+      userRole === "COMPANY_EMPLOYEE") &&
+    companyType === "MANUFACTURER"
   ) {
     return [
       ...commonNav,
-      {
-        title: "Categories",
-        url: "/dashboard/categories",
-        icon: IconFolder,
-      },
       {
         title: "Collections",
         url: "/dashboard/collections",
@@ -99,39 +119,46 @@ const getNavMainByRole = (userRole: string) => {
         icon: IconListDetails,
       },
       {
-        title: "Production Tracking",
-        url: "/dashboard/production",
-        icon: IconTruck,
+        title: "Quality Control",
+        url: "/dashboard/quality",
+        icon: IconClipboardCheck,
+      },
+      {
+        title: "Workshop Management",
+        url: "/dashboard/workshops",
+        icon: IconTool,
       },
     ];
   }
 
-  // Customer navigation
+  // Customer/Buyer - Limited Features
   return [
     ...commonNav,
     {
       title: "Browse Collections",
       url: "/dashboard/collections",
-      icon: IconFolder,
+      icon: IconSearch,
+    },
+    {
+      title: "My Samples",
+      url: "/dashboard/samples",
+      icon: IconCamera,
     },
     {
       title: "My Orders",
       url: "/dashboard/orders",
       icon: IconListDetails,
     },
-    {
-      title: "Production Tracking",
-      url: "/dashboard/production",
-      icon: IconTruck,
-    },
   ];
 };
 
-const getBusinessNavByRole = (userRole: string) => {
+const getBusinessNavByRole = (userRole: string, companyType?: string) => {
+  // Manufacturer - Library Management
   if (
-    userRole === "MANUFACTURE" ||
-    userRole === "COMPANY_OWNER" ||
-    userRole === "COMPANY_EMPLOYEE"
+    (userRole === "MANUFACTURE" ||
+      userRole === "COMPANY_OWNER" ||
+      userRole === "COMPANY_EMPLOYEE") &&
+    companyType === "MANUFACTURER"
   ) {
     return [
       {
@@ -166,47 +193,16 @@ const getBusinessNavByRole = (userRole: string) => {
           },
         ],
       },
-      {
-        title: "Production",
-        icon: IconCamera,
-        isActive: true,
-        url: "/dashboard/production",
-        items: [
-          {
-            title: "Production Schedule",
-            url: "/dashboard/production/schedule",
-          },
-          {
-            title: "Active Production",
-            url: "/dashboard/production/active",
-          },
-          {
-            title: "Quality Control",
-            url: "/dashboard/quality",
-          },
-        ],
-      },
     ];
   }
 
-  if (userRole === "CUSTOMER") {
-    return [
-      {
-        title: "My Projects",
-        icon: IconFolder,
-        url: "/dashboard/projects",
-        items: [
-          {
-            title: "Active Projects",
-            url: "/dashboard/projects/active",
-          },
-          {
-            title: "Order History",
-            url: "/dashboard/projects/history",
-          },
-        ],
-      },
-    ];
+  // Customer/Buyer - No Library Access
+  if (
+    userRole === "CUSTOMER" ||
+    userRole === "INDIVIDUAL_CUSTOMER" ||
+    companyType === "BUYER"
+  ) {
+    return [];
   }
 
   // Admin full access
@@ -273,22 +269,12 @@ const data = {
       url: "#",
       icon: IconHelp,
     },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
   ],
   documents: [
     {
       name: "Reports",
       url: "/dashboard/reports",
       icon: IconReport,
-    },
-    {
-      name: "Production Tracking",
-      url: "/dashboard/production",
-      icon: IconFileWord,
     },
   ],
 };
@@ -299,6 +285,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   if (!user) {
     return null;
   }
+
+  const companyType = user?.company?.type;
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -317,9 +306,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={getNavMainByRole(user?.role || "CUSTOMER")} />
+        <NavMain items={getNavMainByRole(user?.role || "CUSTOMER", companyType)} />
         {user?.role === "ADMIN" && <NavMain items={data.adminNav} />}
-        <NavBusiness items={getBusinessNavByRole(user?.role || "CUSTOMER")} />
+        <NavBusiness items={getBusinessNavByRole(user?.role || "CUSTOMER", companyType)} />
         {user?.role === "ADMIN" && <NavDocuments items={data.documents} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>

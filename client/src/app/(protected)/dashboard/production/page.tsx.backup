@@ -1,0 +1,550 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/context/AuthProvider";
+import {
+  Calendar,
+  Clock,
+  Filter,
+  Package,
+  Search,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useQuery } from "urql";
+
+const ALL_PRODUCTION_QUERY = `
+  query AllProduction {
+    assignedSamples {
+      id
+      sampleNumber
+      status
+      sampleType
+      createdAt
+      estimatedProductionDate
+      actualProductionDate
+      productionDays
+      collection {
+        id
+        name
+        modelCode
+        images
+      }
+      customer {
+        id
+        name
+        firstName
+        lastName
+        email
+      }
+    }
+    assignedOrders {
+      id
+      orderNumber
+      status
+      quantity
+      unitPrice
+      totalPrice
+      createdAt
+      estimatedProductionDate
+      actualProductionStart
+      productionDays
+      collection {
+        id
+        name
+        modelCode
+        images
+      }
+      customer {
+        id
+        name
+        firstName
+        lastName
+        email
+      }
+    }
+  }
+`;
+
+export default function ProductionPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState<string>("ALL");
+  const [filterStatus, setFilterStatus] = useState<string>("ALL");
+
+  const isManufacturer =
+    (user?.role === "MANUFACTURE" ||
+      user?.role === "COMPANY_OWNER" ||
+      user?.role === "COMPANY_EMPLOYEE") &&
+    user?.company?.type === "MANUFACTURER";
+
+  const [{ data, fetching, error }] = useQuery({
+    query: ALL_PRODUCTION_QUERY,
+    requestPolicy: "cache-and-network",
+  });
+
+  // Debug logging
+  if (error) {
+    console.error("Production Query Error:", error);
+  }
+
+  if (data) {
+    console.log("Production Data:", {
+      samplesCount: data?.assignedSamples?.length || 0,
+      ordersCount: data?.assignedOrders?.length || 0,
+      samples: data?.assignedSamples,
+      orders: data?.assignedOrders
+    });
+  }
+
+  const samples = data?.assignedSamples || [];
+  const orders = data?.assignedOrders || [];
+
+  // Combine samples and orders into production items
+  const productionItems = [
+    ...samples.map((sample: any) => ({
+      ...sample,
+      type: "SAMPLE",
+      referenceNumber: sample.sampleNumber,
+      overallStatus: sample.status,
+      progress: getProductionProgress(sample.status, "SAMPLE"),
+    })),
+    ...orders.map((order: any) => ({
+      ...order,
+      type: "ORDER",
+      referenceNumber: order.orderNumber,
+      overallStatus: order.status,
+      progress: getProductionProgress(order.status, "ORDER"),
+    })),
+  ];
+
+  function getProductionProgress(status: string, type: string): number {
+    if (type === "SAMPLE") {
+      const sampleStages: Record<string, number> = {
+        PENDING_APPROVAL: 0,
+        REQUESTED: 10,
+        RECEIVED: 20,
+        IN_DESIGN: 40,
+        PATTERN_READY: 60,
+        IN_PRODUCTION: 70,
+        QUALITY_CHECK: 85,
+        COMPLETED: 100,
+        SHIPPED: 100,
+        ON_HOLD: 50,
+        REJECTED: 0,
+        CANCELLED: 0,
+      };
+      return sampleStages[status] || 0;
+    } else {
+      const orderStages: Record<string, number> = {
+        PENDING: 0,
+        REVIEWED: 10,
+        QUOTE_SENT: 20,
+        CONFIRMED: 30,
+        IN_PRODUCTION: 50,
+        PRODUCTION_COMPLETE: 75,
+        QUALITY_CHECK: 85,
+        SHIPPED: 95,
+        DELIVERED: 100,
+        REJECTED: 0,
+        CANCELLED: 0,
+      };
+      return orderStages[status] || 0;
+    }
+  }
+
+  // Filter
+  const filteredItems = productionItems.filter((item: any) => {
+    const matchesSearch =
+      !searchTerm ||
+      item.referenceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.collection?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.collection?.modelCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.customer?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesType = filterType === "ALL" || item.type === filterType;
+    const matchesStatus =
+      filterStatus === "ALL" || item.overallStatus === filterStatus;
+
+    return matchesSearch && matchesType && matchesStatus;
+  });
+
+  // Stats
+  const stats = {
+    total: productionItems.length,
+    inProgress: productionItems.filter(
+      (t: any) =>
+        t.overallStatus === "IN_PRODUCTION" ||
+        t.overallStatus === "IN_DESIGN" ||
+        t.overallStatus === "PATTERN_READY" ||
+        t.overallStatus === "QUALITY_CHECK"
+    ).length,
+    completed: productionItems.filter(
+      (t: any) =>
+        t.overallStatus === "COMPLETED" ||
+        t.overallStatus === "DELIVERED" ||
+        t.overallStatus === "SHIPPED"
+    ).length,
+    pending: productionItems.filter(
+      (t: any) =>
+        t.overallStatus === "PENDING" ||
+        t.overallStatus === "PENDING_APPROVAL" ||
+        t.overallStatus === "REQUESTED" ||
+        t.overallStatus === "REVIEWED" ||
+        t.overallStatus === "QUOTE_SENT" ||
+        t.overallStatus === "CONFIRMED"
+    ).length,
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<string, { label: string; className: string }> = {
+      // Sample Statuses
+      PENDING_APPROVAL: { label: "Onay Bekliyor", className: "bg-yellow-100 text-yellow-700" },
+      REQUESTED: { label: "Talep Edildi", className: "bg-blue-100 text-blue-700" },
+      RECEIVED: { label: "Alındı", className: "bg-blue-100 text-blue-700" },
+      IN_DESIGN: { label: "Tasarımda", className: "bg-purple-100 text-purple-700" },
+      PATTERN_READY: { label: "Kalıp Hazır", className: "bg-indigo-100 text-indigo-700" },
+      IN_PRODUCTION: { label: "Üretimde", className: "bg-blue-100 text-blue-700" },
+      ON_HOLD: { label: "Beklemede", className: "bg-orange-100 text-orange-700" },
+      QUALITY_CHECK: { label: "Kalite Kontrolde", className: "bg-cyan-100 text-cyan-700" },
+      COMPLETED: { label: "Tamamlandı", className: "bg-green-100 text-green-700" },
+      SHIPPED: { label: "Gönderildi", className: "bg-green-100 text-green-700" },
+      REJECTED: { label: "Reddedildi", className: "bg-red-100 text-red-700" },
+      CANCELLED: { label: "İptal", className: "bg-gray-100 text-gray-700" },
+
+      // Order Statuses
+      PENDING: { label: "Bekliyor", className: "bg-gray-100 text-gray-700" },
+      REVIEWED: { label: "İncelendi", className: "bg-blue-100 text-blue-700" },
+      QUOTE_SENT: { label: "Teklif Gönderildi", className: "bg-purple-100 text-purple-700" },
+      CONFIRMED: { label: "Onaylandı", className: "bg-green-100 text-green-700" },
+      PRODUCTION_COMPLETE: { label: "Üretim Tamamlandı", className: "bg-green-100 text-green-700" },
+      DELIVERED: { label: "Teslim Edildi", className: "bg-green-100 text-green-700" },
+    };
+    return statusMap[status] || { label: status, className: "bg-gray-100 text-gray-700" };
+  };
+
+  const getTypeBadge = (type: string) => {
+    return type === "ORDER"
+      ? { label: "Sipariş", className: "bg-purple-100 text-purple-700" }
+      : { label: "Numune", className: "bg-orange-100 text-orange-700" };
+  };
+
+  if (fetching) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+        <Skeleton className="h-96" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Üretim Takibi</h1>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="py-12 text-center">
+            <Package className="h-12 w-12 text-red-400 mx-auto mb-4" />
+            <p className="text-red-600 font-semibold mb-2">Veri yüklenirken hata oluştu</p>
+            <p className="text-sm text-red-500">{error.message}</p>
+            <p className="text-xs text-gray-500 mt-4">
+              Lütfen giriş yaptığınızdan ve üretici yetkilerine sahip olduğunuzdan emin olun.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (productionItems.length === 0 && !fetching) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Üretim Takibi</h1>
+          <p className="text-gray-500 mt-1">
+            {isManufacturer
+              ? "Tüm sipariş ve numune üretimlerini yönetin"
+              : "Siparişlerinizin üretim durumunu takip edin"}
+          </p>
+        </div>
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 font-semibold mb-2">Henüz üretim kaydı yok</p>
+            <p className="text-sm text-gray-400">
+              {isManufacturer
+                ? "Size atanan sipariş veya numune bulunmuyor."
+                : "Henüz üretimde olan bir siparişiniz yok."}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold">Üretim Takibi</h1>
+        <p className="text-gray-500 mt-1">
+          {isManufacturer
+            ? "Tüm sipariş ve numune üretimlerini yönetin"
+            : "Siparişlerinizin üretim durumunu takip edin"}
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Toplam Üretim</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Aktif üretim sayısı
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Devam Eden</CardTitle>
+            <Clock className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {stats.inProgress}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Üretim aşamasında
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Tamamlanan</CardTitle>
+            <Package className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {stats.completed}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Başarıyla tamamlandı
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Bekleyen</CardTitle>
+            <Calendar className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {stats.pending}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Onay/İnceleme bekliyor
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Sipariş/Numune ara..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-[180px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Tür Filtrele" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Tümü</SelectItem>
+            <SelectItem value="ORDER">Sipariş</SelectItem>
+            <SelectItem value="SAMPLE">Numune</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-[180px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Durum Filtrele" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Tümü</SelectItem>
+            <SelectItem value="PENDING">Bekliyor</SelectItem>
+            <SelectItem value="IN_PROGRESS">Devam Ediyor</SelectItem>
+            <SelectItem value="COMPLETED">Tamamlandı</SelectItem>
+            <SelectItem value="DELAYED">Gecikmiş</SelectItem>
+            <SelectItem value="CANCELLED">İptal</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Production List */}
+      <div className="space-y-4">
+        {filteredItems.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Üretim bulunamadı
+              </h3>
+              <p className="text-gray-500">
+                Henüz hiç üretim kaydı yok veya filtrelerinize uygun sonuç yok
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredItems.map((item: any) => {
+            const statusBadge = getStatusBadge(item.overallStatus);
+            const typeBadge = getTypeBadge(item.type);
+            const collection = item.collection;
+
+            return (
+              <Card
+                key={item.id}
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => {
+                  if (item.type === "SAMPLE") {
+                    router.push(`/dashboard/samples`);
+                  } else {
+                    router.push(`/dashboard/orders`);
+                  }
+                }}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className={typeBadge.className}>
+                          {typeBadge.label}
+                        </Badge>
+                        <Badge className={statusBadge.className}>
+                          {statusBadge.label}
+                        </Badge>
+                        <span className="text-sm text-gray-500">
+                          #{item.referenceNumber}
+                        </span>
+                      </div>
+
+                      <h3 className="text-lg font-semibold mb-1">
+                        {collection?.name || "İsimsiz Koleksiyon"}
+                      </h3>
+                      {collection?.modelCode && (
+                        <p className="text-sm text-gray-500 mb-3">
+                          Model: {collection.modelCode}
+                        </p>
+                      )}
+
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-500">Müşteri</p>
+                          <p className="font-medium">
+                            {item.customer?.name ||
+                              `${item.customer?.firstName || ""} ${item.customer?.lastName || ""}`.trim() ||
+                              item.customer?.email ||
+                              "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">
+                            {item.type === "ORDER" ? "Miktar" : "Tip"}
+                          </p>
+                          <p className="font-medium">
+                            {item.type === "ORDER"
+                              ? `${item.quantity} adet`
+                              : item.sampleType || "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Tarih</p>
+                          <p className="font-medium">
+                            {new Date(item.createdAt).toLocaleDateString(
+                              "tr-TR"
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      {item.type === "ORDER" && item.totalPrice && (
+                        <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm">
+                          <span className="text-green-700 font-medium">
+                            💰 Toplam: ₺{item.totalPrice.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+
+                      {item.estimatedCompletionDate && (
+                        <div className="mt-3 text-xs text-gray-500">
+                          <Calendar className="h-3 w-3 inline mr-1" />
+                          Tahmini Tamamlanma:{" "}
+                          {new Date(
+                            item.estimatedCompletionDate
+                          ).toLocaleDateString("tr-TR")}
+                        </div>
+                      )}
+
+                      <div className="mt-4">
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="text-gray-500">İlerleme</span>
+                          <span className="font-medium">{item.progress}%</span>
+                        </div>
+                        <Progress value={item.progress} className="h-2" />
+                      </div>
+                    </div>
+
+                    <Button variant="ghost" size="sm">
+                      Detaylar →
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
+      </div>
+
+      {/* Results Info */}
+      {filteredItems.length > 0 && (
+        <p className="text-sm text-gray-500 text-center">
+          {filteredItems.length} üretim gösteriliyor
+          {productionItems.length !== filteredItems.length &&
+            ` (${productionItems.length} toplam)`}
+        </p>
+      )}
+    </div>
+  );
+}

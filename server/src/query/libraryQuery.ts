@@ -10,11 +10,16 @@ export const libraryQueries = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true },
+        select: { companyId: true, company: { select: { type: true } } },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can access library
+      if (user.company?.type !== "MANUFACTURER") {
+        throw new Error("Library access is restricted to manufacturers only");
       }
 
       return context.prisma.color.findMany({
@@ -32,11 +37,16 @@ export const libraryQueries = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true },
+        select: { companyId: true, company: { select: { type: true } } },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can access library
+      if (user.company?.type !== "MANUFACTURER") {
+        throw new Error("Library access is restricted to manufacturers only");
       }
 
       return context.prisma.fabric.findMany({
@@ -54,11 +64,16 @@ export const libraryQueries = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true },
+        select: { companyId: true, company: { select: { type: true } } },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can access library
+      if (user.company?.type !== "MANUFACTURER") {
+        throw new Error("Library access is restricted to manufacturers only");
       }
 
       return context.prisma.sizeGroup.findMany({
@@ -76,11 +91,16 @@ export const libraryQueries = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true },
+        select: { companyId: true, company: { select: { type: true } } },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can access library
+      if (user.company?.type !== "MANUFACTURER") {
+        throw new Error("Library access is restricted to manufacturers only");
       }
 
       return context.prisma.seasonItem.findMany({
@@ -98,11 +118,16 @@ export const libraryQueries = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true },
+        select: { companyId: true, company: { select: { type: true } } },
       });
 
       if (!user?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can access library
+      if (user.company?.type !== "MANUFACTURER") {
+        throw new Error("Library access is restricted to manufacturers only");
       }
 
       return context.prisma.fitItem.findMany({
@@ -122,11 +147,16 @@ export const libraryQueries = (t: any) => {
 
       const userWithCompanyId = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true },
+        select: { companyId: true, company: { select: { type: true } } },
       });
 
       if (!userWithCompanyId?.companyId) {
         throw new Error("Must be associated with a company");
+      }
+
+      // Only manufacturers can access library
+      if (userWithCompanyId.company?.type !== "MANUFACTURER") {
+        throw new Error("Library access is restricted to manufacturers only");
       }
 
       return context.prisma.certification.findMany({

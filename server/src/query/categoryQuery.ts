@@ -6,7 +6,7 @@ export const categoryQueries = (t: any) => {
   t.list.field("allCategories", {
     type: "Category",
     resolve: async (_: any, __: any, context: Context) => {
-      // All authenticated users can view categories
+      // All authenticated users can view all categories (platform-wide)
       requireAuth(context);
 
       return context.prisma.category.findMany({
@@ -26,7 +26,7 @@ export const categoryQueries = (t: any) => {
   t.list.field("rootCategories", {
     type: "Category",
     resolve: async (_: any, __: any, context: Context) => {
-      // All authenticated users can view root categories
+      // All authenticated users can view root categories (platform-wide)
       requireAuth(context);
 
       return context.prisma.category.findMany({
@@ -49,7 +49,7 @@ export const categoryQueries = (t: any) => {
       companyId: intArg(),
     },
     resolve: async (_: any, args: any, context: Context) => {
-      // All authenticated users can view categories by company
+      // All authenticated users can view categories (platform-wide system)
       requireAuth(context);
 
       return context.prisma.category.findMany({
@@ -72,7 +72,7 @@ export const categoryQueries = (t: any) => {
       id: intArg(),
     },
     resolve: async (_: any, args: any, context: Context) => {
-      // All authenticated users can view category details
+      // All authenticated users can view category details (platform-wide)
       requireAuth(context);
 
       if (!args.id) {
@@ -102,34 +102,10 @@ export const categoryQueries = (t: any) => {
   t.list.field("myCategories", {
     type: "Category",
     resolve: async (_: any, __: any, context: Context) => {
-      // Get user's own categories (for MANUFACTURER role)
-      const userId = requireAuth(context);
-
-      const currentUser = await context.prisma.user.findUnique({
-        where: { id: userId },
-      });
-
-      if (!currentUser) {
-        throw new Error("User not found");
-      }
-
-      let whereClause: any = {};
-
-      if (currentUser.role === "ADMIN") {
-        // Admin can see all categories
-        whereClause = {};
-      } else if (currentUser.role === "MANUFACTURE") {
-        // Manufacturer can see their company's categories and their own
-        whereClause = {
-          OR: [{ authorId: userId }, { companyId: currentUser.companyId }],
-        };
-      } else {
-        // Customers can see all public categories (no company restriction)
-        whereClause = {};
-      }
+      // All authenticated users can see all categories (platform-wide system)
+      requireAuth(context);
 
       return context.prisma.category.findMany({
-        where: whereClause,
         orderBy: [{ parentCategoryId: "asc" }, { name: "asc" }],
         include: {
           author: true,
@@ -143,7 +119,7 @@ export const categoryQueries = (t: any) => {
   t.list.field("categoryTree", {
     type: "Category",
     resolve: async (_: any, __: any, context: Context) => {
-      // Build hierarchical tree structure
+      // All authenticated users can view category tree (platform-wide)
       requireAuth(context);
 
       const allCategories = await context.prisma.category.findMany({

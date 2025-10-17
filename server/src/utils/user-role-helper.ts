@@ -11,11 +11,36 @@ export function getUserId(context: Context) {
   const authHeader =
     context.req.headers?.authorization || context.req.get?.("Authorization");
 
+  if (process.env.NODE_ENV !== "production") {
+    console.log("🔍 Auth Header:", authHeader ? "Present" : "Missing");
+  }
+
   if (authHeader) {
     const token = authHeader.replace("Bearer ", "");
     try {
       const verifiedToken = verify(token, APP_SECRET) as Token;
-      return verifiedToken && Number(verifiedToken.userId);
+
+      if (!verifiedToken || !verifiedToken.userId) {
+        if (process.env.NODE_ENV !== "production") {
+          console.log("❌ Token is missing userId");
+        }
+        return null;
+      }
+
+      const userId = Number(verifiedToken.userId);
+
+      if (isNaN(userId) || userId <= 0) {
+        if (process.env.NODE_ENV !== "production") {
+          console.log("❌ Invalid userId:", verifiedToken.userId);
+        }
+        return null;
+      }
+
+      if (process.env.NODE_ENV !== "production") {
+        console.log("✅ Token verified, User ID:", userId);
+      }
+
+      return userId;
     } catch (error) {
       // Sadece auth fail'leri log'la
       if (process.env.NODE_ENV !== "production") {
@@ -26,6 +51,10 @@ export function getUserId(context: Context) {
       }
       return null;
     }
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    console.log("❌ No auth header found");
   }
   return null;
 } // Helper to require authentication

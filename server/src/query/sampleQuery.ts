@@ -46,15 +46,21 @@ export const sampleQueries = (t: any) => {
       // Build where clause based on permissions and filters
       const where: any = {};
 
+      console.log("🔍 Samples Query - User:", user.email, "Role:", userRole, "UserId:", userId);
+
       // Role-based filtering
       if (userRole === "CUSTOMER") {
         // Customers can only see their own samples
         where.customerId = userId;
-      } else if (userRole === "MANUFACTURE") {
-        // Manufacturers can see samples assigned to them or their company
+      } else if (userRole === "MANUFACTURE" || userRole === "COMPANY_OWNER" || userRole === "COMPANY_EMPLOYEE") {
+        // Manufacturers can only see samples assigned to them or their company members
         where.OR = [
-          { manufactureId: userId },
-          { companyId: user.companyId || -1 },
+          { manufactureId: userId }, // Directly assigned to this user
+          {
+            manufacture: {
+              companyId: user.companyId || -1,
+            }
+          }, // Assigned to someone in their company
         ];
       }
       // Admins see all samples
@@ -105,7 +111,9 @@ export const sampleQueries = (t: any) => {
         ];
       }
 
-      return context.prisma.sample.findMany({
+      console.log("🔍 Where clause:", JSON.stringify(where, null, 2));
+
+      const samples = await context.prisma.sample.findMany({
         where,
         include: {
           collection: true,
@@ -118,6 +126,17 @@ export const sampleQueries = (t: any) => {
         take: args.limit || undefined,
         skip: args.offset || undefined,
       });
+
+      console.log("✅ Found", samples.length, "samples for user", user.email);
+      console.log("📊 Sample details:", samples.map(s => ({
+        id: s.id,
+        number: s.sampleNumber,
+        status: s.status,
+        aiGenerated: s.aiGenerated,
+        customerId: s.customerId
+      })));
+
+      return samples;
     },
   });
 
@@ -246,14 +265,25 @@ export const sampleQueries = (t: any) => {
 
       const userRole = getUserRole(user);
 
-      if (userRole !== "MANUFACTURE" && userRole !== "ADMIN") {
+      if (userRole !== "MANUFACTURE" && userRole !== "ADMIN" && userRole !== "COMPANY_OWNER" && userRole !== "COMPANY_EMPLOYEE") {
         throw new Error(
           "Only manufacturers and admins can access assigned samples"
         );
       }
 
       const where: any = {
-        OR: [{ manufactureId: userId }, { companyId: user.companyId || -1 }],
+        OR: [
+          { manufactureId: userId }, // Directly assigned
+          {
+            manufacture: {
+              companyId: user.companyId || -1,
+            }
+          }, // Assigned to company members
+        ],
+        // Exclude AI_DESIGN status (not yet sent to manufacturer)
+        status: {
+          not: "AI_DESIGN"
+        }
       };
 
       if (args.status) {

@@ -80,6 +80,24 @@ const rules = {
     }
   ),
 
+  // Company Owner, Manufacture or Admin rule
+  isCompanyUserOrAdmin: rule({ cache: "contextual" })(
+    async (_parent, _args, context: Context) => {
+      const user = await getUserWithRole(context);
+      if (!user) {
+        return new AuthenticationError(
+          "Please login with your account to continue."
+        );
+      }
+      if (!["ADMIN", "MANUFACTURE", "COMPANY_OWNER", "COMPANY_EMPLOYEE"].includes(user.role)) {
+        return new AuthorizationError(
+          "This feature is only available to company users and administrators."
+        );
+      }
+      return ["ADMIN", "MANUFACTURE", "COMPANY_OWNER", "COMPANY_EMPLOYEE"].includes(user.role);
+    }
+  ),
+
   // Collection owner rule
   isCollectionOwner: rule({ cache: "strict" })(
     async (_parent, args, context: Context) => {
@@ -155,6 +173,7 @@ export const permissions = shield(
       // Public queries (no auth required)
       collections: allow, // Public collections list
       categories: allow, // Public categories list
+      publicPlatformStats: allow, // Public platform statistics for landing page
 
       // Authenticated user queries
       me: rules.isAuthenticatedUser,
@@ -162,6 +181,16 @@ export const permissions = shield(
       // Admin only queries
       allUsers: rules.isAdmin,
       userStats: rules.isAdmin,
+
+      // Workshop queries - Company users and admins
+      workshops: rules.isCompanyUserOrAdmin,
+      workshop: rules.isCompanyUserOrAdmin,
+      myWorkshops: rules.isCompanyUserOrAdmin,
+      workshopStats: rules.isCompanyUserOrAdmin,
+
+      // Analytics queries
+      dashboardStats: rules.isAuthenticatedUser,
+      productionAnalytics: rules.isCompanyUserOrAdmin,
     },
     Mutation: {
       // Public mutations
@@ -177,6 +206,12 @@ export const permissions = shield(
       updateUserRole: rules.isAdmin,
       deleteUser: rules.isAdmin,
       resetUserPassword: rules.isAdmin,
+
+      // Workshop mutations - Company users and admins
+      createWorkshop: rules.isCompanyUserOrAdmin,
+      updateWorkshop: rules.isCompanyUserOrAdmin,
+      deleteWorkshop: rules.isCompanyUserOrAdmin,
+      assignWorkshopToProduction: rules.isCompanyUserOrAdmin,
     },
     // Type field permissions
     User: {

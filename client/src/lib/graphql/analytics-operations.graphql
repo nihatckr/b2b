@@ -1,0 +1,68 @@
+# Analytics Queries
+query DashboardStats($period: String) {
+  dashboardStats(period: $period) {
+    totalCollections
+    totalSamples
+    totalOrders
+    totalProductions
+    pendingSamples
+    activeSamples
+    completedSamples
+    pendingOrders
+    activeOrders
+    completedOrders
+    activeProductions
+    completedProductions
+    totalMessages
+    unreadMessages
+    passedQC
+    failedQC
+    qcPassRate
+    recentSamples {
+      id
+      sampleNumber
+      status
+      createdAt
+      collection {
+        id
+        name
+      }
+    }
+    recentOrders {
+      id
+      orderNumber
+      status
+      quantity
+      totalPrice
+      createdAt
+    }
+    recentProductions {
+      id
+      currentStage
+      createdAt
+      order {
+        id
+        orderNumber
+      }
+    }
+    monthlyStats {
+      month
+      samples
+      orders
+      completedProductions
+      revenue
+    }
+  }
+}
+
+query ProductionAnalytics {
+  productionAnalytics {
+    totalInProgress
+    totalCompleted
+    avgProductionDays
+    stageBreakdown {
+      stage
+      count
+    }
+  }
+}

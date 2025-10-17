@@ -34,13 +34,26 @@ export const PRODUCTION_TRACKING_QUERY = gql`
       notes
       createdAt
       updatedAt
+      companyId
       order {
         id
         orderNumber
+        manufacture {
+          id
+        }
+        company {
+          id
+        }
       }
       sample {
         id
         sampleNumber
+        manufacture {
+          id
+        }
+        company {
+          id
+        }
       }
       stageUpdates {
         id

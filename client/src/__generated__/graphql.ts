@@ -18,6 +18,60 @@ export type Scalars = {
   DateTime: { input: any; output: any; }
 };
 
+export type AiAnalysis = {
+  __typename?: 'AIAnalysis';
+  costAnalysis?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  designFocus?: Maybe<Scalars['String']['output']>;
+  designStyle?: Maybe<Scalars['String']['output']>;
+  designSuggestions?: Maybe<Scalars['String']['output']>;
+  detectedAccessories?: Maybe<Scalars['String']['output']>;
+  detectedClassification?: Maybe<Scalars['String']['output']>;
+  detectedColor?: Maybe<Scalars['String']['output']>;
+  detectedFabric?: Maybe<Scalars['String']['output']>;
+  detectedGender?: Maybe<Scalars['String']['output']>;
+  detectedPattern?: Maybe<Scalars['String']['output']>;
+  detectedProduct?: Maybe<Scalars['String']['output']>;
+  estimatedCostMax?: Maybe<Scalars['Float']['output']>;
+  estimatedCostMin?: Maybe<Scalars['Float']['output']>;
+  id: Scalars['Int']['output'];
+  qualityAnalysis?: Maybe<Scalars['String']['output']>;
+  qualityScore?: Maybe<Scalars['Float']['output']>;
+  salesPotential?: Maybe<Scalars['String']['output']>;
+  sample?: Maybe<Sample>;
+  sampleId: Scalars['Int']['output'];
+  suggestedMinOrder?: Maybe<Scalars['Int']['output']>;
+  targetMarket?: Maybe<Scalars['String']['output']>;
+  technicalDescription?: Maybe<Scalars['String']['output']>;
+  trendAnalysis?: Maybe<Scalars['String']['output']>;
+  trendScore?: Maybe<Scalars['Float']['output']>;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type AiAnalysisInput = {
+  costAnalysis?: InputMaybe<Scalars['String']['input']>;
+  designFocus?: InputMaybe<Scalars['String']['input']>;
+  designStyle?: InputMaybe<Scalars['String']['input']>;
+  designSuggestions?: InputMaybe<Scalars['String']['input']>;
+  detectedAccessories?: InputMaybe<Scalars['String']['input']>;
+  detectedClassification?: InputMaybe<Scalars['String']['input']>;
+  detectedColor?: InputMaybe<Scalars['String']['input']>;
+  detectedFabric?: InputMaybe<Scalars['String']['input']>;
+  detectedGender?: InputMaybe<Scalars['String']['input']>;
+  detectedPattern?: InputMaybe<Scalars['String']['input']>;
+  detectedProduct?: InputMaybe<Scalars['String']['input']>;
+  estimatedCostMax?: InputMaybe<Scalars['Float']['input']>;
+  estimatedCostMin?: InputMaybe<Scalars['Float']['input']>;
+  qualityAnalysis?: InputMaybe<Scalars['String']['input']>;
+  qualityScore?: InputMaybe<Scalars['Float']['input']>;
+  salesPotential?: InputMaybe<Scalars['String']['input']>;
+  suggestedMinOrder?: InputMaybe<Scalars['Int']['input']>;
+  targetMarket?: InputMaybe<Scalars['String']['input']>;
+  technicalDescription?: InputMaybe<Scalars['String']['input']>;
+  trendAnalysis?: InputMaybe<Scalars['String']['input']>;
+  trendScore?: InputMaybe<Scalars['Float']['input']>;
+};
+
 export type AnswerQuestionInput = {
   answer: Scalars['String']['input'];
   id: Scalars['Int']['input'];
@@ -46,6 +100,15 @@ export type Category = {
   parentCategory?: Maybe<Category>;
   subCategories?: Maybe<Array<Maybe<Category>>>;
   updatedAt: Scalars['String']['output'];
+};
+
+export type CategoryBreakdown = {
+  __typename?: 'CategoryBreakdown';
+  category: Scalars['String']['output'];
+  count: Scalars['Int']['output'];
+  men: Scalars['Int']['output'];
+  unisex: Scalars['Int']['output'];
+  women: Scalars['Int']['output'];
 };
 
 export type Certification = {
@@ -82,6 +145,7 @@ export type Collection = {
   accessories?: Maybe<Scalars['String']['output']>;
   author?: Maybe<User>;
   category?: Maybe<Category>;
+  certifications?: Maybe<Array<Maybe<Certification>>>;
   colors?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   company?: Maybe<Company>;
   createdAt: Scalars['DateTime']['output'];
@@ -118,6 +182,13 @@ export type Collection = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
+export type CollectionGenderBreakdown = {
+  __typename?: 'CollectionGenderBreakdown';
+  men: Scalars['Int']['output'];
+  unisex: Scalars['Int']['output'];
+  women: Scalars['Int']['output'];
+};
+
 export type Color = {
   __typename?: 'Color';
   code?: Maybe<Scalars['String']['output']>;
@@ -140,6 +211,7 @@ export type Company = {
   employees?: Maybe<Array<Maybe<User>>>;
   id: Scalars['Int']['output'];
   isActive: Scalars['Boolean']['output'];
+  location?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   owner?: Maybe<User>;
   ownerId?: Maybe<Scalars['Int']['output']>;
@@ -195,6 +267,13 @@ export type CompanyUpdateInput = {
   website?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CountrySuppliers = {
+  __typename?: 'CountrySuppliers';
+  companies?: Maybe<Array<Maybe<SupplierInfo>>>;
+  count: Scalars['Int']['output'];
+  country: Scalars['String']['output'];
+};
+
 export type CreateCategoryInput = {
   companyId?: InputMaybe<Scalars['Int']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
@@ -245,6 +324,7 @@ export type CreateCompanyInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
+  location?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   phone?: InputMaybe<Scalars['String']['input']>;
   website?: InputMaybe<Scalars['String']['input']>;
@@ -313,11 +393,15 @@ export type CreateReviewInput = {
 };
 
 export type CreateSampleInput = {
+  aiAnalysis?: InputMaybe<AiAnalysisInput>;
+  aiGenerated?: InputMaybe<Scalars['Boolean']['input']>;
+  aiSketchUrl?: InputMaybe<Scalars['String']['input']>;
   collectionId?: InputMaybe<Scalars['Int']['input']>;
   companyId?: InputMaybe<Scalars['Int']['input']>;
   customDesignImages?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   customerNote?: InputMaybe<Scalars['String']['input']>;
   deliveryAddress?: InputMaybe<Scalars['String']['input']>;
+  images?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   manufactureId?: InputMaybe<Scalars['Int']['input']>;
   originalCollectionId?: InputMaybe<Scalars['Int']['input']>;
   revisionRequests?: InputMaybe<Scalars['String']['input']>;
@@ -337,6 +421,31 @@ export type CreateWorkshopInput = {
   location?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   type: WorkshopType;
+};
+
+export type DashboardStats = {
+  __typename?: 'DashboardStats';
+  activeOrders: Scalars['Int']['output'];
+  activeProductions: Scalars['Int']['output'];
+  activeSamples: Scalars['Int']['output'];
+  completedOrders: Scalars['Int']['output'];
+  completedProductions: Scalars['Int']['output'];
+  completedSamples: Scalars['Int']['output'];
+  failedQC: Scalars['Int']['output'];
+  monthlyStats?: Maybe<Array<Maybe<MonthlyStats>>>;
+  passedQC: Scalars['Int']['output'];
+  pendingOrders: Scalars['Int']['output'];
+  pendingSamples: Scalars['Int']['output'];
+  qcPassRate: Scalars['Float']['output'];
+  recentOrders?: Maybe<Array<Maybe<Order>>>;
+  recentProductions?: Maybe<Array<Maybe<ProductionTracking>>>;
+  recentSamples?: Maybe<Array<Maybe<Sample>>>;
+  totalCollections: Scalars['Int']['output'];
+  totalMessages: Scalars['Int']['output'];
+  totalOrders: Scalars['Int']['output'];
+  totalProductions: Scalars['Int']['output'];
+  totalSamples: Scalars['Int']['output'];
+  unreadMessages: Scalars['Int']['output'];
 };
 
 export type Fabric = {
@@ -405,6 +514,21 @@ export enum Gender {
   Women = 'WOMEN'
 }
 
+export type GrowthMetrics = {
+  __typename?: 'GrowthMetrics';
+  avgDeliveryDays: Scalars['Float']['output'];
+  customerSatisfactionRate: Scalars['Float']['output'];
+  monthlyGrowthRate: Scalars['Float']['output'];
+  totalTransactionVolume: Scalars['Int']['output'];
+};
+
+export type LatestCollection = {
+  __typename?: 'LatestCollection';
+  createdAt: Scalars['String']['output'];
+  gender: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type LoginInput = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
@@ -431,12 +555,30 @@ export type MessageFilterInput = {
   unreadOnly?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+export type MonthlyStats = {
+  __typename?: 'MonthlyStats';
+  completedProductions: Scalars['Int']['output'];
+  month: Scalars['String']['output'];
+  orders: Scalars['Int']['output'];
+  revenue: Scalars['Float']['output'];
+  samples: Scalars['Int']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
+  addProductionStageUpdate?: Maybe<ProductionStageUpdate>;
+  analyzeProductWithOllama?: Maybe<ProductAnalysisResult>;
   answerQuestion?: Maybe<Question>;
   approveReview?: Maybe<Review>;
+  approveSample?: Maybe<Sample>;
   askQuestion?: Maybe<Question>;
+  assignWorkshopToProduction?: Maybe<ProductionTracking>;
+  cancelOrder?: Maybe<Order>;
+  cancelSample?: Maybe<Sample>;
   changePassword?: Maybe<Scalars['Boolean']['output']>;
+  checkOllamaStatus?: Maybe<OllamaStatus>;
+  checkProductionDeadlines: Scalars['Boolean']['output'];
+  completeProductionStage?: Maybe<ProductionTracking>;
   createCategory?: Maybe<Category>;
   createCertification?: Maybe<Certification>;
   createCollection?: Maybe<Collection>;
@@ -444,12 +586,14 @@ export type Mutation = {
   createCompany?: Maybe<Company>;
   createFabric?: Maybe<Fabric>;
   createFit?: Maybe<FitItem>;
+  createNotification?: Maybe<Notification>;
   createOrder?: Maybe<Order>;
   createReview?: Maybe<Review>;
   createSample?: Maybe<Sample>;
   createSeason?: Maybe<SeasonItem>;
   createSizeGroup?: Maybe<SizeGroup>;
   createUser?: Maybe<User>;
+  createWorkshop?: Maybe<Workshop>;
   deleteCategory?: Maybe<Category>;
   deleteCertification?: Maybe<Certification>;
   deleteCollection?: Maybe<Collection>;
@@ -458,6 +602,7 @@ export type Mutation = {
   deleteFabric?: Maybe<Fabric>;
   deleteFit?: Maybe<FitItem>;
   deleteMessage?: Maybe<Message>;
+  deleteNotification?: Maybe<Notification>;
   deleteOrder?: Maybe<Order>;
   deleteQuestion?: Maybe<Question>;
   deleteReview?: Maybe<Review>;
@@ -465,10 +610,18 @@ export type Mutation = {
   deleteSeason?: Maybe<SeasonItem>;
   deleteSizeGroup?: Maybe<SizeGroup>;
   deleteUser?: Maybe<User>;
+  deleteWorkshop?: Maybe<Workshop>;
+  generateDesignFromText?: Maybe<Sample>;
+  generateSampleDesign?: Maybe<Sample>;
+  holdSample?: Maybe<Sample>;
   login?: Maybe<AuthPayload>;
   logout?: Maybe<Scalars['Boolean']['output']>;
+  markAllNotificationsAsRead: Scalars['Int']['output'];
   markMessageAsRead?: Maybe<Message>;
+  markNotificationAsRead?: Maybe<Notification>;
   resetUserPassword?: Maybe<User>;
+  resumeSample?: Maybe<Sample>;
+  revertProductionStage?: Maybe<ProductionTracking>;
   sendMessage?: Maybe<Message>;
   signup?: Maybe<AuthPayload>;
   toggleFavoriteCollection?: Maybe<Collection>;
@@ -477,6 +630,7 @@ export type Mutation = {
   updateCollection?: Maybe<Collection>;
   updateColor?: Maybe<Color>;
   updateCompany?: Maybe<Company>;
+  updateCustomerOrder?: Maybe<Order>;
   updateFabric?: Maybe<Fabric>;
   updateFit?: Maybe<FitItem>;
   updateOrder?: Maybe<Order>;
@@ -489,6 +643,24 @@ export type Mutation = {
   updateSizeGroup?: Maybe<SizeGroup>;
   updateUser?: Maybe<User>;
   updateUserRole?: Maybe<User>;
+  updateWorkshop?: Maybe<Workshop>;
+};
+
+
+export type MutationAddProductionStageUpdateArgs = {
+  delayReason?: InputMaybe<Scalars['String']['input']>;
+  extraDays?: InputMaybe<Scalars['Int']['input']>;
+  hasDelay: Scalars['Boolean']['input'];
+  notes?: InputMaybe<Scalars['String']['input']>;
+  photos?: InputMaybe<Scalars['String']['input']>;
+  productionId: Scalars['Int']['input'];
+  stage: ProductionStage;
+};
+
+
+export type MutationAnalyzeProductWithOllamaArgs = {
+  imageUrl: Scalars['String']['input'];
+  userNotes?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -502,14 +674,47 @@ export type MutationApproveReviewArgs = {
 };
 
 
+export type MutationApproveSampleArgs = {
+  approve: Scalars['Boolean']['input'];
+  estimatedDays?: InputMaybe<Scalars['Int']['input']>;
+  id: Scalars['Int']['input'];
+  manufacturerNote?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationAskQuestionArgs = {
   input: CreateQuestionInput;
+};
+
+
+export type MutationAssignWorkshopToProductionArgs = {
+  packagingWorkshopId?: InputMaybe<Scalars['Int']['input']>;
+  productionId: Scalars['Int']['input'];
+  sewingWorkshopId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type MutationCancelOrderArgs = {
+  id: Scalars['Int']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationCancelSampleArgs = {
+  id: Scalars['Int']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
 };
 
 
 export type MutationChangePasswordArgs = {
   currentPassword: Scalars['String']['input'];
   newPassword: Scalars['String']['input'];
+};
+
+
+export type MutationCompleteProductionStageArgs = {
+  productionId: Scalars['Int']['input'];
+  stage: ProductionStage;
 };
 
 
@@ -567,6 +772,18 @@ export type MutationCreateFitArgs = {
 };
 
 
+export type MutationCreateNotificationArgs = {
+  link?: InputMaybe<Scalars['String']['input']>;
+  message: Scalars['String']['input'];
+  orderId?: InputMaybe<Scalars['Int']['input']>;
+  productionTrackingId?: InputMaybe<Scalars['Int']['input']>;
+  sampleId?: InputMaybe<Scalars['Int']['input']>;
+  title: Scalars['String']['input'];
+  type: Scalars['String']['input'];
+  userId: Scalars['Int']['input'];
+};
+
+
 export type MutationCreateOrderArgs = {
   collectionId: Scalars['Int']['input'];
   companyId?: InputMaybe<Scalars['Int']['input']>;
@@ -613,6 +830,11 @@ export type MutationCreateUserArgs = {
 };
 
 
+export type MutationCreateWorkshopArgs = {
+  input: CreateWorkshopInput;
+};
+
+
 export type MutationDeleteCategoryArgs = {
   id: Scalars['Int']['input'];
 };
@@ -653,6 +875,11 @@ export type MutationDeleteMessageArgs = {
 };
 
 
+export type MutationDeleteNotificationArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type MutationDeleteOrderArgs = {
   id: Scalars['Int']['input'];
 };
@@ -688,6 +915,45 @@ export type MutationDeleteUserArgs = {
 };
 
 
+export type MutationDeleteWorkshopArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type MutationGenerateDesignFromTextArgs = {
+  cfgScale?: InputMaybe<Scalars['Float']['input']>;
+  collectionId?: InputMaybe<Scalars['Int']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  height?: InputMaybe<Scalars['Int']['input']>;
+  negativePrompt?: InputMaybe<Scalars['String']['input']>;
+  prompt: Scalars['String']['input'];
+  sampleName?: InputMaybe<Scalars['String']['input']>;
+  steps?: InputMaybe<Scalars['Int']['input']>;
+  width?: InputMaybe<Scalars['Int']['input']>;
+  workflowName?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationGenerateSampleDesignArgs = {
+  cfgScale?: InputMaybe<Scalars['Float']['input']>;
+  collectionId?: InputMaybe<Scalars['Int']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  height?: InputMaybe<Scalars['Int']['input']>;
+  negativePrompt?: InputMaybe<Scalars['String']['input']>;
+  prompt: Scalars['String']['input'];
+  sampleName?: InputMaybe<Scalars['String']['input']>;
+  sketchUrl: Scalars['String']['input'];
+  steps?: InputMaybe<Scalars['Int']['input']>;
+  width?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type MutationHoldSampleArgs = {
+  id: Scalars['Int']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationLoginArgs = {
   input: LoginInput;
 };
@@ -698,9 +964,26 @@ export type MutationMarkMessageAsReadArgs = {
 };
 
 
+export type MutationMarkNotificationAsReadArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type MutationResetUserPasswordArgs = {
   newPassword: Scalars['String']['input'];
   userId: Scalars['Int']['input'];
+};
+
+
+export type MutationResumeSampleArgs = {
+  id: Scalars['Int']['input'];
+  note?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationRevertProductionStageArgs = {
+  productionId?: InputMaybe<Scalars['Int']['input']>;
+  targetStage?: InputMaybe<ProductionStage>;
 };
 
 
@@ -762,6 +1045,15 @@ export type MutationUpdateCompanyArgs = {
   name?: InputMaybe<Scalars['String']['input']>;
   phone?: InputMaybe<Scalars['String']['input']>;
   website?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateCustomerOrderArgs = {
+  customerNote?: InputMaybe<Scalars['String']['input']>;
+  deliveryAddress?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['Int']['input'];
+  quantity?: InputMaybe<Scalars['Int']['input']>;
+  unitPrice?: InputMaybe<Scalars['Float']['input']>;
 };
 
 
@@ -846,6 +1138,48 @@ export type MutationUpdateUserRoleArgs = {
   userId: Scalars['Int']['input'];
 };
 
+
+export type MutationUpdateWorkshopArgs = {
+  input: UpdateWorkshopInput;
+};
+
+export type Notification = {
+  __typename?: 'Notification';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['Int']['output'];
+  isRead: Scalars['Boolean']['output'];
+  link?: Maybe<Scalars['String']['output']>;
+  message: Scalars['String']['output'];
+  order?: Maybe<Order>;
+  orderId?: Maybe<Scalars['Int']['output']>;
+  productionTracking?: Maybe<ProductionTracking>;
+  productionTrackingId?: Maybe<Scalars['Int']['output']>;
+  sample?: Maybe<Sample>;
+  sampleId?: Maybe<Scalars['Int']['output']>;
+  title: Scalars['String']['output'];
+  type: NotificationType;
+  updatedAt: Scalars['DateTime']['output'];
+  user?: Maybe<User>;
+  userId: Scalars['Int']['output'];
+};
+
+/** Type of notification */
+export enum NotificationType {
+  Message = 'MESSAGE',
+  Order = 'ORDER',
+  Production = 'PRODUCTION',
+  Quality = 'QUALITY',
+  Sample = 'SAMPLE',
+  System = 'SYSTEM'
+}
+
+export type OllamaStatus = {
+  __typename?: 'OllamaStatus';
+  availableModels: Array<Scalars['String']['output']>;
+  modelAvailable: Scalars['Boolean']['output'];
+  running: Scalars['Boolean']['output'];
+};
+
 export type Order = {
   __typename?: 'Order';
   actualProductionEnd?: Maybe<Scalars['DateTime']['output']>;
@@ -900,6 +1234,38 @@ export enum OrderStatus {
   Reviewed = 'REVIEWED',
   Shipped = 'SHIPPED'
 }
+
+export type PlatformFeature = {
+  __typename?: 'PlatformFeature';
+  description: Scalars['String']['output'];
+  icon: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
+export type ProductAnalysisResult = {
+  __typename?: 'ProductAnalysisResult';
+  category: Scalars['String']['output'];
+  colors: Array<Scalars['String']['output']>;
+  designPrompt: Scalars['String']['output'];
+  details: Array<Scalars['String']['output']>;
+  fit?: Maybe<Scalars['String']['output']>;
+  material: Scalars['String']['output'];
+  neckline?: Maybe<Scalars['String']['output']>;
+  pattern: Scalars['String']['output'];
+  productType: Scalars['String']['output'];
+  rawResponse?: Maybe<Scalars['String']['output']>;
+  sleeves?: Maybe<Scalars['String']['output']>;
+  style: Scalars['String']['output'];
+  suggestedModels: Array<SuggestedModel>;
+};
+
+export type ProductionAnalytics = {
+  __typename?: 'ProductionAnalytics';
+  avgProductionDays: Scalars['Int']['output'];
+  stageBreakdown: Array<Maybe<StageBreakdown>>;
+  totalCompleted: Scalars['Int']['output'];
+  totalInProgress: Scalars['Int']['output'];
+};
 
 /** 7-stage production process */
 export enum ProductionStage {
@@ -961,6 +1327,23 @@ export type ProductionTracking = {
   updatedAt: Scalars['String']['output'];
 };
 
+export type PublicPlatformStats = {
+  __typename?: 'PublicPlatformStats';
+  activeManufacturers: Scalars['Int']['output'];
+  activeWorkshops: Scalars['Int']['output'];
+  collectionsByCategory?: Maybe<Array<Maybe<CategoryBreakdown>>>;
+  collectionsByGender: CollectionGenderBreakdown;
+  growthMetrics: GrowthMetrics;
+  platformFeatures?: Maybe<Array<Maybe<PlatformFeature>>>;
+  recentActivity: RecentActivity;
+  suppliersByCountry?: Maybe<Array<Maybe<CountrySuppliers>>>;
+  sustainability: SustainabilityMetrics;
+  testimonials?: Maybe<Array<Maybe<Testimonial>>>;
+  totalCollections: Scalars['Int']['output'];
+  totalOrders: Scalars['Int']['output'];
+  totalProducts: Scalars['Int']['output'];
+};
+
 export type QualityControl = {
   __typename?: 'QualityControl';
   checkDate: Scalars['String']['output'];
@@ -1008,7 +1391,9 @@ export type Query = {
   collectionsByCompany?: Maybe<Array<Maybe<Collection>>>;
   company?: Maybe<Company>;
   companyMessages?: Maybe<Array<Maybe<Message>>>;
+  dashboardStats?: Maybe<DashboardStats>;
   featuredCollections?: Maybe<Array<Maybe<Collection>>>;
+  manufacturerOrders?: Maybe<Array<Maybe<Order>>>;
   me?: Maybe<User>;
   myCategories?: Maybe<Array<Maybe<Category>>>;
   myCertifications?: Maybe<Array<Maybe<Certification>>>;
@@ -1018,23 +1403,32 @@ export type Query = {
   myFabrics?: Maybe<Array<Maybe<Fabric>>>;
   myFits?: Maybe<Array<Maybe<FitItem>>>;
   myMessages?: Maybe<Array<Maybe<Message>>>;
+  myNotifications: Array<Notification>;
   myOrders?: Maybe<Array<Maybe<Order>>>;
   myQuestions?: Maybe<Array<Maybe<Question>>>;
   myReviews?: Maybe<Array<Maybe<Review>>>;
   mySamples?: Maybe<Array<Maybe<Sample>>>;
   mySeasons?: Maybe<Array<Maybe<SeasonItem>>>;
   mySizeGroups?: Maybe<Array<Maybe<SizeGroup>>>;
+  myWorkshops?: Maybe<Array<Maybe<Workshop>>>;
+  notification?: Maybe<Notification>;
   order?: Maybe<Order>;
   orders?: Maybe<Array<Maybe<Order>>>;
   pendingReviews?: Maybe<Array<Maybe<Review>>>;
+  productionAnalytics?: Maybe<ProductionAnalytics>;
   productionTracking?: Maybe<ProductionTracking>;
+  publicPlatformStats?: Maybe<PublicPlatformStats>;
   rootCategories?: Maybe<Array<Maybe<Category>>>;
   sample?: Maybe<Sample>;
   sampleProductionHistory?: Maybe<Array<Maybe<SampleProduction>>>;
   samples?: Maybe<Array<Maybe<Sample>>>;
   unansweredQuestions?: Maybe<Array<Maybe<Question>>>;
   unreadMessageCount?: Maybe<Scalars['Int']['output']>;
+  unreadNotificationCount: Scalars['Int']['output'];
   userStats?: Maybe<UserStats>;
+  workshop?: Maybe<Workshop>;
+  workshopStats?: Maybe<WorkshopStats>;
+  workshops?: Maybe<Array<Maybe<Workshop>>>;
 };
 
 
@@ -1095,6 +1489,8 @@ export type QueryCollectionsArgs = {
   isActive?: InputMaybe<Scalars['Boolean']['input']>;
   isFeatured?: InputMaybe<Scalars['Boolean']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  location?: InputMaybe<Scalars['String']['input']>;
+  manufacturerName?: InputMaybe<Scalars['String']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1122,13 +1518,30 @@ export type QueryCompanyMessagesArgs = {
 };
 
 
+export type QueryDashboardStatsArgs = {
+  period?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryFeaturedCollectionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
+export type QueryManufacturerOrdersArgs = {
+  status?: InputMaybe<OrderStatus>;
+};
+
+
 export type QueryMyMessagesArgs = {
   filter?: InputMaybe<MessageFilterInput>;
+};
+
+
+export type QueryMyNotificationsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  unreadOnly?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -1140,6 +1553,11 @@ export type QueryMyOrdersArgs = {
 export type QueryMySamplesArgs = {
   sampleType?: InputMaybe<SampleType>;
   status?: InputMaybe<SampleStatus>;
+};
+
+
+export type QueryNotificationArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -1187,6 +1605,22 @@ export type QuerySamplesArgs = {
   status?: InputMaybe<SampleStatus>;
 };
 
+
+export type QueryWorkshopArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryWorkshopStatsArgs = {
+  workshopId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryWorkshopsArgs = {
+  isActive?: InputMaybe<Scalars['Boolean']['input']>;
+  type?: InputMaybe<WorkshopType>;
+};
+
 export type Question = {
   __typename?: 'Question';
   answer?: Maybe<Scalars['String']['output']>;
@@ -1202,6 +1636,15 @@ export type Question = {
   manufactureId: Scalars['Int']['output'];
   question: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
+};
+
+export type RecentActivity = {
+  __typename?: 'RecentActivity';
+  activeProductionsNow: Scalars['Int']['output'];
+  completedOrdersThisMonth: Scalars['Int']['output'];
+  latestCollections?: Maybe<Array<Maybe<LatestCollection>>>;
+  newCollectionsThisWeek: Scalars['Int']['output'];
+  newManufacturersThisMonth: Scalars['Int']['output'];
 };
 
 export type Review = {
@@ -1231,6 +1674,10 @@ export enum Role {
 export type Sample = {
   __typename?: 'Sample';
   actualProductionDate?: Maybe<Scalars['DateTime']['output']>;
+  aiAnalysis?: Maybe<AiAnalysis>;
+  aiGenerated?: Maybe<Scalars['Boolean']['output']>;
+  aiPrompt?: Maybe<Scalars['String']['output']>;
+  aiSketchUrl?: Maybe<Scalars['String']['output']>;
   cargoTrackingNumber?: Maybe<Scalars['String']['output']>;
   collection?: Maybe<Collection>;
   company?: Maybe<Company>;
@@ -1239,10 +1686,13 @@ export type Sample = {
   customer?: Maybe<User>;
   customerNote?: Maybe<Scalars['String']['output']>;
   deliveryAddress?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
   estimatedProductionDate?: Maybe<Scalars['DateTime']['output']>;
   id: Scalars['Int']['output'];
+  images?: Maybe<Scalars['String']['output']>;
   manufacture?: Maybe<User>;
   manufacturerResponse?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
   originalCollection?: Maybe<Collection>;
   originalCollectionId?: Maybe<Scalars['Int']['output']>;
   productionDays?: Maybe<Scalars['Int']['output']>;
@@ -1268,12 +1718,16 @@ export type SampleProduction = {
   updatedBy?: Maybe<User>;
 };
 
-/** Status workflow for sample production - 9 stages */
+/** Status workflow for sample production - 13 stages (including AI design, hold and cancel options) */
 export enum SampleStatus {
+  AiDesign = 'AI_DESIGN',
+  Cancelled = 'CANCELLED',
   Completed = 'COMPLETED',
   InDesign = 'IN_DESIGN',
   InProduction = 'IN_PRODUCTION',
+  OnHold = 'ON_HOLD',
   PatternReady = 'PATTERN_READY',
+  PendingApproval = 'PENDING_APPROVAL',
   QualityCheck = 'QUALITY_CHECK',
   Received = 'RECEIVED',
   Rejected = 'REJECTED',
@@ -1351,6 +1805,12 @@ export enum SortOrder {
   Desc = 'desc'
 }
 
+export type StageBreakdown = {
+  __typename?: 'StageBreakdown';
+  count: Scalars['Int']['output'];
+  stage: Scalars['String']['output'];
+};
+
 /** Status of individual production stage */
 export enum StageStatus {
   Completed = 'COMPLETED',
@@ -1359,6 +1819,35 @@ export enum StageStatus {
   OnHold = 'ON_HOLD',
   RequiresRevision = 'REQUIRES_REVISION'
 }
+
+export type SuggestedModel = {
+  __typename?: 'SuggestedModel';
+  prompt: Scalars['String']['output'];
+  variant: Scalars['String']['output'];
+};
+
+export type SupplierInfo = {
+  __typename?: 'SupplierInfo';
+  city?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+};
+
+export type SustainabilityMetrics = {
+  __typename?: 'SustainabilityMetrics';
+  carbonFootprintReduction: Scalars['Float']['output'];
+  certifiedOrganicProducts: Scalars['Int']['output'];
+  gotsChronumCertified: Scalars['Int']['output'];
+  recycledMaterialUsage: Scalars['Float']['output'];
+  waterSavedLiters: Scalars['Int']['output'];
+};
+
+export type Testimonial = {
+  __typename?: 'Testimonial';
+  comment: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  rating: Scalars['Int']['output'];
+  role: Scalars['String']['output'];
+};
 
 export type UpdateCategoryInput = {
   companyId?: InputMaybe<Scalars['Int']['input']>;
@@ -1414,6 +1903,7 @@ export type UpdateCompanyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   email?: InputMaybe<Scalars['String']['input']>;
   isActive?: InputMaybe<Scalars['Boolean']['input']>;
+  location?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   phone?: InputMaybe<Scalars['String']['input']>;
   website?: InputMaybe<Scalars['String']['input']>;
@@ -1459,9 +1949,11 @@ export type UpdateSampleInput = {
   cargoTrackingNumber?: InputMaybe<Scalars['String']['input']>;
   customerNote?: InputMaybe<Scalars['String']['input']>;
   deliveryAddress?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
   estimatedProductionDate?: InputMaybe<Scalars['DateTime']['input']>;
   id: Scalars['Int']['input'];
   manufacturerResponse?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
   productionDays?: InputMaybe<Scalars['Int']['input']>;
   shippingDate?: InputMaybe<Scalars['DateTime']['input']>;
   status?: InputMaybe<SampleStatus>;
@@ -1541,6 +2033,7 @@ export type UserUpdateInput = {
 
 export type Workshop = {
   __typename?: 'Workshop';
+  activeProductionCount?: Maybe<Scalars['Int']['output']>;
   capacity?: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['String']['output'];
   id: Scalars['Int']['output'];
@@ -1549,7 +2042,21 @@ export type Workshop = {
   name: Scalars['String']['output'];
   owner?: Maybe<User>;
   ownerId: Scalars['Int']['output'];
+  packagingProductions?: Maybe<Array<Maybe<ProductionTracking>>>;
+  sewingProductions?: Maybe<Array<Maybe<ProductionTracking>>>;
+  totalProductionCount?: Maybe<Scalars['Int']['output']>;
   type: WorkshopType;
+  updatedAt: Scalars['DateTime']['output'];
+  utilizationRate?: Maybe<Scalars['Float']['output']>;
+};
+
+export type WorkshopStats = {
+  __typename?: 'WorkshopStats';
+  activeProductions: Scalars['Int']['output'];
+  completedProductions: Scalars['Int']['output'];
+  totalProductions: Scalars['Int']['output'];
+  totalWorkshops: Scalars['Int']['output'];
+  utilizationRate: Scalars['Int']['output'];
 };
 
 /** Types of workshops */
@@ -1681,10 +2188,38 @@ export type DeleteCertificationMutationVariables = Exact<{
 
 export type DeleteCertificationMutation = { __typename?: 'Mutation', deleteCertification?: { __typename?: 'Certification', id: number } | null };
 
-export type DashboardStatsQueryVariables = Exact<{ [key: string]: never; }>;
+export type PendingStageApprovalsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type DashboardStatsQuery = { __typename?: 'Query', collections?: Array<{ __typename?: 'Collection', id: number, name: string, createdAt: any } | null> | null, samples?: Array<{ __typename?: 'Sample', id: number, status: SampleStatus, createdAt: any } | null> | null, orders?: Array<{ __typename?: 'Order', id: number, status: OrderStatus, totalPrice: number, createdAt: any } | null> | null, allUsers: Array<{ __typename?: 'User', id: number, role: Role, createdAt: string }> };
+export type PendingStageApprovalsQuery = { __typename?: 'Query', allProductionTracking?: Array<{ __typename?: 'ProductionTracking', id: number, currentStage: ProductionStage, overallStatus: ProductionStatus, estimatedEndDate?: string | null, order?: { __typename?: 'Order', id: number, orderNumber: string } | null, sample?: { __typename?: 'Sample', id: number, sampleNumber: string } | null, stageUpdates?: Array<{ __typename?: 'ProductionStageUpdate', id: number, stage: ProductionStage, status: StageStatus, estimatedDays?: number | null, actualStartDate?: string | null } | null> | null } | null> | null };
+
+export type GenerateSampleDesignMutationVariables = Exact<{
+  sketchUrl: Scalars['String']['input'];
+  prompt: Scalars['String']['input'];
+  negativePrompt?: InputMaybe<Scalars['String']['input']>;
+  width?: InputMaybe<Scalars['Int']['input']>;
+  height?: InputMaybe<Scalars['Int']['input']>;
+  steps?: InputMaybe<Scalars['Int']['input']>;
+  cfgScale?: InputMaybe<Scalars['Float']['input']>;
+  collectionId?: InputMaybe<Scalars['Int']['input']>;
+  sampleName?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GenerateSampleDesignMutation = { __typename?: 'Mutation', generateSampleDesign?: { __typename?: 'Sample', id: number, sampleNumber: string, name?: string | null, description?: string | null, status: SampleStatus, images?: string | null, aiGenerated?: boolean | null, aiPrompt?: string | null, aiSketchUrl?: string | null, createdAt: any } | null };
+
+export type DashboardStatsQueryVariables = Exact<{
+  period?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type DashboardStatsQuery = { __typename?: 'Query', dashboardStats?: { __typename?: 'DashboardStats', totalCollections: number, totalSamples: number, totalOrders: number, totalProductions: number, pendingSamples: number, activeSamples: number, completedSamples: number, pendingOrders: number, activeOrders: number, completedOrders: number, activeProductions: number, completedProductions: number, totalMessages: number, unreadMessages: number, passedQC: number, failedQC: number, qcPassRate: number, recentSamples?: Array<{ __typename?: 'Sample', id: number, sampleNumber: string, status: SampleStatus, createdAt: any, collection?: { __typename?: 'Collection', id: number, name: string } | null } | null> | null, recentOrders?: Array<{ __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, quantity: number, totalPrice: number, createdAt: any } | null> | null, recentProductions?: Array<{ __typename?: 'ProductionTracking', id: number, currentStage: ProductionStage, createdAt: string, order?: { __typename?: 'Order', id: number, orderNumber: string } | null } | null> | null, monthlyStats?: Array<{ __typename?: 'MonthlyStats', month: string, samples: number, orders: number, completedProductions: number, revenue: number } | null> | null } | null };
+
+export type ProductionAnalyticsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ProductionAnalyticsQuery = { __typename?: 'Query', productionAnalytics?: { __typename?: 'ProductionAnalytics', totalInProgress: number, totalCompleted: number, avgProductionDays: number, stageBreakdown: Array<{ __typename?: 'StageBreakdown', stage: string, count: number } | null> } | null };
 
 export type UserStatsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2013,7 +2548,7 @@ export type CreateSampleMutationVariables = Exact<{
 }>;
 
 
-export type CreateSampleMutation = { __typename?: 'Mutation', createSample?: { __typename?: 'Sample', id: number, sampleNumber: string, sampleType: SampleType, status: SampleStatus, customerNote?: string | null, createdAt: any, collection?: { __typename?: 'Collection', id: number, name: string } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null } | null } | null };
+export type CreateSampleMutation = { __typename?: 'Mutation', createSample?: { __typename?: 'Sample', id: number, sampleNumber: string, sampleType: SampleType, status: SampleStatus, customerNote?: string | null, createdAt: any, collection?: { __typename?: 'Collection', id: number, name: string } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null } | null, aiAnalysis?: { __typename?: 'AIAnalysis', id: number, detectedProduct?: string | null, detectedColor?: string | null, detectedFabric?: string | null, qualityScore?: number | null, estimatedCostMin?: number | null, estimatedCostMax?: number | null, trendScore?: number | null, designStyle?: string | null } | null } | null };
 
 export type UpdateSampleMutationVariables = Exact<{
   input: UpdateSampleInput;
@@ -2035,6 +2570,40 @@ export type DeleteSampleMutationVariables = Exact<{
 
 
 export type DeleteSampleMutation = { __typename?: 'Mutation', deleteSample?: { __typename?: 'Sample', id: number, sampleNumber: string } | null };
+
+export type ApproveSampleMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  approve: Scalars['Boolean']['input'];
+  manufacturerNote?: InputMaybe<Scalars['String']['input']>;
+  estimatedDays?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type ApproveSampleMutation = { __typename?: 'Mutation', approveSample?: { __typename?: 'Sample', id: number, sampleNumber: string, status: SampleStatus, manufacturerResponse?: string | null, productionDays?: number | null, estimatedProductionDate?: any | null, updatedAt: any } | null };
+
+export type HoldSampleMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type HoldSampleMutation = { __typename?: 'Mutation', holdSample?: { __typename?: 'Sample', id: number, sampleNumber: string, status: SampleStatus, manufacturerResponse?: string | null, updatedAt: any } | null };
+
+export type CancelSampleMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CancelSampleMutation = { __typename?: 'Mutation', cancelSample?: { __typename?: 'Sample', id: number, sampleNumber: string, status: SampleStatus, manufacturerResponse?: string | null, updatedAt: any } | null };
+
+export type ResumeSampleMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  note?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ResumeSampleMutation = { __typename?: 'Mutation', resumeSample?: { __typename?: 'Sample', id: number, sampleNumber: string, status: SampleStatus, updatedAt: any } | null };
 
 export type CreateOrderMutationVariables = Exact<{
   collectionId: Scalars['Int']['input'];
@@ -2072,12 +2641,64 @@ export type UpdateOrderMutationVariables = Exact<{
 
 export type UpdateOrderMutation = { __typename?: 'Mutation', updateOrder?: { __typename?: 'Order', id: number, status: OrderStatus, manufacturerResponse?: string | null, productionDays?: number | null, estimatedProductionDate?: any | null } | null };
 
+export type UpdateCustomerOrderMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  quantity?: InputMaybe<Scalars['Int']['input']>;
+  unitPrice?: InputMaybe<Scalars['Float']['input']>;
+  customerNote?: InputMaybe<Scalars['String']['input']>;
+  deliveryAddress?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type UpdateCustomerOrderMutation = { __typename?: 'Mutation', updateCustomerOrder?: { __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, quantity: number, unitPrice: number, totalPrice: number, customerNote?: string | null, deliveryAddress?: string | null, updatedAt: any } | null };
+
+export type CancelOrderMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CancelOrderMutation = { __typename?: 'Mutation', cancelOrder?: { __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, updatedAt: any } | null };
+
 export type DeleteOrderMutationVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
 export type DeleteOrderMutation = { __typename?: 'Mutation', deleteOrder?: { __typename?: 'Order', id: number, orderNumber: string } | null };
+
+export type MyNotificationsQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  unreadOnly?: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type MyNotificationsQuery = { __typename?: 'Query', myNotifications: Array<{ __typename?: 'Notification', id: number, type: NotificationType, title: string, message: string, link?: string | null, isRead: boolean, createdAt: any, updatedAt: any }> };
+
+export type UnreadNotificationCountQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UnreadNotificationCountQuery = { __typename?: 'Query', unreadNotificationCount: number };
+
+export type MarkNotificationAsReadMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type MarkNotificationAsReadMutation = { __typename?: 'Mutation', markNotificationAsRead?: { __typename?: 'Notification', id: number, isRead: boolean } | null };
+
+export type MarkAllNotificationsAsReadMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MarkAllNotificationsAsReadMutation = { __typename?: 'Mutation', markAllNotificationsAsRead: number };
+
+export type DeleteNotificationMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteNotificationMutation = { __typename?: 'Mutation', deleteNotification?: { __typename?: 'Notification', id: number } | null };
 
 export type UpdateProductionStageMutationVariables = Exact<{
   input: UpdateProductionStageInput;
@@ -2093,7 +2714,36 @@ export type ProductionTrackingQueryVariables = Exact<{
 }>;
 
 
-export type ProductionTrackingQuery = { __typename?: 'Query', productionTracking?: { __typename?: 'ProductionTracking', id: number, orderId?: number | null, sampleId?: number | null, currentStage: ProductionStage, overallStatus: ProductionStatus, progress: number, estimatedStartDate?: string | null, estimatedEndDate?: string | null, actualStartDate?: string | null, actualEndDate?: string | null, notes?: string | null, createdAt: string, updatedAt: string, order?: { __typename?: 'Order', id: number, orderNumber: string } | null, sample?: { __typename?: 'Sample', id: number, sampleNumber: string } | null, stageUpdates?: Array<{ __typename?: 'ProductionStageUpdate', id: number, stage: ProductionStage, status: StageStatus, actualStartDate?: string | null, actualEndDate?: string | null, estimatedDays?: number | null, notes?: string | null, photos?: string | null, isRevision: boolean, extraDays: number, createdAt: string } | null> | null, qualityControls?: Array<{ __typename?: 'QualityControl', id: number, checkDate: string, result: QualityResult, score?: number | null, notes?: string | null, photos?: string | null, fabricDefects: boolean, sewingDefects: boolean, measureDefects: boolean, finishingDefects: boolean, createdAt: string, inspector?: { __typename?: 'User', id: number, firstName?: string | null, lastName?: string | null } | null } | null> | null } | null };
+export type ProductionTrackingQuery = { __typename?: 'Query', productionTracking?: { __typename?: 'ProductionTracking', id: number, orderId?: number | null, sampleId?: number | null, currentStage: ProductionStage, overallStatus: ProductionStatus, progress: number, estimatedStartDate?: string | null, estimatedEndDate?: string | null, actualStartDate?: string | null, actualEndDate?: string | null, notes?: string | null, createdAt: string, updatedAt: string, companyId?: number | null, order?: { __typename?: 'Order', id: number, orderNumber: string, manufacture?: { __typename?: 'User', id: number } | null, company?: { __typename?: 'Company', id: number } | null } | null, sample?: { __typename?: 'Sample', id: number, sampleNumber: string, manufacture?: { __typename?: 'User', id: number } | null, company?: { __typename?: 'Company', id: number } | null } | null, stageUpdates?: Array<{ __typename?: 'ProductionStageUpdate', id: number, stage: ProductionStage, status: StageStatus, actualStartDate?: string | null, actualEndDate?: string | null, estimatedDays?: number | null, notes?: string | null, photos?: string | null, isRevision: boolean, extraDays: number, createdAt: string } | null> | null, qualityControls?: Array<{ __typename?: 'QualityControl', id: number, checkDate: string, result: QualityResult, score?: number | null, notes?: string | null, photos?: string | null, fabricDefects: boolean, sewingDefects: boolean, measureDefects: boolean, finishingDefects: boolean, createdAt: string, inspector?: { __typename?: 'User', id: number, firstName?: string | null, lastName?: string | null } | null } | null> | null } | null };
+
+export type AddProductionStageUpdateMutationVariables = Exact<{
+  productionId: Scalars['Int']['input'];
+  stage: ProductionStage;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  photos?: InputMaybe<Scalars['String']['input']>;
+  hasDelay: Scalars['Boolean']['input'];
+  delayReason?: InputMaybe<Scalars['String']['input']>;
+  extraDays?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type AddProductionStageUpdateMutation = { __typename?: 'Mutation', addProductionStageUpdate?: { __typename?: 'ProductionStageUpdate', id: number, productionId: number, stage: ProductionStage, status: StageStatus, notes?: string | null, photos?: string | null, isRevision: boolean, extraDays: number, createdAt: string } | null };
+
+export type CompleteProductionStageMutationVariables = Exact<{
+  productionId: Scalars['Int']['input'];
+  stage: ProductionStage;
+}>;
+
+
+export type CompleteProductionStageMutation = { __typename?: 'Mutation', completeProductionStage?: { __typename?: 'ProductionTracking', id: number, currentStage: ProductionStage, overallStatus: ProductionStatus, progress: number } | null };
+
+export type RevertProductionStageMutationVariables = Exact<{
+  productionId: Scalars['Int']['input'];
+  targetStage: ProductionStage;
+}>;
+
+
+export type RevertProductionStageMutation = { __typename?: 'Mutation', revertProductionStage?: { __typename?: 'ProductionTracking', id: number, currentStage: ProductionStage, overallStatus: ProductionStatus, progress: number } | null };
 
 export type AskQuestionMutationVariables = Exact<{
   input: CreateQuestionInput;
@@ -2192,7 +2842,7 @@ export type AllCollectionsQueryVariables = Exact<{
 }>;
 
 
-export type AllCollectionsQuery = { __typename?: 'Query', collections?: Array<{ __typename?: 'Collection', id: number, name: string, description?: string | null, price: number, sku?: string | null, stock: number, images?: Array<string | null> | null, isActive: boolean, isFeatured: boolean, slug?: string | null, productionSchedule?: string | null, createdAt: any, updatedAt: any, samplesCount?: number | null, ordersCount?: number | null, category?: { __typename?: 'Category', id: number, name: string } | null, company?: { __typename?: 'Company', id: number, name: string } | null, author?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null } | null } | null> | null };
+export type AllCollectionsQuery = { __typename?: 'Query', collections?: Array<{ __typename?: 'Collection', id: number, name: string, description?: string | null, price: number, sku?: string | null, stock: number, images?: Array<string | null> | null, isActive: boolean, isFeatured: boolean, slug?: string | null, productionSchedule?: string | null, createdAt: any, updatedAt: any, modelCode: string, season?: Season | null, gender?: Gender | null, fit?: string | null, trend?: string | null, colors?: Array<string | null> | null, sizeRange?: string | null, measurementChart?: string | null, fabricComposition?: string | null, accessories?: string | null, techPack?: string | null, moq?: number | null, targetPrice?: number | null, targetLeadTime?: number | null, notes?: string | null, likesCount: number, samplesCount?: number | null, ordersCount?: number | null, category?: { __typename?: 'Category', id: number, name: string } | null, company?: { __typename?: 'Company', id: number, name: string, address?: string | null, location?: string | null } | null, author?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null } | null, certifications?: Array<{ __typename?: 'Certification', id: number, name: string, category: CertificationCategory, code?: string | null } | null> | null } | null> | null };
 
 export type CollectionByIdQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -2248,7 +2898,7 @@ export type MySamplesQueryVariables = Exact<{
 }>;
 
 
-export type MySamplesQuery = { __typename?: 'Query', mySamples?: Array<{ __typename?: 'Sample', id: number, sampleNumber: string, sampleType: SampleType, status: SampleStatus, customerNote?: string | null, productionDays?: number | null, estimatedProductionDate?: any | null, createdAt: any, collection?: { __typename?: 'Collection', id: number, name: string, images?: Array<string | null> | null } | null, originalCollection?: { __typename?: 'Collection', id: number, name: string } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null, company?: { __typename?: 'Company', id: number, name: string } | null } | null } | null> | null };
+export type MySamplesQuery = { __typename?: 'Query', mySamples?: Array<{ __typename?: 'Sample', id: number, sampleNumber: string, sampleType: SampleType, status: SampleStatus, customerNote?: string | null, manufacturerResponse?: string | null, productionDays?: number | null, estimatedProductionDate?: any | null, actualProductionDate?: any | null, createdAt: any, updatedAt: any, collection?: { __typename?: 'Collection', id: number, name: string, images?: Array<string | null> | null, modelCode: string } | null, originalCollection?: { __typename?: 'Collection', id: number, name: string } | null, customer?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string, company?: { __typename?: 'Company', id: number, name: string } | null } | null } | null> | null };
 
 export type AssignedSamplesQueryVariables = Exact<{
   status?: InputMaybe<SampleStatus>;
@@ -2290,7 +2940,7 @@ export type MyOrdersQueryVariables = Exact<{
 }>;
 
 
-export type MyOrdersQuery = { __typename?: 'Query', myOrders?: Array<{ __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, quantity: number, unitPrice: number, totalPrice: number, productionDays?: number | null, estimatedProductionDate?: any | null, actualProductionStart?: any | null, customerNote?: string | null, manufacturerResponse?: string | null, createdAt: any, collection?: { __typename?: 'Collection', id: number, name: string, modelCode: string, images?: Array<string | null> | null } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string, company?: { __typename?: 'Company', id: number, name: string } | null } | null } | null> | null };
+export type MyOrdersQuery = { __typename?: 'Query', myOrders?: Array<{ __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, quantity: number, unitPrice: number, totalPrice: number, productionDays?: number | null, estimatedProductionDate?: any | null, actualProductionStart?: any | null, customerNote?: string | null, manufacturerResponse?: string | null, createdAt: any, updatedAt: any, collection?: { __typename?: 'Collection', id: number, name: string, modelCode: string, images?: Array<string | null> | null } | null, customer?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string, company?: { __typename?: 'Company', id: number, name: string } | null } | null } | null> | null };
 
 export type AssignedOrdersQueryVariables = Exact<{
   status?: InputMaybe<OrderStatus>;
@@ -2298,6 +2948,11 @@ export type AssignedOrdersQueryVariables = Exact<{
 
 
 export type AssignedOrdersQuery = { __typename?: 'Query', assignedOrders?: Array<{ __typename?: 'Order', id: number, orderNumber: string, status: OrderStatus, quantity: number, unitPrice: number, totalPrice: number, productionDays?: number | null, estimatedProductionDate?: any | null, actualProductionStart?: any | null, customerNote?: string | null, manufacturerResponse?: string | null, createdAt: any, collection?: { __typename?: 'Collection', id: number, name: string, modelCode: string, images?: Array<string | null> | null } | null, customer?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string } | null, manufacture?: { __typename?: 'User', id: number, name?: string | null, firstName?: string | null, lastName?: string | null, email: string, company?: { __typename?: 'Company', id: number, name: string } | null } | null } | null> | null };
+
+export type PublicPlatformStatsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PublicPlatformStatsQuery = { __typename?: 'Query', publicPlatformStats?: { __typename?: 'PublicPlatformStats', totalProducts: number, activeManufacturers: number, activeWorkshops: number, totalCollections: number, totalOrders: number, collectionsByGender: { __typename?: 'CollectionGenderBreakdown', men: number, women: number, unisex: number }, collectionsByCategory?: Array<{ __typename?: 'CategoryBreakdown', category: string, count: number, men: number, women: number, unisex: number } | null> | null, sustainability: { __typename?: 'SustainabilityMetrics', carbonFootprintReduction: number, recycledMaterialUsage: number, certifiedOrganicProducts: number, gotsChronumCertified: number, waterSavedLiters: number }, suppliersByCountry?: Array<{ __typename?: 'CountrySuppliers', country: string, count: number, companies?: Array<{ __typename?: 'SupplierInfo', name: string, city?: string | null } | null> | null } | null> | null, platformFeatures?: Array<{ __typename?: 'PlatformFeature', title: string, description: string, icon: string } | null> | null, recentActivity: { __typename?: 'RecentActivity', newCollectionsThisWeek: number, completedOrdersThisMonth: number, newManufacturersThisMonth: number, activeProductionsNow: number, latestCollections?: Array<{ __typename?: 'LatestCollection', name: string, gender: string, createdAt: string } | null> | null }, testimonials?: Array<{ __typename?: 'Testimonial', name: string, role: string, rating: number, comment: string } | null> | null, growthMetrics: { __typename?: 'GrowthMetrics', monthlyGrowthRate: number, totalTransactionVolume: number, avgDeliveryDays: number, customerSatisfactionRate: number } } | null };
 
 export type CreateReviewMutationVariables = Exact<{
   input: CreateReviewInput;
@@ -2344,6 +2999,89 @@ export type PendingReviewsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type PendingReviewsQuery = { __typename?: 'Query', pendingReviews?: Array<{ __typename?: 'Review', id: number, rating: number, comment?: string | null, collectionId: number, createdAt: string, collection?: { __typename?: 'Collection', id: number, name: string } | null, customer?: { __typename?: 'User', id: number, firstName?: string | null, lastName?: string | null, email: string } | null } | null> | null };
+
+export type WorkshopsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type WorkshopsQuery = { __typename?: 'Query', workshops?: Array<{ __typename?: 'Workshop', id: number, name: string, type: WorkshopType, capacity?: number | null, location?: string | null, isActive: boolean, activeProductionCount?: number | null, totalProductionCount?: number | null, utilizationRate?: number | null, owner?: { __typename?: 'User', id: number, name?: string | null } | null } | null> | null };
+
+export type WorkshopQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type WorkshopQuery = { __typename?: 'Query', workshop?: { __typename?: 'Workshop', id: number, name: string, type: WorkshopType, capacity?: number | null, location?: string | null, isActive: boolean, activeProductionCount?: number | null, totalProductionCount?: number | null, utilizationRate?: number | null, owner?: { __typename?: 'User', id: number, name?: string | null } | null, sewingProductions?: Array<{ __typename?: 'ProductionTracking', id: number, currentStage: ProductionStage } | null> | null, packagingProductions?: Array<{ __typename?: 'ProductionTracking', id: number, currentStage: ProductionStage } | null> | null } | null };
+
+export type MyWorkshopsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyWorkshopsQuery = { __typename?: 'Query', myWorkshops?: Array<{ __typename?: 'Workshop', id: number, name: string, type: WorkshopType, capacity?: number | null, location?: string | null, isActive: boolean, activeProductionCount?: number | null, totalProductionCount?: number | null, utilizationRate?: number | null } | null> | null };
+
+export type WorkshopStatsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type WorkshopStatsQuery = { __typename?: 'Query', workshopStats?: { __typename?: 'WorkshopStats', totalWorkshops: number, totalProductions: number, activeProductions: number, completedProductions: number, utilizationRate: number } | null };
+
+export type CreateWorkshopMutationVariables = Exact<{
+  input: CreateWorkshopInput;
+}>;
+
+
+export type CreateWorkshopMutation = { __typename?: 'Mutation', createWorkshop?: { __typename?: 'Workshop', id: number, name: string, type: WorkshopType, capacity?: number | null, location?: string | null, isActive: boolean } | null };
+
+export type UpdateWorkshopMutationVariables = Exact<{
+  input: UpdateWorkshopInput;
+}>;
+
+
+export type UpdateWorkshopMutation = { __typename?: 'Mutation', updateWorkshop?: { __typename?: 'Workshop', id: number, name: string, type: WorkshopType, capacity?: number | null, location?: string | null, isActive: boolean } | null };
+
+export type DeleteWorkshopMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteWorkshopMutation = { __typename?: 'Mutation', deleteWorkshop?: { __typename?: 'Workshop', id: number, name: string } | null };
+
+export type AssignWorkshopToProductionMutationVariables = Exact<{
+  productionId: Scalars['Int']['input'];
+  sewingWorkshopId?: InputMaybe<Scalars['Int']['input']>;
+  packagingWorkshopId?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type AssignWorkshopToProductionMutation = { __typename?: 'Mutation', assignWorkshopToProduction?: { __typename?: 'ProductionTracking', id: number, currentStage: ProductionStage, sewingWorkshopId?: number | null, packagingWorkshopId?: number | null } | null };
+
+export type GetAiSamplesQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetAiSamplesQuery = { __typename?: 'Query', samples?: Array<{ __typename?: 'Sample', id: number, sampleNumber: string, name?: string | null, description?: string | null, status: SampleStatus, images?: string | null, aiGenerated?: boolean | null, aiPrompt?: string | null, aiSketchUrl?: string | null, createdAt: any } | null> | null };
+
+export type GenerateDesignFromTextMutationVariables = Exact<{
+  prompt: Scalars['String']['input'];
+  negativePrompt?: InputMaybe<Scalars['String']['input']>;
+  width?: InputMaybe<Scalars['Int']['input']>;
+  height?: InputMaybe<Scalars['Int']['input']>;
+  steps?: InputMaybe<Scalars['Int']['input']>;
+  cfgScale?: InputMaybe<Scalars['Float']['input']>;
+  collectionId?: InputMaybe<Scalars['Int']['input']>;
+  sampleName?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  workflowName?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GenerateDesignFromTextMutation = { __typename?: 'Mutation', generateDesignFromText?: { __typename?: 'Sample', id: number, sampleNumber: string, name?: string | null, description?: string | null, status: SampleStatus, images?: string | null, aiGenerated?: boolean | null, aiPrompt?: string | null, aiSketchUrl?: string | null, createdAt: any } | null };
+
+export type AnalyzeProductWithOllamaMutationVariables = Exact<{
+  imageUrl: Scalars['String']['input'];
+  userNotes?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type AnalyzeProductWithOllamaMutation = { __typename?: 'Mutation', analyzeProductWithOllama?: { __typename?: 'ProductAnalysisResult', productType: string, category: string, colors: Array<string>, material: string, pattern: string, style: string, neckline?: string | null, sleeves?: string | null, fit?: string | null, details: Array<string>, designPrompt: string, rawResponse?: string | null, suggestedModels: Array<{ __typename?: 'SuggestedModel', variant: string, prompt: string }> } | null };
 
 
 export const MyCategoriesDocument = gql`
@@ -2609,34 +3347,143 @@ export const DeleteCertificationDocument = gql`
 export function useDeleteCertificationMutation() {
   return Urql.useMutation<DeleteCertificationMutation, DeleteCertificationMutationVariables>(DeleteCertificationDocument);
 };
-export const DashboardStatsDocument = gql`
-    query DashboardStats {
-  collections(isActive: true) {
+export const PendingStageApprovalsDocument = gql`
+    query PendingStageApprovals {
+  allProductionTracking {
     id
+    currentStage
+    overallStatus
+    estimatedEndDate
+    order {
+      id
+      orderNumber
+    }
+    sample {
+      id
+      sampleNumber
+    }
+    stageUpdates {
+      id
+      stage
+      status
+      estimatedDays
+      actualStartDate
+    }
+  }
+}
+    `;
+
+export function usePendingStageApprovalsQuery(options?: Omit<Urql.UseQueryArgs<PendingStageApprovalsQueryVariables>, 'query'>) {
+  return Urql.useQuery<PendingStageApprovalsQuery, PendingStageApprovalsQueryVariables>({ query: PendingStageApprovalsDocument, ...options });
+};
+export const GenerateSampleDesignDocument = gql`
+    mutation GenerateSampleDesign($sketchUrl: String!, $prompt: String!, $negativePrompt: String, $width: Int, $height: Int, $steps: Int, $cfgScale: Float, $collectionId: Int, $sampleName: String, $description: String) {
+  generateSampleDesign(
+    sketchUrl: $sketchUrl
+    prompt: $prompt
+    negativePrompt: $negativePrompt
+    width: $width
+    height: $height
+    steps: $steps
+    cfgScale: $cfgScale
+    collectionId: $collectionId
+    sampleName: $sampleName
+    description: $description
+  ) {
+    id
+    sampleNumber
     name
-    createdAt
-  }
-  samples {
-    id
+    description
     status
+    images
+    aiGenerated
+    aiPrompt
+    aiSketchUrl
     createdAt
   }
-  orders {
-    id
-    status
-    totalPrice
-    createdAt
-  }
-  allUsers {
-    id
-    role
-    createdAt
+}
+    `;
+
+export function useGenerateSampleDesignMutation() {
+  return Urql.useMutation<GenerateSampleDesignMutation, GenerateSampleDesignMutationVariables>(GenerateSampleDesignDocument);
+};
+export const DashboardStatsDocument = gql`
+    query DashboardStats($period: String) {
+  dashboardStats(period: $period) {
+    totalCollections
+    totalSamples
+    totalOrders
+    totalProductions
+    pendingSamples
+    activeSamples
+    completedSamples
+    pendingOrders
+    activeOrders
+    completedOrders
+    activeProductions
+    completedProductions
+    totalMessages
+    unreadMessages
+    passedQC
+    failedQC
+    qcPassRate
+    recentSamples {
+      id
+      sampleNumber
+      status
+      createdAt
+      collection {
+        id
+        name
+      }
+    }
+    recentOrders {
+      id
+      orderNumber
+      status
+      quantity
+      totalPrice
+      createdAt
+    }
+    recentProductions {
+      id
+      currentStage
+      createdAt
+      order {
+        id
+        orderNumber
+      }
+    }
+    monthlyStats {
+      month
+      samples
+      orders
+      completedProductions
+      revenue
+    }
   }
 }
     `;
 
 export function useDashboardStatsQuery(options?: Omit<Urql.UseQueryArgs<DashboardStatsQueryVariables>, 'query'>) {
   return Urql.useQuery<DashboardStatsQuery, DashboardStatsQueryVariables>({ query: DashboardStatsDocument, ...options });
+};
+export const ProductionAnalyticsDocument = gql`
+    query ProductionAnalytics {
+  productionAnalytics {
+    totalInProgress
+    totalCompleted
+    avgProductionDays
+    stageBreakdown {
+      stage
+      count
+    }
+  }
+}
+    `;
+
+export function useProductionAnalyticsQuery(options?: Omit<Urql.UseQueryArgs<ProductionAnalyticsQueryVariables>, 'query'>) {
+  return Urql.useQuery<ProductionAnalyticsQuery, ProductionAnalyticsQueryVariables>({ query: ProductionAnalyticsDocument, ...options });
 };
 export const UserStatsDocument = gql`
     query UserStats {
@@ -3455,6 +4302,17 @@ export const CreateSampleDocument = gql`
       id
       name
     }
+    aiAnalysis {
+      id
+      detectedProduct
+      detectedColor
+      detectedFabric
+      qualityScore
+      estimatedCostMin
+      estimatedCostMax
+      trendScore
+      designStyle
+    }
   }
 }
     `;
@@ -3511,6 +4369,72 @@ export const DeleteSampleDocument = gql`
 
 export function useDeleteSampleMutation() {
   return Urql.useMutation<DeleteSampleMutation, DeleteSampleMutationVariables>(DeleteSampleDocument);
+};
+export const ApproveSampleDocument = gql`
+    mutation ApproveSample($id: Int!, $approve: Boolean!, $manufacturerNote: String, $estimatedDays: Int) {
+  approveSample(
+    id: $id
+    approve: $approve
+    manufacturerNote: $manufacturerNote
+    estimatedDays: $estimatedDays
+  ) {
+    id
+    sampleNumber
+    status
+    manufacturerResponse
+    productionDays
+    estimatedProductionDate
+    updatedAt
+  }
+}
+    `;
+
+export function useApproveSampleMutation() {
+  return Urql.useMutation<ApproveSampleMutation, ApproveSampleMutationVariables>(ApproveSampleDocument);
+};
+export const HoldSampleDocument = gql`
+    mutation HoldSample($id: Int!, $reason: String) {
+  holdSample(id: $id, reason: $reason) {
+    id
+    sampleNumber
+    status
+    manufacturerResponse
+    updatedAt
+  }
+}
+    `;
+
+export function useHoldSampleMutation() {
+  return Urql.useMutation<HoldSampleMutation, HoldSampleMutationVariables>(HoldSampleDocument);
+};
+export const CancelSampleDocument = gql`
+    mutation CancelSample($id: Int!, $reason: String) {
+  cancelSample(id: $id, reason: $reason) {
+    id
+    sampleNumber
+    status
+    manufacturerResponse
+    updatedAt
+  }
+}
+    `;
+
+export function useCancelSampleMutation() {
+  return Urql.useMutation<CancelSampleMutation, CancelSampleMutationVariables>(CancelSampleDocument);
+};
+export const ResumeSampleDocument = gql`
+    mutation ResumeSample($id: Int!, $note: String) {
+  resumeSample(id: $id, note: $note) {
+    id
+    sampleNumber
+    status
+    updatedAt
+  }
+}
+    `;
+
+export function useResumeSampleMutation() {
+  return Urql.useMutation<ResumeSampleMutation, ResumeSampleMutationVariables>(ResumeSampleDocument);
 };
 export const CreateOrderDocument = gql`
     mutation CreateOrder($collectionId: Int!, $quantity: Int!, $unitPrice: Float, $customerNote: String, $deliveryAddress: String, $estimatedDelivery: DateTime, $manufactureId: Int, $companyId: Int) {
@@ -3591,6 +4515,45 @@ export const UpdateOrderDocument = gql`
 export function useUpdateOrderMutation() {
   return Urql.useMutation<UpdateOrderMutation, UpdateOrderMutationVariables>(UpdateOrderDocument);
 };
+export const UpdateCustomerOrderDocument = gql`
+    mutation UpdateCustomerOrder($id: Int!, $quantity: Int, $unitPrice: Float, $customerNote: String, $deliveryAddress: String) {
+  updateCustomerOrder(
+    id: $id
+    quantity: $quantity
+    unitPrice: $unitPrice
+    customerNote: $customerNote
+    deliveryAddress: $deliveryAddress
+  ) {
+    id
+    orderNumber
+    status
+    quantity
+    unitPrice
+    totalPrice
+    customerNote
+    deliveryAddress
+    updatedAt
+  }
+}
+    `;
+
+export function useUpdateCustomerOrderMutation() {
+  return Urql.useMutation<UpdateCustomerOrderMutation, UpdateCustomerOrderMutationVariables>(UpdateCustomerOrderDocument);
+};
+export const CancelOrderDocument = gql`
+    mutation CancelOrder($id: Int!, $reason: String) {
+  cancelOrder(id: $id, reason: $reason) {
+    id
+    orderNumber
+    status
+    updatedAt
+  }
+}
+    `;
+
+export function useCancelOrderMutation() {
+  return Urql.useMutation<CancelOrderMutation, CancelOrderMutationVariables>(CancelOrderDocument);
+};
 export const DeleteOrderDocument = gql`
     mutation DeleteOrder($id: Int!) {
   deleteOrder(id: $id) {
@@ -3602,6 +4565,65 @@ export const DeleteOrderDocument = gql`
 
 export function useDeleteOrderMutation() {
   return Urql.useMutation<DeleteOrderMutation, DeleteOrderMutationVariables>(DeleteOrderDocument);
+};
+export const MyNotificationsDocument = gql`
+    query MyNotifications($limit: Int, $offset: Int, $unreadOnly: Boolean) {
+  myNotifications(limit: $limit, offset: $offset, unreadOnly: $unreadOnly) {
+    id
+    type
+    title
+    message
+    link
+    isRead
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+export function useMyNotificationsQuery(options?: Omit<Urql.UseQueryArgs<MyNotificationsQueryVariables>, 'query'>) {
+  return Urql.useQuery<MyNotificationsQuery, MyNotificationsQueryVariables>({ query: MyNotificationsDocument, ...options });
+};
+export const UnreadNotificationCountDocument = gql`
+    query UnreadNotificationCount {
+  unreadNotificationCount
+}
+    `;
+
+export function useUnreadNotificationCountQuery(options?: Omit<Urql.UseQueryArgs<UnreadNotificationCountQueryVariables>, 'query'>) {
+  return Urql.useQuery<UnreadNotificationCountQuery, UnreadNotificationCountQueryVariables>({ query: UnreadNotificationCountDocument, ...options });
+};
+export const MarkNotificationAsReadDocument = gql`
+    mutation MarkNotificationAsRead($id: Int!) {
+  markNotificationAsRead(id: $id) {
+    id
+    isRead
+  }
+}
+    `;
+
+export function useMarkNotificationAsReadMutation() {
+  return Urql.useMutation<MarkNotificationAsReadMutation, MarkNotificationAsReadMutationVariables>(MarkNotificationAsReadDocument);
+};
+export const MarkAllNotificationsAsReadDocument = gql`
+    mutation MarkAllNotificationsAsRead {
+  markAllNotificationsAsRead
+}
+    `;
+
+export function useMarkAllNotificationsAsReadMutation() {
+  return Urql.useMutation<MarkAllNotificationsAsReadMutation, MarkAllNotificationsAsReadMutationVariables>(MarkAllNotificationsAsReadDocument);
+};
+export const DeleteNotificationDocument = gql`
+    mutation DeleteNotification($id: Int!) {
+  deleteNotification(id: $id) {
+    id
+  }
+}
+    `;
+
+export function useDeleteNotificationMutation() {
+  return Urql.useMutation<DeleteNotificationMutation, DeleteNotificationMutationVariables>(DeleteNotificationDocument);
 };
 export const UpdateProductionStageDocument = gql`
     mutation UpdateProductionStage($input: UpdateProductionStageInput!) {
@@ -3640,13 +4662,26 @@ export const ProductionTrackingDocument = gql`
     notes
     createdAt
     updatedAt
+    companyId
     order {
       id
       orderNumber
+      manufacture {
+        id
+      }
+      company {
+        id
+      }
     }
     sample {
       id
       sampleNumber
+      manufacture {
+        id
+      }
+      company {
+        id
+      }
     }
     stageUpdates {
       id
@@ -3685,6 +4720,61 @@ export const ProductionTrackingDocument = gql`
 
 export function useProductionTrackingQuery(options?: Omit<Urql.UseQueryArgs<ProductionTrackingQueryVariables>, 'query'>) {
   return Urql.useQuery<ProductionTrackingQuery, ProductionTrackingQueryVariables>({ query: ProductionTrackingDocument, ...options });
+};
+export const AddProductionStageUpdateDocument = gql`
+    mutation AddProductionStageUpdate($productionId: Int!, $stage: ProductionStage!, $notes: String, $photos: String, $hasDelay: Boolean!, $delayReason: String, $extraDays: Int) {
+  addProductionStageUpdate(
+    productionId: $productionId
+    stage: $stage
+    notes: $notes
+    photos: $photos
+    hasDelay: $hasDelay
+    delayReason: $delayReason
+    extraDays: $extraDays
+  ) {
+    id
+    productionId
+    stage
+    status
+    notes
+    photos
+    isRevision
+    extraDays
+    createdAt
+  }
+}
+    `;
+
+export function useAddProductionStageUpdateMutation() {
+  return Urql.useMutation<AddProductionStageUpdateMutation, AddProductionStageUpdateMutationVariables>(AddProductionStageUpdateDocument);
+};
+export const CompleteProductionStageDocument = gql`
+    mutation CompleteProductionStage($productionId: Int!, $stage: ProductionStage!) {
+  completeProductionStage(productionId: $productionId, stage: $stage) {
+    id
+    currentStage
+    overallStatus
+    progress
+  }
+}
+    `;
+
+export function useCompleteProductionStageMutation() {
+  return Urql.useMutation<CompleteProductionStageMutation, CompleteProductionStageMutationVariables>(CompleteProductionStageDocument);
+};
+export const RevertProductionStageDocument = gql`
+    mutation RevertProductionStage($productionId: Int!, $targetStage: ProductionStage!) {
+  revertProductionStage(productionId: $productionId, targetStage: $targetStage) {
+    id
+    currentStage
+    overallStatus
+    progress
+  }
+}
+    `;
+
+export function useRevertProductionStageMutation() {
+  return Urql.useMutation<RevertProductionStageMutation, RevertProductionStageMutationVariables>(RevertProductionStageDocument);
 };
 export const AskQuestionDocument = gql`
     mutation AskQuestion($input: CreateQuestionInput!) {
@@ -4091,6 +5181,22 @@ export const AllCollectionsDocument = gql`
     productionSchedule
     createdAt
     updatedAt
+    modelCode
+    season
+    gender
+    fit
+    trend
+    colors
+    sizeRange
+    measurementChart
+    fabricComposition
+    accessories
+    techPack
+    moq
+    targetPrice
+    targetLeadTime
+    notes
+    likesCount
     category {
       id
       name
@@ -4098,12 +5204,20 @@ export const AllCollectionsDocument = gql`
     company {
       id
       name
+      address
+      location
     }
     author {
       id
       name
       firstName
       lastName
+    }
+    certifications {
+      id
+      name
+      category
+      code
     }
     samplesCount
     ordersCount
@@ -4406,21 +5520,35 @@ export const MySamplesDocument = gql`
     sampleType
     status
     customerNote
+    manufacturerResponse
     productionDays
     estimatedProductionDate
+    actualProductionDate
     createdAt
+    updatedAt
     collection {
       id
       name
       images
+      modelCode
     }
     originalCollection {
       id
       name
     }
+    customer {
+      id
+      name
+      firstName
+      lastName
+      email
+    }
     manufacture {
       id
       name
+      firstName
+      lastName
+      email
       company {
         id
         name
@@ -4617,11 +5745,19 @@ export const MyOrdersDocument = gql`
     customerNote
     manufacturerResponse
     createdAt
+    updatedAt
     collection {
       id
       name
       modelCode
       images
+    }
+    customer {
+      id
+      name
+      firstName
+      lastName
+      email
     }
     manufacture {
       id
@@ -4686,6 +5822,76 @@ export const AssignedOrdersDocument = gql`
 
 export function useAssignedOrdersQuery(options?: Omit<Urql.UseQueryArgs<AssignedOrdersQueryVariables>, 'query'>) {
   return Urql.useQuery<AssignedOrdersQuery, AssignedOrdersQueryVariables>({ query: AssignedOrdersDocument, ...options });
+};
+export const PublicPlatformStatsDocument = gql`
+    query PublicPlatformStats {
+  publicPlatformStats {
+    totalProducts
+    activeManufacturers
+    activeWorkshops
+    totalCollections
+    totalOrders
+    collectionsByGender {
+      men
+      women
+      unisex
+    }
+    collectionsByCategory {
+      category
+      count
+      men
+      women
+      unisex
+    }
+    sustainability {
+      carbonFootprintReduction
+      recycledMaterialUsage
+      certifiedOrganicProducts
+      gotsChronumCertified
+      waterSavedLiters
+    }
+    suppliersByCountry {
+      country
+      count
+      companies {
+        name
+        city
+      }
+    }
+    platformFeatures {
+      title
+      description
+      icon
+    }
+    recentActivity {
+      newCollectionsThisWeek
+      completedOrdersThisMonth
+      newManufacturersThisMonth
+      activeProductionsNow
+      latestCollections {
+        name
+        gender
+        createdAt
+      }
+    }
+    testimonials {
+      name
+      role
+      rating
+      comment
+    }
+    growthMetrics {
+      monthlyGrowthRate
+      totalTransactionVolume
+      avgDeliveryDays
+      customerSatisfactionRate
+    }
+  }
+}
+    `;
+
+export function usePublicPlatformStatsQuery(options?: Omit<Urql.UseQueryArgs<PublicPlatformStatsQueryVariables>, 'query'>) {
+  return Urql.useQuery<PublicPlatformStatsQuery, PublicPlatformStatsQueryVariables>({ query: PublicPlatformStatsDocument, ...options });
 };
 export const CreateReviewDocument = gql`
     mutation CreateReview($input: CreateReviewInput!) {
@@ -4810,4 +6016,231 @@ export const PendingReviewsDocument = gql`
 
 export function usePendingReviewsQuery(options?: Omit<Urql.UseQueryArgs<PendingReviewsQueryVariables>, 'query'>) {
   return Urql.useQuery<PendingReviewsQuery, PendingReviewsQueryVariables>({ query: PendingReviewsDocument, ...options });
+};
+export const WorkshopsDocument = gql`
+    query Workshops {
+  workshops {
+    id
+    name
+    type
+    capacity
+    location
+    isActive
+    activeProductionCount
+    totalProductionCount
+    utilizationRate
+    owner {
+      id
+      name
+    }
+  }
+}
+    `;
+
+export function useWorkshopsQuery(options?: Omit<Urql.UseQueryArgs<WorkshopsQueryVariables>, 'query'>) {
+  return Urql.useQuery<WorkshopsQuery, WorkshopsQueryVariables>({ query: WorkshopsDocument, ...options });
+};
+export const WorkshopDocument = gql`
+    query Workshop($id: Int!) {
+  workshop(id: $id) {
+    id
+    name
+    type
+    capacity
+    location
+    isActive
+    activeProductionCount
+    totalProductionCount
+    utilizationRate
+    owner {
+      id
+      name
+    }
+    sewingProductions {
+      id
+      currentStage
+    }
+    packagingProductions {
+      id
+      currentStage
+    }
+  }
+}
+    `;
+
+export function useWorkshopQuery(options: Omit<Urql.UseQueryArgs<WorkshopQueryVariables>, 'query'>) {
+  return Urql.useQuery<WorkshopQuery, WorkshopQueryVariables>({ query: WorkshopDocument, ...options });
+};
+export const MyWorkshopsDocument = gql`
+    query MyWorkshops {
+  myWorkshops {
+    id
+    name
+    type
+    capacity
+    location
+    isActive
+    activeProductionCount
+    totalProductionCount
+    utilizationRate
+  }
+}
+    `;
+
+export function useMyWorkshopsQuery(options?: Omit<Urql.UseQueryArgs<MyWorkshopsQueryVariables>, 'query'>) {
+  return Urql.useQuery<MyWorkshopsQuery, MyWorkshopsQueryVariables>({ query: MyWorkshopsDocument, ...options });
+};
+export const WorkshopStatsDocument = gql`
+    query WorkshopStats {
+  workshopStats {
+    totalWorkshops
+    totalProductions
+    activeProductions
+    completedProductions
+    utilizationRate
+  }
+}
+    `;
+
+export function useWorkshopStatsQuery(options?: Omit<Urql.UseQueryArgs<WorkshopStatsQueryVariables>, 'query'>) {
+  return Urql.useQuery<WorkshopStatsQuery, WorkshopStatsQueryVariables>({ query: WorkshopStatsDocument, ...options });
+};
+export const CreateWorkshopDocument = gql`
+    mutation CreateWorkshop($input: CreateWorkshopInput!) {
+  createWorkshop(input: $input) {
+    id
+    name
+    type
+    capacity
+    location
+    isActive
+  }
+}
+    `;
+
+export function useCreateWorkshopMutation() {
+  return Urql.useMutation<CreateWorkshopMutation, CreateWorkshopMutationVariables>(CreateWorkshopDocument);
+};
+export const UpdateWorkshopDocument = gql`
+    mutation UpdateWorkshop($input: UpdateWorkshopInput!) {
+  updateWorkshop(input: $input) {
+    id
+    name
+    type
+    capacity
+    location
+    isActive
+  }
+}
+    `;
+
+export function useUpdateWorkshopMutation() {
+  return Urql.useMutation<UpdateWorkshopMutation, UpdateWorkshopMutationVariables>(UpdateWorkshopDocument);
+};
+export const DeleteWorkshopDocument = gql`
+    mutation DeleteWorkshop($id: Int!) {
+  deleteWorkshop(id: $id) {
+    id
+    name
+  }
+}
+    `;
+
+export function useDeleteWorkshopMutation() {
+  return Urql.useMutation<DeleteWorkshopMutation, DeleteWorkshopMutationVariables>(DeleteWorkshopDocument);
+};
+export const AssignWorkshopToProductionDocument = gql`
+    mutation AssignWorkshopToProduction($productionId: Int!, $sewingWorkshopId: Int, $packagingWorkshopId: Int) {
+  assignWorkshopToProduction(
+    productionId: $productionId
+    sewingWorkshopId: $sewingWorkshopId
+    packagingWorkshopId: $packagingWorkshopId
+  ) {
+    id
+    currentStage
+    sewingWorkshopId
+    packagingWorkshopId
+  }
+}
+    `;
+
+export function useAssignWorkshopToProductionMutation() {
+  return Urql.useMutation<AssignWorkshopToProductionMutation, AssignWorkshopToProductionMutationVariables>(AssignWorkshopToProductionDocument);
+};
+export const GetAiSamplesDocument = gql`
+    query GetAISamples($limit: Int) {
+  samples(limit: $limit) {
+    id
+    sampleNumber
+    name
+    description
+    status
+    images
+    aiGenerated
+    aiPrompt
+    aiSketchUrl
+    createdAt
+  }
+}
+    `;
+
+export function useGetAiSamplesQuery(options?: Omit<Urql.UseQueryArgs<GetAiSamplesQueryVariables>, 'query'>) {
+  return Urql.useQuery<GetAiSamplesQuery, GetAiSamplesQueryVariables>({ query: GetAiSamplesDocument, ...options });
+};
+export const GenerateDesignFromTextDocument = gql`
+    mutation GenerateDesignFromText($prompt: String!, $negativePrompt: String, $width: Int, $height: Int, $steps: Int, $cfgScale: Float, $collectionId: Int, $sampleName: String, $description: String, $workflowName: String) {
+  generateDesignFromText(
+    prompt: $prompt
+    negativePrompt: $negativePrompt
+    width: $width
+    height: $height
+    steps: $steps
+    cfgScale: $cfgScale
+    collectionId: $collectionId
+    sampleName: $sampleName
+    description: $description
+    workflowName: $workflowName
+  ) {
+    id
+    sampleNumber
+    name
+    description
+    status
+    images
+    aiGenerated
+    aiPrompt
+    aiSketchUrl
+    createdAt
+  }
+}
+    `;
+
+export function useGenerateDesignFromTextMutation() {
+  return Urql.useMutation<GenerateDesignFromTextMutation, GenerateDesignFromTextMutationVariables>(GenerateDesignFromTextDocument);
+};
+export const AnalyzeProductWithOllamaDocument = gql`
+    mutation AnalyzeProductWithOllama($imageUrl: String!, $userNotes: String) {
+  analyzeProductWithOllama(imageUrl: $imageUrl, userNotes: $userNotes) {
+    productType
+    category
+    colors
+    material
+    pattern
+    style
+    neckline
+    sleeves
+    fit
+    details
+    suggestedModels {
+      variant
+      prompt
+    }
+    designPrompt
+    rawResponse
+  }
+}
+    `;
+
+export function useAnalyzeProductWithOllamaMutation() {
+  return Urql.useMutation<AnalyzeProductWithOllamaMutation, AnalyzeProductWithOllamaMutationVariables>(AnalyzeProductWithOllamaDocument);
 };

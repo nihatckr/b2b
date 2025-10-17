@@ -260,6 +260,27 @@ export const ALL_COLLECTIONS_QUERY = gql`
       productionSchedule
       createdAt
       updatedAt
+      # Model Bilgileri
+      modelCode
+      season
+      gender
+      fit
+      trend
+      # Varyantlar
+      colors
+      sizeRange
+      measurementChart
+      # Teknik Detaylar
+      fabricComposition
+      accessories
+      techPack
+      # Ticari Bilgiler
+      moq
+      targetPrice
+      targetLeadTime
+      notes
+      # Beğeni
+      likesCount
       category {
         id
         name
@@ -267,12 +288,21 @@ export const ALL_COLLECTIONS_QUERY = gql`
       company {
         id
         name
+        address
+        location
       }
       author {
         id
         name
         firstName
         lastName
+      }
+      # Sertifikalar
+      certifications {
+        id
+        name
+        category
+        code
       }
       samplesCount
       ordersCount
@@ -466,6 +496,10 @@ export const ALL_SAMPLES_QUERY = gql`
       deliveryAddress
       createdAt
       updatedAt
+      aiGenerated
+      aiPrompt
+      aiSketchUrl
+      images
       collection {
         id
         name
@@ -567,21 +601,39 @@ export const MY_SAMPLES_QUERY = gql`
       sampleType
       status
       customerNote
+      manufacturerResponse
       productionDays
       estimatedProductionDate
+      actualProductionDate
       createdAt
+      updatedAt
+      aiGenerated
+      aiPrompt
+      aiSketchUrl
+      images
       collection {
         id
         name
         images
+        modelCode
       }
       originalCollection {
         id
         name
       }
+      customer {
+        id
+        name
+        firstName
+        lastName
+        email
+      }
       manufacture {
         id
         name
+        firstName
+        lastName
+        email
         company {
           id
           name
@@ -602,6 +654,10 @@ export const ASSIGNED_SAMPLES_QUERY = gql`
       productionDays
       estimatedProductionDate
       createdAt
+      aiGenerated
+      aiPrompt
+      aiSketchUrl
+      images
       collection {
         id
         name
@@ -772,11 +828,19 @@ export const MY_ORDERS_QUERY = gql`
       customerNote
       manufacturerResponse
       createdAt
+      updatedAt
       collection {
         id
         name
         modelCode
         images
+      }
+      customer {
+        id
+        name
+        firstName
+        lastName
+        email
       }
       manufacture {
         id
@@ -831,6 +895,73 @@ export const ASSIGNED_ORDERS_QUERY = gql`
           id
           name
         }
+      }
+    }
+  }
+`;
+
+export const PUBLIC_PLATFORM_STATS_QUERY = gql`
+  query PublicPlatformStats {
+    publicPlatformStats {
+      totalProducts
+      activeManufacturers
+      activeWorkshops
+      totalCollections
+      totalOrders
+      collectionsByGender {
+        men
+        women
+        unisex
+      }
+      collectionsByCategory {
+        category
+        count
+        men
+        women
+        unisex
+      }
+      sustainability {
+        carbonFootprintReduction
+        recycledMaterialUsage
+        certifiedOrganicProducts
+        gotsChronumCertified
+        waterSavedLiters
+      }
+      suppliersByCountry {
+        country
+        count
+        companies {
+          name
+          city
+        }
+      }
+      platformFeatures {
+        title
+        description
+        icon
+      }
+      recentActivity {
+        newCollectionsThisWeek
+        completedOrdersThisMonth
+        newManufacturersThisMonth
+        activeProductionsNow
+        latestCollections {
+          name
+          gender
+          createdAt
+        }
+      }
+      testimonials {
+        name
+        role
+        rating
+        comment
+      }
+      growthMetrics {
+        monthlyGrowthRate
+        totalTransactionVolume
+        avgDeliveryDays
+        customerSatisfactionRate
       }
     }
   }

@@ -142,6 +142,15 @@ export const Collection = objectType({
         });
       },
     });
+
+    // Sertifikalar
+    t.list.field("certifications", {
+      type: "Certification",
+      resolve: (collection, _args, ctx) =>
+        ctx.prisma.collection
+          .findUnique({ where: { id: collection.id } })
+          .certifications(),
+    });
   },
 });
 

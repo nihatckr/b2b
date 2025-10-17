@@ -1,19 +1,19 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthProvider";
@@ -104,7 +104,7 @@ export function SignupForm({
 
       if (result.data?.signup?.token) {
         // Use auth context to handle login
-        login(result.data.signup.token, result.data.signup.user);
+        login(result.data.signup.token, result.data.signup.user as any);
 
         // Show success toast with user's name
         showToast(

@@ -43,3 +43,7 @@ coverage/
 # OS
 .DS_Store
 Thumbs.db
+
+# Uploads (keep structure but ignore uploaded files)
+uploads/*/
+!uploads/*/.gitkeep

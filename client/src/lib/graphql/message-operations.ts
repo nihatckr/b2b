@@ -6,16 +6,36 @@ export const SEND_MESSAGE_MUTATION = gql`
       id
       content
       senderId
-      receiver
+      receiverId
       isRead
       type
+      orderId
+      sampleId
       createdAt
       sender {
         id
-        name
         firstName
         lastName
         email
+      }
+      receiver {
+        id
+        firstName
+        lastName
+        email
+      }
+      order {
+        id
+        orderNumber
+        collection {
+          id
+          name
+        }
+      }
+      sample {
+        id
+        sampleNumber
+        name
       }
       company {
         id
@@ -48,13 +68,14 @@ export const MY_MESSAGES_QUERY = gql`
       id
       content
       senderId
-      receiver
+      receiverId
       isRead
       type
+      orderId
+      sampleId
       createdAt
       sender {
         id
-        name
         firstName
         lastName
         email
@@ -63,9 +84,58 @@ export const MY_MESSAGES_QUERY = gql`
           name
         }
       }
+      receiver {
+        id
+        firstName
+        lastName
+        email
+      }
+      order {
+        id
+        orderNumber
+        collection {
+          id
+          name
+        }
+      }
+      sample {
+        id
+        sampleNumber
+        name
+      }
       company {
         id
         name
+      }
+    }
+  }
+`;
+
+export const PRODUCT_MESSAGES_QUERY = gql`
+  query ProductMessages($orderId: Int, $sampleId: Int) {
+    productMessages(orderId: $orderId, sampleId: $sampleId) {
+      id
+      content
+      senderId
+      receiverId
+      isRead
+      type
+      createdAt
+      sender {
+        id
+        firstName
+        lastName
+        email
+        company {
+          id
+          name
+        }
+      }
+      receiver {
+        id
+        firstName
+        lastName
+        email
       }
     }
   }
@@ -83,16 +153,31 @@ export const COMPANY_MESSAGES_QUERY = gql`
       id
       content
       senderId
-      receiver
+      receiverId
       isRead
       type
+      orderId
+      sampleId
       createdAt
       sender {
         id
-        name
         firstName
         lastName
         email
+      }
+      receiver {
+        id
+        firstName
+        lastName
+        email
+      }
+      order {
+        id
+        orderNumber
+      }
+      sample {
+        id
+        sampleNumber
       }
       company {
         id

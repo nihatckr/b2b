@@ -1,6 +1,61 @@
-import { PrismaClient } from "../src/data/generated/prisma";
+import axios from "axios";
+import { PrismaClient } from "../src/generated/prisma";
 
 const prisma = new PrismaClient();
+
+// Unsplash API Configuration
+const UNSPLASH_ACCESS_KEY = "uBbrq5RdhbzS-x_Qe4OAflJ9KdlT-rj4Uu-XPXODIUQ"; // https://unsplash.com/developers
+const UNSPLASH_API_URL = "https://api.unsplash.com";
+
+/**
+ * Fetch random images from Unsplash Official API
+ * @param query - Search query (e.g., "fashion men tshirt", "women blouse")
+ * @param count - Number of images to fetch (1-30)
+ * @returns Array of image URLs
+ */
+async function fetchUnsplashImages(
+  query: string,
+  count: number = 1
+): Promise<string[]> {
+  try {
+    console.log(`🔍 Fetching ${count} images for: "${query}"...`);
+
+    const response = await axios.get(`${UNSPLASH_API_URL}/photos/random`, {
+      params: {
+        query,
+        count: Math.min(count, 30), // Unsplash max is 30
+        orientation: "portrait",
+        content_filter: "high", // Filter out potentially inappropriate content
+      },
+      headers: {
+        Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+      },
+    });
+
+    let imageUrls: string[];
+
+    if (Array.isArray(response.data)) {
+      imageUrls = response.data.map((photo: any) => photo.urls.regular);
+    } else {
+      imageUrls = [response.data.urls.regular];
+    }
+
+    console.log(`✅ Successfully fetched ${imageUrls.length} images`);
+    return imageUrls;
+
+  } catch (error: any) {
+    console.error(`❌ Error fetching Unsplash images for "${query}":`, error.message);
+
+    // Fallback to Source API (simpler, no auth needed)
+    console.log(`⚠️  Falling back to Source API...`);
+    const images: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const imageUrl = `https://source.unsplash.com/800x600/?${query}&sig=${Date.now()}-${i}`;
+      images.push(imageUrl);
+    }
+    return images;
+  }
+}
 
 async function main() {
   console.log(`Start seeding ...`);
@@ -44,6 +99,12 @@ async function main() {
           "hasan@lcwaikiki.com",
           "ali@lcwaikiki.com",
           "seda@lcwaikiki.com",
+          "rahman@dhaka-textile.com",
+          "wei@shanghai-fashion.com",
+          "nguyen@hanoi-garments.com",
+          "joao@porto-textiles.com",
+          "rajesh@mumbai-fabrics.com",
+          "youssef@casablanca-textile.com",
         ],
       },
     },
@@ -51,7 +112,16 @@ async function main() {
   await prisma.company.deleteMany({
     where: {
       email: {
-        in: ["info@defacto.com", "info@lcwaikiki.com"],
+        in: [
+          "info@defacto.com",
+          "info@lcwaikiki.com",
+          "info@dhaka-textile.com",
+          "info@shanghai-fashion.com",
+          "info@hanoi-garments.com",
+          "info@porto-textiles.com",
+          "info@mumbai-fabrics.com",
+          "info@casablanca-textile.com",
+        ],
       },
     },
   });
@@ -289,7 +359,209 @@ async function main() {
 
   console.log(`✅ Created ${lcwEmployees.count} LC Waikiki employees`);
 
-  // 6. Create sample categories for Defacto
+  // 6. Create More International Companies
+
+  // Bangladesh Manufacturer
+  const bangladeshOwner = await prisma.user.create({
+    data: {
+      firstName: "Rahman",
+      lastName: "Ahmed",
+      email: "rahman@dhaka-textile.com",
+      password: "$2a$10$k2rXCFgdmO84Vhkyb6trJ.oH6MYLf141uTPf81w04BImKVqDbBivi",
+      phone: "+880 1712 345678",
+      role: "COMPANY_OWNER",
+      isCompanyOwner: true,
+      isActive: true,
+    },
+  });
+
+  const bangladeshCompany = await prisma.company.create({
+    data: {
+      name: "Dhaka Premium Textiles Ltd.",
+      email: "info@dhaka-textile.com",
+      phone: "+880 2 8835555",
+      address: "Dhaka, Bangladesh",
+      website: "www.dhaka-textile.com",
+      type: "MANUFACTURER",
+      description: "Leading sustainable textile manufacturer in South Asia",
+      ownerId: bangladeshOwner.id,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: bangladeshOwner.id },
+    data: { companyId: bangladeshCompany.id },
+  });
+
+  // China Manufacturer
+  const chinaOwner = await prisma.user.create({
+    data: {
+      firstName: "Wei",
+      lastName: "Zhang",
+      email: "wei@shanghai-fashion.com",
+      password: "$2a$10$k2rXCFgdmO84Vhkyb6trJ.oH6MYLf141uTPf81w04BImKVqDbBivi",
+      phone: "+86 21 6234 5678",
+      role: "COMPANY_OWNER",
+      isCompanyOwner: true,
+      isActive: true,
+    },
+  });
+
+  const chinaCompany = await prisma.company.create({
+    data: {
+      name: "Shanghai Fashion Group Co.",
+      email: "info@shanghai-fashion.com",
+      phone: "+86 21 6234 5000",
+      address: "Shanghai, China",
+      website: "www.shanghai-fashion.com",
+      type: "MANUFACTURER",
+      description: "Premium fashion manufacturer with 25 years experience",
+      ownerId: chinaOwner.id,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: chinaOwner.id },
+    data: { companyId: chinaCompany.id },
+  });
+
+  // Vietnam Manufacturer
+  const vietnamOwner = await prisma.user.create({
+    data: {
+      firstName: "Nguyen",
+      lastName: "Tran",
+      email: "nguyen@hanoi-garments.com",
+      password: "$2a$10$k2rXCFgdmO84Vhkyb6trJ.oH6MYLf141uTPf81w04BImKVqDbBivi",
+      phone: "+84 24 3826 5555",
+      role: "COMPANY_OWNER",
+      isCompanyOwner: true,
+      isActive: true,
+    },
+  });
+
+  const vietnamCompany = await prisma.company.create({
+    data: {
+      name: "Hanoi Garments Manufacturing",
+      email: "info@hanoi-garments.com",
+      phone: "+84 24 3826 5000",
+      address: "Hanoi, Vietnam",
+      website: "www.hanoi-garments.com",
+      type: "MANUFACTURER",
+      description: "Quality garment production with eco-friendly processes",
+      ownerId: vietnamOwner.id,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: vietnamOwner.id },
+    data: { companyId: vietnamCompany.id },
+  });
+
+  // Portugal Manufacturer
+  const portugalOwner = await prisma.user.create({
+    data: {
+      firstName: "João",
+      lastName: "Silva",
+      email: "joao@porto-textiles.com",
+      password: "$2a$10$k2rXCFgdmO84Vhkyb6trJ.oH6MYLf141uTPf81w04BImKVqDbBivi",
+      phone: "+351 22 123 4567",
+      role: "COMPANY_OWNER",
+      isCompanyOwner: true,
+      isActive: true,
+    },
+  });
+
+  const portugalCompany = await prisma.company.create({
+    data: {
+      name: "Porto Textiles & Fashion S.A.",
+      email: "info@porto-textiles.com",
+      phone: "+351 22 123 4500",
+      address: "Porto, Portugal",
+      website: "www.porto-textiles.com",
+      type: "MANUFACTURER",
+      description: "European luxury textile manufacturer",
+      ownerId: portugalOwner.id,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: portugalOwner.id },
+    data: { companyId: portugalCompany.id },
+  });
+
+  // India Manufacturer
+  const indiaOwner = await prisma.user.create({
+    data: {
+      firstName: "Rajesh",
+      lastName: "Kumar",
+      email: "rajesh@mumbai-fabrics.com",
+      password: "$2a$10$k2rXCFgdmO84Vhkyb6trJ.oH6MYLf141uTPf81w04BImKVqDbBivi",
+      phone: "+91 22 2345 6789",
+      role: "COMPANY_OWNER",
+      isCompanyOwner: true,
+      isActive: true,
+    },
+  });
+
+  const indiaCompany = await prisma.company.create({
+    data: {
+      name: "Mumbai Premium Fabrics Pvt Ltd",
+      email: "info@mumbai-fabrics.com",
+      phone: "+91 22 2345 6700",
+      address: "Mumbai, India",
+      website: "www.mumbai-fabrics.com",
+      type: "MANUFACTURER",
+      description: "Certified organic and sustainable textile production",
+      ownerId: indiaOwner.id,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: indiaOwner.id },
+    data: { companyId: indiaCompany.id },
+  });
+
+  // Morocco Manufacturer
+  const moroccoOwner = await prisma.user.create({
+    data: {
+      firstName: "Youssef",
+      lastName: "Benali",
+      email: "youssef@casablanca-textile.com",
+      password: "$2a$10$k2rXCFgdmO84Vhkyb6trJ.oH6MYLf141uTPf81w04BImKVqDbBivi",
+      phone: "+212 522 345 678",
+      role: "COMPANY_OWNER",
+      isCompanyOwner: true,
+      isActive: true,
+    },
+  });
+
+  const moroccoCompany = await prisma.company.create({
+    data: {
+      name: "Casablanca Textile Industries",
+      email: "info@casablanca-textile.com",
+      phone: "+212 522 345 600",
+      address: "Casablanca, Morocco",
+      website: "www.casablanca-textile.com",
+      type: "MANUFACTURER",
+      description: "Mediterranean textile excellence",
+      ownerId: moroccoOwner.id,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: moroccoOwner.id },
+    data: { companyId: moroccoCompany.id },
+  });
+
+  console.log(`✅ Created 6 international manufacturers (Bangladesh, China, Vietnam, Portugal, India, Morocco)`);
+
+  // 7. Create sample categories for Defacto
   const categories = await prisma.category.createMany({
     data: [
       {
@@ -316,6 +588,7 @@ async function main() {
   const allCategories = await prisma.category.findMany();
   const erkekGiyim = allCategories.find((c) => c.name === "Erkek Giyim");
   const kadinGiyim = allCategories.find((c) => c.name === "Kadın Giyim");
+  const cocukGiyim = allCategories.find((c) => c.name === "Çocuk Giyim");
 
   // 7. Create Library Items (Color, Fabric, SizeGroup)
   console.log("📚 Creating library items...");
@@ -935,6 +1208,20 @@ async function main() {
   console.log(`✅ Created 16 certifications for Defacto (5 categories)`);
 
   // 8. Create Collections
+  console.log("📸 Fetching images from Unsplash...");
+
+  // Fetch images for different collection types - Fashion & Moda focused
+  const tshirtImages = await fetchUnsplashImages("mens fashion tshirt model", 3);
+  const blouseImages = await fetchUnsplashImages("womens fashion blouse elegant", 2);
+  const sweatshirtImages = await fetchUnsplashImages("streetwear fashion hoodie sweatshirt", 3);
+  const jacketImages = await fetchUnsplashImages("sustainable fashion jacket outerwear", 2);
+  const pantsImages = await fetchUnsplashImages("mens fashion denim jeans pants", 3);
+  const knitwearImages = await fetchUnsplashImages("womens fashion sweater knitwear", 2);
+  const underwearImages = await fetchUnsplashImages("kids fashion clothing", 2);
+  const sportswearImages = await fetchUnsplashImages("athletic fashion sportswear activewear", 3);
+
+  console.log("✅ Images fetched from Unsplash");
+
   const collection1 = await prisma.collection.create({
     data: {
       name: "Yaz 2025 Erkek Tişört Koleksiyonu",
@@ -957,11 +1244,7 @@ async function main() {
         label: "Dokuma etiket",
         hangtag: "Karton askılık",
       }),
-      images: JSON.stringify([
-        "/uploads/sample1.jpg",
-        "/uploads/sample2.jpg",
-        "/uploads/sample3.jpg",
-      ]),
+      images: JSON.stringify(tshirtImages),
 
       // ADIM 4: Ticari
       moq: 500,
@@ -1012,7 +1295,7 @@ async function main() {
         buttons: "Sedef düğme",
         label: "Saten etiket",
       }),
-      images: JSON.stringify(["/uploads/bluz1.jpg", "/uploads/bluz2.jpg"]),
+      images: JSON.stringify(blouseImages),
 
       // ADIM 4
       moq: 300,
@@ -1062,6 +1345,7 @@ async function main() {
         zipper: "YKK fermuarı",
         label: "Baskılı etiket",
       }),
+      images: JSON.stringify(sweatshirtImages),
 
       // ADIM 4
       moq: 800,
@@ -1089,7 +1373,194 @@ async function main() {
     },
   });
 
-  console.log(`✅ Created 3 collections`);
+  // More collections with sustainability data
+  const collection4 = await prisma.collection.create({
+    data: {
+      name: "Eco-Friendly Dış Giyim Kış 2025",
+      description: "Geri dönüştürülmüş malzemelerden üretilmiş sürdürülebilir dış giyim koleksiyonu.",
+      modelCode: "ECO-FW25-004",
+      season: "FW25",
+      gender: "UNISEX",
+      fit: "Regular Fit",
+      colors: JSON.stringify(["Yeşil", "Lacivert", "Kahverengi"]),
+      sizeRange: "S-XXL",
+      fabricComposition: "60% Geri Dönüştürülmüş Polyester 40% Organik Pamuk",
+      accessories: JSON.stringify({
+        zipper: "Geri dönüştürülmüş YKK fermuarı",
+        buttons: "Ahşap düğme",
+        label: "Organik pamuk etiket"
+      }),
+      images: JSON.stringify(jacketImages),
+      moq: 400,
+      targetPrice: 45.0,
+      targetLeadTime: 70,
+      notes: "GOTS sertifikalı, carbon neutral üretim",
+      price: 280.0,
+      sku: "ECO-2025-U-001",
+      stock: 300,
+      productionSchedule: {
+        PLANNING: 5,
+        FABRIC: 7,
+        CUTTING: 4,
+        SEWING: 20,
+        QUALITY: 4,
+        PACKAGING: 2,
+        SHIPPING: 2,
+      },
+      isActive: true,
+      isFeatured: true,
+      authorId: defactoOwner.id,
+      companyId: defacto.id,
+    },
+  });
+
+  const collection5 = await prisma.collection.create({
+    data: {
+      name: "Premium Alt Giyim Erkek 2025",
+      description: "Yüksek kaliteli pantolon ve jean koleksiyonu.",
+      modelCode: "PNT-SS25-005",
+      season: "SS25",
+      gender: "MEN",
+      fit: "Slim Fit",
+      colors: JSON.stringify(["İndigo", "Siyah", "Gri", "Bej"]),
+      sizeRange: "28-40",
+      fabricComposition: "98% Pamuk 2% Elastan",
+      accessories: JSON.stringify({
+        rivets: "Metal rivet",
+        button: "Metal düğme",
+        zipper: "YKK metal fermuarı"
+      }),
+      images: JSON.stringify(pantsImages),
+      moq: 600,
+      targetPrice: 28.0,
+      targetLeadTime: 55,
+      price: 180.0,
+      sku: "PNT-2025-M-001",
+      stock: 800,
+      productionSchedule: {
+        PLANNING: 3,
+        FABRIC: 6,
+        CUTTING: 4,
+        SEWING: 18,
+        QUALITY: 3,
+        PACKAGING: 2,
+        SHIPPING: 1,
+      },
+      isActive: true,
+      authorId: defactoOwner.id,
+      companyId: defacto.id,
+    },
+  });
+
+  const collection6 = await prisma.collection.create({
+    data: {
+      name: "Sonbahar Üst Giyim Kadın 2025",
+      description: "Triko, kazak ve hırka koleksiyonu.",
+      modelCode: "KNT-FW25-006",
+      season: "FW25",
+      gender: "WOMEN",
+      fit: "Regular Fit",
+      colors: JSON.stringify(["Krem", "Bordo", "Lacivert", "Siyah"]),
+      sizeRange: "XS-XL",
+      fabricComposition: "70% Akrilik 30% Yün",
+      images: JSON.stringify(knitwearImages),
+      moq: 350,
+      targetPrice: 32.0,
+      targetLeadTime: 65,
+      price: 195.0,
+      sku: "KNT-2025-K-001",
+      stock: 450,
+      productionSchedule: {
+        PLANNING: 4,
+        FABRIC: 8,
+        CUTTING: 3,
+        SEWING: 15,
+        QUALITY: 3,
+        PACKAGING: 2,
+        SHIPPING: 1,
+      },
+      isActive: true,
+      isFeatured: true,
+      categoryId: kadinGiyim?.id,
+      authorId: defactoOwner.id,
+      companyId: defacto.id,
+    },
+  });
+
+  const collection7 = await prisma.collection.create({
+    data: {
+      name: "Çocuk İç Giyim Yaz 2025",
+      description: "Yumuşak ve konforlu çocuk iç giyim seti.",
+      modelCode: "UND-SS25-007",
+      season: "SS25",
+      gender: "UNISEX",
+      fit: "Regular Fit",
+      colors: JSON.stringify(["Beyaz", "Mavi", "Pembe", "Sarı"]),
+      sizeRange: "2-12 yaş",
+      fabricComposition: "95% Pamuk 5% Elastan",
+      images: JSON.stringify(underwearImages),
+      moq: 1000,
+      targetPrice: 8.5,
+      targetLeadTime: 35,
+      price: 45.0,
+      sku: "UND-2025-K-001",
+      stock: 1500,
+      productionSchedule: {
+        PLANNING: 2,
+        FABRIC: 3,
+        CUTTING: 2,
+        SEWING: 6,
+        QUALITY: 1,
+        PACKAGING: 1,
+        SHIPPING: 1,
+      },
+      isActive: true,
+      categoryId: cocukGiyim?.id,
+      authorId: defactoOwner.id,
+      companyId: defacto.id,
+    },
+  });
+
+  const collection8 = await prisma.collection.create({
+    data: {
+      name: "Spor Giyim Unisex 2025",
+      description: "Aktif yaşam için tasarlanmış performans giyim koleksiyonu.",
+      modelCode: "SPR-SS25-008",
+      season: "SS25",
+      gender: "UNISEX",
+      fit: "Athletic Fit",
+      colors: JSON.stringify(["Siyah", "Gri", "Lacivert", "Kırmızı"]),
+      sizeRange: "XS-XXL",
+      fabricComposition: "88% Polyester 12% Elastan (Moisture Wicking)",
+      accessories: JSON.stringify({
+        reflective: "Yansıtıcı bant",
+        label: "Lazer kesim etiket"
+      }),
+      images: JSON.stringify(sportswearImages),
+      moq: 500,
+      targetPrice: 18.0,
+      targetLeadTime: 40,
+      notes: "Quick-dry teknolojisi, anti-bacterial",
+      price: 95.0,
+      sku: "SPR-2025-U-001",
+      stock: 900,
+      productionSchedule: {
+        PLANNING: 2,
+        FABRIC: 4,
+        CUTTING: 2,
+        SEWING: 10,
+        QUALITY: 2,
+        PACKAGING: 1,
+        SHIPPING: 1,
+      },
+      isActive: true,
+      isFeatured: true,
+      authorId: defactoOwner.id,
+      companyId: defacto.id,
+    },
+  });
+
+  console.log(`✅ Created 8 collections (including eco-friendly and diverse categories)`);
 
   // 9. Create Samples
   const sample1 = await prisma.sample.create({
@@ -1390,6 +1861,108 @@ async function main() {
 
   console.log(`✅ Created production tracking with 7 stages`);
 
+  // 🧪 TEST: Create order with stage completion in 3 hours
+  const testOrder = await prisma.order.create({
+    data: {
+      orderNumber: "ORD-2025-TEST-URGENT",
+      quantity: 100,
+      unitPrice: 35.0,
+      totalPrice: 3500.0,
+      status: "IN_PRODUCTION",
+      customerNote: "Test siparişi - 3 saat içinde bitecek aşama",
+      manufacturerResponse: "Onaylandı, hızlı üretim",
+      productionDays: 1,
+      estimatedProductionDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      actualProductionStart: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
+      deliveryAddress: "LC Waikiki Test Depo",
+      collectionId: collection1.id,
+      customerId: lcwOwner.id,
+      manufactureId: defactoOwner.id,
+      companyId: lcwaikiki.id,
+    },
+  });
+
+  // Calculate times for test order (2 hours ago started, 5 hours total = 3 hours remaining)
+  const testStartTime = new Date();
+  testStartTime.setHours(testStartTime.getHours() - 2); // Started 2 hours ago
+
+  const testEndTime = new Date(testStartTime);
+  testEndTime.setHours(testEndTime.getHours() + 5); // Will end in 3 hours from now
+
+  const testProductionTracking = await prisma.productionTracking.create({
+    data: {
+      orderId: testOrder.id,
+      currentStage: "FABRIC",
+      overallStatus: "IN_PROGRESS",
+      progress: 40,
+      estimatedStartDate: testStartTime,
+      estimatedEndDate: testEndTime,
+      actualStartDate: testStartTime,
+      notes: "🧪 TEST: Bu aşama 3 saat içinde bitecek - dashboard'da görünmeli",
+      companyId: defacto.id,
+    },
+  });
+
+  const planningStartTime = new Date(testStartTime);
+  planningStartTime.setHours(planningStartTime.getHours() - 1); // 1 hour before fabric
+
+  const planningEndTime = new Date(testStartTime); // Ended when fabric started
+
+  await prisma.productionStageUpdate.createMany({
+    data: [
+      {
+        productionId: testProductionTracking.id,
+        stage: "PLANNING",
+        status: "COMPLETED",
+        actualStartDate: planningStartTime,
+        actualEndDate: planningEndTime,
+        estimatedDays: 1, // 1 day (minimum for Int type)
+        notes: "✅ Test planning tamamlandı",
+      },
+      {
+        productionId: testProductionTracking.id,
+        stage: "FABRIC",
+        status: "IN_PROGRESS",
+        actualStartDate: testStartTime,
+        estimatedDays: 1, // 1 day (but we'll check based on actualStartDate + hours)
+        notes: "⏰ UYARI: Bu aşama 3 saat içinde bitecek - onay gerekiyor!",
+      },
+      {
+        productionId: testProductionTracking.id,
+        stage: "CUTTING",
+        status: "NOT_STARTED",
+        estimatedDays: 1,
+        notes: "Kumaş aşaması bittikten sonra başlayacak",
+      },
+      {
+        productionId: testProductionTracking.id,
+        stage: "SEWING",
+        status: "NOT_STARTED",
+        estimatedDays: 2,
+      },
+      {
+        productionId: testProductionTracking.id,
+        stage: "QUALITY",
+        status: "NOT_STARTED",
+        estimatedDays: 1,
+      },
+      {
+        productionId: testProductionTracking.id,
+        stage: "PACKAGING",
+        status: "NOT_STARTED",
+        estimatedDays: 1,
+      },
+      {
+        productionId: testProductionTracking.id,
+        stage: "SHIPPING",
+        status: "NOT_STARTED",
+        estimatedDays: 1,
+      },
+    ],
+  });
+
+  console.log(`✅ 🧪 TEST: Created urgent order with stage completion in 3 hours`);
+
   // Get quality inspector
   const sedaUser = await prisma.user.findUnique({
     where: { email: "seda@lcwaikiki.com" },
@@ -1468,7 +2041,7 @@ async function main() {
       {
         content: "Merhaba, sipariş durumu hakkında bilgi alabilir miyim?",
         senderId: lcwOwner.id,
-        receiver: defactoOwner.id.toString(),
+        receiverId: defactoOwner.id,
         type: "direct",
         isRead: true,
         companyId: lcwaikiki.id,
@@ -1476,7 +2049,7 @@ async function main() {
       {
         content: "Tabii ki! Siparişiniz üretimde, %65 tamamlandı.",
         senderId: defactoOwner.id,
-        receiver: lcwOwner.id.toString(),
+        receiverId: lcwOwner.id,
         type: "direct",
         isRead: false,
         companyId: defacto.id,
@@ -1485,7 +2058,7 @@ async function main() {
         content:
           "Tüm çalışanlara duyuru: Bu hafta kalite kontrol standartları güncellendi.",
         senderId: defactoOwner.id,
-        receiver: "all",
+        receiverId: null,
         type: "company",
         isRead: false,
         companyId: defacto.id,
@@ -1559,15 +2132,68 @@ async function main() {
 
   console.log(`✅ Created 3 reviews (2 approved, 1 pending)`);
 
+  // 19. Add more testimonials for landing page
+  const lcwBuyingManager = await prisma.user.findFirst({
+    where: { email: "hasan@lcwaikiki.com" },
+  });
+  const lcwProductionTracker = await prisma.user.findFirst({
+    where: { email: "ali@lcwaikiki.com" },
+  });
+  const lcwQualityManager = await prisma.user.findFirst({
+    where: { email: "seda@lcwaikiki.com" },
+  });
+
+  await prisma.review.createMany({
+    data: [
+      {
+        rating: 5,
+        comment: "ProtexFlow sayesinde üretim sürecimiz %40 hızlandı. Gerçek zamanlı takip sistemi harika!",
+        isApproved: true,
+        collectionId: collection1.id,
+        customerId: lcwOwner.id,
+      },
+      {
+        rating: 5,
+        comment: "Kalite kontrol modülü sayesinde hatalı ürün oranımız minimuma indi. Çok memnunuz!",
+        isApproved: true,
+        collectionId: collection2.id,
+        customerId: lcwBuyingManager!.id,
+      },
+      {
+        rating: 5,
+        comment: "AI destekli tasarım analizi çok kullanışlı. Teknik özellikleri otomatik çıkarması bize çok zaman kazandırıyor.",
+        isApproved: true,
+        collectionId: collection3.id,
+        customerId: lcwProductionTracker!.id,
+      },
+      {
+        rating: 4,
+        comment: "Platform çok kapsamlı ve kullanıcı dostu. Müşteri desteği de oldukça yardımcı.",
+        isApproved: true,
+        collectionId: collection1.id,
+        customerId: lcwQualityManager!.id,
+      },
+      {
+        rating: 5,
+        comment: "Sipariş yönetimi ve mesajlaşma sistemi çok pratik. Tüm iletişim tek platformda!",
+        isApproved: true,
+        collectionId: collection2.id,
+        customerId: lcwOwner.id,
+      },
+    ],
+  });
+
+  console.log(`✅ Created 8 total customer testimonials (all approved)`);
+
   console.log(`
-  
+
   ╔═══════════════════════════════════════════════════════════╗
   ║           🎉 DATABASE SEEDING TAMAMLANDI! 🎉              ║
   ╚═══════════════════════════════════════════════════════════╝
-  
+
   📊 OLUŞTURULAN VERİLER:
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   👥 Kullanıcılar:          9 (1 admin + 8 company users)
   🏢 Firmalar:              2 (1 manufacturer + 1 buyer)
   📁 Kategoriler:           3 (Erkek/Kadın/Çocuk Giyim)
@@ -1580,113 +2206,113 @@ async function main() {
   💬 Mesajlar:              3 (Direct + company messages)
   ❓ Sorular:               3 (2 answered, 1 pending)
   ⭐ Değerlendirmeler:      3 (2 approved, 1 pending)
-  
+
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   🔐 TEST HESAPLARI:
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   👨‍💼 PLATFORM ADMIN:
      📧 Email:    admin@platform.com
      🔑 Password: myPassword42
      🎯 Yetkiler: Tüm sisteme erişim
-  
+
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   🏭 DEFACTO TEKSTİL A.Ş. (ÜRETİCİ FİRMA):
-  
+
      👔 Firma Sahibi:
         📧 ahmet@defacto.com
         🔑 random42
         👤 Ahmet Yılmaz
         📞 +90 532 123 4567
         🎯 Tüm firma yetkilerine sahip
-     
+
      👥 Çalışanlar:
-     
+
         📦 Koleksiyon Yöneticisi
            👤 Ayşe Demir
            📧 ayse@defacto.com
            🔑 random42
            🏢 Tasarım Departmanı
            ✅ Koleksiyon oluştur, düzenle, sil
-        
+
         🧪 Numune Takip Uzmanı
            👤 Mehmet Kaya
            📧 mehmet@defacto.com
            🔑 random42
            🏢 Numune Departmanı
            ✅ Numune durum güncelle, yanıt ver
-        
+
         📋 Sipariş Yöneticisi
            👤 Zeynep Arslan
            📧 zeynep@defacto.com
            🔑 random42
            🏢 Satış Departmanı
            ✅ Teklif gönder, sipariş yönet
-        
+
         🏭 Üretim Takip Elemanı
            👤 Can Özdemir
            📧 can@defacto.com
            🔑 random42
            🏢 Üretim Departmanı
            ✅ Üretim aşamaları güncelle, atölye ata
-  
+
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   🛒 LC WAİKİKİ MAĞAZACILIK A.Ş. (MÜŞTERİ FİRMA):
-  
+
      👔 Firma Sahibi:
         📧 fatma@lcwaikiki.com
         🔑 iLikeTurtles42
         👤 Fatma Şahin
         📞 +90 532 111 2222
         🎯 Tüm firma yetkilerine sahip
-     
+
      👥 Çalışanlar:
-     
+
         💼 Satın Alma Müdürü
            👤 Hasan Demir
            📧 hasan@lcwaikiki.com
            🔑 iLikeTurtles42
            🏢 Satın Alma Departmanı
            ✅ Numune/Sipariş oluştur, onayla
-        
+
         📊 Üretim Takip Uzmanı
            👤 Ali Kara
            📧 ali@lcwaikiki.com
            🔑 iLikeTurtles42
            🏢 Üretim Takip Departmanı
            ✅ Üretim izle, revize talep et
-        
+
         ✅ Kalite Kontrol Uzmanı
            👤 Seda Yılmaz
            📧 seda@lcwaikiki.com
            🔑 iLikeTurtles42
            🏢 Kalite Kontrol Departmanı
            ✅ Kalite raporları görüntüle, yorum yap
-  
+
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   📦 ÖRNEK VERİLER:
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   📁 Koleksiyonlar:
      1. Yaz 2025 Erkek Tişört (₺45, 1000 adet stok)
      2. Sonbahar 2025 Kadın Bluz (₺89, 500 adet stok)
      3. İlkbahar 2025 Unisex Sweatshirt (₺120, 750 adet stok)
-  
+
   🎨 Numuneler:
      • SMP-2025-00001: COMPLETED (Standard, kargoya verildi)
      • SMP-2025-00002: IN_PRODUCTION (Revision, beden/renk değişikliği)
      • SMP-2025-00003: IN_DESIGN (Custom, özel tasarım)
-  
+
   🛒 Siparişler:
      • ORD-2025-00001: IN_PRODUCTION (500 adet, ₺21,000)
        └─ Production: %65 tamamlandı, SEWING aşamasında
      • ORD-2025-00002: QUOTE_SENT (300 adet, ₺25,500)
      • ORD-2025-00003: CONFIRMED (1000 adet, ₺115,000)
-  
+
   🏭 Üretim Takip:
      • 7 Aşamalı timeline
      • 3 aşama tamamlandı (Planning, Fabric, Cutting)
@@ -1694,24 +2320,24 @@ async function main() {
      • 3 aşama bekliyor (Quality, Packaging, Shipping)
      • 2 Kalite kontrol raporu
      • 2 Atölye ataması
-  
+
   💬 Mesajlar:
      • 3 mesaj (1 okundu, 2 okunmadı)
      • Direct ve company mesajları
-  
+
   ❓ Soru-Cevap:
      • 2 cevaplanmış soru (organik pamuk, minimum sipariş)
      • 1 bekleyen soru (renk seçenekleri)
-  
+
   ⭐ Değerlendirmeler:
      • 2 onaylanmış review (5⭐ ve 4⭐)
      • 1 onay bekleyen review (5⭐)
-  
+
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   🎯 TEST SENARYOLARI:
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   1️⃣  Admin Login → Tüm dashboard'ları görüntüle
   2️⃣  Ahmet (Defacto Owner) → Koleksiyonları yönet
   3️⃣  Mehmet (Numune Uzmanı) → Numune durumlarını güncelle
@@ -1720,11 +2346,11 @@ async function main() {
   6️⃣  Hasan (Satın Alma) → Siparişleri görüntüle, onayla
   7️⃣  Ali (Üretim Takip) → Production timeline'ı izle
   8️⃣  Seda (Kalite) → Quality reports görüntüle
-  
+
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  
+
   🚀 TÜM UI COMPONENT'LERİ TEST EDİLEBİLİR!
-  
+
   ✅ Dashboard (Grafikler, KPI'lar, Activity)
   ✅ Collections (Liste, detay, CRUD)
   ✅ Samples (Liste, detay, timeline, revision)
@@ -1735,7 +2361,7 @@ async function main() {
   ✅ Q&A (Sorular, cevaplar)
   ✅ Reviews (Değerlendirmeler, onay sistemi)
   ✅ Notifications (Bildirim merkezi)
-  
+
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
 }

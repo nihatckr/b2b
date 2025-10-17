@@ -1,19 +1,19 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthProvider";
@@ -84,7 +84,7 @@ export function LoginForm({ className, onSuccess, ...props }: LoginFormProps) {
 
       if (result.data?.login?.token) {
         // Use auth context to handle login
-        login(result.data.login.token, result.data.login.user);
+        login(result.data.login.token, result.data.login.user as any);
 
         // Show success toast
         showToast(
@@ -128,11 +128,11 @@ export function LoginForm({ className, onSuccess, ...props }: LoginFormProps) {
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+      <Card className="border-0 shadow-2xl">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-bold">Hoş Geldiniz</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Hesabınıza giriş yaparak devam edin
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -148,8 +148,9 @@ export function LoginForm({ className, onSuccess, ...props }: LoginFormProps) {
                       <Input
                         {...field}
                         type="email"
-                        placeholder="john@example.com"
+                        placeholder="ornek@email.com"
                         disabled={isLoading}
+                        className="h-11"
                       />
                     </FormControl>
                     <FormMessage />
@@ -162,13 +163,22 @@ export function LoginForm({ className, onSuccess, ...props }: LoginFormProps) {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Şifre</FormLabel>
+                      <a
+                        href="#"
+                        className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                      >
+                        Şifremi Unuttum?
+                      </a>
+                    </div>
                     <FormControl>
                       <Input
                         {...field}
                         type="password"
-                        placeholder="Enter your password"
+                        placeholder="••••••••"
                         disabled={isLoading}
+                        className="h-11"
                       />
                     </FormControl>
                     <FormMessage />
@@ -177,23 +187,58 @@ export function LoginForm({ className, onSuccess, ...props }: LoginFormProps) {
               />
 
               {form.formState.errors.root && (
-                <div className="text-sm text-red-600">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600">
                   {form.formState.errors.root.message}
                 </div>
               )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Sign in"}
+              <Button
+                type="submit"
+                className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                disabled={isLoading}
+              >
+                {isLoading ? "Giriş Yapılıyor..." : "Giriş Yap"}
               </Button>
 
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <a href="/signup" className="underline">
-                  Sign up
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-gray-500">
+                    veya
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-center text-sm text-gray-600">
+                Hesabınız yok mu?{" "}
+                <a href="/signup" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+                  Hemen Kaydolun
                 </a>
               </div>
             </form>
           </Form>
+        </CardContent>
+      </Card>
+
+      {/* Demo Accounts Info */}
+      <Card className="border-0 bg-blue-50/50 shadow-lg">
+        <CardContent className="pt-6">
+          <div className="text-xs text-gray-600 space-y-2">
+            <p className="font-semibold text-gray-700">🧪 Demo Hesaplar:</p>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div className="bg-white rounded p-2">
+                <p className="font-medium">Admin</p>
+                <p className="text-gray-500">admin@platform.com</p>
+              </div>
+              <div className="bg-white rounded p-2">
+                <p className="font-medium">Üretici</p>
+                <p className="text-gray-500">ahmet@defacto.com</p>
+              </div>
+            </div>
+            <p className="text-gray-500 italic">Şifre: myPassword42 / random42</p>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,5 +1,41 @@
 import { inputObjectType, objectType } from "nexus";
 
+export const AIAnalysisInput = inputObjectType({
+  name: "AIAnalysisInput",
+  definition(t) {
+    // Basic Analysis
+    t.string("detectedProduct");
+    t.string("detectedColor");
+    t.string("detectedFabric");
+    t.string("detectedPattern");
+    t.string("detectedGender");
+    t.string("detectedClassification");
+    t.string("detectedAccessories");
+    t.string("technicalDescription");
+
+    // Quality Analysis
+    t.string("qualityAnalysis");
+    t.float("qualityScore");
+
+    // Cost Analysis
+    t.string("costAnalysis");
+    t.float("estimatedCostMin");
+    t.float("estimatedCostMax");
+    t.int("suggestedMinOrder");
+
+    // Trend Analysis
+    t.string("trendAnalysis");
+    t.float("trendScore");
+    t.string("targetMarket");
+    t.string("salesPotential");
+
+    // Design Suggestions
+    t.string("designSuggestions");
+    t.string("designStyle");
+    t.string("designFocus");
+  },
+});
+
 export const Sample = objectType({
   name: "Sample",
   definition(t) {
@@ -80,6 +116,20 @@ export const Sample = objectType({
           .findUnique({ where: { id: sample.id } })
           .productionTracking(),
     });
+
+    t.field("aiAnalysis", {
+      type: "AIAnalysis",
+      resolve: (sample, _args, ctx) =>
+        ctx.prisma.sample.findUnique({ where: { id: sample.id } }).aiAnalysis(),
+    });
+
+    // AI Design fields
+    t.string("name");
+    t.string("description");
+    t.string("images");
+    t.boolean("aiGenerated");
+    t.string("aiPrompt");
+    t.string("aiSketchUrl");
   },
 });
 
@@ -130,6 +180,14 @@ export const CreateSampleInput = inputObjectType({
     // Optional manufacturer assignment
     t.int("manufactureId");
     t.int("companyId");
+
+    // AI Analysis
+    t.field("aiAnalysis", { type: "AIAnalysisInput" });
+
+    // AI Generated sample fields
+    t.boolean("aiGenerated");
+    t.string("aiSketchUrl");
+    t.list.string("images");
   },
 });
 
@@ -137,7 +195,10 @@ export const UpdateSampleInput = inputObjectType({
   name: "UpdateSampleInput",
   definition(t) {
     t.nonNull.int("id");
+    t.string("name");
+    t.string("description");
     t.field("status", { type: "SampleStatus" });
+    t.int("manufactureId"); // Added for assigning manufacturer
     t.string("customerNote");
     t.string("manufacturerResponse");
     t.int("productionDays");
