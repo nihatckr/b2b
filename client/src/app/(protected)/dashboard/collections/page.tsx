@@ -849,7 +849,12 @@ export default function CollectionsPage() {
             },
             options:
               seasons && seasons.length > 0
-                ? seasons.map((s: SeasonItem) => ({ value: s, label: s }))
+                ? seasons.map((s: SeasonItem) => ({
+                    value:
+                      typeof s === "string" ? s : s.name || s.id || String(s),
+                    label:
+                      typeof s === "string" ? s : s.name || s.id || String(s),
+                  }))
                 : [
                     { value: "SS25", label: "SS25" },
                     { value: "FW25", label: "FW25" },

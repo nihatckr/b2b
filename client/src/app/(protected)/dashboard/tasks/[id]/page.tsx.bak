@@ -269,11 +269,9 @@ export default function TaskDetailPage() {
                 </div>
                 <Button
                   className="w-full"
-                  onClick={() => {
-                    if (task.sample?.id) {
-                      router.push(`/dashboard/samples/${task.sample.id}`);
-                    }
-                  }}
+                  onClick={() =>
+                    router.push(`/dashboard/samples/${task.sample.id}`)
+                  }
                 >
                   Numune Detaylarına Git
                 </Button>
@@ -304,11 +302,9 @@ export default function TaskDetailPage() {
                 </div>
                 <Button
                   className="w-full"
-                  onClick={() => {
-                    if (task.order?.id) {
-                      router.push(`/dashboard/orders/${task.order.id}`);
-                    }
-                  }}
+                  onClick={() =>
+                    router.push(`/dashboard/orders/${task.order.id}`)
+                  }
                 >
                   Sipariş Detaylarına Git
                 </Button>
@@ -395,7 +391,7 @@ export default function TaskDetailPage() {
                 </p>
               </div>
 
-              {dueDate && (
+              {task.dueDate && (
                 <div>
                   <p className="text-gray-600">Son Tarih</p>
                   <div className="flex items-center gap-2 mt-1">
@@ -473,10 +469,9 @@ export default function TaskDetailPage() {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => {
-                    if (!task.collection?.id) return;
-                    router.push(`/dashboard/collections/${task.collection.id}`);
-                  }}
+                  onClick={() =>
+                    router.push(`/dashboard/collections/${task.collection.id}`)
+                  }
                 >
                   Koleksiyona Git
                 </Button>

@@ -8,14 +8,6 @@
         "${workspaceFolder}"
       ]
     },
-    "git": {
-      "command": "/path/to/git-mcp-go",
-      "args": ["serve", "-r", "/path/to/git/repository"]
-    },
-    "web-fetch": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-fetch"]
-    },
 
     "Prisma-Local": {
       "command": "npx",

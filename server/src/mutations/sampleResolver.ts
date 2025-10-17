@@ -596,6 +596,16 @@ export const sampleMutations = (t: any) => {
         }
       }
 
+      // Auto-complete related tasks when sample status changes to completion statuses
+      const taskHelper = new TaskHelper(context.prisma);
+      if (
+        input.status === "APPROVED" ||
+        input.status === "COMPLETED" ||
+        input.status === "CANCELLED"
+      ) {
+        await taskHelper.completeRelatedTasks(sample.id, undefined);
+      }
+
       return sample;
     },
   });
@@ -748,6 +758,13 @@ export const sampleMutations = (t: any) => {
             },
           });
         }
+      }
+
+      // Auto-complete related tasks when sample is approved
+      const taskHelper = new TaskHelper(context.prisma);
+      if (approve) {
+        // Only complete if sample was approved, not rejected
+        await taskHelper.completeRelatedTasks(sample.id, undefined);
       }
 
       return sample;

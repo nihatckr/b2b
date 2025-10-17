@@ -265,6 +265,16 @@ export const orderMutations = (t: any) => {
         },
       });
 
+      // Auto-complete related tasks when order status changes to completion statuses
+      const taskHelper = new TaskHelper(context.prisma);
+      if (
+        args.status === "DELIVERED" ||
+        args.status === "COMPLETED" ||
+        args.status === "CANCELLED"
+      ) {
+        await taskHelper.completeRelatedTasks(undefined, order.id);
+      }
+
       // Send notifications based on status change
       const statusMessages: Record<
         string,

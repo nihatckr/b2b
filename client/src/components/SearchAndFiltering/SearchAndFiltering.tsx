@@ -3,11 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import React from "react";
@@ -15,7 +15,7 @@ import React from "react";
 export interface FilterOption {
   value: string;
   label: string;
-  data?: any; // For additional data like hex color, etc.
+  data?: Record<string, unknown>; // For additional data like hex color, etc.
 }
 
 export interface FilterConfig {
@@ -104,8 +104,11 @@ export const SearchAndFiltering: React.FC<SearchAndFilteringProps> = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ALL">Tümü</SelectItem>
-                      {filter.options.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
+                      {filter.options.map((option, idx) => (
+                        <SelectItem
+                          key={`${filter.id}-${option.value}-${idx}`}
+                          value={option.value}
+                        >
                           {filter.renderOption
                             ? filter.renderOption(option)
                             : option.label}
@@ -174,7 +177,8 @@ export const SearchAndFiltering: React.FC<SearchAndFilteringProps> = ({
 
                         const showEllipsis =
                           (page === 2 && currentPage > 3) ||
-                          (page === totalPages - 1 && currentPage < totalPages - 2);
+                          (page === totalPages - 1 &&
+                            currentPage < totalPages - 2);
 
                         if (showEllipsis) {
                           return (
@@ -192,7 +196,9 @@ export const SearchAndFiltering: React.FC<SearchAndFilteringProps> = ({
                         return (
                           <Button
                             key={page}
-                            variant={currentPage === page ? "default" : "outline"}
+                            variant={
+                              currentPage === page ? "default" : "outline"
+                            }
                             size="sm"
                             onClick={() => onPageChange(page)}
                             className="h-8 w-8 p-0"
@@ -224,7 +230,9 @@ export const SearchAndFiltering: React.FC<SearchAndFilteringProps> = ({
         {/* Secondary Filter Chips (Below main bar) */}
         {secondaryFilterChips.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap pt-3 border-t">
-            <span className="text-xs text-muted-foreground">Diğer filtreler:</span>
+            <span className="text-xs text-muted-foreground">
+              Diğer filtreler:
+            </span>
             {secondaryFilterChips.map((chip) => (
               <button
                 key={chip.id}
@@ -243,7 +251,9 @@ export const SearchAndFiltering: React.FC<SearchAndFilteringProps> = ({
         <span>
           {resultsCount} sonuç bulundu
           {totalCount !== resultsCount && ` (${totalCount} toplam)`}
-          {showPagination && totalPages > 1 && ` • Sayfa ${currentPage} / ${totalPages}`}
+          {showPagination &&
+            totalPages > 1 &&
+            ` • Sayfa ${currentPage} / ${totalPages}`}
         </span>
       </div>
     </div>
