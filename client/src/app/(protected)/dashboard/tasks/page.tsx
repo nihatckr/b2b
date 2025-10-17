@@ -20,8 +20,9 @@ import {
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { AlertCircle, ChevronDown, Clock, Loader2, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useQuery } from "urql";
+import { useMutation, useQuery } from "urql";
 
 const TASKS_QUERY = `
   query MyTasks($status: String, $type: String, $priority: String) {
@@ -59,6 +60,24 @@ const TASKS_QUERY = `
         orderNumber
       }
       createdAt
+    }
+  }
+`;
+
+const UPDATE_TASK_STATUS = `
+  mutation UpdateTask($id: Int!, $status: String!) {
+    updateTask(input: { id: $id, status: $status }) {
+      id
+      status
+      completedAt
+    }
+  }
+`;
+
+const DELETE_TASK = `
+  mutation DeleteTask($id: Int!) {
+    deleteTask(id: $id) {
+      id
     }
   }
 `;
@@ -126,6 +145,10 @@ const priorityLabels = {
 };
 
 function TaskRow({ task }: { task: Task }) {
+  const router = useRouter();
+  const [, updateTaskStatus] = useMutation(UPDATE_TASK_STATUS);
+  const [, deleteTask] = useMutation(DELETE_TASK);
+
   const dueDate = task.dueDate ? new Date(task.dueDate) : null;
   const isOverdue =
     dueDate && dueDate < new Date() && task.status !== "COMPLETED";
@@ -137,6 +160,24 @@ function TaskRow({ task }: { task: Task }) {
   }) => {
     if (!user) return "-";
     return user.name || `${user.firstName} ${user.lastName}`.trim();
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    await updateTaskStatus({ id: task.id, status: newStatus });
+  };
+
+  const handleCompleteTask = async () => {
+    await handleStatusChange("COMPLETED");
+  };
+
+  const handleDelete = async () => {
+    if (
+      window.confirm(
+        `"${task.title}" görevini silmek istediğinizden emin misiniz?`
+      )
+    ) {
+      await deleteTask({ id: task.id });
+    }
   };
 
   return (
@@ -201,17 +242,25 @@ function TaskRow({ task }: { task: Task }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => alert(`Düzenleme: ${task.title}`)}>
-              Düzenle
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => alert(`Detaylar: ${task.title}`)}>
+            <DropdownMenuItem
+              onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
+            >
               Detayları Gör
             </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-red-600"
-              onClick={() => alert(`Silme: ${task.title}`)}
-            >
-              Sil
+            {task.status !== "COMPLETED" && (
+              <DropdownMenuItem onClick={handleCompleteTask}>
+                ✅ Tamamla
+              </DropdownMenuItem>
+            )}
+            {task.status === "TODO" && (
+              <DropdownMenuItem
+                onClick={() => handleStatusChange("IN_PROGRESS")}
+              >
+                ▶️ Başla
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem className="text-red-600" onClick={handleDelete}>
+              🗑️ Sil
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
