@@ -490,7 +490,12 @@ export class TaskHelper {
    * Zamanı kontrol et: aşama sonuna yaklaştıkça önceliği arttır
    * 75% geçildi: MEDIUM, 90% geçildi: HIGH
    */
-  async updateTaskPriorityByTime(orderId: number, stage: string, elapsedDays: number, estimatedDays: number) {
+  async updateTaskPriorityByTime(
+    orderId: number,
+    stage: string,
+    elapsedDays: number,
+    estimatedDays: number
+  ) {
     try {
       let newPriority = "LOW";
       const percentage = (elapsedDays / estimatedDays) * 100;

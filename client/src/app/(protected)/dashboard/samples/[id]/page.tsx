@@ -2,44 +2,54 @@
 
 import { ImageComparisonSlider } from "@/components/AI/ImageComparisonSlider";
 import { RequestSampleDialog } from "@/components/AI/RequestSampleDialog";
-import { format } from "date-fns";
+import { useAuth } from "@/context/AuthProvider";
 import {
-    ArrowLeft,
-    Building,
-    Calendar,
-    Edit,
-    FileText,
-    Image as ImageIcon,
-    Package,
-    Send,
-    Sparkles,
-    Trash2,
-    Truck,
-    User,
+  MARK_MESSAGE_READ_MUTATION,
+  MY_MESSAGES_QUERY,
+  SEND_MESSAGE_MUTATION,
+} from "@/lib/graphql/message-operations";
+import { format, formatDistanceToNow } from "date-fns";
+import { tr } from "date-fns/locale";
+import {
+  ArrowLeft,
+  Building,
+  Calendar,
+  Edit,
+  FileText,
+  Image as ImageIcon,
+  MessageSquare,
+  Package,
+  Send,
+  Sparkles,
+  Trash2,
+  Truck,
+  User,
 } from "lucide-react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
 import { Badge } from "../../../../../components/ui/badge";
 import { Button } from "../../../../../components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "../../../../../components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "../../../../../components/ui/dialog";
 import { Input } from "../../../../../components/ui/input";
 import { Label } from "../../../../../components/ui/label";
+import { ScrollArea } from "../../../../../components/ui/scroll-area";
 import { Separator } from "../../../../../components/ui/separator";
 import { Skeleton } from "../../../../../components/ui/skeleton";
 import { Textarea } from "../../../../../components/ui/textarea";
@@ -112,6 +122,7 @@ const DELETE_SAMPLE_MUTATION = `
 export default function SampleDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const sampleId = params.id as string;
 
   const [editMode, setEditMode] = useState(false);
@@ -124,6 +135,9 @@ export default function SampleDetailPage() {
   } | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [messageContent, setMessageContent] = useState("");
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [{ data, fetching, error }] = useQuery({
     query: `
@@ -180,6 +194,27 @@ export default function SampleDetailPage() {
 
   const [, updateSample] = useMutation(UPDATE_SAMPLE_MUTATION);
   const [, deleteSample] = useMutation(DELETE_SAMPLE_MUTATION);
+  const [, sendMessage] = useMutation(SEND_MESSAGE_MUTATION);
+  const [, markAsRead] = useMutation(MARK_MESSAGE_READ_MUTATION);
+
+  // Get messages for this sample
+  const [{ data: messagesData, fetching: messagesFetching }, refetchMessages] =
+    useQuery({
+      query: MY_MESSAGES_QUERY,
+      variables: {
+        filter: { sampleId: parseInt(sampleId) },
+      },
+      requestPolicy: "network-only",
+    });
+
+  const messages = messagesData?.myMessages || [];
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages.length]);
 
   if (fetching) {
     return (
@@ -253,6 +288,32 @@ export default function SampleDetailPage() {
       router.push("/dashboard/ai-features");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Silme başarısız");
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageContent.trim()) return;
+
+    try {
+      setIsSendingMessage(true);
+      const result = await sendMessage({
+        content: messageContent,
+        sampleId: parseInt(sampleId),
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      setMessageContent("");
+      toast.success("✅ Mesaj gönderildi");
+      refetchMessages();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Mesaj gönderilemedi"
+      );
+    } finally {
+      setIsSendingMessage(false);
     }
   };
 
@@ -393,7 +454,9 @@ export default function SampleDetailPage() {
                           <ImageIcon className="h-4 w-4 text-purple-500" />
                           <span>Kalite</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Yüksek Çözünürlük</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Yüksek Çözünürlük
+                        </p>
                       </div>
                     </div>
 
@@ -408,8 +471,10 @@ export default function SampleDetailPage() {
                             Nasıl Karşılaştırılır?
                           </h4>
                           <p className="text-xs text-gray-600">
-                            Mouse'u görsel üzerinde hareket ettirerek orijinal eskiz ile AI tasarımını
-                            anlık olarak karşılaştırabilirsiniz. Sol taraf eskizi, sağ taraf AI tasarımını gösterir.
+                            Mouse'u görsel üzerinde hareket ettirerek orijinal
+                            eskiz ile AI tasarımını anlık olarak
+                            karşılaştırabilirsiniz. Sol taraf eskizi, sağ taraf
+                            AI tasarımını gösterir.
                           </p>
                         </div>
                       </div>
@@ -476,7 +541,9 @@ export default function SampleDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              {sample.aiGenerated ? "AI Tasarım Bilgileri" : "Sample Information"}
+              {sample.aiGenerated
+                ? "AI Tasarım Bilgileri"
+                : "Sample Information"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -493,7 +560,9 @@ export default function SampleDetailPage() {
                     className="mt-1"
                   />
                 ) : (
-                  <p className="font-medium mt-1">{sample.name || "İsimsiz Tasarım"}</p>
+                  <p className="font-medium mt-1">
+                    {sample.name || "İsimsiz Tasarım"}
+                  </p>
                 )}
               </div>
             )}
@@ -512,7 +581,11 @@ export default function SampleDetailPage() {
                     className="mt-1"
                   />
                 ) : (
-                  <p className="text-sm mt-1">{sample.description || sample.customerNote || "Açıklama yok"}</p>
+                  <p className="text-sm mt-1">
+                    {sample.description ||
+                      sample.customerNote ||
+                      "Açıklama yok"}
+                  </p>
                 )}
               </div>
             )}
@@ -610,7 +683,9 @@ export default function SampleDetailPage() {
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">
                         Production Time
                       </h3>
-                      <p className="font-medium">{sample.productionDays} days</p>
+                      <p className="font-medium">
+                        {sample.productionDays} days
+                      </p>
                     </div>
                   )}
 
@@ -657,34 +732,35 @@ export default function SampleDetailPage() {
             )}
 
             {/* Delivery Info - Only for non-AI samples */}
-            {!sample.aiGenerated && (sample.deliveryAddress || sample.cargoTrackingNumber) && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  {sample.deliveryAddress && (
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
-                        <Package className="h-4 w-4" />
-                        Delivery Address
-                      </h3>
-                      <p className="text-sm">{sample.deliveryAddress}</p>
-                    </div>
-                  )}
+            {!sample.aiGenerated &&
+              (sample.deliveryAddress || sample.cargoTrackingNumber) && (
+                <>
+                  <Separator />
+                  <div className="space-y-3">
+                    {sample.deliveryAddress && (
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                          <Package className="h-4 w-4" />
+                          Delivery Address
+                        </h3>
+                        <p className="text-sm">{sample.deliveryAddress}</p>
+                      </div>
+                    )}
 
-                  {sample.cargoTrackingNumber && (
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
-                        <Truck className="h-4 w-4" />
-                        Cargo Tracking
-                      </h3>
-                      <p className="text-sm font-mono font-medium">
-                        {sample.cargoTrackingNumber}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
+                    {sample.cargoTrackingNumber && (
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                          <Truck className="h-4 w-4" />
+                          Cargo Tracking
+                        </h3>
+                        <p className="text-sm font-mono font-medium">
+                          {sample.cargoTrackingNumber}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
           </CardContent>
         </Card>
 
@@ -763,32 +839,48 @@ export default function SampleDetailPage() {
                 <div className="grid grid-cols-2 gap-4">
                   {sample.productionDays && (
                     <div className="bg-gray-50 p-3 rounded-md">
-                      <p className="text-xs text-muted-foreground mb-1">Üretim Süresi</p>
-                      <p className="font-semibold">{sample.productionDays} gün</p>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Üretim Süresi
+                      </p>
+                      <p className="font-semibold">
+                        {sample.productionDays} gün
+                      </p>
                     </div>
                   )}
 
                   {sample.estimatedProductionDate && (
                     <div className="bg-blue-50 p-3 rounded-md">
-                      <p className="text-xs text-muted-foreground mb-1">Tahmini Tamamlanma</p>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Tahmini Tamamlanma
+                      </p>
                       <p className="font-semibold">
-                        {format(new Date(sample.estimatedProductionDate), "dd MMM yyyy")}
+                        {format(
+                          new Date(sample.estimatedProductionDate),
+                          "dd MMM yyyy"
+                        )}
                       </p>
                     </div>
                   )}
 
                   {sample.actualProductionDate && (
                     <div className="bg-green-50 p-3 rounded-md">
-                      <p className="text-xs text-muted-foreground mb-1">Gerçek Tamamlanma</p>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Gerçek Tamamlanma
+                      </p>
                       <p className="font-semibold">
-                        {format(new Date(sample.actualProductionDate), "dd MMM yyyy")}
+                        {format(
+                          new Date(sample.actualProductionDate),
+                          "dd MMM yyyy"
+                        )}
                       </p>
                     </div>
                   )}
 
                   {sample.shippingDate && (
                     <div className="bg-purple-50 p-3 rounded-md">
-                      <p className="text-xs text-muted-foreground mb-1">Kargo Tarihi</p>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Kargo Tarihi
+                      </p>
                       <p className="font-semibold">
                         {format(new Date(sample.shippingDate), "dd MMM yyyy")}
                       </p>
@@ -811,7 +903,9 @@ export default function SampleDetailPage() {
                         <div className="flex items-start gap-2">
                           <Package className="h-4 w-4 text-muted-foreground mt-0.5" />
                           <div>
-                            <p className="text-xs text-muted-foreground mb-1">Teslimat Adresi</p>
+                            <p className="text-xs text-muted-foreground mb-1">
+                              Teslimat Adresi
+                            </p>
                             <p className="text-sm">{sample.deliveryAddress}</p>
                           </div>
                         </div>
@@ -823,7 +917,9 @@ export default function SampleDetailPage() {
                         <div className="flex items-start gap-2">
                           <Truck className="h-4 w-4 text-amber-600 mt-0.5" />
                           <div>
-                            <p className="text-xs text-muted-foreground mb-1">Kargo Takip Numarası</p>
+                            <p className="text-xs text-muted-foreground mb-1">
+                              Kargo Takip Numarası
+                            </p>
                             <p className="text-sm font-mono font-semibold text-amber-900">
                               {sample.cargoTrackingNumber}
                             </p>
@@ -844,7 +940,9 @@ export default function SampleDetailPage() {
                       Koleksiyon
                     </h3>
                     <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-3 rounded-md border border-purple-200">
-                      <p className="font-semibold text-purple-900">{sample.collection.name}</p>
+                      <p className="font-semibold text-purple-900">
+                        {sample.collection.name}
+                      </p>
                       {sample.collection.description && (
                         <p className="text-sm text-purple-700 mt-1">
                           {sample.collection.description}
@@ -899,37 +997,38 @@ export default function SampleDetailPage() {
           )}
 
           {/* Manufacturer Info - Show for all samples, or AI samples that have been requested */}
-          {sample.manufacture && (!sample.aiGenerated || sample.status !== "AI_DESIGN") && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Building className="h-4 w-4" />
-                  {sample.aiGenerated ? "Üretici" : "Manufacturer"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="font-medium">
-                  {sample.manufacture.firstName} {sample.manufacture.lastName}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {sample.manufacture.email}
-                </p>
-                {sample.manufacture.phone && (
-                  <p className="text-sm text-muted-foreground">
-                    {sample.manufacture.phone}
+          {sample.manufacture &&
+            (!sample.aiGenerated || sample.status !== "AI_DESIGN") && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Building className="h-4 w-4" />
+                    {sample.aiGenerated ? "Üretici" : "Manufacturer"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <p className="font-medium">
+                    {sample.manufacture.firstName} {sample.manufacture.lastName}
                   </p>
-                )}
-                {sample.manufacture.company && (
-                  <div className="flex items-center gap-1 mt-2 pt-2 border-t">
-                    <Building className="h-3 w-3 text-muted-foreground" />
-                    <p className="text-sm font-medium">
-                      {sample.manufacture.company.name}
+                  <p className="text-sm text-muted-foreground">
+                    {sample.manufacture.email}
+                  </p>
+                  {sample.manufacture.phone && (
+                    <p className="text-sm text-muted-foreground">
+                      {sample.manufacture.phone}
                     </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  )}
+                  {sample.manufacture.company && (
+                    <div className="flex items-center gap-1 mt-2 pt-2 border-t">
+                      <Building className="h-3 w-3 text-muted-foreground" />
+                      <p className="text-sm font-medium">
+                        {sample.manufacture.company.name}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
           {/* Dates */}
           <Card>
@@ -1025,24 +1124,24 @@ export default function SampleDetailPage() {
               Custom Design Images
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {JSON.parse(sample.customDesignImages).map(
-                (imgUrl: string, idx: number) => (
-                  <div
-                    key={idx}
-                    className="aspect-square rounded-lg overflow-hidden border bg-gray-50"
-                  >
-                    <img
-                      src={imgUrl}
-                      alt={`Design ${idx + 1}`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                    />
-                  </div>
-                )
-              )}
-            </div>
-          </CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {JSON.parse(sample.customDesignImages).map(
+              (imgUrl: string, idx: number) => (
+                <div
+                  key={idx}
+                  className="aspect-square rounded-lg overflow-hidden border bg-gray-50 relative"
+                >
+                  <Image
+                    src={imgUrl}
+                    alt={`Design ${idx + 1}`}
+                    fill
+                    className="object-cover hover:scale-105 transition-transform cursor-pointer"
+                    unoptimized
+                  />
+                </div>
+              )
+            )}
+          </div>
         </Card>
       )}
 
@@ -1083,24 +1182,21 @@ export default function SampleDetailPage() {
         <DialogContent className="max-w-4xl w-full">
           <DialogHeader>
             <DialogTitle>{selectedImage?.title}</DialogTitle>
-            <DialogDescription>
-              Tam boyutlu görüntü görünümü
-            </DialogDescription>
+            <DialogDescription>Tam boyutlu görüntü görünümü</DialogDescription>
           </DialogHeader>
           <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
             {selectedImage && (
-              <img
+              <Image
                 src={selectedImage.url}
                 alt={selectedImage.title}
-                className="w-full h-full object-contain"
+                fill
+                className="object-contain"
+                unoptimized
               />
             )}
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setImageModalOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setImageModalOpen(false)}>
               Kapat
             </Button>
             {selectedImage && (
@@ -1126,9 +1222,9 @@ export default function SampleDetailPage() {
           <DialogHeader>
             <DialogTitle>AI Tasarımını Sil</DialogTitle>
             <DialogDescription>
-              &quot;{sample.name || sample.sampleNumber}&quot; adlı AI tasarımını silmek
-              istediğinizden emin misiniz? Bu işlem geri alınamaz ve
-              oluşturulan görsel de silinecektir.
+              &quot;{sample.name || sample.sampleNumber}&quot; adlı AI
+              tasarımını silmek istediğinizden emin misiniz? Bu işlem geri
+              alınamaz ve oluşturulan görsel de silinecektir.
             </DialogDescription>
           </DialogHeader>
           <div className="bg-red-50 border border-red-200 rounded-md p-4 my-4">
@@ -1167,6 +1263,183 @@ export default function SampleDetailPage() {
           }}
         />
       )}
+
+      {/* Production Timeline - for non-AI samples with production tracking */}
+      {!sample.aiGenerated && sample.productionDays && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Üretim Takvimi
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div>
+              <p className="text-sm text-gray-500">Üretim Süresi</p>
+              <p className="font-medium">{sample.productionDays} gün</p>
+            </div>
+            {sample.estimatedProductionDate && (
+              <div>
+                <p className="text-sm text-gray-500">Tahmini Bitiş</p>
+                <p className="font-medium">
+                  {new Date(sample.estimatedProductionDate).toLocaleDateString(
+                    "tr-TR"
+                  )}
+                </p>
+              </div>
+            )}
+            {sample.actualProductionDate && (
+              <div>
+                <p className="text-sm text-gray-500">Fiili Bitiş</p>
+                <p className="font-medium">
+                  {new Date(sample.actualProductionDate).toLocaleDateString(
+                    "tr-TR"
+                  )}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Manufacturer Info */}
+      {sample.manufacture && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Üretici Bilgileri
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div>
+              <p className="text-sm text-gray-500">İsim</p>
+              <p className="font-medium">
+                {sample.manufacture.firstName} {sample.manufacture.lastName}
+              </p>
+            </div>
+            {sample.manufacture.email && (
+              <div>
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="font-medium">{sample.manufacture.email}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Messages Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Mesajlaşma
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Messages List */}
+            <div className="border rounded-lg">
+              <ScrollArea className="h-[400px] p-4">
+                {messagesFetching ? (
+                  <div className="text-center text-sm text-gray-500">
+                    Yükleniyor...
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="text-center text-sm text-gray-500 py-8">
+                    Henüz mesaj yok. İlk mesajı siz gönderin!
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {messages
+                      .sort(
+                        (a: { createdAt: string }, b: { createdAt: string }) =>
+                          new Date(a.createdAt).getTime() -
+                          new Date(b.createdAt).getTime()
+                      )
+                      .map(
+                        (msg: {
+                          id: number;
+                          createdAt: string;
+                          senderId?: number;
+                          sender?: { firstName?: string; lastName?: string };
+                          content?: string;
+                        }) => {
+                          const isMe = msg.senderId === user?.id;
+                          return (
+                            <div
+                              key={msg.id}
+                              className={`flex ${
+                                isMe ? "justify-end" : "justify-start"
+                              }`}
+                            >
+                              <div
+                                className={`max-w-[70%] rounded-lg p-3 ${
+                                  isMe
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted"
+                                }`}
+                              >
+                                {!isMe && (
+                                  <p className="mb-1 text-xs font-medium">
+                                    {msg.sender?.firstName}{" "}
+                                    {msg.sender?.lastName}
+                                  </p>
+                                )}
+                                <p className="text-sm">{msg.content}</p>
+                                <p
+                                  className={`mt-1 text-xs ${
+                                    isMe
+                                      ? "text-primary-foreground/70"
+                                      : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {formatDistanceToNow(
+                                    new Date(msg.createdAt),
+                                    {
+                                      addSuffix: true,
+                                      locale: tr,
+                                    }
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        }
+                      )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+
+            {/* Message Input */}
+            <div className="flex gap-2">
+              <Textarea
+                placeholder="Mesajınızı yazın..."
+                value={messageContent}
+                onChange={(e) => setMessageContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                disabled={isSendingMessage}
+                rows={2}
+              />
+              <Button
+                onClick={handleSendMessage}
+                disabled={isSendingMessage || !messageContent.trim()}
+                size="icon"
+                className="h-auto"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

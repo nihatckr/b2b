@@ -1,13 +1,17 @@
 "use client";
 
+import { ProductionTimeline } from "@/components/Order/ProductionTimeline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UPDATE_ORDER_STATUS_MUTATION } from "@/lib/graphql/mutations";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { AlertCircle, ArrowLeft, Clock, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "urql";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useMutation, useQuery } from "urql";
 
 const TASK_DETAIL_QUERY = `
   query GetTask($id: Int!) {
@@ -54,6 +58,9 @@ const TASK_DETAIL_QUERY = `
         orderNumber
         quantity
         status
+        productionDays
+        estimatedProductionDate
+        actualProductionStart
       }
       productionTracking {
         id
@@ -110,6 +117,9 @@ interface Task {
     orderNumber: string;
     quantity: number;
     status: string;
+    productionDays?: number;
+    estimatedProductionDate?: string;
+    actualProductionStart?: string;
   };
   productionTracking?: {
     id: number;
@@ -151,11 +161,14 @@ export default function TaskDetailPage() {
   const router = useRouter();
   const params = useParams();
   const taskId = parseInt(params.id as string);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  const [result] = useQuery({
+  const [result, reexecuteQuery] = useQuery({
     query: TASK_DETAIL_QUERY,
     variables: { id: taskId },
   });
+
+  const [, updateOrderStatus] = useMutation(UPDATE_ORDER_STATUS_MUTATION);
 
   const task: Task | undefined = result.data?.task;
   const isLoading = result.fetching;
@@ -315,6 +328,37 @@ export default function TaskDetailPage() {
                 >
                   Sipariş Detaylarına Git
                 </Button>
+
+                {/* Production Timeline - For Orders */}
+                <ProductionTimeline
+                  currentStatus={task.order.status}
+                  onStatusChange={async (newStatus: string) => {
+                    try {
+                      setIsUpdatingStatus(true);
+                      const result = await updateOrderStatus({
+                        id: task.order!.id,
+                        status: newStatus,
+                      });
+
+                      if (result.error) {
+                        throw new Error(result.error.message);
+                      }
+
+                      toast.success("✅ Sipariş durumu güncellendi");
+                      reexecuteQuery({ requestPolicy: "network-only" });
+                    } catch (err) {
+                      toast.error(
+                        err instanceof Error
+                          ? err.message
+                          : "Güncelleme başarısız oldu"
+                      );
+                    } finally {
+                      setIsUpdatingStatus(false);
+                    }
+                  }}
+                  isManufacturer={true}
+                  progress={0}
+                />
               </CardContent>
             </Card>
           )}

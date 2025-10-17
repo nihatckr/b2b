@@ -12,6 +12,7 @@
     "generate:prisma": "prisma generate",
     "generate:nexus": "ts-node --transpile-only src/schema.ts",
     "seed": "ts-node prisma/seed.ts",
+    "seed:users-only": "ts-node prisma/seed-users-only.ts",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",

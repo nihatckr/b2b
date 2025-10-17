@@ -37,15 +37,15 @@ const TASKS_QUERY = `
       completedAt
       user {
         id
-        name
         firstName
         lastName
+        email
       }
       assignedTo {
         id
-        name
         firstName
         lastName
+        email
       }
       collection {
         id
@@ -65,8 +65,8 @@ const TASKS_QUERY = `
 `;
 
 const UPDATE_TASK_STATUS = `
-  mutation UpdateTask($id: Int!, $status: String!) {
-    updateTask(input: { id: $id, status: $status }) {
+  mutation UpdateTask($id: Int!, $status: String!, $completedAt: String) {
+    updateTask(id: $id, status: $status, completedAt: $completedAt) {
       id
       status
       completedAt
@@ -93,15 +93,15 @@ interface Task {
   completedAt?: string;
   user: {
     id: number;
-    name?: string;
     firstName?: string;
     lastName?: string;
+    email?: string;
   };
   assignedTo?: {
     id: number;
-    name?: string;
     firstName?: string;
     lastName?: string;
+    email?: string;
   };
   collection?: {
     id: number;
@@ -154,16 +154,21 @@ function TaskRow({ task }: { task: Task }) {
     dueDate && dueDate < new Date() && task.status !== "COMPLETED";
 
   const getUserName = (user?: {
-    name?: string;
     firstName?: string;
     lastName?: string;
+    email?: string;
   }) => {
     if (!user) return "-";
-    return user.name || `${user.firstName} ${user.lastName}`.trim();
+    if (user.firstName || user.lastName) {
+      return `${user.firstName || ""} ${user.lastName || ""}`.trim();
+    }
+    return user.email || "-";
   };
 
   const handleStatusChange = async (newStatus: string) => {
-    await updateTaskStatus({ id: task.id, status: newStatus });
+    const completedAt =
+      newStatus === "COMPLETED" ? new Date().toISOString() : null;
+    await updateTaskStatus({ id: task.id, status: newStatus, completedAt });
   };
 
   const handleCompleteTask = async () => {
