@@ -2,7 +2,23 @@ import fs from "fs";
 import { extendType, nonNull, stringArg } from "nexus";
 import path from "path";
 import { Context } from "../context";
-import { analyzeProductWithOllama } from "../utils/ollamaVision";
+
+// Stub function - Ollama Vision implementation
+async function analyzeProductWithOllama(imagePath: string, userNotes?: string) {
+  return {
+    productType: "Unknown",
+    colors: [],
+    description: "Analysis not available",
+    confidence: 0,
+  };
+}
+
+async function checkOllamaStatus() {
+  return {
+    status: "offline",
+    message: "Ollama Vision not configured",
+  };
+}
 
 export const productAnalysisMutations = (t: any) => {
   t.field("analyzeProductWithOllama", {
@@ -69,7 +85,6 @@ export const productAnalysisMutations = (t: any) => {
   t.field("checkOllamaStatus", {
     type: "OllamaStatus",
     resolve: async () => {
-      const { checkOllamaStatus } = await import("../utils/ollamaVision");
       return checkOllamaStatus();
     },
   });

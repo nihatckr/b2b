@@ -1,0 +1,21 @@
+// Mutation imports - side-effect imports trigger field definitions
+import "./aiFileMutation";
+import "./authMutation";
+import "./categoryMutation";
+import "./collectionMutation";
+import "./companyMutation";
+import "./fitSeasonMutation";
+import "./libraryMutation";
+import "./likeMutation";
+import "./messageMutation";
+import "./notificationMutation";
+import "./orderMutation";
+import "./productionMutation";
+import "./questionMutation";
+import "./reviewMutation";
+import "./reviewQuestionMutation";
+import "./sampleMutation";
+import "./statusMutation";
+import "./taskMutation";
+import "./userMutation";
+import "./workshopMutation";

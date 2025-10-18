@@ -1,16 +1,15 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
+  "$schema": "https://json.schemastore.org/tsconfig.json",
   "compilerOptions": {
     // File Layout
     // "rootDir": "./src",
     // "outDir": "./dist",
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "nodenext",
-    "target": "esnext",
-    "types": [
-      "node"
-    ],
+    "module": "es2020",
+
+    "types": ["node"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -31,12 +30,19 @@
     // "noPropertyAccessFromIndexSignature": true,
     // Recommended Options
     "strict": true,
+    "noImplicitAny": false,
     "jsx": "react-jsx",
     "verbatimModuleSyntax": false,
-    "moduleResolution": "node",
+
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
+
     "skipLibCheck": true,
-  }
+
+    "target": "es2019",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["prisma/*.ts", "src/**/*"]
 }

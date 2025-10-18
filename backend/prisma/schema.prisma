@@ -1,24 +1,14 @@
-// ========================================
-// 🔧 REFACTORING / BACKUP AREA
-// ========================================
-// Bu dosya, server/prisma/schema.prisma dosyasının
-// yedek/refactoring versiyonudur.
-//
-// ⚠️ AKTİF KULLANIM: server/prisma/schema.prisma
-// 📁 YEDEK/TEST: backend/prisma/schema.prisma (Bu dosya)
-//
-// Son Senkronizasyon: 18 Ekim 2025
-// ========================================
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
+  output   = "../lib/generated"
 }
-
 generator pothos {
-  provider     = "prisma-pothos-types"
+  provider = "prisma-pothos-types"
   clientOutput = "./prisma" // relative path from pothos output to prisma client
-  output       = "../lib/pothos-prisma-types.ts"
+  output = "../lib/pothos-prisma-types.ts"
 }
 
 datasource db {
@@ -26,58 +16,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ========================================
-// 👥 USER ROLES & PERMISSIONS
-// ========================================
 enum Role {
-  ADMIN // Platform admin (Siz - full system access)
-  COMPANY_OWNER // Firma sahibi (Full access kendi şirketi için)
-  COMPANY_EMPLOYEE // Firma çalışanı (Department-based permissions)
-  INDIVIDUAL_CUSTOMER // Bireysel müşteri (Limited access, firma olmadan)
+  ADMIN // Platform admin
+  COMPANY_OWNER // Firma sahibi (hem üretici hem müşteri)
+  COMPANY_EMPLOYEE // Firma çalışanı (hem üretici hem müşteri)
+  INDIVIDUAL_CUSTOMER // Bireysel müşteri (firma olmadan)
 
-  // Backward compatibility (deprecated - will be removed in future)
+  // Backward compatibility (deprecated)
   MANUFACTURE
   CUSTOMER
 }
 
-// Department-based roles for COMPANY_EMPLOYEE
-enum Department {
-  PURCHASING // Satın Alma (Order oluşturma, Sample sipariş)
-  PRODUCTION // Üretim (Sample üretimi, Production tracking)
-  QUALITY // Kalite Kontrol (QA, Inspection)
-  DESIGN // Tasarım (Collection, Sample design)
-  SALES // Satış (Customer relations, Order management)
-  MANAGEMENT // Yönetim (Full access, reports)
-}
-
 enum CompanyType {
-  MANUFACTURER // Üretici firma (Örn: Defacto - sadece üretim yapar)
-  BUYER // Alıcı firma (Örn: LC Waikiki - sadece sipariş verir)
-  BOTH // Hybrid firma (Örn: Zara - hem üretir hem alır)
-}
-
-// ========================================
-// 💳 SUBSCRIPTION & BILLING (SaaS Ready)
-// ========================================
-enum SubscriptionPlan {
-  FREE // Ücretsiz (Trial) - Limited features
-  STARTER // Başlangıç ($29/ay) - Small teams
-  PROFESSIONAL // Profesyonel ($99/ay) - Growing businesses
-  ENTERPRISE // Kurumsal ($299/ay) - Large companies
-  CUSTOM // Özel anlaşma (Custom pricing)
-}
-
-enum SubscriptionStatus {
-  TRIAL // Deneme sürümü (14 gün)
-  ACTIVE // Aktif abonelik
-  PAST_DUE // Ödeme gecikmiş
-  CANCELLED // İptal edilmiş
-  EXPIRED // Süresi dolmuş
-}
-
-enum BillingCycle {
-  MONTHLY // Aylık ödeme
-  YEARLY // Yıllık ödeme (%20 indirimli)
+  MANUFACTURER // Üretici firma (Defacto)
+  BUYER // Alıcı firma (LC Waikiki)
+  BOTH // Her ikisi de (hem üretir hem alır)
 }
 
 // Tekstil Enums
@@ -125,63 +78,6 @@ model Company {
   isActive Boolean @default(true)
   settings Json? // Company-wide settings
 
-  // ========================================
-  // 🎨 BRANDING & PROFILE (Frontend)
-  // ========================================
-  logo        String? // Company logo URL: "/uploads/logos/company123.png"
-  coverImage  String? // Banner/Cover image: "/uploads/covers/company123.jpg"
-  brandColors Json? // { primary: "#FF5733", secondary: "#333333", accent: "#00FF00" }
-
-  // Social & Contact
-  socialLinks Json? // { website: "url", linkedin: "url", instagram: "url", facebook: "url" }
-
-  // Public Profile
-  isPublicProfile Boolean @default(false) // Public company profile page
-  profileSlug     String? @unique // SEO-friendly URL: /company/defacto
-
-  // ========================================
-  // 💳 SUBSCRIPTION & BILLING
-  // ========================================
-  subscriptionPlan   SubscriptionPlan   @default(FREE)
-  subscriptionStatus SubscriptionStatus @default(TRIAL)
-  billingCycle       BillingCycle       @default(MONTHLY)
-
-  // Usage Limits (Plan-based)
-  maxUsers       Int   @default(3) // FREE: 3, STARTER: 10, PRO: 50, ENTERPRISE: unlimited
-  maxSamples     Int   @default(10) // FREE: 10, STARTER: 100, PRO: 500, ENTERPRISE: unlimited
-  maxOrders      Int   @default(5) // FREE: 5, STARTER: 50, PRO: 200, ENTERPRISE: unlimited
-  maxCollections Int   @default(5) // FREE: 5, STARTER: 20, PRO: 100, ENTERPRISE: unlimited
-  maxStorageGB   Float @default(1.0) // FREE: 1GB, STARTER: 10GB, PRO: 100GB, ENTERPRISE: 1TB
-
-  // Current Usage (Auto-calculated)
-  currentUsers       Int   @default(0)
-  currentSamples     Int   @default(0)
-  currentOrders      Int   @default(0)
-  currentCollections Int   @default(0)
-  currentStorageGB   Float @default(0.0)
-
-  // Trial Period
-  trialStartedAt DateTime? @default(now())
-  trialEndsAt    DateTime? // Auto-set to +14 days on signup
-
-  // Billing Info
-  billingEmail   String?
-  taxId          String? // Vergi no
-  billingAddress String? @db.Text
-
-  // Subscription Dates
-  subscriptionStartedAt DateTime?
-  currentPeriodStart    DateTime?
-  currentPeriodEnd      DateTime?
-
-  // Cancellation
-  cancelAtPeriodEnd Boolean   @default(false)
-  cancelledAt       DateTime?
-
-  // BOTH type için özel ayarlar
-  defaultView    String? // "MANUFACTURER" | "BUYER" (BOTH için hangi görünüm default)
-  enabledModules Json? // { manufacturing: true, purchasing: true } (Hangi modüller aktif)
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -195,43 +91,27 @@ model Company {
   messages           Message[]
 
   // Library Management
-  colors         Color[]
+  colors     Color[]
   fabrics        Fabric[]
   sizeGroups     SizeGroup[]
   seasons        SeasonItem[]
   fits           FitItem[]
   certifications Certification[]
 
-  // ========================================
-  // PERFORMANCE INDEXES
-  // ========================================
-  @@index([email]) // Email lookup
-  @@index([type, isActive]) // Company type + active filter
-  @@index([isActive, createdAt]) // Active companies with sorting
-  @@index([location]) // Location filter
-  @@index([ownerId]) // Owner lookup
-  @@index([subscriptionPlan]) // Plan-based queries
-  @@index([subscriptionStatus]) // Active subscriptions
-  @@index([trialEndsAt]) // Expiring trials
-  @@index([currentPeriodEnd]) // Expiring subscriptions
-  @@index([profileSlug]) // Public profile lookup
-  @@index([isPublicProfile]) // Public companies filter
-  // Full-text search (MySQL)
-  @@fulltext([name, description])
   @@map("companies")
 }
 
 model Message {
-  id         Int     @id @default(autoincrement())
-  content    String  @db.Text
-  senderId   Int
-  receiverId Int? // Alıcı kullanıcı ID
-  isRead     Boolean @default(false)
-  type       String  @default("general") // "order", "sample", "general"
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  senderId  Int
+  receiverId Int?    // Alıcı kullanıcı ID
+  isRead    Boolean  @default(false)
+  type      String   @default("general") // "order", "sample", "general"
 
   // Ürün bazlı mesajlaşma
-  orderId  Int?
-  sampleId Int?
+  orderId   Int?
+  sampleId  Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -244,17 +124,10 @@ model Message {
   company   Company? @relation(fields: [companyId], references: [id])
   companyId Int?
 
-  // ========================================
-  // PERFORMANCE INDEXES
-  // ========================================
-  @@index([senderId, createdAt]) // Sender messages with sorting
-  @@index([receiverId, isRead]) // Unread messages
-  @@index([receiverId, createdAt]) // Receiver messages with sorting
-  @@index([orderId]) // Order messages
-  @@index([sampleId]) // Sample messages
-  @@index([companyId, createdAt]) // Company messages
-  @@index([type, isRead]) // Type + read status
-  @@index([senderId, receiverId]) // Conversation lookup
+  @@index([orderId])
+  @@index([sampleId])
+  @@index([senderId])
+  @@index([receiverId])
   @@map("messages")
 }
 
@@ -293,8 +166,8 @@ model ProductionTracking {
   qualityControls     QualityControl[]
   productionRevisions ProductionRevision[]
   revisions           Revision[] // Legacy
-  tasks               Task[]                  @relation("ProductionTrackingTasks")
-  notifications       Notification[]          @relation("ProductionNotifications")
+  tasks               Task[] @relation("ProductionTrackingTasks")
+  notifications       Notification[] @relation("ProductionNotifications")
 
   @@map("production_tracking")
 }
@@ -337,37 +210,10 @@ model User {
   role      Role     @default(INDIVIDUAL_CUSTOMER)
 
   // Company Ownership & Permissions
-  isCompanyOwner Boolean     @default(false)
-  department     Department? // Department for COMPANY_EMPLOYEE role
+  isCompanyOwner Boolean @default(false)
+  department     String? // "Satın Alma", "Üretim", "Kalite"
   jobTitle       String? // "Müdür", "Uzman", "Koordinatör"
-
-  // ========================================
-  // � PROFILE & UI (Frontend)
-  // ========================================
-  avatar      String? // Profile picture URL: "/uploads/avatars/user123.jpg"
-  bio         String? @db.Text // User bio/description
-  socialLinks Json? // { linkedin: "url", twitter: "url", instagram: "url" }
-
-  // User Settings
-  emailNotifications Boolean @default(true) // Email bildirimlerini al
-  pushNotifications  Boolean @default(false) // Push notification
-  language           String  @default("tr") // UI dili: "tr", "en"
-  timezone           String  @default("Europe/Istanbul") // Saat dilimi
-
-  // ========================================
-  // �🔐 PERMISSIONS (Typed JSON)
-  // ========================================
-  // Format: UserPermissions type (see types/permissions.ts)
-  // Example:
-  // {
-  //   samples: { create: true, edit: true, delete: false, viewAll: false },
-  //   orders: { create: true, approve: false, cancel: false, viewAll: false },
-  //   users: { invite: false, remove: false, changeRole: false },
-  //   billing: { view: false, upgrade: false, managePlan: false },
-  //   production: { viewAll: true, updateStage: true, qaControl: false },
-  //   collections: { create: true, edit: true, delete: false, publish: false }
-  // }
-  permissions Json? // Detailed permission object (overrides role defaults)
+  permissions    Json? // Detaylı permission objesi
 
   // Status
   isActive          Boolean @default(true)
@@ -380,8 +226,8 @@ model User {
   ownedCompanies Company[] @relation("CompanyOwner")
 
   // Messages relation
-  sentMessages     Message[]    @relation("SentMessages")
-  receivedMessages Message[]    @relation("ReceivedMessages")
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
   categories       Category[]
   collections      Collection[]
 
@@ -410,21 +256,9 @@ model User {
   notifications Notification[] @relation("UserNotifications")
 
   // Tasks
-  tasks         Task[] @relation("UserTasks")
+  tasks Task[] @relation("UserTasks")
   assignedTasks Task[] @relation("AssignedTasks")
 
-  // ========================================
-  // PERFORMANCE INDEXES
-  // ========================================
-  @@index([email]) // Email lookup
-  @@index([username]) // Username lookup
-  @@index([companyId, role]) // Company users by role
-  @@index([companyId, isActive]) // Company active users
-  @@index([companyId, department]) // Company users by department
-  @@index([role, isActive]) // Role + active filter
-  @@index([isActive]) // Active users
-  @@index([isPendingApproval]) // Pending approval filter
-  @@index([createdAt]) // Date sorting
   @@map("users")
 }
 
@@ -487,15 +321,8 @@ model Collection {
   certifications Certification[] @relation("CollectionCertifications")
 
   // Beğeni/Favoriler
-  likesCount  Int                      @default(0) // Toplam beğeni sayısı
-  favoritedBy UserFavoriteCollection[] // Beğenen kullanıcılar
-
-  // ========================================
-  // 📊 ANALYTICS & ENGAGEMENT (Frontend)
-  // ========================================
-  viewCount    Int       @default(0) // Kaç kere görüntülendi
-  shareCount   Int       @default(0) // Kaç kere paylaşıldı
-  lastViewedAt DateTime? // Son görüntülenme zamanı
+  likesCount      Int                        @default(0) // Toplam beğeni sayısı
+  favoritedBy     UserFavoriteCollection[] // Beğenen kullanıcılar
 
   // Legacy fields (backward compatibility)
   price      Float   @default(0.00) // Şimdilik targetPrice ile aynı
@@ -525,23 +352,6 @@ model Collection {
   company   Company? @relation(fields: [companyId], references: [id])
   companyId Int?
 
-  // ========================================
-  // PERFORMANCE INDEXES
-  // ========================================
-  @@index([companyId, isActive]) // Company active collections
-  @@index([authorId]) // Author collections
-  @@index([categoryId]) // Category filter
-  @@index([season]) // Season filter
-  @@index([gender]) // Gender filter
-  @@index([isFeatured]) // Featured collections
-  @@index([isActive, createdAt]) // Active collections with sorting
-  @@index([slug]) // Slug lookup
-  @@index([modelCode]) // Model code lookup
-  @@index([createdAt]) // Date sorting
-  @@index([viewCount]) // Popular collections (most viewed)
-  @@index([likesCount]) // Popular collections (most liked)
-  // Full-text search (MySQL)
-  @@fulltext([name, description])
   @@map("collections")
 }
 
@@ -579,12 +389,12 @@ model Sample {
   originalCollectionId Int? // Revize edilecek orijinal ürün ID'si
 
   // AI Generated Sample fields
-  name        String? // Sample name
-  description String?  @db.Text // Sample description (long text)
-  images      String?  @db.Text // JSON array of image URLs
-  aiGenerated Boolean? @default(false) // Is this an AI-generated sample
-  aiPrompt    String?  @db.Text // The prompt used for AI generation
-  aiSketchUrl String? // The sketch/reference image URL used
+  name         String? // Sample name
+  description  String? @db.Text // Sample description (long text)
+  images       String? @db.Text // JSON array of image URLs
+  aiGenerated  Boolean? @default(false) // Is this an AI-generated sample
+  aiPrompt     String? @db.Text // The prompt used for AI generation
+  aiSketchUrl  String? // The sketch/reference image URL used
 
   // Üretim süreci bilgileri
   unitPrice               Float? // Numune birim fiyatı
@@ -596,11 +406,11 @@ model Sample {
   cargoTrackingNumber     String? // Kargo takip numarası (opsiyonel)
 
   // Müşteri Teklif Bilgileri (Order ile aynı)
-  customerQuotedPrice Float? // Müşterinin teklif ettiği fiyat
-  customerQuoteDays   Int? // Müşterinin istediği üretim süresi (gün)
-  customerQuoteNote   String?   @db.Text // Müşterinin teklif notu/açıklaması
-  customerQuoteType   String? // "STANDARD" (standartlara uygun) veya "REVISION" (revize teklif)
-  customerQuoteSentAt DateTime? // Müşteri teklifi gönderme zamanı
+  customerQuotedPrice     Float? // Müşterinin teklif ettiği fiyat
+  customerQuoteDays       Int? // Müşterinin istediği üretim süresi (gün)
+  customerQuoteNote       String? @db.Text // Müşterinin teklif notu/açıklaması
+  customerQuoteType       String? // "STANDARD" (standartlara uygun) veya "REVISION" (revize teklif)
+  customerQuoteSentAt     DateTime? // Müşteri teklifi gönderme zamanı
 
   collection         Collection?          @relation("SampleCollection", fields: [collectionId], references: [id])
   collectionId       Int?
@@ -626,29 +436,6 @@ model Sample {
 
   // Notifications
   notifications Notification[] @relation("SampleNotifications")
-
-  // ========================================
-  // 📊 ANALYTICS & ENGAGEMENT (Frontend)
-  // ========================================
-  viewCount    Int       @default(0) // Kaç kere görüntülendi
-  shareCount   Int       @default(0) // Kaç kere paylaşıldı
-  lastViewedAt DateTime? // Son görüntülenme zamanı
-
-  // ========================================
-  // PERFORMANCE INDEXES
-  // ========================================
-  @@index([status]) // Status filtering
-  @@index([customerId, status]) // Customer samples by status
-  @@index([manufactureId, status]) // Manufacturer samples by status
-  @@index([companyId, status, createdAt]) // Company samples with sorting
-  @@index([collectionId]) // Collection relation
-  @@index([sampleNumber]) // Unique lookup
-  @@index([sampleType, status]) // Type + status filter
-  @@index([aiGenerated]) // AI generated samples filter
-  @@index([createdAt]) // Date sorting
-  @@index([status, createdAt]) // Status + date combination
-  @@index([viewCount]) // Popular samples (most viewed)
-  @@map("samples")
 }
 
 // AI Analiz Sonuçları (Numune ile ilişkili)
@@ -658,30 +445,30 @@ model AIAnalysis {
   updatedAt DateTime @updatedAt
 
   // Temel Analiz Sonuçları (Form'a yazılan)
-  detectedProduct        String? // Tespit edilen ürün türü
-  detectedColor          String? // Tespit edilen renk
-  detectedFabric         String? // Tespit edilen kumaş
-  detectedPattern        String? // Tespit edilen kalıp
-  detectedGender         String? // Tespit edilen cinsiyet
+  detectedProduct       String? // Tespit edilen ürün türü
+  detectedColor         String? // Tespit edilen renk
+  detectedFabric        String? // Tespit edilen kumaş
+  detectedPattern       String? // Tespit edilen kalıp
+  detectedGender        String? // Tespit edilen cinsiyet
   detectedClassification String? // Tespit edilen klasman
-  detectedAccessories    String? // Tespit edilen aksesuarlar
-  technicalDescription   String? @db.Text // Teknik açıklama
+  detectedAccessories   String? // Tespit edilen aksesuarlar
+  technicalDescription  String? @db.Text // Teknik açıklama
 
   // Kalite Analizi
   qualityAnalysis String? @db.Text // Kalite analiz raporu
   qualityScore    Float? // Genel kalite skoru (1-10)
 
   // Maliyet Analizi
-  costAnalysis      String? @db.Text // Maliyet analiz raporu
-  estimatedCostMin  Float? // Tahmini minimum maliyet (₺)
-  estimatedCostMax  Float? // Tahmini maksimum maliyet (₺)
-  suggestedMinOrder Int? // Önerilen minimum sipariş adedi
+  costAnalysis         String? @db.Text // Maliyet analiz raporu
+  estimatedCostMin     Float? // Tahmini minimum maliyet (₺)
+  estimatedCostMax     Float? // Tahmini maksimum maliyet (₺)
+  suggestedMinOrder    Int? // Önerilen minimum sipariş adedi
 
   // Trend Analizi
-  trendAnalysis  String? @db.Text // Trend analiz raporu
-  trendScore     Float? // Trend skoru (1-10)
-  targetMarket   String? // Hedef pazar segmenti
-  salesPotential String? // Satış potansiyeli (LOW/MEDIUM/HIGH)
+  trendAnalysis    String? @db.Text // Trend analiz raporu
+  trendScore       Float? // Trend skoru (1-10)
+  targetMarket     String? // Hedef pazar segmenti
+  salesPotential   String? // Satış potansiyeli (LOW/MEDIUM/HIGH)
 
   // Tasarım Önerileri
   designSuggestions String? @db.Text // Tasarım önerileri (JSON veya text)
@@ -723,11 +510,11 @@ model Order {
   manufacturerResponse String? // Üretici yanıtı/değerlendirme
 
   // Müşteri Teklif Bilgileri
-  customerQuotedPrice Float? // Müşterinin teklif ettiği birim fiyat
-  customerQuoteDays   Int? // Müşterinin istediği üretim süresi (gün)
-  customerQuoteNote   String?   @db.Text // Müşterinin teklif notu/açıklaması
-  customerQuoteType   String? // "STANDARD" (standartlara uygun) veya "REVISION" (revize teklif)
-  customerQuoteSentAt DateTime? // Müşteri teklifi gönderme zamanı
+  customerQuotedPrice  Float? // Müşterinin teklif ettiği birim fiyat
+  customerQuoteDays    Int? // Müşterinin istediği üretim süresi (gün)
+  customerQuoteNote    String? @db.Text // Müşterinin teklif notu/açıklaması
+  customerQuoteType    String? // "STANDARD" (standartlara uygun) veya "REVISION" (revize teklif)
+  customerQuoteSentAt  DateTime? // Müşteri teklifi gönderme zamanı
 
   // Üretim süreci bilgileri
   productionDays          Int? // Üretici: "X günde üretebilirim"
@@ -758,21 +545,6 @@ model Order {
 
   // Notifications
   notifications Notification[] @relation("OrderNotifications")
-
-  // ========================================
-  // PERFORMANCE INDEXES
-  // ========================================
-  @@index([status]) // Status filtering
-  @@index([customerId, status]) // Customer orders by status
-  @@index([manufactureId, status]) // Manufacturer orders by status
-  @@index([companyId, status, createdAt]) // Company orders with sorting
-  @@index([collectionId]) // Collection relation
-  @@index([orderNumber]) // Unique lookup
-  @@index([createdAt]) // Date sorting
-  @@index([status, createdAt]) // Status + date combination
-  @@index([estimatedProductionDate]) // Production date filter
-  @@index([shippingDate]) // Shipping date filter
-  @@map("orders")
 }
 
 // Sipariş üretim geçmişi takibi
@@ -1039,7 +811,7 @@ model SizeGroup {
 
 // Season Management (Library Item)
 model SeasonItem {
-  id          Int       @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   name        String // "SS25", "FW25", "SS26"
   fullName    String // "Spring/Summer 2025"
   year        Int // 2025, 2026
@@ -1047,7 +819,7 @@ model SeasonItem {
   startDate   DateTime? // Sezon başlangıç tarihi
   endDate     DateTime? // Sezon bitiş tarihi
   description String?
-  isActive    Boolean   @default(true)
+  isActive    Boolean @default(true)
 
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId Int
@@ -1084,7 +856,7 @@ model Certification {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name     String // "GOTS", "OEKO-TEX Standard 100"
+  name     String                 // "GOTS", "OEKO-TEX Standard 100"
   code     String? // "GOTS-2023", "OEKO-100"
   category CertificationCategory // FIBER, CHEMICAL, SOCIAL, ENVIRONMENTAL, TRACEABILITY
 
@@ -1198,7 +970,7 @@ model Notification {
   type    NotificationType
   title   String
   message String           @db.Text
-  link    String? // İlgili sayfanın URL'i
+  link    String?          // İlgili sayfanın URL'i
   isRead  Boolean          @default(false)
 
   // İlişkiler
@@ -1206,26 +978,18 @@ model Notification {
   user   User @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
 
   // İlgili kayıtlar (opsiyonel)
-  orderId              Int?
-  order                Order?              @relation("OrderNotifications", fields: [orderId], references: [id], onDelete: Cascade)
-  sampleId             Int?
-  sample               Sample?             @relation("SampleNotifications", fields: [sampleId], references: [id], onDelete: Cascade)
+  orderId            Int?
+  order              Order?              @relation("OrderNotifications", fields: [orderId], references: [id], onDelete: Cascade)
+  sampleId           Int?
+  sample             Sample?             @relation("SampleNotifications", fields: [sampleId], references: [id], onDelete: Cascade)
   productionTrackingId Int?
-  productionTracking   ProductionTracking? @relation("ProductionNotifications", fields: [productionTrackingId], references: [id], onDelete: Cascade)
+  productionTracking ProductionTracking? @relation("ProductionNotifications", fields: [productionTrackingId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // ========================================
-  // PERFORMANCE INDEXES
-  // ========================================
-  @@index([userId, isRead]) // User unread notifications
-  @@index([userId, createdAt]) // User notifications with sorting
-  @@index([userId, type]) // User notifications by type
-  @@index([type, isRead]) // Type + read status
-  @@index([orderId]) // Order notifications
-  @@index([sampleId]) // Sample notifications
-  @@index([productionTrackingId]) // Production notifications
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
   @@map("notifications")
 }
 
@@ -1272,12 +1036,12 @@ enum TaskType {
 }
 
 model Task {
-  id          Int          @id @default(autoincrement())
-  title       String // Görev başlığı (örn: "Teklif Onayı Bekliyor")
-  description String?      @db.LongText // Detaylı açıklama
-  status      TaskStatus   @default(TODO)
-  priority    TaskPriority @default(MEDIUM)
-  type        TaskType
+  id            Int      @id @default(autoincrement())
+  title         String   // Görev başlığı (örn: "Teklif Onayı Bekliyor")
+  description   String?  @db.LongText // Detaylı açıklama
+  status        TaskStatus @default(TODO)
+  priority      TaskPriority @default(MEDIUM)
+  type          TaskType
 
   // STATUS İLİŞKİSİ - Hangi status için bu task oluşturuldu
   relatedStatus String? // "QUOTE_SENT", "CUSTOMER_QUOTE_SENT", vb.
@@ -1288,53 +1052,45 @@ model Task {
   productionStage String? // "PLANNING", "FABRIC", "CUTTING", vb. (ProductionStage enum değeri)
 
   // Kullanıcı ve İlişkilendirmeler
-  userId Int // Görevin oluşturduğu kullanıcı (müşteri veya üretici)
-  user   User @relation("UserTasks", fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int      // Görevin oluşturduğu kullanıcı (müşteri veya üretici)
+  user          User     @relation("UserTasks", fields: [userId], references: [id], onDelete: Cascade)
 
   // Gözlemci (Üretici taraf için gelen görevlerde atanan kişi)
-  assignedToId Int? // Kime atanıyor (null ise kendisine atanmış)
-  assignedTo   User? @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
+  assignedToId  Int?     // Kime atanıyor (null ise kendisine atanmış)
+  assignedTo    User?    @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   // Opsiyonel İlişkiler
-  collectionId Int? // Koleksiyonla ilgili görev
-  collection   Collection? @relation("CollectionTasks", fields: [collectionId], references: [id], onDelete: SetNull)
+  collectionId  Int?     // Koleksiyonla ilgili görev
+  collection    Collection? @relation("CollectionTasks", fields: [collectionId], references: [id], onDelete: SetNull)
 
-  sampleId Int? // Örnek talebesiyle ilgili görev
-  sample   Sample? @relation("SampleTasks", fields: [sampleId], references: [id], onDelete: SetNull)
+  sampleId      Int?     // Örnek talebesiyle ilgili görev
+  sample        Sample?  @relation("SampleTasks", fields: [sampleId], references: [id], onDelete: SetNull)
 
-  orderId Int? // Sipariş talebesiyle ilgili görev
-  order   Order? @relation("OrderTasks", fields: [orderId], references: [id], onDelete: SetNull)
+  orderId       Int?     // Sipariş talebesiyle ilgili görev
+  order         Order?   @relation("OrderTasks", fields: [orderId], references: [id], onDelete: SetNull)
 
   productionTrackingId Int?
-  productionTracking   ProductionTracking? @relation("ProductionTrackingTasks", fields: [productionTrackingId], references: [id], onDelete: SetNull)
+  productionTracking ProductionTracking? @relation("ProductionTrackingTasks", fields: [productionTrackingId], references: [id], onDelete: SetNull)
 
   // Tarihler
-  dueDate     DateTime? // Son teslim tarihi
-  completedAt DateTime? // Tamamlanma tarihi
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  dueDate       DateTime? // Son teslim tarihi
+  completedAt   DateTime? // Tamamlanma tarihi
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Metadata
-  notes      String? @db.LongText // Notlar
-  assignedBy Int? // Kimin tarafından atandığı
+  notes         String?  @db.LongText // Notlar
+  assignedBy    Int? // Kimin tarafından atandığı
 
   // Aksiyon Metadata (JSON)
-  actionData Json? // Aksiyonla ilgili ekstra data: {buttonText, endpoint, requiredFields, etc.}
+  actionData    Json? // Aksiyonla ilgili ekstra data: {buttonText, endpoint, requiredFields, etc.}
 
-  // ========================================
-  // PERFORMANCE INDEXES
-  // ========================================
-  @@index([userId, status]) // User tasks by status
-  @@index([assignedToId, status]) // Assigned tasks by status
-  @@index([userId, dueDate]) // User tasks by due date
-  @@index([status, priority]) // Status + priority filter
-  @@index([dueDate]) // Due date sorting
+  @@index([userId, status])
+  @@index([userId, dueDate])
+  @@index([status, priority])
   @@index([relatedStatus]) // Status bazlı filtreleme için
   @@index([entityType, relatedStatus]) // Entity ve status kombinasyonu
-  @@index([type, status]) // Task type + status
-  @@index([createdAt]) // Date sorting
-  @@index([productionStage]) // Production stage filter
-  @@index([userId, completedAt]) // User completed tasks
+  @@index([createdAt])
   @@map("tasks")
 }
 

@@ -22,7 +22,7 @@ export function LayoutProvider({ children }: LayoutContextValue) {
 
     const client = createClient({
       url:
-        process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:4000/graphql",
+        process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:4001/graphql",
       exchanges: [cacheExchange, ssrCache, fetchExchange],
       fetchOptions: () => {
         const token =

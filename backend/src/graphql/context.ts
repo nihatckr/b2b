@@ -1,11 +1,22 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import type { YogaInitialContext } from "graphql-yoga";
+import prisma from "../../lib/prisma.js";
 
- import prisma from '../../lib/prisma.js';
+export type GraphQLContext = YogaInitialContext & {
+  user?: {
+    id: number;
+    email: string;
+    role: string;
+    companyId?: number;
+  } | null;
+  prisma: typeof prisma;
+};
 
-export type GraphQLContext = {
-  prisma: PrismaClient
-}
-
-export async function createContext(): Promise<GraphQLContext> {
-  return { prisma }
+export async function createContext(
+  initialContext: YogaInitialContext
+): Promise<GraphQLContext> {
+  return {
+    ...initialContext,
+    user: (initialContext as any).user || null,
+    prisma,
+  };
 }

@@ -1,12 +1,16 @@
-import SchemaBuilder from '@pothos/core';
-import PrismaPlugin from '@pothos/plugin-prisma';
-import RelayPlugin from '@pothos/plugin-relay';
-import ScopeAuthPlugin from '@pothos/plugin-scope-auth';
-import ValidationPlugin from '@pothos/plugin-validation';
-import type { YogaInitialContext } from 'graphql-yoga';
-import type PrismaTypes from '../../lib/pothos-prisma-types';
-import prisma from '../../lib/prisma';
-import { Prisma } from '../generated/prisma';
+import SchemaBuilder from "@pothos/core";
+import PrismaPlugin from "@pothos/plugin-prisma";
+import RelayPlugin from "@pothos/plugin-relay";
+import ScopeAuthPlugin from "@pothos/plugin-scope-auth";
+
+import type { YogaInitialContext } from "graphql-yoga";
+import prisma from "../../lib/prisma";
+
+import { DateResolver, JSONResolver } from "graphql-scalars";
+import type PrismaTypes from "../../lib/pothos-prisma-types"; // path to generated types, specified in your prisma.schema
+import { getDatamodel } from "../../lib/pothos-prisma-types";
+
+// removed duplicate/incorrect SchemaBuilder; the fully-configured `export const builder` below is used
 
 // Context type for GraphQL requests
 export interface Context extends YogaInitialContext {
@@ -27,8 +31,8 @@ export const builder = new SchemaBuilder<{
     public: boolean;
     user: boolean;
     admin: boolean;
-    manufacturer: boolean;
-    customer: boolean;
+    companyOwner: boolean;
+    employee: boolean;
   };
   Scalars: {
     DateTime: {
@@ -36,53 +40,43 @@ export const builder = new SchemaBuilder<{
       Output: Date;
     };
     JSON: {
-      Input: Prisma.JsonValue;
-      Output: Prisma.JsonValue;
+      Input: unknown;
+      Output: unknown;
     };
   };
 }>({
-  plugins: [PrismaPlugin, RelayPlugin, ScopeAuthPlugin, ValidationPlugin],
+  plugins: [ScopeAuthPlugin, PrismaPlugin, RelayPlugin],
   prisma: {
     client: prisma,
+    dmmf: getDatamodel(),
+    exposeDescriptions: { models: true, fields: true },
+    // use where clause from prismaRelatedConnection for totalCount (defaults to true)
+    filterConnectionTotalCount: true,
+    // warn when not using a query parameter correctly
+    onUnusedQuery: process.env.NODE_ENV === "production" ? null : "warn",
   },
-  relayOptions: {
-    // Configure relay cursor connections
-    clientMutationId: 'omit',
-    cursorType: 'String',
-  },
+
   scopeAuth: {
-    // Authorization configuration
-    authScopes: async (context) => ({
+    authScopes: async (context: Context) => ({
       public: true,
       user: !!context.user,
-      admin: context.user?.role === 'ADMIN',
-      manufacturer: context.user?.role === 'MANUFACTURER' || context.user?.role === 'COMPANY_OWNER',
-      customer: context.user?.role === 'CUSTOMER',
+      admin: context.user?.role === "ADMIN",
+      companyOwner: context.user?.role === "COMPANY_OWNER",
+      employee: context.user?.role === "COMPANY_EMPLOYEE",
     }),
   },
 });
 
-// Define custom scalars
-builder.scalarType('DateTime', {
-  serialize: (value) => value.toISOString(),
-  parseValue: (value) => {
-    if (typeof value === 'string') {
-      return new Date(value);
-    }
-    throw new Error('DateTime must be a string');
-  },
-});
-
-builder.scalarType('JSON', {
-  serialize: (value) => value,
-  parseValue: (value) => value,
-});
+builder.addScalarType("JSON", JSONResolver);
+builder.addScalarType("DateTime", DateResolver);
 
 // Query and Mutation root types
 builder.queryType({
-  description: 'Root Query',
+  description: "Root Query",
 });
 
 builder.mutationType({
-  description: 'Root Mutation',
+  description: "Root Mutation",
 });
+
+export default builder;

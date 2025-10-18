@@ -1,112 +1,305 @@
-import { builder } from '../builder';
+import builder from "../builder";
 
-// User Type
-builder.prismaObject('User', {
+// ========================================
+// PRISMA OBJECT TYPES
+// ========================================
+
+builder.prismaObject("User", {
   fields: (t) => ({
-    id: t.exposeID('id'),
-    email: t.exposeString('email'),
-    name: t.exposeString('name', { nullable: true }),
-    role: t.exposeString('role'),
-    isActive: t.exposeBoolean('isActive'),
-    createdAt: t.expose('createdAt', { type: 'DateTime' }),
-    updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
-
-    // Relations
-    company: t.relation('company', { nullable: true }),
-    collections: t.relation('collections'),
-    samples: t.relation('samples'),
+    id: t.exposeID("id"),
+    email: t.exposeString("email"),
+    name: t.exposeString("name"),
+    role: t.expose("role", { type: "String" }),
+    department: t.expose("department", { type: "String" }),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
 });
 
-// Company Type
-builder.prismaObject('Company', {
+builder.prismaObject("Company", {
   fields: (t) => ({
-    id: t.exposeID('id'),
-    name: t.exposeString('name'),
-    type: t.exposeString('type'),
-    taxNumber: t.exposeString('taxNumber', { nullable: true }),
-    address: t.exposeString('address', { nullable: true }),
-    phone: t.exposeString('phone', { nullable: true }),
-    createdAt: t.expose('createdAt', { type: 'DateTime' }),
-
-    // Relations
-    users: t.relation('users'),
-    samples: t.relation('samples'),
-    orders: t.relation('orders'),
+    id: t.exposeID("id"),
+    name: t.exposeString("name"),
+    email: t.exposeString("email"),
+    phone: t.exposeString("phone"),
+    type: t.expose("type", { type: "String" }),
+    isActive: t.exposeBoolean("isActive"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
 });
 
-// Sample Type
-builder.prismaObject('Sample', {
+builder.prismaObject("Sample", {
   fields: (t) => ({
-    id: t.exposeID('id'),
-    code: t.exposeString('code'),
-    name: t.exposeString('name'),
-    status: t.exposeString('status'),
-    priority: t.exposeString('priority'),
-    description: t.exposeString('description', { nullable: true }),
-    quantity: t.exposeInt('quantity', { nullable: true }),
-    createdAt: t.expose('createdAt', { type: 'DateTime' }),
-    updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
-
-    // Relations
-    collection: t.relation('collection'),
-    category: t.relation('category', { nullable: true }),
-    company: t.relation('company'),
-    createdBy: t.relation('createdBy'),
+    id: t.exposeID("id"),
+    sampleNumber: t.exposeString("sampleNumber"),
+    name: t.exposeString("name"),
+    description: t.exposeString("description"),
+    status: t.expose("status", { type: "String" }),
+    aiGenerated: t.exposeBoolean("aiGenerated"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
 });
 
-// Collection Type
-builder.prismaObject('Collection', {
+builder.prismaObject("Order", {
   fields: (t) => ({
-    id: t.exposeID('id'),
-    name: t.exposeString('name'),
-    description: t.exposeString('description', { nullable: true }),
-    season: t.exposeString('season', { nullable: true }),
-    year: t.exposeInt('year', { nullable: true }),
-    createdAt: t.expose('createdAt', { type: 'DateTime' }),
-
-    // Relations
-    samples: t.relation('samples'),
-    createdBy: t.relation('createdBy'),
+    id: t.exposeID("id"),
+    orderNumber: t.exposeString("orderNumber"),
+    quantity: t.exposeInt("quantity"),
+    unitPrice: t.exposeFloat("unitPrice"),
+    totalPrice: t.exposeFloat("totalPrice"),
+    status: t.expose("status", { type: "String" }),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
 });
 
-// Order Type
-builder.prismaObject('Order', {
+builder.prismaObject("Collection", {
   fields: (t) => ({
-    id: t.exposeID('id'),
-    orderNumber: t.exposeString('orderNumber'),
-    status: t.exposeString('status'),
-    totalQuantity: t.exposeInt('totalQuantity'),
-    totalAmount: t.exposeFloat('totalAmount', { nullable: true }),
-    deliveryDate: t.expose('deliveryDate', { type: 'DateTime', nullable: true }),
-    createdAt: t.expose('createdAt', { type: 'DateTime' }),
-
-    // Relations
-    customer: t.relation('customer'),
-    manufacturer: t.relation('manufacturer'),
-    items: t.relation('items'),
+    id: t.exposeID("id"),
+    name: t.exposeString("name"),
+    description: t.exposeString("description"),
+    modelCode: t.exposeString("modelCode"),
+    season: t.expose("season", { type: "String" }),
+    isActive: t.exposeBoolean("isActive"),
+    isFeatured: t.exposeBoolean("isFeatured"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
 });
 
-// Task Type
-builder.prismaObject('Task', {
+builder.prismaObject("Category", {
   fields: (t) => ({
-    id: t.exposeID('id'),
-    title: t.exposeString('title'),
-    description: t.exposeString('description', { nullable: true }),
-    type: t.exposeString('type'),
-    status: t.exposeString('status'),
-    priority: t.exposeString('priority'),
-    dueDate: t.expose('dueDate', { type: 'DateTime', nullable: true }),
-    createdAt: t.expose('createdAt', { type: 'DateTime' }),
-
-    // Relations
-    assignedTo: t.relation('assignedTo', { nullable: true }),
-    createdBy: t.relation('createdBy'),
-    sample: t.relation('sample', { nullable: true }),
-    order: t.relation('order', { nullable: true }),
+    id: t.exposeID("id"),
+    name: t.exposeString("name"),
+    description: t.exposeString("description"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
 });
+
+builder.prismaObject("Message", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    content: t.exposeString("content"),
+    senderId: t.exposeInt("senderId"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("Notification", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    message: t.exposeString("message"),
+    isRead: t.exposeBoolean("isRead"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("Question", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    question: t.exposeString("question"),
+    answer: t.exposeString("answer"),
+    isAnswered: t.exposeBoolean("isAnswered"),
+    isPublic: t.exposeBoolean("isPublic"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("Review", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    rating: t.exposeInt("rating"),
+    comment: t.exposeString("comment"),
+    isApproved: t.exposeBoolean("isApproved"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+// ========================================
+// LIBRARY TYPES
+// ========================================
+
+builder.prismaObject("Color", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    name: t.exposeString("name"),
+    code: t.exposeString("code"),
+    hexCode: t.exposeString("hexCode"),
+    isActive: t.exposeBoolean("isActive"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("Fabric", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    name: t.exposeString("name"),
+    code: t.exposeString("code"),
+    composition: t.exposeString("composition"),
+    weight: t.exposeInt("weight"),
+    isActive: t.exposeBoolean("isActive"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("SizeGroup", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    name: t.exposeString("name"),
+    category: t.exposeString("category"),
+    sizes: t.exposeString("sizes"),
+    isActive: t.exposeBoolean("isActive"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("SeasonItem", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    name: t.exposeString("name"),
+    fullName: t.exposeString("fullName"),
+    year: t.exposeInt("year"),
+    isActive: t.exposeBoolean("isActive"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("FitItem", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    name: t.exposeString("name"),
+    code: t.exposeString("code"),
+    isActive: t.exposeBoolean("isActive"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("Certification", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    name: t.exposeString("name"),
+    code: t.exposeString("code"),
+    category: t.exposeString("category"),
+    isActive: t.exposeBoolean("isActive"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("Workshop", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    name: t.exposeString("name"),
+    type: t.exposeString("type"),
+    capacity: t.exposeInt("capacity"),
+    location: t.exposeString("location"),
+    isActive: t.exposeBoolean("isActive"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("ProductionStageUpdate", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    stage: t.exposeString("stage"),
+    notes: t.exposeString("notes"),
+    status: t.exposeString("status"),
+    extraDays: t.exposeInt("extraDays"),
+    isRevision: t.exposeBoolean("isRevision"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("QualityControl", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    result: t.exposeString("result"),
+    score: t.exposeInt("score"),
+    notes: t.exposeString("notes"),
+    fabricDefects: t.exposeBoolean("fabricDefects"),
+    sewingDefects: t.exposeBoolean("sewingDefects"),
+    measureDefects: t.exposeBoolean("measureDefects"),
+    finishingDefects: t.exposeBoolean("finishingDefects"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("ProductionTracking", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    currentStage: t.exposeString("currentStage"),
+    overallStatus: t.exposeString("overallStatus"),
+    progress: t.exposeInt("progress"),
+    notes: t.exposeString("notes"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("Task", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    title: t.exposeString("title"),
+    description: t.exposeString("description"),
+    status: t.exposeString("status"),
+    priority: t.exposeString("priority"),
+    type: t.exposeString("type"),
+    dueDate: t.expose("dueDate", { type: "DateTime" }),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+builder.prismaObject("UserFavoriteCollection", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    userId: t.exposeInt("userId"),
+    collectionId: t.exposeInt("collectionId"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+  }),
+});
+
+// ========================================
+// ROOT QUERY TYPE (Boş başlatıyoruz - queries dosyalarında tanımlanıyor)
+// ========================================
+
+// Import and register queries
+import "../queries/categoryQuery";
+import "../queries/collectionQuery";
+import "../queries/companyQuery";
+import "../queries/messageQuery";
+import "../queries/notificationQuery";
+import "../queries/orderQuery";
+import "../queries/questionQuery";
+import "../queries/reviewQuery";
+import "../queries/sampleQuery";
+import "../queries/userQuery";
+
+// ========================================
+// ROOT MUTATION TYPE (Boş başlatıyoruz - mutations dosyalarında tanımlanıyor)
+// ========================================
+
+// Import and register mutations
+import "../mutations/categoryMutation";
+import "../mutations/collectionMutation";
+import "../mutations/companyMutation";
+import "../mutations/messageMutation";
+import "../mutations/notificationMutation";
+import "../mutations/orderMutation";
+import "../mutations/questionMutation";
+import "../mutations/reviewMutation";
+import "../mutations/sampleMutation";
+import "../mutations/userMutation";

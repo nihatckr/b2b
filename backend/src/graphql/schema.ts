@@ -1,10 +1,13 @@
-import { builder } from './builder';
+import { builder } from "./builder";
 
 // Import all types
-import './types';
+import "./types";
 
 // Import all queries
-import './queries';
+import "./queries";
+
+// Import all mutations
+import "./mutations";
 
 // Build and export the GraphQL schema
 export const schema = builder.toSchema();
