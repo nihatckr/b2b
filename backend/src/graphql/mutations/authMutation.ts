@@ -1,5 +1,26 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import builder from "../builder";
+
+// JWT Secret from environment variables
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-only-for-dev';
+const JWT_EXPIRES_IN = '7d'; // Token expires in 7 days
+
+// Helper function to generate JWT token
+function generateToken(user: { id: number; email: string; role: string }) {
+  return jwt.sign(
+    {
+      sub: user.id.toString(),      // Subject (user ID) - standard JWT claim
+      email: user.email,
+      role: user.role,
+    },
+    JWT_SECRET,
+    {
+      expiresIn: JWT_EXPIRES_IN,
+      algorithm: 'HS256',
+    }
+  );
+}
 
 // Login (returns JWT token)
 builder.mutationField("login", (t) =>
@@ -23,9 +44,15 @@ builder.mutationField("login", (t) =>
       );
       if (!isValidPassword) throw new Error("Invalid email or password");
 
-      // In real app, generate JWT token here
+      // Generate real JWT token
+      const token = generateToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
       return {
-        token: `jwt_token_for_${user.id}`,
+        token,
         user: {
           id: user.id,
           email: user.email,
@@ -66,8 +93,15 @@ builder.mutationField("signup", (t) =>
         },
       });
 
+      // Generate real JWT token
+      const token = generateToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
       return {
-        token: `jwt_token_for_${user.id}`,
+        token,
         user: {
           id: user.id,
           email: user.email,
@@ -108,8 +142,15 @@ builder.mutationField("register", (t) =>
         },
       });
 
+      // Generate real JWT token
+      const token = generateToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
       return {
-        token: `jwt_token_for_${user.id}`,
+        token,
         user: {
           id: user.id,
           email: user.email,
@@ -157,8 +198,15 @@ builder.mutationField("signupOAuth", (t) =>
         });
       }
 
+      // Generate real JWT token
+      const token = generateToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
       return {
-        token: `jwt_token_for_${user.id}`,
+        token,
         user: {
           id: user.id,
           email: user.email,
@@ -229,22 +277,60 @@ builder.mutationField("updateProfile", (t) =>
       phone: t.arg.string(),
       department: t.arg.string(),
       jobTitle: t.arg.string(),
+
+      // Profile fields
+      avatar: t.arg.string(),
+      bio: t.arg.string(),
+      socialLinks: t.arg.string(), // JSON string
+
+      // Settings
+      emailNotifications: t.arg.boolean(),
+      pushNotifications: t.arg.boolean(),
+      language: t.arg.string(),
+      timezone: t.arg.string(),
     },
     authScopes: { user: true },
     resolve: async (query, _root: any, args: any, context: any) => {
       if (!context.user?.id) throw new Error("Not authenticated");
 
+      const updateData: any = {};
+
+      // Basic profile fields
+      if (args.name !== null && args.name !== undefined)
+        updateData.name = args.name;
+      if (args.firstName !== null && args.firstName !== undefined)
+        updateData.firstName = args.firstName;
+      if (args.lastName !== null && args.lastName !== undefined)
+        updateData.lastName = args.lastName;
+      if (args.phone !== null && args.phone !== undefined)
+        updateData.phone = args.phone;
+      if (args.department !== null && args.department !== undefined)
+        updateData.department = args.department;
+      if (args.jobTitle !== null && args.jobTitle !== undefined)
+        updateData.jobTitle = args.jobTitle;
+
+      // New profile fields
+      if (args.avatar !== null && args.avatar !== undefined)
+        updateData.avatar = args.avatar;
+      if (args.bio !== null && args.bio !== undefined)
+        updateData.bio = args.bio;
+      if (args.socialLinks !== null && args.socialLinks !== undefined)
+        updateData.socialLinks = args.socialLinks;
+
+      // Settings
+      if (args.emailNotifications !== null && args.emailNotifications !== undefined)
+        updateData.emailNotifications = args.emailNotifications;
+      if (args.pushNotifications !== null && args.pushNotifications !== undefined)
+        updateData.pushNotifications = args.pushNotifications;
+      if (args.language !== null && args.language !== undefined)
+        updateData.language = args.language;
+      if (args.timezone !== null && args.timezone !== undefined)
+        updateData.timezone = args.timezone;
+
       return context.prisma.user.update({
         ...query,
         where: { id: context.user.id },
-        data: {
-          name: args.name || undefined,
-          firstName: args.firstName || undefined,
-          lastName: args.lastName || undefined,
-          phone: args.phone || undefined,
-          department: args.department || undefined,
-          jobTitle: args.jobTitle || undefined,
-        } as any,
+        data: updateData,
       });
     },
   })

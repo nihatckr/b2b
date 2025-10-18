@@ -6,17 +6,15 @@
   "private": true,
   "main": "src/server.ts",
   "scripts": {
-    "dev": "tsx src/server.ts",
+    "dev": "cross-env NODE_ENV=development tsx src/server.ts",
     "prisma:validate": "prisma validate",
     "prisma:format": "prisma format",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
+    "prisma:seed": "node -r @swc-node/register prisma/seed.ts",
     "sync:schema": "cp ../server/prisma/schema.prisma ./prisma/schema.prisma && echo Schema synced from server!",
     "diff:schema": "echo 'Compare schemas:' && diff ../server/prisma/schema.prisma ./prisma/schema.prisma || true",
     "test": "echo \"⚠️  This is a refactoring/backup area, not for running tests\""
-  },
-  "prisma": {
-    "seed": "node -r @swc-node/register prisma/seed.ts"
   },
   "keywords": [
     "prisma",
@@ -28,26 +26,36 @@
   "license": "Private",
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.8.1",
+    "cross-env": "^10.1.0",
     "prisma": "^6.17.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@graphql-yoga/plugin-disable-introspection": "^2.17.0",
+    "@graphql-yoga/plugin-jwt": "^3.10.0",
+    "@graphql-yoga/plugin-response-cache": "^3.18.0",
     "@pothos/core": "^4.10.0",
+    "@pothos/plugin-dataloader": "^4.4.3",
     "@pothos/plugin-prisma": "^4.12.0",
     "@pothos/plugin-relay": "^4.6.2",
     "@pothos/plugin-scope-auth": "^4.1.6",
     "@pothos/plugin-validation": "^4.2.0",
     "@prisma/client": "^6.17.1",
     "@swc-node/register": "^1.11.1",
+    "@types/graphql-upload": "^17.0.0",
     "bcryptjs": "^3.0.2",
+    "dataloader": "^2.2.3",
     "express": "^5.1.0",
     "graphql": "^16.11.0",
     "graphql-middleware": "^6.1.35",
     "graphql-scalars": "^1.25.0",
     "graphql-shield": "^7.6.5",
-    "graphql-yoga": "^5.16.0"
+    "graphql-upload": "^17.0.0",
+    "graphql-yoga": "^5.16.0",
+    "jsonwebtoken": "^9.0.2"
   },
   "publishConfig": {
     "access": "public"

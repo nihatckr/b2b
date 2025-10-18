@@ -1,5 +1,11 @@
 import builder from "../builder";
 
+// ========================================
+// LEGACY CATEGORY MUTATIONS (Backward Compatibility)
+// ========================================
+// Note: New standardized category system is in libraryMutation.ts
+// (StandardCategory and CompanyCategory)
+
 // Create category (admin only)
 builder.mutationField("createCategory", (t) =>
   t.prismaField({

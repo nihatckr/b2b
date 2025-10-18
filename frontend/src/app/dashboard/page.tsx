@@ -10,7 +10,7 @@ import {
   DASHBOARD_STATS_QUERY,
   MANUFACTURER_ORDERS_QUERY,
   USER_STATS_QUERY,
-} from "@/lib/graphql-queries";
+} from "@/lib/graphql/graphql-queries";
 import {
   Clock,
   FileText,

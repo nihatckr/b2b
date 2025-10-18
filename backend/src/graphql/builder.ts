@@ -2,10 +2,10 @@ import SchemaBuilder from "@pothos/core";
 import PrismaPlugin from "@pothos/plugin-prisma";
 import RelayPlugin from "@pothos/plugin-relay";
 import ScopeAuthPlugin from "@pothos/plugin-scope-auth";
-
+import DataloaderPlugin from '@pothos/plugin-dataloader';
 import type { YogaInitialContext } from "graphql-yoga";
 import prisma from "../../lib/prisma";
-
+import ValidationPlugin from '@pothos/plugin-validation';
 import { DateResolver, JSONResolver } from "graphql-scalars";
 import type PrismaTypes from "../../lib/pothos-prisma-types"; // path to generated types, specified in your prisma.schema
 import { getDatamodel } from "../../lib/pothos-prisma-types";
@@ -43,9 +43,13 @@ export const builder = new SchemaBuilder<{
       Input: unknown;
       Output: unknown;
     };
+    File: {
+      Input: File;
+      Output: never;
+    };
   };
 }>({
-  plugins: [ScopeAuthPlugin, PrismaPlugin, RelayPlugin],
+  plugins: [ScopeAuthPlugin, PrismaPlugin, RelayPlugin, DataloaderPlugin, ValidationPlugin],
   prisma: {
     client: prisma,
     dmmf: getDatamodel(),
@@ -70,6 +74,14 @@ export const builder = new SchemaBuilder<{
 builder.addScalarType("JSON", JSONResolver);
 builder.addScalarType("DateTime", DateResolver);
 
+// File scalar for GraphQL Yoga v5 (WHATWG File API)
+// Reference: https://the-guild.dev/graphql/yoga-server/docs/features/file-uploads
+builder.scalarType("File", {
+  serialize: () => {
+    throw new Error("File scalar cannot be serialized (output only)");
+  },
+});
+
 // Query and Mutation root types
 builder.queryType({
   description: "Root Query",
@@ -77,6 +89,10 @@ builder.queryType({
 
 builder.mutationType({
   description: "Root Mutation",
+});
+
+builder.subscriptionType({
+  description: "Root Subscription for Real-Time Updates",
 });
 
 export default builder;

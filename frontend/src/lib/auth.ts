@@ -1,36 +1,21 @@
-import NextAuth, { type DefaultSession, type NextAuthOptions } from "next-auth";
+import { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
+import { checkRateLimit, resetRateLimit } from "./rate-limit";
 
-declare module "next-auth" {
-  interface Session extends DefaultSession {
-    user: DefaultSession["user"] & {
-      id: string;
-      role: string;
-      companyId?: string;
-      backendToken?: string;
-    };
-  }
+// OAuth Provider Map (Auth.js pattern)
+// Export for dynamic rendering of OAuth buttons in login forms
+export const oauthProviders = [
+  {
+    id: "github" as const,
+    name: "GitHub",
+  },
+  // Add more OAuth providers here in the future:
+  // { id: "google" as const, name: "Google" },
+  // { id: "discord" as const, name: "Discord" },
+] as const;
 
-  interface User {
-    id: string;
-    email: string;
-    name?: string;
-    image?: string;
-    role: string;
-    companyId?: string;
-    backendToken: string;
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id?: string;
-    role?: string;
-    companyId?: string;
-    backendToken?: string;
-  }
-}
+export type OAuthProviderId = typeof oauthProviders[number]["id"];
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -47,6 +32,20 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email ve şifre gereklidir");
+        }
+
+        // Rate limiting check
+        const rateLimitResult = checkRateLimit(credentials.email);
+        if (!rateLimitResult.allowed) {
+          const blockedUntil = rateLimitResult.blockedUntil;
+          if (blockedUntil) {
+            const minutesLeft = Math.ceil(
+              (blockedUntil.getTime() - Date.now()) / 60000
+            );
+            throw new Error(
+              `Çok fazla başarısız giriş denemesi. ${minutesLeft} dakika sonra tekrar deneyin.`
+            );
+          }
         }
 
         try {
@@ -79,6 +78,9 @@ export const authOptions: NextAuthOptions = {
 
           const loginResult = JSON.parse(data.data.login);
 
+          // Reset rate limit on successful login
+          resetRateLimit(credentials.email);
+
           return {
             id: String(loginResult.user.id),
             email: loginResult.user.email,
@@ -99,7 +101,8 @@ export const authOptions: NextAuthOptions = {
     GithubProvider({
       clientId: process.env.GITHUB_ID || "",
       clientSecret: process.env.GITHUB_SECRET || "",
-      allowDangerousEmailAccountLinking: true,
+      // Removed allowDangerousEmailAccountLinking for security
+      // Email verification is handled in signIn callback
     }),
   ],
   callbacks: {
@@ -147,13 +150,56 @@ export const authOptions: NextAuthOptions = {
 
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
         token.companyId = user.companyId;
         token.backendToken = user.backendToken;
       }
+
+      // Refresh token rotation
+      // If token is older than 12 hours, refresh backend token
+      const now = Math.floor(Date.now() / 1000);
+      const tokenAge = token.iat ? now - token.iat : 0;
+      const twelveHours = 12 * 60 * 60;
+
+      if (
+        tokenAge > twelveHours &&
+        token.backendToken &&
+        trigger !== "update"
+      ) {
+        try {
+          // Call backend to refresh token
+          const response = await fetch(
+            process.env.NEXT_PUBLIC_GRAPHQL_URL ||
+              "http://localhost:4001/graphql",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                authorization: `Bearer ${token.backendToken}`,
+              },
+              body: JSON.stringify({
+                query: `mutation RefreshToken {
+                  refreshToken
+                }`,
+              }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (data.data?.refreshToken) {
+            token.backendToken = data.data.refreshToken;
+            token.iat = now; // Update issued at time
+          }
+        } catch (error) {
+          console.error("Token refresh error:", error);
+          // Keep existing token if refresh fails
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {

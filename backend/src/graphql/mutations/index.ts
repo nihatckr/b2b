@@ -4,7 +4,7 @@ import "./authMutation";
 import "./categoryMutation";
 import "./collectionMutation";
 import "./companyMutation";
-import "./fitSeasonMutation";
+// import "./fitSeasonMutation"; // DEPRECATED - Use LibraryItem system instead
 import "./libraryMutation";
 import "./likeMutation";
 import "./messageMutation";

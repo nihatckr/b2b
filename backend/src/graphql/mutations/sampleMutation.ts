@@ -34,24 +34,55 @@ builder.mutationField("createSample", (t) =>
       name: t.arg.string({ required: true }),
       description: t.arg.string(),
       collectionId: t.arg.int(),
+      sampleType: t.arg.string(),
+
+      // AI Design fields
+      aiGenerated: t.arg.boolean(),
+      aiPrompt: t.arg.string(),
+      aiSketchUrl: t.arg.string(),
+
+      // Images
+      images: t.arg.string(), // JSON array
+      customDesignImages: t.arg.string(), // JSON array
+
+      // Customer notes
+      customerNote: t.arg.string(),
     },
     authScopes: { user: true },
     resolve: async (query, _root, args, context) => {
+      const data: any = {
+        sampleNumber: `SAMPLE-${Date.now()}`,
+        name: args.name,
+        customerId: context.user?.id || 0,
+        manufactureId: context.user?.id || 0,
+        status: args.aiGenerated ? "AI_DESIGN" : "PENDING",
+
+        // Analytics initialization
+        viewCount: 0,
+        shareCount: 0,
+      };
+
+      // Optional fields
+      if (args.description) data.description = args.description;
+      if (args.collectionId) data.collectionId = args.collectionId;
+      if (args.sampleType) data.sampleType = args.sampleType;
+
+      // AI Design fields
+      if (args.aiGenerated !== null && args.aiGenerated !== undefined)
+        data.aiGenerated = args.aiGenerated;
+      if (args.aiPrompt) data.aiPrompt = args.aiPrompt;
+      if (args.aiSketchUrl) data.aiSketchUrl = args.aiSketchUrl;
+
+      // Images
+      if (args.images) data.images = args.images;
+      if (args.customDesignImages) data.customDesignImages = args.customDesignImages;
+
+      // Notes
+      if (args.customerNote) data.customerNote = args.customerNote;
+
       return context.prisma.sample.create({
         ...query,
-        data: {
-          sampleNumber: `SAMPLE-${Date.now()}`,
-          name: args.name,
-          ...(args.description !== null && args.description !== undefined
-            ? { description: args.description }
-            : {}),
-          ...(args.collectionId !== null && args.collectionId !== undefined
-            ? { collectionId: args.collectionId }
-            : {}),
-          customerId: context.user?.id || 0,
-          manufactureId: context.user?.id || 0,
-          status: "PENDING" as any,
-        },
+        data,
       });
     },
   })
@@ -66,6 +97,27 @@ builder.mutationField("updateSample", (t) =>
       name: t.arg.string(),
       description: t.arg.string(),
       status: t.arg.string(),
+
+      // AI Design fields
+      aiPrompt: t.arg.string(),
+      aiSketchUrl: t.arg.string(),
+
+      // Images
+      images: t.arg.string(),
+      customDesignImages: t.arg.string(),
+
+      // Production fields
+      unitPrice: t.arg.float(),
+      productionDays: t.arg.int(),
+
+      // Customer Quote fields
+      customerQuotedPrice: t.arg.float(),
+      customerQuoteDays: t.arg.int(),
+      customerQuoteNote: t.arg.string(),
+
+      // Notes
+      customerNote: t.arg.string(),
+      manufacturerResponse: t.arg.string(),
     },
     authScopes: { user: true, admin: true },
     resolve: async (query, _root, args, context) => {
@@ -83,10 +135,14 @@ builder.mutationField("updateSample", (t) =>
       }
 
       const updateData: any = {};
+
+      // Basic fields
       if (args.name !== null && args.name !== undefined)
         updateData.name = args.name;
       if (args.description !== null && args.description !== undefined)
         updateData.description = args.description;
+
+      // Status validation
       if (args.status !== null && args.status !== undefined) {
         if (!ValidSampleStatuses.includes(args.status)) {
           throw new Error(
@@ -95,6 +151,38 @@ builder.mutationField("updateSample", (t) =>
         }
         updateData.status = args.status;
       }
+
+      // AI Design fields
+      if (args.aiPrompt !== null && args.aiPrompt !== undefined)
+        updateData.aiPrompt = args.aiPrompt;
+      if (args.aiSketchUrl !== null && args.aiSketchUrl !== undefined)
+        updateData.aiSketchUrl = args.aiSketchUrl;
+
+      // Images
+      if (args.images !== null && args.images !== undefined)
+        updateData.images = args.images;
+      if (args.customDesignImages !== null && args.customDesignImages !== undefined)
+        updateData.customDesignImages = args.customDesignImages;
+
+      // Production fields
+      if (args.unitPrice !== null && args.unitPrice !== undefined)
+        updateData.unitPrice = args.unitPrice;
+      if (args.productionDays !== null && args.productionDays !== undefined)
+        updateData.productionDays = args.productionDays;
+
+      // Customer Quote fields
+      if (args.customerQuotedPrice !== null && args.customerQuotedPrice !== undefined)
+        updateData.customerQuotedPrice = args.customerQuotedPrice;
+      if (args.customerQuoteDays !== null && args.customerQuoteDays !== undefined)
+        updateData.customerQuoteDays = args.customerQuoteDays;
+      if (args.customerQuoteNote !== null && args.customerQuoteNote !== undefined)
+        updateData.customerQuoteNote = args.customerQuoteNote;
+
+      // Notes
+      if (args.customerNote !== null && args.customerNote !== undefined)
+        updateData.customerNote = args.customerNote;
+      if (args.manufacturerResponse !== null && args.manufacturerResponse !== undefined)
+        updateData.manufacturerResponse = args.manufacturerResponse;
 
       return context.prisma.sample.update({
         ...query,

@@ -61,6 +61,26 @@ builder.mutationField("updateOrder", (t) =>
       quantity: t.arg.int(),
       unitPrice: t.arg.float(),
       status: t.arg.string(),
+
+      // Customer Quote fields
+      customerQuotedPrice: t.arg.float(),
+      customerQuoteDays: t.arg.int(),
+      customerQuoteNote: t.arg.string(),
+
+      // Production fields
+      productionDays: t.arg.int(),
+      estimatedProductionDate: t.arg.string(), // ISO date string
+      actualProductionStart: t.arg.string(),
+      actualProductionEnd: t.arg.string(),
+
+      // Shipping fields
+      shippingDate: t.arg.string(),
+      deliveryAddress: t.arg.string(),
+      cargoTrackingNumber: t.arg.string(),
+
+      // Notes
+      customerNote: t.arg.string(),
+      manufacturerResponse: t.arg.string(),
     },
     authScopes: { user: true, admin: true },
     resolve: async (query, _root, args, context) => {
@@ -77,6 +97,8 @@ builder.mutationField("updateOrder", (t) =>
       }
 
       const updateData: any = {};
+
+      // Price & Quantity
       if (args.quantity !== null && args.quantity !== undefined) {
         updateData.quantity = args.quantity;
         if (args.unitPrice !== null && args.unitPrice !== undefined) {
@@ -87,6 +109,8 @@ builder.mutationField("updateOrder", (t) =>
         updateData.unitPrice = args.unitPrice;
         updateData.totalPrice = order.quantity * args.unitPrice;
       }
+
+      // Status
       if (args.status !== null && args.status !== undefined) {
         if (!ValidOrderStatuses.includes(args.status)) {
           throw new Error(
@@ -95,6 +119,38 @@ builder.mutationField("updateOrder", (t) =>
         }
         updateData.status = args.status;
       }
+
+      // Customer Quote fields
+      if (args.customerQuotedPrice !== null && args.customerQuotedPrice !== undefined)
+        updateData.customerQuotedPrice = args.customerQuotedPrice;
+      if (args.customerQuoteDays !== null && args.customerQuoteDays !== undefined)
+        updateData.customerQuoteDays = args.customerQuoteDays;
+      if (args.customerQuoteNote !== null && args.customerQuoteNote !== undefined)
+        updateData.customerQuoteNote = args.customerQuoteNote;
+
+      // Production fields
+      if (args.productionDays !== null && args.productionDays !== undefined)
+        updateData.productionDays = args.productionDays;
+      if (args.estimatedProductionDate !== null && args.estimatedProductionDate !== undefined)
+        updateData.estimatedProductionDate = new Date(args.estimatedProductionDate);
+      if (args.actualProductionStart !== null && args.actualProductionStart !== undefined)
+        updateData.actualProductionStart = new Date(args.actualProductionStart);
+      if (args.actualProductionEnd !== null && args.actualProductionEnd !== undefined)
+        updateData.actualProductionEnd = new Date(args.actualProductionEnd);
+
+      // Shipping fields
+      if (args.shippingDate !== null && args.shippingDate !== undefined)
+        updateData.shippingDate = new Date(args.shippingDate);
+      if (args.deliveryAddress !== null && args.deliveryAddress !== undefined)
+        updateData.deliveryAddress = args.deliveryAddress;
+      if (args.cargoTrackingNumber !== null && args.cargoTrackingNumber !== undefined)
+        updateData.cargoTrackingNumber = args.cargoTrackingNumber;
+
+      // Notes
+      if (args.customerNote !== null && args.customerNote !== undefined)
+        updateData.customerNote = args.customerNote;
+      if (args.manufacturerResponse !== null && args.manufacturerResponse !== undefined)
+        updateData.manufacturerResponse = args.manufacturerResponse;
 
       return context.prisma.order.update({
         ...query,

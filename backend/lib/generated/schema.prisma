@@ -2,13 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../lib/generated"
+  provider      = "prisma-client-js"
+  output        = "../lib/generated"
+  binaryTargets = ["native", "darwin-arm64", "windows"]
 }
 
 generator pothos {
   provider     = "prisma-pothos-types"
-  clientOutput = "./prisma" // relative path from pothos output to prisma client
+  clientOutput = "./generated" // relative path from pothos output to prisma client
   output       = "../lib/pothos-prisma-types.ts"
 }
 
@@ -32,6 +33,40 @@ enum CompanyType {
   MANUFACTURER // Üretici firma (Defacto)
   BUYER // Alıcı firma (LC Waikiki)
   BOTH // Her ikisi de (hem üretir hem alır)
+}
+
+// Department Enum - COMPANY_EMPLOYEE rolleri için
+enum Department {
+  PURCHASING // Satın Alma
+  PRODUCTION // Üretim
+  QUALITY // Kalite Kontrol
+  DESIGN // Tasarım
+  SALES // Satış
+  MANAGEMENT // Yönetim
+}
+
+// Subscription Plan Enum
+enum SubscriptionPlan {
+  FREE // Ücretsiz plan (trial)
+  STARTER // Başlangıç planı
+  PROFESSIONAL // Profesyonel plan
+  ENTERPRISE // Kurumsal plan
+  CUSTOM // Özel anlaşma
+}
+
+// Subscription Status Enum
+enum SubscriptionStatus {
+  TRIAL // Deneme süresi
+  ACTIVE // Aktif abonelik
+  PAST_DUE // Ödeme gecikmiş
+  CANCELLED // İptal edilmiş
+  EXPIRED // Süresi dolmuş
+}
+
+// Billing Cycle Enum
+enum BillingCycle {
+  MONTHLY // Aylık
+  YEARLY // Yıllık
 }
 
 // Tekstil Enums
@@ -79,26 +114,94 @@ model Company {
   isActive Boolean @default(true)
   settings Json? // Company-wide settings
 
+  // ========================================
+  // SUBSCRIPTION SYSTEM
+  // ========================================
+  subscriptionPlan   SubscriptionPlan   @default(FREE)
+  subscriptionStatus SubscriptionStatus @default(TRIAL)
+
+  // Trial Period
+  trialStartedAt DateTime? @default(now())
+  trialEndsAt    DateTime? // 14 gün trial
+
+  // Subscription Billing
+  subscriptionStartedAt DateTime? // Ücretli abonelik başlangıcı
+  currentPeriodStart    DateTime? // Mevcut dönem başlangıcı
+  currentPeriodEnd      DateTime? // Mevcut dönem bitişi
+  cancelAtPeriodEnd     Boolean      @default(false)
+  cancelledAt           DateTime? // İptal tarihi
+  billingCycle          BillingCycle @default(MONTHLY)
+  billingEmail          String? // Fatura e-postası
+  billingAddress        String?      @db.Text
+  taxId                 String? // Vergi numarası
+
+  // Usage Limits (Plan-based)
+  maxUsers       Int   @default(3) // FREE: 3, STARTER: 10, PRO: 50, ENT: unlimited
+  maxSamples     Int   @default(10) // FREE: 10, STARTER: 100, PRO: 500, ENT: unlimited
+  maxOrders      Int   @default(5) // FREE: 5, STARTER: 50, PRO: 200, ENT: unlimited
+  maxCollections Int   @default(5) // FREE: 5, STARTER: 20, PRO: 100, ENT: unlimited
+  maxStorageGB   Float @default(1.0) // FREE: 1GB, STARTER: 10GB, PRO: 100GB, ENT: unlimited
+
+  // Current Usage (auto-calculated)
+  currentUsers       Int   @default(0)
+  currentSamples     Int   @default(0)
+  currentOrders      Int   @default(0)
+  currentCollections Int   @default(0)
+  currentStorageGB   Float @default(0.0)
+
+  // ========================================
+  // BRANDING & CUSTOMIZATION
+  // ========================================
+  logo        String? // Logo URL
+  coverImage  String? // Kapak görseli URL
+  brandColors Json? // { primary: "#xxx", secondary: "#xxx", accent: "#xxx" }
+
+  // Public Profile (for manufacturers to showcase)
+  profileSlug     String? @unique // URL-friendly slug: "defacto", "koton"
+  isPublicProfile Boolean @default(false) // Herkese açık profil mi?
+  socialLinks     Json? // { instagram: "...", linkedin: "...", website: "..." }
+
+  // Dashboard Preferences
+  defaultView    String? // "MANUFACTURER" | "BUYER" (for BOTH type companies)
+  enabledModules Json? // { samples: true, orders: true, production: true, etc. }
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
   employees          User[]               @relation("CompanyEmployees")
   categories         Category[]
+  companyCategories  CompanyCategory[] // Yeni standart kategori sistemi
   collections        Collection[]
   samples            Sample[]
   orders             Order[]
   productionTracking ProductionTracking[]
   messages           Message[]
 
-  // Library Management
-  colors         Color[]
-  fabrics        Fabric[]
-  sizeGroups     SizeGroup[]
-  seasons        SeasonItem[]
-  fits           FitItem[]
-  certifications Certification[]
+  // Library Management (Unified)
+  libraryItems LibraryItem[] @relation("CompanyLibraryItems")
 
+  // Company Partnerships & Collaboration
+  partnershipsAsInitiator CompanyPartnership[]    @relation("CompanyAsInitiator")
+  partnershipsAsPartner   CompanyPartnership[]    @relation("CompanyAsPartner")
+  sourceCategoryMappings  SharedCategoryMapping[] @relation("SourceCategoryCompany")
+  targetCategoryMappings  SharedCategoryMapping[] @relation("TargetCategoryCompany")
+
+  // Analytics
+  metrics CompanyMetrics[]
+
+  @@index([email])
+  @@index([type, isActive])
+  @@index([isActive, createdAt])
+  @@index([location])
+  @@index([ownerId])
+  @@index([subscriptionPlan])
+  @@index([subscriptionStatus])
+  @@index([trialEndsAt])
+  @@index([currentPeriodEnd])
+  @@index([profileSlug])
+  @@index([isPublicProfile])
+  @@fulltext([name, description])
   @@map("companies")
 }
 
@@ -211,14 +314,29 @@ model User {
   role      Role     @default(INDIVIDUAL_CUSTOMER)
 
   // Company Ownership & Permissions
-  isCompanyOwner Boolean @default(false)
-  department     String? // "Satın Alma", "Üretim", "Kalite"
+  isCompanyOwner Boolean     @default(false)
+  department     Department? // Enum: PURCHASING, PRODUCTION, QUALITY, DESIGN, SALES, MANAGEMENT
   jobTitle       String? // "Müdür", "Uzman", "Koordinatör"
   permissions    Json? // Detaylı permission objesi
 
   // Status
   isActive          Boolean @default(true)
   isPendingApproval Boolean @default(false)
+
+  // ========================================
+  // USER PROFILE & SETTINGS
+  // ========================================
+  avatar      String? @db.Text // Profile picture URL (Unsplash URLs can be long)
+  bio         String? @db.Text // User bio/description
+  socialLinks Json? // { twitter: "...", linkedin: "...", github: "..." }
+
+  // Notification Settings
+  emailNotifications Boolean @default(true)
+  pushNotifications  Boolean @default(false)
+
+  // Localization
+  language String @default("tr") // "tr", "en"
+  timezone String @default("Europe/Istanbul")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -227,10 +345,15 @@ model User {
   ownedCompanies Company[] @relation("CompanyOwner")
 
   // Messages relation
-  sentMessages     Message[]    @relation("SentMessages")
-  receivedMessages Message[]    @relation("ReceivedMessages")
-  categories       Category[]
-  collections      Collection[]
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
+  // Category Management
+  categories                Category[]
+  createdStandardCategories StandardCategory[] @relation("StandardCategoryCreator")
+  createdCompanyCategories  CompanyCategory[]
+
+  collections Collection[]
 
   // Customer relations
   customerSamples   Sample[]   @relation("CustomerSamples")
@@ -260,14 +383,150 @@ model User {
   tasks         Task[] @relation("UserTasks")
   assignedTasks Task[] @relation("AssignedTasks")
 
+  // Company Partnerships & Category Mappings
+  initiatedPartnerships   CompanyPartnership[]    @relation
+  approvedPartnerships    CompanyPartnership[]    @relation("PartnershipApprover")
+  createdCategoryMappings SharedCategoryMapping[]
+
+  // Admin Reports
+  createdReports AdminReport[]
+
+  // Unified Library Management (Admin)
+  createdLibraryItems LibraryItem[] @relation("LibraryItemCreator")
+
+  @@index([email])
+  @@index([username])
+  @@index([companyId, role])
+  @@index([companyId, isActive])
+  @@index([companyId, department])
+  @@index([role, isActive])
+  @@index([isActive])
+  @@index([isPendingApproval])
+  @@index([createdAt])
   @@map("users")
 }
 
+// ========================================
+// STANDARDIZED CATEGORY SYSTEM FOR TEXTILE INDUSTRY
+// ========================================
+
+enum CategoryType {
+  GLOBAL_STANDARD // Platform geneli standart kategori (admin tanımlı)
+  COMPANY_CUSTOM // Firma özel kategorisi (kendi kullanımı için)
+}
+
+enum CategoryLevel {
+  ROOT // Ana kategori (Tekstil, Giyim, Aksesuar)
+  MAIN // Ana grup (Üst Giyim, Alt Giyim, İç Giyim)
+  SUB // Alt grup (Gömlek, Pantolon, Elbise)
+  DETAIL // Detay (Uzun Kollu Gömlek, Kısa Kollu Gömlek)
+}
+
+// Platform Geneli Standart Kategori Ağacı (Admin yönetir)
+model StandardCategory {
+  id          Int     @id @default(autoincrement())
+  code        String  @unique // "TEX-001", "GAR-001-001", "ACC-002"
+  name        String // i18n key or direct name (frontend handles translations)
+  description String? @db.Text // i18n key or direct description
+
+  level CategoryLevel
+  order Int           @default(0) // Sıralama için
+  icon  String? // Icon URL veya code
+  image String? // Kategori görseli
+
+  isActive Boolean @default(true)
+  isPublic Boolean @default(true) // Tüm firmalara açık mı?
+
+  // Meta bilgiler
+  keywords String? @db.Text // Arama için keywords (JSON array)
+  tags     String? // "#gömlek #shirt #formal" gibi
+
+  // İlişkiler
+  parentCategory StandardCategory?  @relation("StandardCategoryTree", fields: [parentId], references: [id])
+  parentId       Int?
+  subCategories  StandardCategory[] @relation("StandardCategoryTree")
+
+  // Şirketlerin bu standart kategoriyi kullanımı
+  companyCategories CompanyCategory[]
+
+  // Admin
+  createdBy   User? @relation("StandardCategoryCreator", fields: [createdById], references: [id])
+  createdById Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([level])
+  @@index([parentId])
+  @@index([isActive, isPublic])
+  @@index([order])
+  @@fulltext([name, description, keywords])
+  @@map("standard_categories")
+}
+
+// Firma Bazlı Kategori Sistemi (Standart kategorileri extend eder veya özel ekler)
+model CompanyCategory {
+  id   Int          @id @default(autoincrement())
+  type CategoryType @default(COMPANY_CUSTOM)
+
+  // Standart kategori referansı (varsa)
+  standardCategory   StandardCategory? @relation(fields: [standardCategoryId], references: [id])
+  standardCategoryId Int?
+
+  // Firma özel bilgileri
+  name        String // Firma kendi adını verebilir: "Defacto Gömlek", "Koton T-Shirt"
+  description String? @db.Text
+
+  // İlişkiler
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId Int
+
+  parentCategory CompanyCategory?  @relation("CompanyCategoryTree", fields: [parentId], references: [id])
+  parentId       Int?
+  subCategories  CompanyCategory[] @relation("CompanyCategoryTree")
+
+  // Firma içi özel alanlar
+  internalCode String? // Firma içi referans kodu
+  order        Int     @default(0)
+  isActive     Boolean @default(true)
+
+  // Kullanım istatistikleri
+  productCount Int       @default(0) // Bu kategoride kaç ürün var
+  lastUsedAt   DateTime?
+
+  // Metadata
+  customFields Json? // Firma özel alanları: { targetAge: "18-25", priceRange: "mid", etc. }
+
+  // Relations
+  collections Collection[]
+
+  // Cross-brand category mappings
+  sourceMappings SharedCategoryMapping[] @relation("SourceCategory")
+  targetMappings SharedCategoryMapping[] @relation("TargetCategory")
+
+  author   User? @relation(fields: [authorId], references: [id])
+  authorId Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, parentId, name]) // Aynı firma, aynı parent altında aynı isim olamaz
+  @@index([companyId, type])
+  @@index([companyId, isActive])
+  @@index([standardCategoryId])
+  @@index([parentId])
+  @@index([productCount])
+  @@fulltext([name, description])
+  @@map("company_categories")
+}
+
+// Legacy Category model (backward compatibility - will be migrated)
 model Category {
   id               Int          @id @default(autoincrement())
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
-  name             String // Artık unique değil - farklı parent'lar altında aynı isim olabilir
+  name             String
   description      String?
   author           User?        @relation(fields: [authorId], references: [id])
   authorId         Int?
@@ -275,12 +534,9 @@ model Category {
   subCategories    Category[]   @relation("CategoryToSubCategories")
   parentCategory   Category?    @relation("CategoryToSubCategories", fields: [parentCategoryId], references: [id])
   parentCategoryId Int?
+  company          Company?     @relation(fields: [companyId], references: [id])
+  companyId        Int?
 
-  // Company relation
-  company   Company? @relation(fields: [companyId], references: [id])
-  companyId Int?
-
-  // Aynı şirket, aynı parent altında aynı isim olamaz
   @@unique([companyId, parentCategoryId, name])
   @@map("categories")
 }
@@ -318,12 +574,19 @@ model Collection {
   targetLeadTime Int? // Hedef termin (gün)
   notes          String? @db.Text // Açıklama/Notlar
 
-  // Sertifikalar (GOTS, OEKO-TEX, BSCI vb.)
-  certifications Certification[] @relation("CollectionCertifications")
+  // Sertifikalar (GOTS, OEKO-TEX, BSCI vb.) - Artık LibraryItem üzerinden
+  certifications LibraryItem[] @relation("CollectionCertifications")
 
   // Beğeni/Favoriler
   likesCount  Int                      @default(0) // Toplam beğeni sayısı
   favoritedBy UserFavoriteCollection[] // Beğenen kullanıcılar
+
+  // ========================================
+  // ANALYTICS & ENGAGEMENT
+  // ========================================
+  viewCount    Int       @default(0) // Görüntülenme sayısı
+  shareCount   Int       @default(0) // Paylaşım sayısı
+  lastViewedAt DateTime? // Son görüntülenme zamanı
 
   // Legacy fields (backward compatibility)
   price      Float   @default(0.00) // Şimdilik targetPrice ile aynı
@@ -338,8 +601,13 @@ model Collection {
 
   category   Category? @relation(fields: [categoryId], references: [id])
   categoryId Int?
-  author     User?     @relation(fields: [authorId], references: [id]) // Üretici
-  authorId   Int?
+
+  // Yeni standart kategori sistemi (opsiyonel)
+  companyCategory   CompanyCategory? @relation(fields: [companyCategoryId], references: [id])
+  companyCategoryId Int?
+
+  author   User? @relation(fields: [authorId], references: [id]) // Üretici
+  authorId Int?
 
   // Relations
   samples        Sample[]   @relation("SampleCollection")
@@ -353,6 +621,17 @@ model Collection {
   company   Company? @relation(fields: [companyId], references: [id])
   companyId Int?
 
+  @@index([companyId, isActive])
+  @@index([season])
+  @@index([gender])
+  @@index([isFeatured])
+  @@index([isActive, createdAt])
+  @@index([slug])
+  @@index([modelCode])
+  @@index([createdAt])
+  @@index([viewCount])
+  @@index([likesCount])
+  @@fulltext([name, description])
   @@map("collections")
 }
 
@@ -429,6 +708,13 @@ model Sample {
   company   Company? @relation(fields: [companyId], references: [id])
   companyId Int?
 
+  // ========================================
+  // ANALYTICS & ENGAGEMENT
+  // ========================================
+  viewCount    Int       @default(0) // Görüntülenme sayısı
+  shareCount   Int       @default(0) // Paylaşım sayısı
+  lastViewedAt DateTime? // Son görüntülenme zamanı
+
   // AI Analysis relation
   aiAnalysis AIAnalysis?
 
@@ -437,6 +723,19 @@ model Sample {
 
   // Notifications
   notifications Notification[] @relation("SampleNotifications")
+
+  @@index([status])
+  @@index([customerId, status])
+  @@index([manufactureId, status])
+  @@index([companyId, status, createdAt])
+  @@index([collectionId])
+  @@index([sampleNumber])
+  @@index([sampleType, status])
+  @@index([aiGenerated])
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([viewCount])
+  @@map("samples")
 }
 
 // AI Analiz Sonuçları (Numune ile ilişkili)
@@ -743,150 +1042,135 @@ model Workshop {
 }
 
 // ========================================
-// LIBRARY MANAGEMENT MODELS
+// UNIFIED LIBRARY SYSTEM (Simplified & Scalable)
 // ========================================
 
-// Renk Kütüphanesi - Üretici standart renk paletini yönetir
-model Color {
-  id       Int     @id @default(autoincrement())
-  name     String // "Beyaz", "Lacivert", "Gri Melanj"
-  code     String? // Pantone, HEX, RAL kodu: "PANTONE 18-3838", "#FF5733"
-  hexCode  String? // Web için: "#FFFFFF"
-  imageUrl String? // Renk örneği görseli
-  isActive Boolean @default(true)
-
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([companyId, name]) // Bir firma içinde renk adı unique
-  @@map("colors")
+enum LibraryCategory {
+  COLOR // Renk paleti
+  FABRIC // Kumaş kütüphanesi
+  MATERIAL // Aksesuar/Malzemeler (Button, Zipper, Label, etc.)
+  SIZE_GROUP // Beden grupları
+  SEASON // Sezon yönetimi
+  FIT // Kesim tipleri
+  CERTIFICATION // Sertifikalar
 }
 
-// Kumaş Kütüphanesi - Üretici mevcut kumaşlarını yönetir
-model Fabric {
-  id          Int     @id @default(autoincrement())
-  name        String // "Premium Cotton", "Stretch Denim"
-  code        String? // İç referans kodu: "FAB-001"
-  composition String // "%100 Pamuk", "80% Cotton 20% Polyester"
-  weight      Int? // Gram/m2: 180, 220, etc.
-  width       Int? // cm: 150, 180
-  supplier    String? // Tedarikçi firma adı
-  price       Float? // Metre fiyatı
-  minOrder    Int? // Minimum sipariş miktarı (metre)
-  leadTime    Int? // Tedarik süresi (gün)
-  imageUrl    String? // Kumaş dokusu görseli
+enum LibraryScope {
+  PLATFORM_STANDARD // Platform geneli standart (admin tanımlı)
+  COMPANY_CUSTOM // Firma özel
+}
+
+// Unified Library Item - Tüm library tiplerini kapsayan tek model
+model LibraryItem {
+  id       Int             @id @default(autoincrement())
+  scope    LibraryScope    @default(COMPANY_CUSTOM)
+  category LibraryCategory
+
+  // Universal Fields (Her kategori için ortak)
+  code String? @unique
+  name String // i18n key or direct name (frontend handles translations)
+
   description String? @db.Text
-  isActive    Boolean @default(true)
+  imageUrl    String? @db.Text
 
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId Int
+  // Category-Specific Data (JSON - Esnek yapı)
+  data Json? // {
+  //   // For COLOR:
+  //   "pantone": "PANTONE 18-3838",
+  //   "hex": "#FFFFFF",
+  //   "rgb": "rgb(255,255,255)",
+  //   "cmyk": "cmyk(0,0,0,0)",
+  //   "ral": "RAL 9016",
+  //   "category": "NEUTRAL",
+  //   "season": "ALL",
+  //
+  //   // For FABRIC:
+  //   "composition": "%100 Cotton",
+  //   "weight": 180,
+  //   "width": 150,
+  //   "fiberType": "COTTON",
+  //   "construction": "Plain Weave",
+  //   "texture": "Smooth",
+  //   "finish": "Raw",
+  //   "usage": "Shirts",
+  //   "season": "ALL",
+  //   "certifications": ["GOTS", "OEKO-TEX"],
+  //   "supplier": "ABC Fabrics",
+  //   "supplierCode": "SUP-001",
+  //   "price": 15.50,
+  //   "currency": "USD",
+  //   "minOrder": 100,
+  //   "leadTime": 15,
+  //
+  //   // For MATERIAL:
+  //   "materialType": "Metal",
+  //   "size": "15mm",
+  //   "color": "Gold",
+  //   "brand": "YKK",
+  //   "subCategory": "BUTTON",
+  //   "finish": "Matte",
+  //   "supplier": "XYZ Accessories",
+  //   "price": 0.50,
+  //   "minOrder": 1000,
+  //
+  //   // For SIZE_GROUP:
+  //   "sizes": ["XS", "S", "M", "L", "XL"],
+  //   "sizeCategory": "MEN",
+  //
+  //   // For SEASON:
+  //   "year": 2025,
+  //   "type": "SS",
+  //   "fullName": "Spring/Summer 2025",
+  //   "startDate": "2025-01-01",
+  //   "endDate": "2025-06-30",
+  //
+  //   // For FIT:
+  //   "fitCategory": "UPPER",
+  //
+  //   // For CERTIFICATION:
+  //   "certCategory": "FIBER",
+  //   "issuer": "GOTS International",
+  //   "validFrom": "2024-01-01",
+  //   "validUntil": "2025-12-31",
+  //   "certificateNumber": "GOTS-2024-001",
+  //   "certificateFile": "/uploads/certs/gots.pdf"
+  // }
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Common Metadata
+  tags         Json? // ["white", "basic", "neutral"]
+  internalCode String? // Firma içi referans kodu
+  notes        String? @db.Text
 
-  @@unique([companyId, code]) // Firma içinde kod unique (opsiyonel)
-  @@map("fabrics")
-}
+  // Status
+  isActive  Boolean @default(true)
+  isPopular Boolean @default(false)
 
-// Beden Grubu - Standart beden setleri
-model SizeGroup {
-  id          Int     @id @default(autoincrement())
-  name        String // "Erkek Standart", "Kadın Plus Size", "Çocuk 0-2 Yaş"
-  category    String? // "MEN", "WOMEN", "KIDS"
-  sizes       String // JSON array: ["XS", "S", "M", "L", "XL"] veya ["2", "4", "6", "8"]
-  description String?
-  isActive    Boolean @default(true)
+  // Relations
+  company   Company? @relation("CompanyLibraryItems", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId Int?
 
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId Int
+  // Standard Reference (Company items can reference platform standards)
+  standardItem   LibraryItem?  @relation("StandardReference", fields: [standardItemId], references: [id])
+  standardItemId Int?
+  companyItems   LibraryItem[] @relation("StandardReference")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([companyId, name])
-  @@map("size_groups")
-}
-
-// Season Management (Library Item)
-model SeasonItem {
-  id          Int       @id @default(autoincrement())
-  name        String // "SS25", "FW25", "SS26"
-  fullName    String // "Spring/Summer 2025"
-  year        Int // 2025, 2026
-  type        String // "SS" (Spring/Summer) veya "FW" (Fall/Winter)
-  startDate   DateTime? // Sezon başlangıç tarihi
-  endDate     DateTime? // Sezon bitiş tarihi
-  description String?
-  isActive    Boolean   @default(true)
-
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([companyId, name])
-  @@map("seasons")
-}
-
-// Fit Management (Library Item)
-model FitItem {
-  id          Int     @id @default(autoincrement())
-  name        String // "Slim Fit", "Regular Fit", "Oversized"
-  code        String? // "FIT-SLIM", "FIT-REG"
-  category    String? // "UPPER" (üst giyim), "LOWER" (alt giyim), "OUTERWEAR" (dış giyim)
-  description String? @db.Text // Detaylı açıklama
-  isActive    Boolean @default(true)
-
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([companyId, name])
-  @@map("fits")
-}
-
-// Sertifika yönetimi (GOTS, OEKO-TEX, BSCI, GRS, vb.)
-model Certification {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  name     String // "GOTS", "OEKO-TEX Standard 100"
-  code     String? // "GOTS-2023", "OEKO-100"
-  category CertificationCategory // FIBER, CHEMICAL, SOCIAL, ENVIRONMENTAL, TRACEABILITY
-
-  // Detaylar
-  issuer            String? // "GOTS International" gibi veren kuruluş
-  validFrom         DateTime? // Geçerlilik başlangıcı
-  validUntil        DateTime? // Son kullanma tarihi
-  certificateNumber String? // Sertifika numarası
-  certificateFile   String? // PDF dosya yolu
-  description       String?   @db.Text
-  isActive          Boolean   @default(true)
-
-  // İlişkiler
-  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   Int
+  // Collections using certifications
   collections Collection[] @relation("CollectionCertifications")
 
-  @@index([companyId])
-  @@index([category])
-  @@index([isActive])
-  @@map("certifications")
-}
+  createdBy   User? @relation("LibraryItemCreator", fields: [createdById], references: [id])
+  createdById Int?
 
-enum CertificationCategory {
-  FIBER // Lif/Hammadde: GOTS, OCS, RCS, GRS, BCI
-  CHEMICAL // Üretim/Kimyasal: OEKO-TEX, bluesign, ZDHC
-  SOCIAL // Sosyal/Etik: BSCI, SA8000, WRAP
-  ENVIRONMENTAL // Çevresel: LCA, ISO 14067, Carbon Footprint
-  TRACEABILITY // İzlenebilirlik: DPP, Blockchain, QR
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, category, name])
+  @@index([scope, category])
+  @@index([companyId, category, isActive])
+  @@index([category, isActive, isPopular])
+  @@index([standardItemId])
+  @@index([code])
+  @@fulltext([name, description])
+  @@map("library_items")
 }
 
 // ========================================
@@ -1093,6 +1377,268 @@ model Task {
   @@index([entityType, relatedStatus]) // Entity ve status kombinasyonu
   @@index([createdAt])
   @@map("tasks")
+}
+
+// ========================================
+// COMPANY PARTNERSHIPS & CROSS-BRAND COLLABORATION
+// ========================================
+
+enum PartnershipType {
+  SUPPLIER // Tedarikçi ilişkisi (kumaş, aksesuar, vb.)
+  MANUFACTURER // Üretici ortaklığı
+  DISTRIBUTOR // Distribütör ilişkisi
+  WHITE_LABEL // White label üretim
+  CO_BRANDING // Ortak marka işbirliği
+  SUBCONTRACTOR // Fason üretici
+  STRATEGIC_PARTNER // Stratejik iş ortağı
+}
+
+enum PartnershipStatus {
+  PENDING // Onay bekliyor
+  ACTIVE // Aktif ortaklık
+  SUSPENDED // Askıya alınmış
+  TERMINATED // Sonlandırılmış
+  REJECTED // Reddedilmiş
+}
+
+// Firmalar Arası Ortaklık/Eşleştirme Sistemi
+model CompanyPartnership {
+  id Int @id @default(autoincrement())
+
+  // İki taraflı ilişki
+  company   Company @relation("CompanyAsInitiator", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId Int
+
+  partner   Company @relation("CompanyAsPartner", fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerId Int
+
+  type   PartnershipType
+  status PartnershipStatus @default(PENDING)
+
+  // Ortaklık Detayları
+  title       String // "Kumaş Tedarik Anlaşması", "Fason Üretim Ortaklığı"
+  description String? @db.Text
+  terms       Json? // Anlaşma koşulları: { paymentTerms, deliveryTerms, qualityStandards, etc. }
+
+  // Finansal Bilgiler
+  contractValue Float? // Anlaşma değeri
+  currency      String? @default("USD")
+  paymentTerms  String? // "NET 30", "NET 60", "Advance Payment"
+
+  // Tarihler
+  startDate   DateTime?
+  endDate     DateTime?
+  renewalDate DateTime?
+
+  // Performans & İstatistikler
+  totalOrders     Int    @default(0)
+  totalRevenue    Float  @default(0)
+  averageLeadTime Int? // Ortalama teslim süresi (gün)
+  qualityScore    Float? // 1-10 arası kalite skoru
+  onTimeDelivery  Float? // Zamanında teslimat oranı (%)
+
+  // Notlar ve Dökümanlar
+  notes        String? @db.Text
+  contractFile String? // Sözleşme PDF
+  nda          Boolean @default(false) // NDA imzalandı mı?
+
+  // Kategori Eşleştirmeleri
+  categoryMappings SharedCategoryMapping[]
+
+  // İletişim
+  initiatedBy   User? @relation(fields: [initiatedById], references: [id])
+  initiatedById Int?
+
+  approvedBy   User? @relation("PartnershipApprover", fields: [approvedById], references: [id])
+  approvedById Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, partnerId, type])
+  @@index([companyId, status])
+  @@index([partnerId, status])
+  @@index([type, status])
+  @@index([status, startDate])
+  @@map("company_partnerships")
+}
+
+// Markalar Arası Kategori Eşleştirme (Kategori Uyumu)
+model SharedCategoryMapping {
+  id Int @id @default(autoincrement())
+
+  // Ortaklık ilişkisi
+  partnership   CompanyPartnership @relation(fields: [partnershipId], references: [id], onDelete: Cascade)
+  partnershipId Int
+
+  // Birinci firmanın kategorisi
+  sourceCompany    Company         @relation("SourceCategoryCompany", fields: [sourceCompanyId], references: [id], onDelete: Cascade)
+  sourceCompanyId  Int
+  sourceCategory   CompanyCategory @relation("SourceCategory", fields: [sourceCategoryId], references: [id], onDelete: Cascade)
+  sourceCategoryId Int
+
+  // İkinci firmanın eşleşen kategorisi
+  targetCompany    Company         @relation("TargetCategoryCompany", fields: [targetCompanyId], references: [id], onDelete: Cascade)
+  targetCompanyId  Int
+  targetCategory   CompanyCategory @relation("TargetCategory", fields: [targetCategoryId], references: [id], onDelete: Cascade)
+  targetCategoryId Int
+
+  // Eşleştirme Detayları
+  matchScore      Float? // Otomatik hesaplanan benzerlik skoru (0-100)
+  isManualMapping Boolean @default(false) // Manuel eşleştirme mi, otomatik mi?
+  isActive        Boolean @default(true)
+
+  // Çapraz İşlem Ayarları
+  allowCrossOrders Boolean @default(true) // Bu kategoriler arası sipariş alınabilir mi?
+  priceAdjustment  Float?  @default(0) // Fiyat ayarlaması (% olarak)
+  notes            String? @db.Text
+
+  createdBy   User? @relation(fields: [createdById], references: [id])
+  createdById Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sourceCategoryId, targetCategoryId])
+  @@index([partnershipId])
+  @@index([sourceCompanyId])
+  @@index([targetCompanyId])
+  @@index([isActive])
+  @@map("shared_category_mappings")
+}
+
+// ========================================
+// ADMIN ANALYTICS & COMPARISON SYSTEM
+// ========================================
+
+enum ReportType {
+  COMPANY_COMPARISON // Firma karşılaştırma raporu
+  PERFORMANCE // Performans raporu
+  FINANCIAL // Finansal rapor
+  QUALITY // Kalite raporu
+  MARKET_ANALYSIS // Pazar analizi
+  TREND_ANALYSIS // Trend analizi
+  CUSTOM // Özel rapor
+}
+
+enum ReportPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  CUSTOM
+}
+
+// Admin Raporlama ve Analiz Sistemi
+model AdminReport {
+  id Int @id @default(autoincrement())
+
+  type        ReportType
+  period      ReportPeriod
+  title       String
+  description String?      @db.Text
+
+  // Tarih Aralığı
+  startDate DateTime
+  endDate   DateTime
+
+  // İlgili Firmalar
+  companies Json // Array of company IDs: [1, 2, 3, ...]
+
+  // Rapor Verileri
+  metrics  Json // { totalOrders, totalRevenue, avgLeadTime, qualityScore, etc. }
+  charts   Json? // Grafik verileri
+  summary  String? @db.Text
+  insights String? @db.Text // AI-powered insights
+
+  // Kıyaslama Verileri
+  comparisons Json? // Firma kıyaslama verileri
+  rankings    Json? // Sıralama verileri
+  benchmarks  Json? // Sektör ortalamaları
+
+  // Dosya
+  reportFile String? // PDF/Excel export
+
+  // Oluşturan
+  createdBy   User @relation(fields: [createdById], references: [id])
+  createdById Int
+
+  // Paylaşım
+  isPublic   Boolean @default(false)
+  sharedWith Json? // User/Company IDs ile paylaşım
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type, period])
+  @@index([createdById])
+  @@index([startDate, endDate])
+  @@index([createdAt])
+  @@map("admin_reports")
+}
+
+// Firma Performans Metrikleri (Real-time tracking)
+model CompanyMetrics {
+  id Int @id @default(autoincrement())
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId Int
+
+  // Tarih
+  date   DateTime     @default(now())
+  period ReportPeriod @default(DAILY)
+
+  // Sipariş Metrikleri
+  totalOrders         Int    @default(0)
+  completedOrders     Int    @default(0)
+  cancelledOrders     Int    @default(0)
+  pendingOrders       Int    @default(0)
+  orderCompletionRate Float? // %
+
+  // Finansal Metrikleri
+  totalRevenue      Float  @default(0)
+  averageOrderValue Float?
+  totalProfit       Float?
+  profitMargin      Float? // %
+
+  // Üretim Metrikleri
+  totalSamples       Int    @default(0)
+  approvedSamples    Int    @default(0)
+  sampleApprovalRate Float? // %
+  averageLeadTime    Int? // gün
+  onTimeDeliveryRate Float? // %
+
+  // Kalite Metrikleri
+  qualityScore         Float? // 1-10
+  defectRate           Float? // %
+  returnRate           Float? // %
+  customerSatisfaction Float? // 1-10
+
+  // Müşteri/Partner Metrikleri
+  activeCustomers       Int    @default(0)
+  newCustomers          Int    @default(0)
+  retainedCustomers     Int    @default(0)
+  customerRetentionRate Float? // %
+
+  // Verimlilik Metrikleri
+  capacityUtilization Float? // %
+  productivityScore   Float? // 1-10
+  employeeCount       Int?
+
+  // Platform Kullanımı
+  activeUsers  Int   @default(0)
+  loginCount   Int   @default(0)
+  featureUsage Json? // { samples: 50, orders: 30, messages: 100 }
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, date, period])
+  @@index([companyId, date])
+  @@index([period, date])
+  @@index([date])
+  @@map("company_metrics")
 }
 
 // ========================================

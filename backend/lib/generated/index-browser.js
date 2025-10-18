@@ -133,6 +133,37 @@ exports.Prisma.CompanyScalarFieldEnum = {
   ownerId: 'ownerId',
   isActive: 'isActive',
   settings: 'settings',
+  subscriptionPlan: 'subscriptionPlan',
+  subscriptionStatus: 'subscriptionStatus',
+  trialStartedAt: 'trialStartedAt',
+  trialEndsAt: 'trialEndsAt',
+  subscriptionStartedAt: 'subscriptionStartedAt',
+  currentPeriodStart: 'currentPeriodStart',
+  currentPeriodEnd: 'currentPeriodEnd',
+  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
+  cancelledAt: 'cancelledAt',
+  billingCycle: 'billingCycle',
+  billingEmail: 'billingEmail',
+  billingAddress: 'billingAddress',
+  taxId: 'taxId',
+  maxUsers: 'maxUsers',
+  maxSamples: 'maxSamples',
+  maxOrders: 'maxOrders',
+  maxCollections: 'maxCollections',
+  maxStorageGB: 'maxStorageGB',
+  currentUsers: 'currentUsers',
+  currentSamples: 'currentSamples',
+  currentOrders: 'currentOrders',
+  currentCollections: 'currentCollections',
+  currentStorageGB: 'currentStorageGB',
+  logo: 'logo',
+  coverImage: 'coverImage',
+  brandColors: 'brandColors',
+  profileSlug: 'profileSlug',
+  isPublicProfile: 'isPublicProfile',
+  socialLinks: 'socialLinks',
+  defaultView: 'defaultView',
+  enabledModules: 'enabledModules',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -202,6 +233,51 @@ exports.Prisma.UserScalarFieldEnum = {
   permissions: 'permissions',
   isActive: 'isActive',
   isPendingApproval: 'isPendingApproval',
+  avatar: 'avatar',
+  bio: 'bio',
+  socialLinks: 'socialLinks',
+  emailNotifications: 'emailNotifications',
+  pushNotifications: 'pushNotifications',
+  language: 'language',
+  timezone: 'timezone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StandardCategoryScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  description: 'description',
+  level: 'level',
+  order: 'order',
+  icon: 'icon',
+  image: 'image',
+  isActive: 'isActive',
+  isPublic: 'isPublic',
+  keywords: 'keywords',
+  tags: 'tags',
+  parentId: 'parentId',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CompanyCategoryScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  standardCategoryId: 'standardCategoryId',
+  name: 'name',
+  description: 'description',
+  companyId: 'companyId',
+  parentId: 'parentId',
+  internalCode: 'internalCode',
+  order: 'order',
+  isActive: 'isActive',
+  productCount: 'productCount',
+  lastUsedAt: 'lastUsedAt',
+  customFields: 'customFields',
+  authorId: 'authorId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -241,6 +317,9 @@ exports.Prisma.CollectionScalarFieldEnum = {
   targetLeadTime: 'targetLeadTime',
   notes: 'notes',
   likesCount: 'likesCount',
+  viewCount: 'viewCount',
+  shareCount: 'shareCount',
+  lastViewedAt: 'lastViewedAt',
   price: 'price',
   sku: 'sku',
   stock: 'stock',
@@ -249,6 +328,7 @@ exports.Prisma.CollectionScalarFieldEnum = {
   slug: 'slug',
   productionSchedule: 'productionSchedule',
   categoryId: 'categoryId',
+  companyCategoryId: 'companyCategoryId',
   authorId: 'authorId',
   companyId: 'companyId'
 };
@@ -293,7 +373,10 @@ exports.Prisma.SampleScalarFieldEnum = {
   collectionId: 'collectionId',
   customerId: 'customerId',
   manufactureId: 'manufactureId',
-  companyId: 'companyId'
+  companyId: 'companyId',
+  viewCount: 'viewCount',
+  shareCount: 'shareCount',
+  lastViewedAt: 'lastViewedAt'
 };
 
 exports.Prisma.AIAnalysisScalarFieldEnum = {
@@ -457,91 +540,25 @@ exports.Prisma.WorkshopScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.ColorScalarFieldEnum = {
+exports.Prisma.LibraryItemScalarFieldEnum = {
   id: 'id',
-  name: 'name',
+  scope: 'scope',
+  category: 'category',
   code: 'code',
-  hexCode: 'hexCode',
+  name: 'name',
+  description: 'description',
   imageUrl: 'imageUrl',
+  data: 'data',
+  tags: 'tags',
+  internalCode: 'internalCode',
+  notes: 'notes',
   isActive: 'isActive',
+  isPopular: 'isPopular',
   companyId: 'companyId',
+  standardItemId: 'standardItemId',
+  createdById: 'createdById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
-};
-
-exports.Prisma.FabricScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  code: 'code',
-  composition: 'composition',
-  weight: 'weight',
-  width: 'width',
-  supplier: 'supplier',
-  price: 'price',
-  minOrder: 'minOrder',
-  leadTime: 'leadTime',
-  imageUrl: 'imageUrl',
-  description: 'description',
-  isActive: 'isActive',
-  companyId: 'companyId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.SizeGroupScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  category: 'category',
-  sizes: 'sizes',
-  description: 'description',
-  isActive: 'isActive',
-  companyId: 'companyId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.SeasonItemScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  fullName: 'fullName',
-  year: 'year',
-  type: 'type',
-  startDate: 'startDate',
-  endDate: 'endDate',
-  description: 'description',
-  isActive: 'isActive',
-  companyId: 'companyId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.FitItemScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  code: 'code',
-  category: 'category',
-  description: 'description',
-  isActive: 'isActive',
-  companyId: 'companyId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.CertificationScalarFieldEnum = {
-  id: 'id',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  name: 'name',
-  code: 'code',
-  category: 'category',
-  issuer: 'issuer',
-  validFrom: 'validFrom',
-  validUntil: 'validUntil',
-  certificateNumber: 'certificateNumber',
-  certificateFile: 'certificateFile',
-  description: 'description',
-  isActive: 'isActive',
-  companyId: 'companyId'
 };
 
 exports.Prisma.ProductionRevisionScalarFieldEnum = {
@@ -598,6 +615,114 @@ exports.Prisma.TaskScalarFieldEnum = {
   actionData: 'actionData'
 };
 
+exports.Prisma.CompanyPartnershipScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  partnerId: 'partnerId',
+  type: 'type',
+  status: 'status',
+  title: 'title',
+  description: 'description',
+  terms: 'terms',
+  contractValue: 'contractValue',
+  currency: 'currency',
+  paymentTerms: 'paymentTerms',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  renewalDate: 'renewalDate',
+  totalOrders: 'totalOrders',
+  totalRevenue: 'totalRevenue',
+  averageLeadTime: 'averageLeadTime',
+  qualityScore: 'qualityScore',
+  onTimeDelivery: 'onTimeDelivery',
+  notes: 'notes',
+  contractFile: 'contractFile',
+  nda: 'nda',
+  initiatedById: 'initiatedById',
+  approvedById: 'approvedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SharedCategoryMappingScalarFieldEnum = {
+  id: 'id',
+  partnershipId: 'partnershipId',
+  sourceCompanyId: 'sourceCompanyId',
+  sourceCategoryId: 'sourceCategoryId',
+  targetCompanyId: 'targetCompanyId',
+  targetCategoryId: 'targetCategoryId',
+  matchScore: 'matchScore',
+  isManualMapping: 'isManualMapping',
+  isActive: 'isActive',
+  allowCrossOrders: 'allowCrossOrders',
+  priceAdjustment: 'priceAdjustment',
+  notes: 'notes',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AdminReportScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  period: 'period',
+  title: 'title',
+  description: 'description',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  companies: 'companies',
+  metrics: 'metrics',
+  charts: 'charts',
+  summary: 'summary',
+  insights: 'insights',
+  comparisons: 'comparisons',
+  rankings: 'rankings',
+  benchmarks: 'benchmarks',
+  reportFile: 'reportFile',
+  createdById: 'createdById',
+  isPublic: 'isPublic',
+  sharedWith: 'sharedWith',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CompanyMetricsScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  date: 'date',
+  period: 'period',
+  totalOrders: 'totalOrders',
+  completedOrders: 'completedOrders',
+  cancelledOrders: 'cancelledOrders',
+  pendingOrders: 'pendingOrders',
+  orderCompletionRate: 'orderCompletionRate',
+  totalRevenue: 'totalRevenue',
+  averageOrderValue: 'averageOrderValue',
+  totalProfit: 'totalProfit',
+  profitMargin: 'profitMargin',
+  totalSamples: 'totalSamples',
+  approvedSamples: 'approvedSamples',
+  sampleApprovalRate: 'sampleApprovalRate',
+  averageLeadTime: 'averageLeadTime',
+  onTimeDeliveryRate: 'onTimeDeliveryRate',
+  qualityScore: 'qualityScore',
+  defectRate: 'defectRate',
+  returnRate: 'returnRate',
+  customerSatisfaction: 'customerSatisfaction',
+  activeCustomers: 'activeCustomers',
+  newCustomers: 'newCustomers',
+  retainedCustomers: 'retainedCustomers',
+  customerRetentionRate: 'customerRetentionRate',
+  capacityUtilization: 'capacityUtilization',
+  productivityScore: 'productivityScore',
+  employeeCount: 'employeeCount',
+  activeUsers: 'activeUsers',
+  loginCount: 'loginCount',
+  featureUsage: 'featureUsage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -605,6 +730,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -631,7 +760,14 @@ exports.Prisma.CompanyOrderByRelevanceFieldEnum = {
   address: 'address',
   location: 'location',
   website: 'website',
-  description: 'description'
+  description: 'description',
+  billingEmail: 'billingEmail',
+  billingAddress: 'billingAddress',
+  taxId: 'taxId',
+  logo: 'logo',
+  coverImage: 'coverImage',
+  profileSlug: 'profileSlug',
+  defaultView: 'defaultView'
 };
 
 exports.Prisma.MessageOrderByRelevanceFieldEnum = {
@@ -657,8 +793,27 @@ exports.Prisma.UserOrderByRelevanceFieldEnum = {
   firstName: 'firstName',
   lastName: 'lastName',
   phone: 'phone',
-  department: 'department',
-  jobTitle: 'jobTitle'
+  jobTitle: 'jobTitle',
+  avatar: 'avatar',
+  bio: 'bio',
+  language: 'language',
+  timezone: 'timezone'
+};
+
+exports.Prisma.StandardCategoryOrderByRelevanceFieldEnum = {
+  code: 'code',
+  name: 'name',
+  description: 'description',
+  icon: 'icon',
+  image: 'image',
+  keywords: 'keywords',
+  tags: 'tags'
+};
+
+exports.Prisma.CompanyCategoryOrderByRelevanceFieldEnum = {
+  name: 'name',
+  description: 'description',
+  internalCode: 'internalCode'
 };
 
 exports.Prisma.CategoryOrderByRelevanceFieldEnum = {
@@ -773,50 +928,13 @@ exports.Prisma.WorkshopOrderByRelevanceFieldEnum = {
   location: 'location'
 };
 
-exports.Prisma.ColorOrderByRelevanceFieldEnum = {
-  name: 'name',
+exports.Prisma.LibraryItemOrderByRelevanceFieldEnum = {
   code: 'code',
-  hexCode: 'hexCode',
-  imageUrl: 'imageUrl'
-};
-
-exports.Prisma.FabricOrderByRelevanceFieldEnum = {
   name: 'name',
-  code: 'code',
-  composition: 'composition',
-  supplier: 'supplier',
+  description: 'description',
   imageUrl: 'imageUrl',
-  description: 'description'
-};
-
-exports.Prisma.SizeGroupOrderByRelevanceFieldEnum = {
-  name: 'name',
-  category: 'category',
-  sizes: 'sizes',
-  description: 'description'
-};
-
-exports.Prisma.SeasonItemOrderByRelevanceFieldEnum = {
-  name: 'name',
-  fullName: 'fullName',
-  type: 'type',
-  description: 'description'
-};
-
-exports.Prisma.FitItemOrderByRelevanceFieldEnum = {
-  name: 'name',
-  code: 'code',
-  category: 'category',
-  description: 'description'
-};
-
-exports.Prisma.CertificationOrderByRelevanceFieldEnum = {
-  name: 'name',
-  code: 'code',
-  issuer: 'issuer',
-  certificateNumber: 'certificateNumber',
-  certificateFile: 'certificateFile',
-  description: 'description'
+  internalCode: 'internalCode',
+  notes: 'notes'
 };
 
 exports.Prisma.ProductionRevisionOrderByRelevanceFieldEnum = {
@@ -839,10 +957,52 @@ exports.Prisma.TaskOrderByRelevanceFieldEnum = {
   productionStage: 'productionStage',
   notes: 'notes'
 };
+
+exports.Prisma.CompanyPartnershipOrderByRelevanceFieldEnum = {
+  title: 'title',
+  description: 'description',
+  currency: 'currency',
+  paymentTerms: 'paymentTerms',
+  notes: 'notes',
+  contractFile: 'contractFile'
+};
+
+exports.Prisma.SharedCategoryMappingOrderByRelevanceFieldEnum = {
+  notes: 'notes'
+};
+
+exports.Prisma.AdminReportOrderByRelevanceFieldEnum = {
+  title: 'title',
+  description: 'description',
+  summary: 'summary',
+  insights: 'insights',
+  reportFile: 'reportFile'
+};
 exports.CompanyType = exports.$Enums.CompanyType = {
   MANUFACTURER: 'MANUFACTURER',
   BUYER: 'BUYER',
   BOTH: 'BOTH'
+};
+
+exports.SubscriptionPlan = exports.$Enums.SubscriptionPlan = {
+  FREE: 'FREE',
+  STARTER: 'STARTER',
+  PROFESSIONAL: 'PROFESSIONAL',
+  ENTERPRISE: 'ENTERPRISE',
+  CUSTOM: 'CUSTOM'
+};
+
+exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
+  TRIAL: 'TRIAL',
+  ACTIVE: 'ACTIVE',
+  PAST_DUE: 'PAST_DUE',
+  CANCELLED: 'CANCELLED',
+  EXPIRED: 'EXPIRED'
+};
+
+exports.BillingCycle = exports.$Enums.BillingCycle = {
+  MONTHLY: 'MONTHLY',
+  YEARLY: 'YEARLY'
 };
 
 exports.ProductionStage = exports.$Enums.ProductionStage = {
@@ -870,6 +1030,27 @@ exports.Role = exports.$Enums.Role = {
   INDIVIDUAL_CUSTOMER: 'INDIVIDUAL_CUSTOMER',
   MANUFACTURE: 'MANUFACTURE',
   CUSTOMER: 'CUSTOMER'
+};
+
+exports.Department = exports.$Enums.Department = {
+  PURCHASING: 'PURCHASING',
+  PRODUCTION: 'PRODUCTION',
+  QUALITY: 'QUALITY',
+  DESIGN: 'DESIGN',
+  SALES: 'SALES',
+  MANAGEMENT: 'MANAGEMENT'
+};
+
+exports.CategoryLevel = exports.$Enums.CategoryLevel = {
+  ROOT: 'ROOT',
+  MAIN: 'MAIN',
+  SUB: 'SUB',
+  DETAIL: 'DETAIL'
+};
+
+exports.CategoryType = exports.$Enums.CategoryType = {
+  GLOBAL_STANDARD: 'GLOBAL_STANDARD',
+  COMPANY_CUSTOM: 'COMPANY_CUSTOM'
 };
 
 exports.Season = exports.$Enums.Season = {
@@ -962,12 +1143,19 @@ exports.WorkshopType = exports.$Enums.WorkshopType = {
   GENERAL: 'GENERAL'
 };
 
-exports.CertificationCategory = exports.$Enums.CertificationCategory = {
-  FIBER: 'FIBER',
-  CHEMICAL: 'CHEMICAL',
-  SOCIAL: 'SOCIAL',
-  ENVIRONMENTAL: 'ENVIRONMENTAL',
-  TRACEABILITY: 'TRACEABILITY'
+exports.LibraryScope = exports.$Enums.LibraryScope = {
+  PLATFORM_STANDARD: 'PLATFORM_STANDARD',
+  COMPANY_CUSTOM: 'COMPANY_CUSTOM'
+};
+
+exports.LibraryCategory = exports.$Enums.LibraryCategory = {
+  COLOR: 'COLOR',
+  FABRIC: 'FABRIC',
+  MATERIAL: 'MATERIAL',
+  SIZE_GROUP: 'SIZE_GROUP',
+  SEASON: 'SEASON',
+  FIT: 'FIT',
+  CERTIFICATION: 'CERTIFICATION'
 };
 
 exports.NotificationType = exports.$Enums.NotificationType = {
@@ -1010,12 +1198,51 @@ exports.TaskType = exports.$Enums.TaskType = {
   OTHER: 'OTHER'
 };
 
+exports.PartnershipType = exports.$Enums.PartnershipType = {
+  SUPPLIER: 'SUPPLIER',
+  MANUFACTURER: 'MANUFACTURER',
+  DISTRIBUTOR: 'DISTRIBUTOR',
+  WHITE_LABEL: 'WHITE_LABEL',
+  CO_BRANDING: 'CO_BRANDING',
+  SUBCONTRACTOR: 'SUBCONTRACTOR',
+  STRATEGIC_PARTNER: 'STRATEGIC_PARTNER'
+};
+
+exports.PartnershipStatus = exports.$Enums.PartnershipStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED',
+  TERMINATED: 'TERMINATED',
+  REJECTED: 'REJECTED'
+};
+
+exports.ReportType = exports.$Enums.ReportType = {
+  COMPANY_COMPARISON: 'COMPANY_COMPARISON',
+  PERFORMANCE: 'PERFORMANCE',
+  FINANCIAL: 'FINANCIAL',
+  QUALITY: 'QUALITY',
+  MARKET_ANALYSIS: 'MARKET_ANALYSIS',
+  TREND_ANALYSIS: 'TREND_ANALYSIS',
+  CUSTOM: 'CUSTOM'
+};
+
+exports.ReportPeriod = exports.$Enums.ReportPeriod = {
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+  QUARTERLY: 'QUARTERLY',
+  YEARLY: 'YEARLY',
+  CUSTOM: 'CUSTOM'
+};
+
 exports.Prisma.ModelName = {
   Company: 'Company',
   Message: 'Message',
   ProductionTracking: 'ProductionTracking',
   Revision: 'Revision',
   User: 'User',
+  StandardCategory: 'StandardCategory',
+  CompanyCategory: 'CompanyCategory',
   Category: 'Category',
   Collection: 'Collection',
   UserFavoriteCollection: 'UserFavoriteCollection',
@@ -1030,15 +1257,14 @@ exports.Prisma.ModelName = {
   ProductionStageUpdate: 'ProductionStageUpdate',
   QualityControl: 'QualityControl',
   Workshop: 'Workshop',
-  Color: 'Color',
-  Fabric: 'Fabric',
-  SizeGroup: 'SizeGroup',
-  SeasonItem: 'SeasonItem',
-  FitItem: 'FitItem',
-  Certification: 'Certification',
+  LibraryItem: 'LibraryItem',
   ProductionRevision: 'ProductionRevision',
   Notification: 'Notification',
-  Task: 'Task'
+  Task: 'Task',
+  CompanyPartnership: 'CompanyPartnership',
+  SharedCategoryMapping: 'SharedCategoryMapping',
+  AdminReport: 'AdminReport',
+  CompanyMetrics: 'CompanyMetrics'
 };
 
 /**

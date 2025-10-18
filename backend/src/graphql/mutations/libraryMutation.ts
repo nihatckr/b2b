@@ -1,85 +1,208 @@
 import builder from "../builder";
 
-// ========== COLOR MUTATIONS ==========
+// ========================================
+// UNIFIED LIBRARY MUTATIONS
+// ========================================
 
-builder.mutationField("createColor", (t) =>
+// Input for creating library items
+const CreateLibraryItemInput = builder.inputType('CreateLibraryItemInput', {
+  fields: (t) => ({
+    category: t.field({ type: 'String', required: true }),
+    scope: t.field({ type: 'String', required: true }),
+    code: t.string({ required: false }),
+    name: t.string({ required: true }),
+    description: t.string({ required: false }),
+    imageUrl: t.string({ required: false }),
+    data: t.string({ required: false }),
+    tags: t.string({ required: false }),
+    internalCode: t.string({ required: false }),
+    notes: t.string({ required: false }),
+    isActive: t.boolean({ required: false }),
+    isPopular: t.boolean({ required: false }),
+    companyId: t.int({ required: false }),
+    standardItemId: t.int({ required: false }),
+  }),
+});
+
+// Input for updating library items
+const UpdateLibraryItemInput = builder.inputType('UpdateLibraryItemInput', {
+  fields: (t) => ({
+    name: t.string({ required: false }),
+    description: t.string({ required: false }),
+    imageUrl: t.string({ required: false }),
+    data: t.string({ required: false }),
+    tags: t.string({ required: false }),
+    internalCode: t.string({ required: false }),
+    notes: t.string({ required: false }),
+    isActive: t.boolean({ required: false }),
+    isPopular: t.boolean({ required: false }),
+  }),
+});
+
+// Create Library Item
+builder.mutationField("createLibraryItem", (t) =>
   t.prismaField({
+    type: "LibraryItem",
     args: {
-      name: t.arg.string({ required: true }),
-      code: t.arg.string({ required: true }),
-      hexValue: t.arg.string(),
-      category: t.arg.string(),
-      companyId: t.arg.int(),
+      input: t.arg({ type: CreateLibraryItemInput, required: true }),
     },
-    type: "Color",
     authScopes: { user: true },
-    resolve: async (query, _root, args, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
+    resolve: async (query, _root, args, context) => {
+      if (!context.user?.id) {
+        throw new Error("Not authenticated");
+      }
 
-      const color = await context.prisma.color.create({
+      const input = args.input;
+
+      let dataJson = null;
+      let tagsJson = null;
+
+      if (input.data) {
+        try {
+          dataJson = JSON.parse(input.data);
+        } catch (e) {
+          throw new Error("Invalid JSON in data field");
+        }
+      }
+
+      if (input.tags) {
+        try {
+          tagsJson = JSON.parse(input.tags);
+        } catch (e) {
+          throw new Error("Invalid JSON in tags field");
+        }
+      }
+
+      return context.prisma.libraryItem.create({
         ...query,
         data: {
-          name: args.name,
-          code: args.code,
-          hexValue: args.hexValue || undefined,
-          category: args.category || undefined,
-          companyId: args.companyId || context.user.companyId || undefined,
-        } as any,
+          category: input.category as any,
+          scope: input.scope as any,
+          code: input.code ?? null,
+          name: input.name,
+          description: input.description ?? null,
+          imageUrl: input.imageUrl ?? null,
+          ...(dataJson !== null && { data: dataJson }),
+          ...(tagsJson !== null && { tags: tagsJson }),
+          internalCode: input.internalCode ?? null,
+          notes: input.notes ?? null,
+          isActive: input.isActive ?? true,
+          isPopular: input.isPopular ?? false,
+          companyId: input.companyId ?? context.user.companyId ?? null,
+          standardItemId: input.standardItemId ?? null,
+          createdById: context.user.id,
+        },
       });
-
-      return color;
     },
   })
 );
 
-builder.mutationField("updateColor", (t) =>
+// Update Library Item
+builder.mutationField("updateLibraryItem", (t) =>
   t.prismaField({
+    type: "LibraryItem",
     args: {
       id: t.arg.int({ required: true }),
-      name: t.arg.string(),
-      code: t.arg.string(),
-      hexValue: t.arg.string(),
-      category: t.arg.string(),
+      input: t.arg({ type: UpdateLibraryItemInput, required: true }),
     },
-    type: "Color",
     authScopes: { user: true },
-    resolve: async (query, _root, args, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
+    resolve: async (query, _root, args, context) => {
+      if (!context.user?.id) {
+        throw new Error("Not authenticated");
+      }
 
-      const color = await context.prisma.color.findUnique({
+      const existing = await context.prisma.libraryItem.findUnique({
         where: { id: args.id },
       });
 
-      if (!color) throw new Error("Color not found");
+      if (!existing) {
+        throw new Error("Library item not found");
+      }
 
-      const updated = await context.prisma.color.update({
+      if (existing.scope === "COMPANY_CUSTOM") {
+        if (existing.companyId !== context.user.companyId) {
+          throw new Error("Not authorized to update this item");
+        }
+      } else if (existing.scope === "PLATFORM_STANDARD") {
+        if (context.user.role !== 'ADMIN') {
+          throw new Error("Only admins can update platform standards");
+        }
+      }
+
+      const input = args.input;
+
+      let dataJson = undefined;
+      let tagsJson = undefined;
+
+      if (input.data) {
+        try {
+          dataJson = JSON.parse(input.data);
+        } catch (e) {
+          throw new Error("Invalid JSON in data field");
+        }
+      }
+
+      if (input.tags) {
+        try {
+          tagsJson = JSON.parse(input.tags);
+        } catch (e) {
+          throw new Error("Invalid JSON in tags field");
+        }
+      }
+
+      return context.prisma.libraryItem.update({
         ...query,
         where: { id: args.id },
         data: {
-          name: args.name || undefined,
-          code: args.code || undefined,
-          hexValue: args.hexValue || undefined,
-          category: args.category || undefined,
-        } as any,
+          ...(input.name !== undefined && input.name !== null && { name: input.name }),
+          ...(input.description !== undefined && input.description !== null && { description: input.description }),
+          ...(input.imageUrl !== undefined && input.imageUrl !== null && { imageUrl: input.imageUrl }),
+          ...(dataJson !== undefined && { data: dataJson }),
+          ...(tagsJson !== undefined && { tags: tagsJson }),
+          ...(input.internalCode !== undefined && input.internalCode !== null && { internalCode: input.internalCode }),
+          ...(input.notes !== undefined && input.notes !== null && { notes: input.notes }),
+          ...(input.isActive !== undefined && input.isActive !== null && { isActive: input.isActive }),
+          ...(input.isPopular !== undefined && input.isPopular !== null && { isPopular: input.isPopular }),
+        },
       });
-
-      return updated;
     },
   })
 );
 
-builder.mutationField("deleteColor", (t) =>
+// Delete Library Item (soft delete)
+builder.mutationField("deleteLibraryItem", (t) =>
   t.field({
     type: "Boolean",
     args: {
       id: t.arg.int({ required: true }),
     },
     authScopes: { user: true },
-    resolve: async (_root: any, args: any, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
+    resolve: async (_root, args, context) => {
+      if (!context.user?.id) {
+        throw new Error("Not authenticated");
+      }
 
-      await context.prisma.color.delete({
+      const existing = await context.prisma.libraryItem.findUnique({
         where: { id: args.id },
+      });
+
+      if (!existing) {
+        throw new Error("Library item not found");
+      }
+
+      if (existing.scope === "COMPANY_CUSTOM") {
+        if (existing.companyId !== context.user.companyId) {
+          throw new Error("Not authorized to delete this item");
+        }
+      } else if (existing.scope === "PLATFORM_STANDARD") {
+        if (context.user.role !== 'ADMIN') {
+          throw new Error("Only admins can delete platform standards");
+        }
+      }
+
+      await context.prisma.libraryItem.update({
+        where: { id: args.id },
+        data: { isActive: false },
       });
 
       return true;
@@ -87,267 +210,120 @@ builder.mutationField("deleteColor", (t) =>
   })
 );
 
-// ========== FABRIC MUTATIONS ==========
+// ========================================
+// CATEGORY MUTATIONS
+// ========================================
 
-builder.mutationField("createFabric", (t) =>
+// Create Standard Category (admin only)
+const CreateStandardCategoryInput = builder.inputType('CreateStandardCategoryInput', {
+  fields: (t) => ({
+    code: t.string({ required: true }),
+    name: t.string({ required: true }),
+    description: t.string({ required: false }),
+    level: t.string({ required: true }),
+    order: t.int({ required: false }),
+    icon: t.string({ required: false }),
+    image: t.string({ required: false }),
+    parentId: t.int({ required: false }),
+    keywords: t.string({ required: false }),
+    tags: t.string({ required: false }),
+    isActive: t.boolean({ required: false }),
+    isPublic: t.boolean({ required: false }),
+  }),
+});
+
+builder.mutationField("createStandardCategory", (t) =>
   t.prismaField({
+    type: "StandardCategory",
     args: {
-      name: t.arg.string({ required: true }),
-      type: t.arg.string({ required: true }),
-      material: t.arg.string(),
-      weight: t.arg.string(),
-      careInstructions: t.arg.string(),
-      companyId: t.arg.int(),
+      input: t.arg({ type: CreateStandardCategoryInput, required: true }),
     },
-    type: "Fabric",
-    authScopes: { user: true },
-    resolve: async (query, _root, args, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
+    authScopes: { admin: true },
+    resolve: async (query, _root, args, context) => {
+      const input = args.input;
 
-      const fabric = await context.prisma.fabric.create({
+      let keywordsJson = null;
+      if (input.keywords) {
+        try {
+          keywordsJson = JSON.parse(input.keywords);
+        } catch (e) {
+          throw new Error("Invalid JSON in keywords field");
+        }
+      }
+
+      return context.prisma.standardCategory.create({
         ...query,
         data: {
-          name: args.name,
-          type: args.type,
-          material: args.material || undefined,
-          weight: args.weight || undefined,
-          careInstructions: args.careInstructions || undefined,
-          companyId: args.companyId || context.user.companyId || undefined,
-        } as any,
+          code: input.code,
+          name: input.name,
+          ...(input.description !== undefined && { description: input.description }),
+          level: input.level as any,
+          order: input.order ?? 0,
+          ...(input.icon !== undefined && { icon: input.icon }),
+          ...(input.image !== undefined && { image: input.image }),
+          ...(input.parentId !== undefined && { parentId: input.parentId }),
+          ...(keywordsJson !== null && { keywords: keywordsJson }),
+          ...(input.tags !== undefined && { tags: input.tags }),
+          isActive: input.isActive ?? true,
+          isPublic: input.isPublic ?? true,
+          createdById: context.user!.id,
+        },
       });
-
-      return fabric;
     },
   })
 );
 
-builder.mutationField("updateFabric", (t) =>
+// Create Company Category
+const CreateCompanyCategoryInput = builder.inputType('CreateCompanyCategoryInput', {
+  fields: (t) => ({
+    name: t.string({ required: true }),
+    description: t.string({ required: false }),
+    type: t.string({ required: true }),
+    standardCategoryId: t.int({ required: false }),
+    internalCode: t.string({ required: false }),
+    order: t.int({ required: false }),
+    customFields: t.string({ required: false }),
+  }),
+});
+
+builder.mutationField("createCompanyCategory", (t) =>
   t.prismaField({
+    type: "CompanyCategory",
     args: {
-      id: t.arg.int({ required: true }),
-      name: t.arg.string(),
-      type: t.arg.string(),
-      material: t.arg.string(),
-      weight: t.arg.string(),
-      careInstructions: t.arg.string(),
+      input: t.arg({ type: CreateCompanyCategoryInput, required: true }),
     },
-    type: "Fabric",
-    authScopes: { user: true },
-    resolve: async (query, _root, args, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
+    authScopes: { companyOwner: true, employee: true },
+    resolve: async (query, _root, args, context) => {
+      if (!context.user?.companyId) {
+        throw new Error("Must be associated with a company");
+      }
 
-      const fabric = await context.prisma.fabric.findUnique({
-        where: { id: args.id },
-      });
+      const input = args.input;
 
-      if (!fabric) throw new Error("Fabric not found");
+      let customFieldsJson = null;
+      if (input.customFields) {
+        try {
+          customFieldsJson = JSON.parse(input.customFields);
+        } catch (e) {
+          throw new Error("Invalid JSON in customFields");
+        }
+      }
 
-      const updated = await context.prisma.fabric.update({
-        ...query,
-        where: { id: args.id },
-        data: {
-          name: args.name || undefined,
-          type: args.type || undefined,
-          material: args.material || undefined,
-          weight: args.weight || undefined,
-          careInstructions: args.careInstructions || undefined,
-        } as any,
-      });
-
-      return updated;
-    },
-  })
-);
-
-builder.mutationField("deleteFabric", (t) =>
-  t.field({
-    type: "Boolean",
-    args: {
-      id: t.arg.int({ required: true }),
-    },
-    authScopes: { user: true },
-    resolve: async (_root: any, args: any, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
-      await context.prisma.fabric.delete({
-        where: { id: args.id },
-      });
-
-      return true;
-    },
-  })
-);
-
-// ========== SIZE GROUP MUTATIONS ==========
-
-builder.mutationField("createSizeGroup", (t) =>
-  t.prismaField({
-    args: {
-      name: t.arg.string({ required: true }),
-      sizes: t.arg.string({ required: true }),
-      standard: t.arg.string(),
-      companyId: t.arg.int(),
-    },
-    type: "SizeGroup",
-    authScopes: { user: true },
-    resolve: async (query, _root, args, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
-      const sizeGroup = await context.prisma.sizeGroup.create({
+      return context.prisma.companyCategory.create({
         ...query,
         data: {
-          name: args.name,
-          sizes: args.sizes,
-          standard: args.standard || undefined,
-          companyId: args.companyId || context.user.companyId || undefined,
-        } as any,
+          name: input.name,
+          description: input.description ?? null,
+          type: input.type as any,
+          companyId: context.user.companyId,
+          standardCategoryId: input.standardCategoryId ?? null,
+          internalCode: input.internalCode ?? null,
+          order: input.order ?? 0,
+          ...(customFieldsJson !== null && { customFields: customFieldsJson }),
+          isActive: true,
+          authorId: context.user.id,
+        },
       });
-
-      return sizeGroup;
-    },
-  })
-);
-
-builder.mutationField("updateSizeGroup", (t) =>
-  t.prismaField({
-    args: {
-      id: t.arg.int({ required: true }),
-      name: t.arg.string(),
-      sizes: t.arg.string(),
-      standard: t.arg.string(),
-    },
-    type: "SizeGroup",
-    authScopes: { user: true },
-    resolve: async (query, _root, args, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
-      const sizeGroup = await context.prisma.sizeGroup.findUnique({
-        where: { id: args.id },
-      });
-
-      if (!sizeGroup) throw new Error("SizeGroup not found");
-
-      const updated = await context.prisma.sizeGroup.update({
-        ...query,
-        where: { id: args.id },
-        data: {
-          name: args.name || undefined,
-          sizes: args.sizes || undefined,
-          standard: args.standard || undefined,
-        } as any,
-      });
-
-      return updated;
-    },
-  })
-);
-
-builder.mutationField("deleteSizeGroup", (t) =>
-  t.field({
-    type: "Boolean",
-    args: {
-      id: t.arg.int({ required: true }),
-    },
-    authScopes: { user: true },
-    resolve: async (_root: any, args: any, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
-      await context.prisma.sizeGroup.delete({
-        where: { id: args.id },
-      });
-
-      return true;
-    },
-  })
-);
-
-// ========== CERTIFICATION MUTATIONS ==========
-
-builder.mutationField("createCertification", (t) =>
-  t.prismaField({
-    args: {
-      name: t.arg.string({ required: true }),
-      issuer: t.arg.string(),
-      validFrom: t.arg.string(),
-      validUntil: t.arg.string(),
-      description: t.arg.string(),
-      companyId: t.arg.int(),
-    },
-    type: "Certification",
-    authScopes: { user: true },
-    resolve: async (query, _root, args, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
-      const cert = await context.prisma.certification.create({
-        ...query,
-        data: {
-          name: args.name,
-          issuer: args.issuer || undefined,
-          validFrom: args.validFrom ? new Date(args.validFrom) : undefined,
-          validUntil: args.validUntil ? new Date(args.validUntil) : undefined,
-          description: args.description || undefined,
-          companyId: args.companyId || context.user.companyId || undefined,
-        } as any,
-      });
-
-      return cert;
-    },
-  })
-);
-
-builder.mutationField("updateCertification", (t) =>
-  t.prismaField({
-    args: {
-      id: t.arg.int({ required: true }),
-      name: t.arg.string(),
-      issuer: t.arg.string(),
-      validFrom: t.arg.string(),
-      validUntil: t.arg.string(),
-      description: t.arg.string(),
-    },
-    type: "Certification",
-    authScopes: { user: true },
-    resolve: async (query, _root, args, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
-      const cert = await context.prisma.certification.findUnique({
-        where: { id: args.id },
-      });
-
-      if (!cert) throw new Error("Certification not found");
-
-      const updated = await context.prisma.certification.update({
-        ...query,
-        where: { id: args.id },
-        data: {
-          name: args.name || undefined,
-          issuer: args.issuer || undefined,
-          validFrom: args.validFrom ? new Date(args.validFrom) : undefined,
-          validUntil: args.validUntil ? new Date(args.validUntil) : undefined,
-          description: args.description || undefined,
-        } as any,
-      });
-
-      return updated;
-    },
-  })
-);
-
-builder.mutationField("deleteCertification", (t) =>
-  t.field({
-    type: "Boolean",
-    args: {
-      id: t.arg.int({ required: true }),
-    },
-    authScopes: { user: true },
-    resolve: async (_root: any, args: any, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
-      await context.prisma.certification.delete({
-        where: { id: args.id },
-      });
-
-      return true;
     },
   })
 );

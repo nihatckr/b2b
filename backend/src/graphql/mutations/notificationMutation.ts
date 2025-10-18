@@ -1,3 +1,4 @@
+import { pubsub } from "../../utils/pubsub";
 import builder from "../builder";
 
 // Mark notification as read
@@ -21,11 +22,19 @@ builder.mutationField("markNotificationAsRead", (t) =>
         throw new Error("Unauthorized");
       }
 
-      return context.prisma.notification.update({
+      const updated = await context.prisma.notification.update({
         ...query,
         where: { id: args.id },
         data: { isRead: true },
       });
+
+      // Publish notification read event to subscribers
+      pubsub.publish("notification:read", notification.userId, {
+        notificationId: updated.id,
+        isRead: updated.isRead,
+      });
+
+      return updated;
     },
   })
 );
