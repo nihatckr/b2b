@@ -3,19 +3,23 @@ import { enumType } from "nexus";
 export const OrderStatus = enumType({
   name: "OrderStatus",
   members: [
-    "PENDING",
-    "REVIEWED",
-    "QUOTE_SENT",
-    "CONFIRMED",
-    "REJECTED",
-    "IN_PRODUCTION",
-    "PRODUCTION_COMPLETE",
-    "QUALITY_CHECK",
-    "SHIPPED",
-    "DELIVERED",
-    "CANCELLED",
+    "PENDING", // Sipariş beklemede
+    "REVIEWED", // Üretici tarafından inceleniyor
+    "QUOTE_SENT", // Üretici süre ve fiyat teklifi gönderdi
+    "CUSTOMER_QUOTE_SENT", // Müşteri teklif gönderdi (standart veya revize)
+    "MANUFACTURER_REVIEWING_QUOTE", // Üretici müşteri teklifini inceliyor
+    "CONFIRMED", // Müşteri siparişi onayladı
+    "REJECTED", // Sipariş reddedildi
+    "REJECTED_BY_CUSTOMER", // Müşteri tarafından reddedildi
+    "REJECTED_BY_MANUFACTURER", // Üretici tarafından reddedildi
+    "IN_PRODUCTION", // Üretim aşamasında
+    "PRODUCTION_COMPLETE", // Üretim tamamlandı
+    "QUALITY_CHECK", // Kalite kontrolü yapılıyor
+    "SHIPPED", // Kargoya verildi
+    "DELIVERED", // Müşteriye teslim edildi
+    "CANCELLED", // İptal edildi
   ],
-  description: "Status workflow for order production",
+  description: "Status workflow for order production - Complete quotation and approval flow",
 });
 
 export const SampleType = enumType({
@@ -27,21 +31,44 @@ export const SampleType = enumType({
 export const SampleStatus = enumType({
   name: "SampleStatus",
   members: [
-    "AI_DESIGN", // AI-generated design not sent to manufacturer yet
-    "PENDING_APPROVAL",
-    "REQUESTED",
-    "RECEIVED",
-    "IN_DESIGN",
-    "PATTERN_READY",
-    "IN_PRODUCTION",
-    "ON_HOLD",
-    "QUALITY_CHECK",
-    "COMPLETED",
-    "REJECTED",
-    "CANCELLED",
-    "SHIPPED",
+    // === İLK AŞAMALAR (AI ve Talep) ===
+    "AI_DESIGN", // AI ile oluşturulmuş tasarım (henüz üreticiye gönderilmedi)
+    "PENDING_APPROVAL", // Üretici onayı bekleniyor (eski flow)
+    "PENDING", // Beklemede - Yeni talep
+
+    // === İNCELEME ve TEKLİF AŞAMASI ===
+    "REVIEWED", // Üretici tarafından inceleniyor
+    "QUOTE_SENT", // Üretici süre ve fiyat teklifi gönderdi
+    "CUSTOMER_QUOTE_SENT", // Müşteri teklif gönderdi (standart veya revize)
+    "MANUFACTURER_REVIEWING_QUOTE", // Üretici müşteri teklifini inceliyor
+
+    // === ONAY/RED DURUMLAR ===
+    "CONFIRMED", // Müşteri onayladı, üretim başlayabilir
+    "REJECTED", // Genel red
+    "REJECTED_BY_CUSTOMER", // Müşteri tarafından reddedildi
+    "REJECTED_BY_MANUFACTURER", // Üretici tarafından reddedildi
+
+    // === ÜRETİM AŞAMALARI ===
+    "IN_DESIGN", // Tasarım aşamasında (eski flow)
+    "PATTERN_READY", // Kalıp hazır (eski flow)
+    "IN_PRODUCTION", // Üretim aşamasında
+    "PRODUCTION_COMPLETE", // Üretim tamamlandı
+
+    // === KALİTE ve TESLİMAT ===
+    "QUALITY_CHECK", // Kalite kontrolde
+    "SHIPPED", // Kargoya verildi
+    "DELIVERED", // Müşteriye teslim edildi
+
+    // === DİĞER DURUMLAR ===
+    "ON_HOLD", // Durduruldu (geçici olarak askıya alındı)
+    "CANCELLED", // İptal edildi
+
+    // === ESKİ FLOW İÇİN (Geriye dönük uyumluluk) ===
+    "REQUESTED", // Müşteri tarafından talep edildi (eski)
+    "RECEIVED", // Üretici talebi aldı (eski)
+    "COMPLETED", // Tamamlandı (eski - artık DELIVERED kullanılıyor)
   ],
-  description: "Status workflow for sample production - 13 stages (including AI design, hold and cancel options)",
+  description: "Status workflow for sample production - Complete workflow matching Order system with backward compatibility",
 });
 export const Role = enumType({
   name: "Role",

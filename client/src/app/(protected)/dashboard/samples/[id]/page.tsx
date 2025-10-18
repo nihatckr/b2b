@@ -1,120 +1,283 @@
 "use client";
 
-import { ImageComparisonSlider } from "@/components/AI/ImageComparisonSlider";
-import { RequestSampleDialog } from "@/components/AI/RequestSampleDialog";
+import { ProductionTimeline } from "@/components/Order/ProductionTimeline";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthProvider";
 import {
-  MARK_MESSAGE_READ_MUTATION,
-  MY_MESSAGES_QUERY,
-  SEND_MESSAGE_MUTATION,
+    MARK_MESSAGE_READ_MUTATION,
+    MY_MESSAGES_QUERY,
+    SEND_MESSAGE_MUTATION,
 } from "@/lib/graphql/message-operations";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 import {
-  ArrowLeft,
-  Building,
-  Calendar,
-  Edit,
-  FileText,
-  Image as ImageIcon,
-  MessageSquare,
-  Package,
-  Send,
-  Sparkles,
-  Trash2,
-  Truck,
-  User,
+    ArrowLeft,
+    Calendar,
+    DollarSign,
+    Edit,
+    Loader2,
+    MessageSquare,
+    Package,
+    Send,
+    User
 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
-import { Badge } from "../../../../../components/ui/badge";
-import { Button } from "../../../../../components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../../../../components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../../../../../components/ui/dialog";
-import { Input } from "../../../../../components/ui/input";
-import { Label } from "../../../../../components/ui/label";
-import { ScrollArea } from "../../../../../components/ui/scroll-area";
-import { Separator } from "../../../../../components/ui/separator";
-import { Skeleton } from "../../../../../components/ui/skeleton";
-import { Textarea } from "../../../../../components/ui/textarea";
 
-const statusColors: { [key: string]: string } = {
-  AI_DESIGN: "bg-purple-100 text-purple-700",
-  PENDING_APPROVAL: "bg-yellow-100 text-yellow-700",
-  REQUESTED: "bg-blue-100 text-blue-700",
-  RECEIVED: "bg-purple-100 text-purple-700",
-  IN_DESIGN: "bg-pink-100 text-pink-700",
-  PATTERN_READY: "bg-amber-100 text-amber-700",
-  IN_PRODUCTION: "bg-emerald-100 text-emerald-700",
-  QUALITY_CHECK: "bg-cyan-100 text-cyan-700",
-  COMPLETED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
-  SHIPPED: "bg-teal-100 text-teal-700",
+const getSampleStatusBadge = (status: string) => {
+  const statusConfig: Record<string, { label: string; className: string }> = {
+    PENDING: { label: "Beklemede", className: "bg-blue-100 text-blue-800" },
+    REVIEWED: {
+      label: "İnceleniyor",
+      className: "bg-purple-100 text-purple-800",
+    },
+    QUOTE_SENT: {
+      label: "Teklif Gönderildi",
+      className: "bg-yellow-100 text-yellow-800",
+    },
+    CUSTOMER_QUOTE_SENT: {
+      label: "Müşteri Teklifi",
+      className: "bg-amber-100 text-amber-800",
+    },
+    MANUFACTURER_REVIEWING_QUOTE: {
+      label: "Teklif İnceleniyor",
+      className: "bg-violet-100 text-violet-800",
+    },
+    CONFIRMED: { label: "Onaylandı", className: "bg-green-100 text-green-800" },
+    REJECTED: { label: "Reddedildi", className: "bg-red-100 text-red-800" },
+    REJECTED_BY_CUSTOMER: {
+      label: "Müşteri Reddetti",
+      className: "bg-rose-100 text-rose-800",
+    },
+    REJECTED_BY_MANUFACTURER: {
+      label: "Üretici Reddetti",
+      className: "bg-red-100 text-red-800",
+    },
+    IN_PRODUCTION: {
+      label: "Üretimde",
+      className: "bg-orange-100 text-orange-800",
+    },
+    PRODUCTION_COMPLETE: {
+      label: "Üretim Tamamlandı",
+      className: "bg-teal-100 text-teal-800",
+    },
+    QUALITY_CHECK: {
+      label: "Kalite Kontrolde",
+      className: "bg-indigo-100 text-indigo-800",
+    },
+    SHIPPED: { label: "Kargoda", className: "bg-cyan-100 text-cyan-800" },
+    DELIVERED: {
+      label: "Teslim Edildi",
+      className: "bg-green-100 text-green-800",
+    },
+    CANCELLED: {
+      label: "İptal Edildi",
+      className: "bg-gray-100 text-gray-800",
+    },
+  };
+
+  const config = statusConfig[status] || {
+    label: status,
+    className: "bg-gray-100 text-gray-800",
+  };
+
+  return <Badge className={config.className}>{config.label}</Badge>;
 };
 
-const statusLabels: { [key: string]: string } = {
-  AI_DESIGN: "AI Tasarım",
-  PENDING_APPROVAL: "Onay Bekliyor",
-  REQUESTED: "Talep Edildi",
-  RECEIVED: "Alındı",
-  IN_DESIGN: "Tasarımda",
-  PATTERN_READY: "Kalıp Hazır",
-  IN_PRODUCTION: "Üretimde",
-  QUALITY_CHECK: "Kalite Kontrolde",
-  COMPLETED: "Tamamlandı",
-  REJECTED: "Reddedildi",
-  SHIPPED: "Kargoya Verildi",
-};
-
-const sampleTypeLabels: { [key: string]: string } = {
-  STANDARD: "Standart Numune",
-  REVISION: "Revizyon Numune",
-  CUSTOM: "Özel Tasarım",
-  DEVELOPMENT: "Geliştirme",
-};
-
-const UPDATE_SAMPLE_MUTATION = `
-  mutation UpdateSample($id: Int!, $name: String, $description: String) {
-    updateSample(
-      input: {
-        id: $id
-        customerNote: $description
-      }
-    ) {
+// GraphQL Queries & Mutations for Samples
+const SAMPLE_QUERY = `
+  query Sample($id: Int!) {
+    sample(id: $id) {
       id
+      sampleNumber
+      sampleType
+      status
       name
       description
-      sampleNumber
-      status
       images
+      customerNote
+      manufacturerResponse
+      productionDays
+      estimatedProductionDate
+      actualProductionDate
+      shippingDate
+      deliveryAddress
+      cargoTrackingNumber
       aiGenerated
       aiPrompt
       aiSketchUrl
+      unitPrice
+      customerQuotedPrice
+      customerQuoteDays
+      customerQuoteNote
+      customerQuoteType
       createdAt
+      updatedAt
+      collection {
+        id
+        name
+        description
+        price
+        images
+      }
+      customer {
+        id
+        firstName
+        lastName
+        name
+        email
+        phone
+        company {
+          id
+          name
+        }
+      }
+      manufacture {
+        id
+        firstName
+        lastName
+        name
+        email
+        phone
+        company {
+          id
+          name
+        }
+      }
+      company {
+        id
+        name
+      }
     }
   }
 `;
 
-const DELETE_SAMPLE_MUTATION = `
-  mutation DeleteSample($id: Int!) {
-    deleteSample(id: $id) {
+const UPDATE_SAMPLE_STATUS_MUTATION = `
+  mutation UpdateSampleStatus($id: Int!, $status: String!, $note: String) {
+    updateSample(
+      input: {
+        id: $id
+        status: $status
+        manufacturerResponse: $note
+      }
+    ) {
       id
+      status
+      manufacturerResponse
+    }
+  }
+`;
+
+const UPDATE_SAMPLE_MUTATION = `
+  mutation UpdateSample(
+    $id: Int!
+    $status: String
+    $manufacturerResponse: String
+    $productionDays: Int
+    $estimatedProductionDate: String
+    $unitPrice: Float
+  ) {
+    updateSample(
+      input: {
+        id: $id
+        status: $status
+        manufacturerResponse: $manufacturerResponse
+        productionDays: $productionDays
+        estimatedProductionDate: $estimatedProductionDate
+        unitPrice: $unitPrice
+      }
+    ) {
+      id
+      status
+      manufacturerResponse
+      productionDays
+      estimatedProductionDate
+      unitPrice
+    }
+  }
+`;
+
+const SUBMIT_CUSTOMER_QUOTE_MUTATION = `
+  mutation SubmitCustomerQuoteSample(
+    $sampleId: Int!
+    $quotedPrice: Float!
+    $quoteDays: Int!
+    $note: String
+    $quoteType: String!
+  ) {
+    updateSample(
+      input: {
+        id: $sampleId
+        customerQuotedPrice: $quotedPrice
+        customerQuoteDays: $quoteDays
+        customerQuoteNote: $note
+        customerQuoteType: $quoteType
+        status: "CUSTOMER_QUOTE_SENT"
+      }
+    ) {
+      id
+      status
+      customerQuotedPrice
+      customerQuoteDays
+      customerQuoteNote
+      customerQuoteType
+    }
+  }
+`;
+
+const APPROVE_CUSTOMER_QUOTE_MUTATION = `
+  mutation ApproveCustomerQuoteSample($sampleId: Int!, $approvalNote: String) {
+    updateSample(
+      input: {
+        id: $sampleId
+        status: "CONFIRMED"
+        manufacturerResponse: $approvalNote
+      }
+    ) {
+      id
+      status
+      manufacturerResponse
+    }
+  }
+`;
+
+const REJECT_CUSTOMER_QUOTE_MUTATION = `
+  mutation RejectCustomerQuoteSample($sampleId: Int!, $rejectionReason: String!) {
+    updateSample(
+      input: {
+        id: $sampleId
+        status: "REJECTED_BY_MANUFACTURER"
+        manufacturerResponse: $rejectionReason
+      }
+    ) {
+      id
+      status
+      manufacturerResponse
     }
   }
 `;
@@ -125,87 +288,54 @@ export default function SampleDetailPage() {
   const { user } = useAuth();
   const sampleId = params.id as string;
 
-  const [editMode, setEditMode] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [requestDialogOpen, setRequestDialogOpen] = useState(false);
-  const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<{
-    url: string;
-    title: string;
-  } | null>(null);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCustomerQuoteDialogOpen, setIsCustomerQuoteDialogOpen] = useState(false);
+  const [isManufacturerReviewDialogOpen, setIsManufacturerReviewDialogOpen] = useState(false);
+  const [actionType, setActionType] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [messageContent, setMessageContent] = useState("");
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const [{ data, fetching, error }] = useQuery({
-    query: `
-      query Sample($id: Int!) {
-        sample(id: $id) {
-          id
-          sampleNumber
-          sampleType
-          status
-          name
-          description
-          images
-          customerNote
-          manufacturerResponse
-          productionDays
-          estimatedProductionDate
-          actualProductionDate
-          shippingDate
-          deliveryAddress
-          cargoTrackingNumber
-          aiGenerated
-          aiPrompt
-          aiSketchUrl
-          createdAt
-          updatedAt
-          collection {
-            id
-            name
-            description
-            price
-          }
-          customer {
-            id
-            firstName
-            lastName
-            email
-          }
-          manufacture {
-            id
-            firstName
-            lastName
-            email
-          }
-          company {
-            id
-            name
-          }
-        }
-      }
-    `,
-    variables: { id: parseInt(sampleId) },
-    requestPolicy: "network-only",
+  const [editFormData, setEditFormData] = useState({
+    status: "",
+    manufacturerResponse: "",
+    productionDays: "",
+    estimatedProductionDate: "",
+    unitPrice: "",
   });
 
+  const [customerQuoteData, setCustomerQuoteData] = useState({
+    quotedPrice: "",
+    quoteDays: "",
+    quoteNote: "",
+    quoteType: "STANDARD", // "STANDARD" or "REVISION"
+  });
+
+  const [manufacturerReviewNote, setManufacturerReviewNote] = useState("");
+
+  const [{ data, fetching, error }, reexecuteQuery] = useQuery({
+    query: SAMPLE_QUERY,
+    variables: { id: parseInt(sampleId) },
+  });
+
+  const [, updateSampleStatus] = useMutation(UPDATE_SAMPLE_STATUS_MUTATION);
   const [, updateSample] = useMutation(UPDATE_SAMPLE_MUTATION);
-  const [, deleteSample] = useMutation(DELETE_SAMPLE_MUTATION);
+  const [, submitCustomerQuote] = useMutation(SUBMIT_CUSTOMER_QUOTE_MUTATION);
+  const [, approveCustomerQuote] = useMutation(APPROVE_CUSTOMER_QUOTE_MUTATION);
+  const [, rejectCustomerQuote] = useMutation(REJECT_CUSTOMER_QUOTE_MUTATION);
   const [, sendMessage] = useMutation(SEND_MESSAGE_MUTATION);
   const [, markAsRead] = useMutation(MARK_MESSAGE_READ_MUTATION);
 
   // Get messages for this sample
-  const [{ data: messagesData, fetching: messagesFetching }, refetchMessages] =
-    useQuery({
-      query: MY_MESSAGES_QUERY,
-      variables: {
-        filter: { sampleId: parseInt(sampleId) },
-      },
-      requestPolicy: "network-only",
-    });
+  const [{ data: messagesData, fetching: messagesFetching }, refetchMessages] = useQuery({
+    query: MY_MESSAGES_QUERY,
+    variables: {
+      filter: { sampleId: parseInt(sampleId) },
+    },
+    requestPolicy: "network-only",
+  });
 
   const messages = messagesData?.myMessages || [];
 
@@ -216,13 +346,24 @@ export default function SampleDetailPage() {
     }
   }, [messages.length]);
 
+  // Üretici kontrolü
+  const isManufacturer =
+    user?.role === "MANUFACTURE" ||
+    user?.role === "COMPANY_OWNER" ||
+    user?.role === "COMPANY_EMPLOYEE";
+
+  // Müşteri kontrolü
+  const isCustomer =
+    user?.role === "CUSTOMER" ||
+    user?.role === "INDIVIDUAL_CUSTOMER";
+
   if (fetching) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-6">
         <Skeleton className="h-10 w-48" />
-        <div className="grid gap-6 md:grid-cols-2">
-          <Skeleton className="h-[400px]" />
-          <Skeleton className="h-[400px]" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-96" />
+          <Skeleton className="h-96" />
         </div>
       </div>
     );
@@ -230,16 +371,16 @@ export default function SampleDetailPage() {
 
   if (error || !data?.sample) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="space-y-6">
+        <Button variant="outline" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Geri
+        </Button>
         <Card className="border-red-200">
           <CardContent className="pt-6">
             <p className="text-red-600">
-              {error?.message || "Sample not found"}
+              {error?.message || "Numune bulunamadı"}
             </p>
-            <Button onClick={() => router.back()} className="mt-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Go Back
-            </Button>
           </CardContent>
         </Card>
       </div>
@@ -248,73 +389,195 @@ export default function SampleDetailPage() {
 
   const sample = data.sample;
 
-  // Initialize edit form values
-  if (sample && !name && !description) {
-    setName(sample.name || "");
-    setDescription(sample.description || sample.customerNote || "");
-  }
+  // GERÇEK KONTROL: Bu numuneyi kim oluşturdu
+  const isCurrentUserManufacturer = user?.id === sample.manufacture?.id;
+  const isCurrentUserCustomer = user?.id === sample.customer?.id;
 
-  const handleSave = async () => {
+  // Sadece bu numunenin üreticisi durumu değiştirebilir
+  const canEditSampleStatus = isCurrentUserManufacturer;
+
+  const getCustomerName = () => {
+    if (!sample.customer) return "Bilinmiyor";
+    const { firstName, lastName, name } = sample.customer;
+    if (firstName && lastName) return `${firstName} ${lastName}`;
+    if (name) return name;
+    return sample.customer.email;
+  };
+
+  const getManufactureName = () => {
+    if (!sample.manufacture) return "Bilinmiyor";
+    const { firstName, lastName, name } = sample.manufacture;
+    if (firstName && lastName) return `${firstName} ${lastName}`;
+    if (name) return name;
+    return sample.manufacture.email;
+  };
+
+  const getSampleProgress = () => {
+    if (!sample) return 0;
+
+    const {
+      status,
+      estimatedProductionDate,
+      createdAt,
+    } = sample;
+
+    if (status === "DELIVERED") return 100;
+    if (status === "REJECTED" || status === "CANCELLED") return 0;
+
+    if (
+      (status === "IN_PRODUCTION" ||
+        status === "PRODUCTION_COMPLETE" ||
+        status === "QUALITY_CHECK") &&
+      estimatedProductionDate
+    ) {
+      const startDate = new Date(createdAt);
+      const endDate = new Date(estimatedProductionDate);
+      const now = new Date();
+
+      const totalDuration = endDate.getTime() - startDate.getTime();
+      const elapsedDuration = now.getTime() - startDate.getTime();
+
+      if (totalDuration <= 0) return 50;
+
+      let calculatedProgress = (elapsedDuration / totalDuration) * 100;
+      calculatedProgress = Math.max(0, Math.min(100, calculatedProgress));
+
+      if (status === "IN_PRODUCTION") {
+        calculatedProgress = Math.max(30, calculatedProgress);
+      } else if (status === "PRODUCTION_COMPLETE") {
+        calculatedProgress = Math.max(70, calculatedProgress);
+      } else if (status === "QUALITY_CHECK") {
+        calculatedProgress = Math.max(85, calculatedProgress);
+      }
+
+      return Math.floor(calculatedProgress);
+    }
+
+    const progressMap: Record<string, number> = {
+      PENDING: 5,
+      REVIEWED: 10,
+      QUOTE_SENT: 15,
+      CONFIRMED: 20,
+      IN_PRODUCTION: 50,
+      PRODUCTION_COMPLETE: 70,
+      QUALITY_CHECK: 85,
+      SHIPPED: 95,
+      DELIVERED: 100,
+      REJECTED: 0,
+      CANCELLED: 0,
+    };
+    return progressMap[status] || 0;
+  };
+
+  const handleStatusAction = async (newStatus: string) => {
+    if (!sample) return;
+
+    setIsSubmitting(true);
     try {
-      const result = await updateSample({
-        id: parseInt(sampleId),
-        name,
-        description,
+      const result = await updateSampleStatus({
+        id: sample.id,
+        status: newStatus,
       });
 
       if (result.error) {
         throw new Error(result.error.message);
       }
 
-      toast.success("✅ Tasarım güncellendi");
-      setEditMode(false);
-      window.location.reload();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Güncelleme başarısız"
-      );
+      toast.success("Numune durumu güncellendi");
+      reexecuteQuery({ requestPolicy: "network-only" });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Durum güncellenirken bir hata oluştu";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async () => {
+  const handleEditClick = () => {
+    if (!sample) return;
+    setEditFormData({
+      status: sample.status,
+      manufacturerResponse: sample.manufacturerResponse || "",
+      productionDays: sample.productionDays?.toString() || "",
+      estimatedProductionDate: sample.estimatedProductionDate
+        ? new Date(sample.estimatedProductionDate).toISOString().split("T")[0]
+        : "",
+      unitPrice: sample.unitPrice?.toString() || "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSubmitEdit = async () => {
+    if (!sample) return;
+
+    setIsSubmitting(true);
     try {
-      const result = await deleteSample({ id: parseInt(sampleId) });
+      const result = await updateSample({
+        id: sample.id,
+        status: editFormData.status || undefined,
+        manufacturerResponse: editFormData.manufacturerResponse || undefined,
+        productionDays: editFormData.productionDays
+          ? parseInt(editFormData.productionDays)
+          : undefined,
+        estimatedProductionDate: editFormData.estimatedProductionDate
+          ? new Date(editFormData.estimatedProductionDate).toISOString()
+          : undefined,
+        unitPrice: editFormData.unitPrice
+          ? parseFloat(editFormData.unitPrice)
+          : undefined,
+      });
 
       if (result.error) {
         throw new Error(result.error.message);
       }
 
-      toast.success("🗑️ Tasarım silindi");
-      router.push("/dashboard/ai-features");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Silme başarısız");
+      toast.success("Numune başarıyla güncellendi");
+      setIsEditDialogOpen(false);
+      reexecuteQuery({ requestPolicy: "network-only" });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Numune güncellenirken bir hata oluştu";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleSendMessage = async () => {
-    if (!messageContent.trim()) return;
+    if (!messageContent.trim() || !sample || isSendingMessage) return;
 
-    try {
-      setIsSendingMessage(true);
-      const result = await sendMessage({
-        content: messageContent,
-        sampleId: parseInt(sampleId),
-      });
+    setIsSendingMessage(true);
 
-      if (result.error) {
-        throw new Error(result.error.message);
-      }
-
-      setMessageContent("");
-      toast.success("✅ Mesaj gönderildi");
-      refetchMessages();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Mesaj gönderilemedi"
-      );
-    } finally {
+    const receiverId = isManufacturer ? sample.customer.id : sample.manufacture?.id;
+    if (!receiverId) {
+      toast.error("Alıcı bulunamadı");
       setIsSendingMessage(false);
+      return;
     }
+
+    const input = {
+      content: messageContent,
+      type: "sample",
+      sampleId: sample.id,
+      receiverId: receiverId,
+    };
+
+    const result = await sendMessage({ input });
+
+    if (!result.error) {
+      setMessageContent("");
+      refetchMessages({ requestPolicy: "network-only" });
+      toast.success("Mesaj gönderildi");
+    } else {
+      toast.error("Mesaj gönderilemedi: " + result.error.message);
+    }
+
+    setIsSendingMessage(false);
   };
 
   const backendUrl =
@@ -322,1011 +585,473 @@ export default function SampleDetailPage() {
     "http://localhost:4000";
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold tracking-tight">
-                {sample.sampleNumber}
-              </h1>
-              {sample.aiGenerated && (
-                <Badge variant="secondary">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  AI Generated
-                </Badge>
-              )}
-            </div>
-            <p className="text-muted-foreground">
-              {sample.aiGenerated ? "AI Tasarım Detayı" : "Sample Details"}
-            </p>
-          </div>
+      <div className="flex items-center gap-4">
+        <Button variant="outline" size="sm" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Geri
+        </Button>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold">{sample.sampleNumber}</h1>
+          <p className="text-gray-500 mt-1">Numune Detayları</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge className={statusColors[sample.status]}>
-            {statusLabels[sample.status] || sample.status}
-          </Badge>
-          {sample.aiGenerated && (
-            <>
-              {/* Show Request Sample button only for AI_DESIGN status */}
-              {sample.status === "AI_DESIGN" && (
-                <Button
-                  variant="default"
-                  onClick={() => setRequestDialogOpen(true)}
-                  className="gap-2 bg-blue-600 hover:bg-blue-700"
-                >
-                  <Send className="h-4 w-4" />
-                  Numune İste
-                </Button>
-              )}
-              {editMode ? (
-                <>
-                  <Button variant="outline" onClick={() => setEditMode(false)}>
-                    İptal
-                  </Button>
-                  <Button onClick={handleSave}>Kaydet</Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" onClick={() => setEditMode(true)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Düzenle
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => setDeleteDialogOpen(true)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Sil
-                  </Button>
-                </>
-              )}
-            </>
-          )}
+          {getSampleStatusBadge(sample.status)}
+
+          {/* Manufacturer Edit Button */}
+          {isManufacturer &&
+            sample.status !== "DELIVERED" &&
+            sample.status !== "CANCELLED" && (
+              <Button variant="outline" size="sm" onClick={handleEditClick}>
+                <Edit className="h-4 w-4 mr-2" />
+                Düzenle
+              </Button>
+            )}
         </div>
       </div>
 
-      {/* AI Generated Image Comparison - Full Width for AI Samples */}
-      {sample.aiGenerated && sample.images && sample.aiSketchUrl && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5" />
-              Eskiz ve AI Tasarım Karşılaştırması
-            </CardTitle>
-            <CardDescription>
-              Mouse ile gezinerek orijinal eskiz ve AI tasarımını karşılaştırın
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {(() => {
-              try {
-                const images = JSON.parse(sample.images);
-                const generatedImageUrl = images[0];
-
-                return (
-                  <div className="space-y-4">
-                    {/* Slider Comparison */}
-                    <div className="max-w-4xl mx-auto">
-                      <ImageComparisonSlider
-                        beforeImage={`${backendUrl}${sample.aiSketchUrl}`}
-                        afterImage={`${backendUrl}${generatedImageUrl}`}
-                        beforeLabel="Orijinal Eskiz"
-                        afterLabel="AI Tasarımı"
-                      />
-                    </div>
-
-                    {/* Comparison Stats */}
-                    <div className="grid grid-cols-3 gap-4 pt-4 border-t mt-6">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 text-sm font-medium text-gray-700">
-                          <Calendar className="h-4 w-4 text-purple-500" />
-                          <span>Oluşturma</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(sample.createdAt).toLocaleDateString(
-                            "tr-TR",
-                            {
-                              day: "numeric",
-                              month: "short",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </p>
-                      </div>
-                      <div className="text-center border-l border-r">
-                        <div className="flex items-center justify-center gap-1 text-sm font-medium text-gray-700">
-                          <Sparkles className="h-4 w-4 text-purple-500" />
-                          <span>AI Model</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Stable Diffusion XL
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 text-sm font-medium text-gray-700">
-                          <ImageIcon className="h-4 w-4 text-purple-500" />
-                          <span>Kalite</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Yüksek Çözünürlük
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Info Card */}
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-purple-200 rounded-lg p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                          <Sparkles className="h-5 w-5 text-purple-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-sm font-semibold text-gray-800 mb-1">
-                            Nasıl Karşılaştırılır?
-                          </h4>
-                          <p className="text-xs text-gray-600">
-                            Mouse'u görsel üzerinde hareket ettirerek orijinal
-                            eskiz ile AI tasarımını anlık olarak
-                            karşılaştırabilirsiniz. Sol taraf eskizi, sağ taraf
-                            AI tasarımını gösterir.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              } catch (e) {
-                return (
-                  <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                    <ImageIcon className="h-24 w-24 text-gray-400" />
-                  </div>
-                );
-              }
-            })()}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Fallback: Only AI Image if no sketch */}
-      {sample.aiGenerated && sample.images && !sample.aiSketchUrl && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5" />
-              AI ile Oluşturulan Tasarım
-            </CardTitle>
-            <CardDescription>
-              Yapay zeka tarafından oluşturulan numune görüntüsü
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {(() => {
-              try {
-                const images = JSON.parse(sample.images);
-                const imageUrl = images[0];
-                return imageUrl ? (
-                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                    <img
-                      src={`${backendUrl}${imageUrl}`}
-                      alt={sample.name || "AI Generated Sample"}
-                      className="w-full h-full object-contain hover:scale-105 transition-transform cursor-pointer"
-                    />
-                  </div>
-                ) : (
-                  <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                    <ImageIcon className="h-24 w-24 text-gray-400" />
-                  </div>
-                );
-              } catch (e) {
-                return (
-                  <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                    <ImageIcon className="h-24 w-24 text-gray-400" />
-                  </div>
-                );
-              }
-            })()}
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Main Info */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Collection Info */}
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              {sample.aiGenerated
-                ? "AI Tasarım Bilgileri"
-                : "Sample Information"}
+              <Package className="h-5 w-5" />
+              Koleksiyon Bilgileri
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* AI Sample Name (Editable) */}
-            {sample.aiGenerated && (
-              <div>
-                <Label htmlFor="sample-name">Tasarım Adı</Label>
-                {editMode ? (
-                  <Input
-                    id="sample-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Tasarım adı girin..."
-                    className="mt-1"
-                  />
-                ) : (
-                  <p className="font-medium mt-1">
-                    {sample.name || "İsimsiz Tasarım"}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* AI Sample Description (Editable) */}
-            {sample.aiGenerated && (
-              <div>
-                <Label htmlFor="description">Açıklama</Label>
-                {editMode ? (
-                  <Textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                    placeholder="Tasarım açıklaması..."
-                    className="mt-1"
-                  />
-                ) : (
-                  <p className="text-sm mt-1">
-                    {sample.description ||
-                      sample.customerNote ||
-                      "Açıklama yok"}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Type - Only for non-AI samples */}
-            {!sample.aiGenerated && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Sample Type
-                </h3>
-                <Badge variant="outline">
-                  {sampleTypeLabels[sample.sampleType] || sample.sampleType}
-                </Badge>
-              </div>
-            )}
-
-            {/* Collection */}
             {sample.collection && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Collection
-                </h3>
-                <p className="font-medium">{sample.collection.name}</p>
-                {sample.collection.description && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {sample.collection.description}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {!sample.aiGenerated && <Separator />}
-
-            {/* AI Prompt (Read-only) */}
-            {sample.aiGenerated && sample.aiPrompt && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  AI Prompt
-                </h3>
-                <p className="text-sm bg-purple-50 p-3 rounded-md border border-purple-200">
-                  {sample.aiPrompt}
-                </p>
-              </div>
-            )}
-
-            {/* AI Sketch URL */}
-            {sample.aiGenerated && sample.aiSketchUrl && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Orijinal Eskiz
-                </h3>
-                <a
-                  href={`${backendUrl}${sample.aiSketchUrl}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline flex items-center gap-1"
-                >
-                  <ImageIcon className="h-4 w-4" />
-                  Eskizi Görüntüle
-                </a>
-              </div>
-            )}
-
-            {/* Customer Note - Only for non-AI samples */}
-            {!sample.aiGenerated && sample.customerNote && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Customer Request
-                </h3>
-                <p className="text-sm bg-blue-50 p-3 rounded-md border border-blue-200">
-                  {sample.customerNote}
-                </p>
-              </div>
-            )}
-
-            {/* Manufacturer Response - Only for non-AI samples */}
-            {!sample.aiGenerated && sample.manufacturerResponse && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Manufacturer Response
-                </h3>
-                <p className="text-sm bg-purple-50 p-3 rounded-md border border-purple-200">
-                  {sample.manufacturerResponse}
-                </p>
-              </div>
-            )}
-
-            {/* Production Info - Only for non-AI samples */}
-            {!sample.aiGenerated && (
-              <>
-                <Separator />
-                <div className="grid grid-cols-2 gap-4">
-                  {sample.productionDays && (
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                        Production Time
-                      </h3>
-                      <p className="font-medium">
-                        {sample.productionDays} days
-                      </p>
-                    </div>
+              <div className="flex gap-4">
+                {sample.collection.images &&
+                  (() => {
+                    try {
+                      const images = JSON.parse(sample.collection.images);
+                      return (
+                        images.length > 0 && (
+                          <div className="w-32 h-32 rounded-lg overflow-hidden border flex-shrink-0">
+                            <Image
+                              src={images[0].replace(/\/\//g, "/")}
+                              alt={sample.collection.name}
+                              width={128}
+                              height={128}
+                              className="w-full h-full object-cover"
+                              unoptimized
+                            />
+                          </div>
+                        )
+                      );
+                    } catch (e) {
+                      return null;
+                    }
+                  })()}
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold mb-1">
+                    {sample.collection.name}
+                  </h3>
+                  {sample.collection.description && (
+                    <p className="text-sm text-gray-500 mb-2">
+                      {sample.collection.description}
+                    </p>
                   )}
-
-                  {sample.estimatedProductionDate && (
+                  <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                        Estimated Date
-                      </h3>
-                      <p className="font-medium">
-                        {format(
-                          new Date(sample.estimatedProductionDate),
-                          "dd MMM yyyy"
-                        )}
-                      </p>
+                      <span className="text-gray-500">Fiyat:</span>
+                      <span className="ml-2 font-medium">
+                        ₺{sample.collection.price?.toFixed(2) || "-"}
+                      </span>
                     </div>
-                  )}
-
-                  {sample.actualProductionDate && (
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                        Actual Completion
-                      </h3>
-                      <p className="font-medium">
-                        {format(
-                          new Date(sample.actualProductionDate),
-                          "dd MMM yyyy"
-                        )}
-                      </p>
-                    </div>
-                  )}
-
-                  {sample.shippingDate && (
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                        Shipped On
-                      </h3>
-                      <p className="font-medium">
-                        {format(new Date(sample.shippingDate), "dd MMM yyyy")}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* Delivery Info - Only for non-AI samples */}
-            {!sample.aiGenerated &&
-              (sample.deliveryAddress || sample.cargoTrackingNumber) && (
-                <>
-                  <Separator />
-                  <div className="space-y-3">
-                    {sample.deliveryAddress && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
-                          <Package className="h-4 w-4" />
-                          Delivery Address
-                        </h3>
-                        <p className="text-sm">{sample.deliveryAddress}</p>
-                      </div>
-                    )}
-
-                    {sample.cargoTrackingNumber && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
-                          <Truck className="h-4 w-4" />
-                          Cargo Tracking
-                        </h3>
-                        <p className="text-sm font-mono font-medium">
-                          {sample.cargoTrackingNumber}
-                        </p>
-                      </div>
-                    )}
                   </div>
-                </>
-              )}
+                </div>
+              </div>
+            )}
+
+            {/* AI Sample Images */}
+            {sample.aiGenerated && sample.images && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium mb-2">AI Tasarım Görseli</h4>
+                {(() => {
+                  try {
+                    const images = JSON.parse(sample.images);
+                    const imageUrl = images[0];
+                    return imageUrl ? (
+                      <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                        <Image
+                          src={`${backendUrl}${imageUrl}`}
+                          alt={sample.name || "AI Generated Sample"}
+                          width={800}
+                          height={600}
+                          className="w-full h-full object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    ) : null;
+                  } catch (e) {
+                    return null;
+                  }
+                })()}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Sample Request Information - Only for AI samples that have been requested */}
-        {sample.aiGenerated && sample.status !== "AI_DESIGN" && (
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Numune Bilgileri
-              </CardTitle>
-              <CardDescription>
-                Üreticiye gönderilen numune talebi bilgileri
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Sample Number */}
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Numune Numarası
-                </h3>
-                <p className="font-medium text-lg">{sample.sampleNumber}</p>
-              </div>
-
-              {/* Sample Type */}
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Numune Tipi
-                </h3>
-                <Badge variant="outline" className="font-medium">
-                  {sampleTypeLabels[sample.sampleType] || sample.sampleType}
-                </Badge>
-              </div>
-
-              {/* Status */}
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  Durum
-                </h3>
-                <Badge className={statusColors[sample.status]}>
-                  {statusLabels[sample.status] || sample.status}
-                </Badge>
-              </div>
-
-              {/* Customer Note */}
-              {sample.customerNote && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                    Müşteri Talebi / Notları
-                  </h3>
-                  <div className="text-sm bg-blue-50 p-3 rounded-md border border-blue-200 whitespace-pre-wrap">
-                    {sample.customerNote}
-                  </div>
-                </div>
-              )}
-
-              {/* Manufacturer Response */}
-              {sample.manufacturerResponse && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                    Üretici Yanıtı
-                  </h3>
-                  <div className="text-sm bg-purple-50 p-3 rounded-md border border-purple-200 whitespace-pre-wrap">
-                    {sample.manufacturerResponse}
-                  </div>
-                </div>
-              )}
-
-              <Separator />
-
-              {/* Production Timeline */}
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">
-                  Üretim Zaman Çizelgesi
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {sample.productionDays && (
-                    <div className="bg-gray-50 p-3 rounded-md">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        Üretim Süresi
-                      </p>
-                      <p className="font-semibold">
-                        {sample.productionDays} gün
-                      </p>
-                    </div>
-                  )}
-
-                  {sample.estimatedProductionDate && (
-                    <div className="bg-blue-50 p-3 rounded-md">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        Tahmini Tamamlanma
-                      </p>
-                      <p className="font-semibold">
-                        {format(
-                          new Date(sample.estimatedProductionDate),
-                          "dd MMM yyyy"
-                        )}
-                      </p>
-                    </div>
-                  )}
-
-                  {sample.actualProductionDate && (
-                    <div className="bg-green-50 p-3 rounded-md">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        Gerçek Tamamlanma
-                      </p>
-                      <p className="font-semibold">
-                        {format(
-                          new Date(sample.actualProductionDate),
-                          "dd MMM yyyy"
-                        )}
-                      </p>
-                    </div>
-                  )}
-
-                  {sample.shippingDate && (
-                    <div className="bg-purple-50 p-3 rounded-md">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        Kargo Tarihi
-                      </p>
-                      <p className="font-semibold">
-                        {format(new Date(sample.shippingDate), "dd MMM yyyy")}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Delivery Information */}
-              {(sample.deliveryAddress || sample.cargoTrackingNumber) && (
-                <>
-                  <Separator />
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      Teslimat Bilgileri
-                    </h3>
-
-                    {sample.deliveryAddress && (
-                      <div className="bg-gray-50 p-3 rounded-md">
-                        <div className="flex items-start gap-2">
-                          <Package className="h-4 w-4 text-muted-foreground mt-0.5" />
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Teslimat Adresi
-                            </p>
-                            <p className="text-sm">{sample.deliveryAddress}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {sample.cargoTrackingNumber && (
-                      <div className="bg-amber-50 p-3 rounded-md border border-amber-200">
-                        <div className="flex items-start gap-2">
-                          <Truck className="h-4 w-4 text-amber-600 mt-0.5" />
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Kargo Takip Numarası
-                            </p>
-                            <p className="text-sm font-mono font-semibold text-amber-900">
-                              {sample.cargoTrackingNumber}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Collection Info */}
-              {sample.collection && (
-                <>
-                  <Separator />
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                      Koleksiyon
-                    </h3>
-                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-3 rounded-md border border-purple-200">
-                      <p className="font-semibold text-purple-900">
-                        {sample.collection.name}
-                      </p>
-                      {sample.collection.description && (
-                        <p className="text-sm text-purple-700 mt-1">
-                          {sample.collection.description}
-                        </p>
-                      )}
-                      {sample.collection.price && (
-                        <p className="text-xs text-purple-600 mt-2 font-medium">
-                          Fiyat: {sample.collection.price} TL
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Customer Info */}
-          {sample.customer && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <User className="h-4 w-4" />
-                  {sample.aiGenerated ? "Müşteri" : "Customer"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="font-medium">
-                  {sample.customer.firstName} {sample.customer.lastName}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {sample.customer.email}
-                </p>
-                {sample.customer.phone && (
-                  <p className="text-sm text-muted-foreground">
-                    {sample.customer.phone}
-                  </p>
-                )}
-                {sample.customer.company && (
-                  <div className="flex items-center gap-1 mt-2 pt-2 border-t">
-                    <Building className="h-3 w-3 text-muted-foreground" />
-                    <p className="text-sm font-medium">
-                      {sample.customer.company.name}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Manufacturer Info - Show for all samples, or AI samples that have been requested */}
-          {sample.manufacture &&
-            (!sample.aiGenerated || sample.status !== "AI_DESIGN") && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <Building className="h-4 w-4" />
-                    {sample.aiGenerated ? "Üretici" : "Manufacturer"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <p className="font-medium">
-                    {sample.manufacture.firstName} {sample.manufacture.lastName}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {sample.manufacture.email}
-                  </p>
-                  {sample.manufacture.phone && (
-                    <p className="text-sm text-muted-foreground">
-                      {sample.manufacture.phone}
-                    </p>
-                  )}
-                  {sample.manufacture.company && (
-                    <div className="flex items-center gap-1 mt-2 pt-2 border-t">
-                      <Building className="h-3 w-3 text-muted-foreground" />
-                      <p className="text-sm font-medium">
-                        {sample.manufacture.company.name}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-          {/* Dates */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Calendar className="h-4 w-4" />
-                Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Created</p>
-                <p className="text-sm font-medium">
-                  {format(new Date(sample.createdAt), "dd MMM yyyy, HH:mm")}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Last Updated</p>
-                <p className="text-sm font-medium">
-                  {format(new Date(sample.updatedAt), "dd MMM yyyy, HH:mm")}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Production History Timeline */}
-      {sample.productionHistory && sample.productionHistory.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Production History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative space-y-4">
-              {sample.productionHistory.map((history: any, index: number) => (
-                <div key={history.id} className="flex gap-4">
-                  {/* Timeline dot */}
-                  <div className="relative flex flex-col items-center">
-                    <div
-                      className={`w-3 h-3 rounded-full ${
-                        index === 0 ? "bg-primary" : "bg-muted"
-                      }`}
-                    />
-                    {index < sample.productionHistory.length - 1 && (
-                      <div className="w-0.5 h-full bg-muted absolute top-3" />
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 pb-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <Badge className={statusColors[history.status]}>
-                        {statusLabels[history.status] || history.status}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground">
-                        {format(
-                          new Date(history.createdAt),
-                          "dd MMM yyyy, HH:mm"
-                        )}
-                      </p>
-                    </div>
-                    {history.note && (
-                      <p className="text-sm text-muted-foreground mt-2">
-                        {history.note}
-                      </p>
-                    )}
-                    {history.estimatedDays && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Estimated: {history.estimatedDays} days
-                      </p>
-                    )}
-                    {history.updatedBy && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Updated by: {history.updatedBy.firstName}{" "}
-                        {history.updatedBy.lastName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Custom Design Images (if CUSTOM type) */}
-      {sample.sampleType === "CUSTOM" && sample.customDesignImages && (
+        {/* Sample Summary */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5" />
-              Custom Design Images
+              <DollarSign className="h-5 w-5" />
+              Numune Özeti
             </CardTitle>
           </CardHeader>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {JSON.parse(sample.customDesignImages).map(
-              (imgUrl: string, idx: number) => (
-                <div
-                  key={idx}
-                  className="aspect-square rounded-lg overflow-hidden border bg-gray-50 relative"
-                >
-                  <Image
-                    src={imgUrl}
-                    alt={`Design ${idx + 1}`}
-                    fill
-                    className="object-cover hover:scale-105 transition-transform cursor-pointer"
-                    unoptimized
-                  />
-                </div>
-              )
+          <CardContent className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Tip:</span>
+              <span className="font-medium">{sample.sampleType}</span>
+            </div>
+            {sample.unitPrice && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Birim Fiyat:</span>
+                <span className="font-medium">₺{sample.unitPrice.toFixed(2)}</span>
+              </div>
             )}
-          </div>
+            {sample.productionDays && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Üretim Süresi:</span>
+                <span className="font-medium">{sample.productionDays} gün</span>
+              </div>
+            )}
+            {sample.aiGenerated && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">AI Üretim:</span>
+                <span className="font-medium text-purple-600">✨ Evet</span>
+              </div>
+            )}
+          </CardContent>
         </Card>
-      )}
+      </div>
 
-      {/* Revision Requests (if REVISION type) */}
-      {sample.sampleType === "REVISION" && sample.revisionRequests && (
-        <Card>
+      {/* Manufacturer Actions for REVIEWED Status */}
+      {isCurrentUserManufacturer && sample.status === "REVIEWED" && (
+        <Card className="border-blue-200 bg-blue-50">
           <CardHeader>
-            <CardTitle>Revision Requests</CardTitle>
+            <CardTitle className="text-blue-900">
+              📋 Numune İnceleme - Aksiyon Gerekli
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {JSON.parse(sample.revisionRequests).map(
-                (revision: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="p-3 bg-amber-50 border border-amber-200 rounded-md"
-                  >
-                    <p className="text-sm font-medium">{revision.field}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      <span className="line-through">{revision.oldValue}</span>{" "}
-                      → <span className="font-medium">{revision.newValue}</span>
-                    </p>
-                    {revision.note && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {revision.note}
-                      </p>
-                    )}
-                  </div>
-                )
-              )}
+          <CardContent className="space-y-4">
+            <p className="text-sm text-blue-800">
+              Numuneyi incelemeyi tamamladınız. Şimdi müşteriye teklif gönderebilir
+              veya revize teklif sunabilirsiniz.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Button
+                onClick={async () => {
+                  if (!confirm("Teklifi müşteriye göndermek istediğinizden emin misiniz?")) {
+                    return;
+                  }
+                  setIsSubmitting(true);
+                  try {
+                    const result = await updateSampleStatus({
+                      id: sample.id,
+                      status: "QUOTE_SENT",
+                    });
+                    if (result.error) {
+                      throw new Error(result.error.message);
+                    }
+                    toast.success("✅ Teklif müşteriye gönderildi!");
+                    reexecuteQuery({ requestPolicy: "network-only" });
+                  } catch (error: any) {
+                    toast.error(error.message || "Hata oluştu");
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "💰 Teklif Gönder (Onaya Gönder)"
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setActionType("SEND_REVISION");
+                  setIsActionDialogOpen(true);
+                }}
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                📝 Revize Teklif Sun
+              </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Image Preview Modal */}
-      <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
-        <DialogContent className="max-w-4xl w-full">
-          <DialogHeader>
-            <DialogTitle>{selectedImage?.title}</DialogTitle>
-            <DialogDescription>Tam boyutlu görüntü görünümü</DialogDescription>
-          </DialogHeader>
-          <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
-            {selectedImage && (
-              <Image
-                src={selectedImage.url}
-                alt={selectedImage.title}
-                fill
-                className="object-contain"
-                unoptimized
-              />
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setImageModalOpen(false)}>
-              Kapat
-            </Button>
-            {selectedImage && (
-              <Button asChild>
-                <a
-                  href={selectedImage.url}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ImageIcon className="h-4 w-4 mr-2" />
-                  İndir
-                </a>
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>AI Tasarımını Sil</DialogTitle>
-            <DialogDescription>
-              &quot;{sample.name || sample.sampleNumber}&quot; adlı AI
-              tasarımını silmek istediğinizden emin misiniz? Bu işlem geri
-              alınamaz ve oluşturulan görsel de silinecektir.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 my-4">
-            <p className="text-sm text-red-800">
-              ⚠️ Dikkat: Bu tasarım kalıcı olarak silinecektir.
+      {/* Customer Actions for QUOTE_SENT Status */}
+      {isCurrentUserCustomer && sample.status === "QUOTE_SENT" && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="text-amber-900">
+              💰 Üretici Teklifi Geldi - Aksiyon Gerekli
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white p-4 rounded-lg border border-amber-200">
+              <h4 className="font-semibold mb-2">Üretici Teklifi:</h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-600">Birim Fiyat:</span>
+                  <p className="font-bold text-lg">₺{sample.unitPrice?.toFixed(2) || "-"}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Üretim Süresi:</span>
+                  <p className="font-bold text-lg">{sample.productionDays || "-"} gün</p>
+                </div>
+              </div>
+              {sample.manufacturerResponse && (
+                <div className="mt-3">
+                  <span className="text-gray-600 text-sm">Not:</span>
+                  <p className="text-sm mt-1">{sample.manufacturerResponse}</p>
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-amber-800">
+              Üreticinin teklifini inceleyebilir, aynen kabul edebilir veya revize ederek gönderebilirsiniz.
             </p>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              İptal
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Evet, Sil
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Request Sample Dialog */}
-      {sample.aiGenerated && (
-        <RequestSampleDialog
-          open={requestDialogOpen}
-          onOpenChange={setRequestDialogOpen}
-          aiSample={{
-            id: sample.id,
-            name: sample.name,
-            sampleNumber: sample.sampleNumber,
-            description: sample.description,
-            images: sample.images,
-            aiSketchUrl: sample.aiSketchUrl,
-            aiPrompt: sample.aiPrompt,
-          }}
-        />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Button
+                onClick={() => {
+                  setCustomerQuoteData({
+                    quotedPrice: sample.unitPrice?.toString() || "",
+                    quoteDays: sample.productionDays?.toString() || "",
+                    quoteNote: "",
+                    quoteType: "STANDARD",
+                  });
+                  setIsCustomerQuoteDialogOpen(true);
+                }}
+                disabled={isSubmitting}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                ✅ Teklifi İncele ve Gönder
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (!confirm("Teklifi reddetmek istediğinizden emin misiniz?")) return;
+                  setIsSubmitting(true);
+                  try {
+                    const result = await updateSampleStatus({
+                      id: sample.id,
+                      status: "REJECTED_BY_CUSTOMER",
+                      note: "Müşteri teklifi uygun bulmadı",
+                    });
+                    if (result.error) {
+                      throw new Error(result.error.message);
+                    }
+                    toast.success("Teklif reddedildi");
+                    reexecuteQuery({ requestPolicy: "network-only" });
+                  } catch (error: any) {
+                    toast.error(error.message || "Hata oluştu");
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                ❌ Teklifi Reddet
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Production Timeline - for non-AI samples with production tracking */}
-      {!sample.aiGenerated && sample.productionDays && (
+      {/* Manufacturer Actions for CUSTOMER_QUOTE_SENT Status */}
+      {isCurrentUserManufacturer && sample.status === "CUSTOMER_QUOTE_SENT" && (
+        <Card className="border-violet-200 bg-violet-50">
+          <CardHeader>
+            <CardTitle className="text-violet-900">
+              💼 Müşteri Teklifi Geldi - Aksiyon Gerekli
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white p-4 rounded-lg border border-violet-200">
+              <div className="flex items-center gap-2 mb-3">
+                <h4 className="font-semibold">Müşteri Teklifi:</h4>
+                <Badge className="bg-violet-100 text-violet-800">
+                  {sample.customerQuoteType === "STANDARD" ? "Standart Teklif" : "Revize Teklif"}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-600">Teklif Edilen Fiyat:</span>
+                  <p className="font-bold text-lg">₺{sample.customerQuotedPrice?.toFixed(2) || "-"}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">İstenen Süre:</span>
+                  <p className="font-bold text-lg">{sample.customerQuoteDays || "-"} gün</p>
+                </div>
+              </div>
+              {sample.customerQuoteNote && (
+                <div className="mt-3">
+                  <span className="text-gray-600 text-sm">Müşteri Notu:</span>
+                  <p className="text-sm mt-1 italic">{sample.customerQuoteNote}</p>
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-violet-800">
+              {sample.customerQuoteType === "REVISION"
+                ? "Müşteri revize teklif gönderdi. Kabul edebilir, yeni revize teklif sunabilir veya reddedebilirsiniz."
+                : "Müşteri standart teklifinizi kabul etti. Onaylayarak üretimi başlatabilir veya reddedebilirsiniz."}
+            </p>
+            <div className={`grid grid-cols-1 ${sample.customerQuoteType === "REVISION" ? "md:grid-cols-3" : "md:grid-cols-2"} gap-3`}>
+              <Button
+                onClick={() => setIsManufacturerReviewDialogOpen(true)}
+                disabled={isSubmitting}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                ✅ Kabul Et - Üretimi Başlat
+              </Button>
+
+              {sample.customerQuoteType && sample.customerQuoteType === "REVISION" && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setActionType("SEND_REVISION");
+                    setIsActionDialogOpen(true);
+                  }}
+                  disabled={isSubmitting}
+                  className="w-full"
+                >
+                  📝 Revize Teklif Sun
+                </Button>
+              )}
+
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  const reason = prompt("Ret sebebini belirtin:");
+                  if (!reason) return;
+
+                  setIsSubmitting(true);
+                  try {
+                    const result = await rejectCustomerQuote({
+                      sampleId: sample.id,
+                      rejectionReason: reason,
+                    });
+                    if (result.error) {
+                      throw new Error(result.error.message);
+                    }
+                    toast.success("❌ Müşteri teklifi reddedildi");
+                    reexecuteQuery({ requestPolicy: "network-only" });
+                  } catch (error: any) {
+                    toast.error(error.message || "Hata oluştu");
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                ❌ Reddet - Numune İptal
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Production Timeline */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Numune Durumu
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6 pb-8">
+          <ProductionTimeline
+            currentStatus={sample.status}
+            onStatusChange={
+              canEditSampleStatus
+                ? (newStatus) => handleStatusAction(newStatus)
+                : undefined
+            }
+            isManufacturer={canEditSampleStatus}
+            progress={getSampleProgress()}
+          />
+
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Customer Info */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Üretim Takvimi
+              <User className="h-5 w-5" />
+              Müşteri Bilgileri
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <div>
-              <p className="text-sm text-gray-500">Üretim Süresi</p>
-              <p className="font-medium">{sample.productionDays} gün</p>
+              <p className="text-sm text-gray-500">İsim</p>
+              <p className="font-medium">{getCustomerName()}</p>
             </div>
-            {sample.estimatedProductionDate && (
+            {sample.customer?.email && (
               <div>
-                <p className="text-sm text-gray-500">Tahmini Bitiş</p>
-                <p className="font-medium">
-                  {new Date(sample.estimatedProductionDate).toLocaleDateString(
-                    "tr-TR"
-                  )}
-                </p>
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="font-medium">{sample.customer.email}</p>
               </div>
             )}
-            {sample.actualProductionDate && (
+            {sample.customer?.phone && (
               <div>
-                <p className="text-sm text-gray-500">Fiili Bitiş</p>
-                <p className="font-medium">
-                  {new Date(sample.actualProductionDate).toLocaleDateString(
-                    "tr-TR"
-                  )}
-                </p>
+                <p className="text-sm text-gray-500">Telefon</p>
+                <p className="font-medium">{sample.customer.phone}</p>
+              </div>
+            )}
+            {sample.company?.name && (
+              <div>
+                <p className="text-sm text-gray-500">Şirket</p>
+                <p className="font-medium">{sample.company.name}</p>
               </div>
             )}
           </CardContent>
         </Card>
-      )}
 
-      {/* Manufacturer Info */}
-      {sample.manufacture && (
+        {/* Manufacturer Info */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
+              <Package className="h-5 w-5" />
               Üretici Bilgileri
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <div>
               <p className="text-sm text-gray-500">İsim</p>
-              <p className="font-medium">
-                {sample.manufacture.firstName} {sample.manufacture.lastName}
-              </p>
+              <p className="font-medium">{getManufactureName()}</p>
             </div>
-            {sample.manufacture.email && (
+            {sample.manufacture?.email && (
               <div>
                 <p className="text-sm text-gray-500">Email</p>
                 <p className="font-medium">{sample.manufacture.email}</p>
               </div>
             )}
+            {sample.manufacture?.phone && (
+              <div>
+                <p className="text-sm text-gray-500">Telefon</p>
+                <p className="font-medium">{sample.manufacture.phone}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
-      )}
+      </div>
 
       {/* Messages Section */}
       <Card>
@@ -1338,82 +1063,40 @@ export default function SampleDetailPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Messages List */}
             <div className="border rounded-lg">
               <ScrollArea className="h-[400px] p-4">
                 {messagesFetching ? (
-                  <div className="text-center text-sm text-gray-500">
-                    Yükleniyor...
-                  </div>
+                  <div className="text-center text-sm text-gray-500">Yükleniyor...</div>
                 ) : messages.length === 0 ? (
                   <div className="text-center text-sm text-gray-500 py-8">
                     Henüz mesaj yok. İlk mesajı siz gönderin!
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {messages
-                      .sort(
-                        (a: { createdAt: string }, b: { createdAt: string }) =>
-                          new Date(a.createdAt).getTime() -
-                          new Date(b.createdAt).getTime()
-                      )
-                      .map(
-                        (msg: {
-                          id: number;
-                          createdAt: string;
-                          senderId?: number;
-                          sender?: { firstName?: string; lastName?: string };
-                          content?: string;
-                        }) => {
-                          const isMe = msg.senderId === user?.id;
-                          return (
-                            <div
-                              key={msg.id}
-                              className={`flex ${
-                                isMe ? "justify-end" : "justify-start"
-                              }`}
-                            >
-                              <div
-                                className={`max-w-[70%] rounded-lg p-3 ${
-                                  isMe
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted"
-                                }`}
-                              >
-                                {!isMe && (
-                                  <p className="mb-1 text-xs font-medium">
-                                    {msg.sender?.firstName}{" "}
-                                    {msg.sender?.lastName}
-                                  </p>
-                                )}
-                                <p className="text-sm">{msg.content}</p>
-                                <p
-                                  className={`mt-1 text-xs ${
-                                    isMe
-                                      ? "text-primary-foreground/70"
-                                      : "text-muted-foreground"
-                                  }`}
-                                >
-                                  {formatDistanceToNow(
-                                    new Date(msg.createdAt),
-                                    {
-                                      addSuffix: true,
-                                      locale: tr,
-                                    }
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        }
-                      )}
+                    {messages.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((msg: any) => {
+                      const isMe = msg.senderId === user?.id;
+                      return (
+                        <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                          <div className={`max-w-[70%] rounded-lg p-3 ${isMe ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                            {!isMe && (
+                              <p className="mb-1 text-xs font-medium">
+                                {msg.sender.firstName} {msg.sender.lastName}
+                              </p>
+                            )}
+                            <p className="text-sm">{msg.content}</p>
+                            <p className={`mt-1 text-xs ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                              {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true, locale: tr })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
                     <div ref={messagesEndRef} />
                   </div>
                 )}
               </ScrollArea>
             </div>
 
-            {/* Message Input */}
             <div className="flex gap-2">
               <Textarea
                 placeholder="Mesajınızı yazın..."
@@ -1440,6 +1123,488 @@ export default function SampleDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Timeline & Notes */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {sample.productionDays && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Üretim Takvimi
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div>
+                <p className="text-sm text-gray-500">Üretim Süresi</p>
+                <p className="font-medium">{sample.productionDays} gün</p>
+              </div>
+              {sample.estimatedProductionDate && (
+                <div>
+                  <p className="text-sm text-gray-500">Tahmini Bitiş</p>
+                  <p className="font-medium">
+                    {new Date(sample.estimatedProductionDate).toLocaleDateString("tr-TR")}
+                  </p>
+                </div>
+              )}
+              {sample.actualProductionDate && (
+                <div>
+                  <p className="text-sm text-gray-500">Fiili Bitiş</p>
+                  <p className="font-medium">
+                    {new Date(sample.actualProductionDate).toLocaleDateString("tr-TR")}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Notlar</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {sample.customerNote && (
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Müşteri Notu:
+                </p>
+                <p className="text-sm p-3 bg-blue-50 rounded-lg">
+                  {sample.customerNote}
+                </p>
+              </div>
+            )}
+            {sample.manufacturerResponse && (
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Üretici Yanıtı:
+                </p>
+                <p className="text-sm p-3 bg-green-50 rounded-lg">
+                  {sample.manufacturerResponse}
+                </p>
+              </div>
+            )}
+            {sample.aiPrompt && (
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  AI Prompt:
+                </p>
+                <p className="text-sm p-3 bg-purple-50 rounded-lg">
+                  {sample.aiPrompt}
+                </p>
+              </div>
+            )}
+            {!sample.customerNote && !sample.manufacturerResponse && !sample.aiPrompt && (
+              <p className="text-sm text-gray-500 italic">Henüz not yok</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Shipping Info */}
+      {(sample.deliveryAddress || sample.cargoTrackingNumber || sample.shippingDate) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Teslimat Bilgileri</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {sample.deliveryAddress && (
+              <div>
+                <p className="text-sm text-gray-500">Teslimat Adresi</p>
+                <p className="font-medium">{sample.deliveryAddress}</p>
+              </div>
+            )}
+            {sample.cargoTrackingNumber && (
+              <div>
+                <p className="text-sm text-gray-500">Kargo Takip No</p>
+                <p className="font-medium font-mono">{sample.cargoTrackingNumber}</p>
+              </div>
+            )}
+            {sample.shippingDate && (
+              <div>
+                <p className="text-sm text-gray-500">Kargo Tarihi</p>
+                <p className="font-medium">
+                  {new Date(sample.shippingDate).toLocaleDateString("tr-TR")}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Edit Sample Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Numune Düzenle</DialogTitle>
+            <DialogDescription>
+              Numune bilgilerini ve üretici yanıtını güncelleyin
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Numune Durumu</Label>
+              <Select
+                value={editFormData.status}
+                onValueChange={(value) => {
+                  // Teklif onay kontrolü - QUOTE_SENT veya CUSTOMER_QUOTE_SENT durumunda iken
+                  // üretim aşamalarına geçişi engelle
+                  const needsCustomerApproval = ["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status);
+                  const productionStages = ["IN_PRODUCTION", "PRODUCTION_COMPLETE", "QUALITY_CHECK", "SHIPPED", "DELIVERED"];
+
+                  if (needsCustomerApproval && productionStages.includes(value)) {
+                    toast.error("❌ Müşteri teklifi onaylamadan üretim aşamalarına geçilemez!");
+                    return;
+                  }
+
+                  setEditFormData({ ...editFormData, status: value });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Beklemede</SelectItem>
+                  <SelectItem value="REVIEWED">İnceleniyor</SelectItem>
+                  <SelectItem value="QUOTE_SENT">Teklif Gönderildi</SelectItem>
+                  <SelectItem value="CUSTOMER_QUOTE_SENT">Müşteri Teklifi</SelectItem>
+                  <SelectItem value="CONFIRMED">Onaylandı</SelectItem>
+                  <SelectItem value="IN_PRODUCTION" disabled={["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status)}>
+                    Üretimde {["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status) && "🔒"}
+                  </SelectItem>
+                  <SelectItem value="PRODUCTION_COMPLETE" disabled={["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status)}>
+                    Üretim Tamamlandı {["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status) && "🔒"}
+                  </SelectItem>
+                  <SelectItem value="QUALITY_CHECK" disabled={["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status)}>
+                    Kalite Kontrolde {["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status) && "🔒"}
+                  </SelectItem>
+                  <SelectItem value="SHIPPED" disabled={["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status)}>
+                    Kargoda {["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status) && "🔒"}
+                  </SelectItem>
+                  <SelectItem value="DELIVERED" disabled={["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status)}>
+                    Teslim Edildi {["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status) && "🔒"}
+                  </SelectItem>
+                  <SelectItem value="REJECTED">Reddedildi</SelectItem>
+                  <SelectItem value="CANCELLED">İptal Edildi</SelectItem>
+                </SelectContent>
+              </Select>
+              {["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(sample.status) && (
+                <p className="text-xs text-amber-600 mt-1">
+                  ⚠️ Müşteri onayı beklendiği için üretim aşamalarına geçilemez
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Üretici Yanıtı</Label>
+              <Textarea
+                value={editFormData.manufacturerResponse}
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    manufacturerResponse: e.target.value,
+                  })
+                }
+                placeholder="Müşteriye yanıtınız, notlarınız..."
+                rows={4}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>Birim Fiyat (₺)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={editFormData.unitPrice}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      unitPrice: e.target.value,
+                    })
+                  }
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Üretim Süresi (Gün)</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={editFormData.productionDays}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      productionDays: e.target.value,
+                    })
+                  }
+                  placeholder="Örn: 30"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tahmini Bitiş Tarihi</Label>
+                <Input
+                  type="date"
+                  value={editFormData.estimatedProductionDate}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      estimatedProductionDate: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              İptal
+            </Button>
+            <Button onClick={handleSubmitEdit} disabled={isSubmitting}>
+              {isSubmitting && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Customer Quote Dialog */}
+      <Dialog open={isCustomerQuoteDialogOpen} onOpenChange={setIsCustomerQuoteDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Teklifinizi Gönderin</DialogTitle>
+            <DialogDescription>
+              Üretici teklifini aynen kabul edebilir veya revize teklifinizi gönderebilirsiniz.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2 text-sm">Üretici Teklifi:</h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-gray-600">Birim Fiyat:</span>
+                  <span className="ml-2 font-medium">₺{sample.unitPrice?.toFixed(2) || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Üretim Süresi:</span>
+                  <span className="ml-2 font-medium">{sample.productionDays || "-"} gün</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Teklif Ettiğiniz Fiyat (₺)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={customerQuoteData.quotedPrice}
+                  onChange={(e) => {
+                    const newPrice = e.target.value;
+                    const originalPrice = sample.unitPrice || 0;
+                    const quoteType = parseFloat(newPrice) !== originalPrice ? "REVISION" : "STANDARD";
+                    setCustomerQuoteData({
+                      ...customerQuoteData,
+                      quotedPrice: newPrice,
+                      quoteType,
+                    });
+                  }}
+                  placeholder="0.00"
+                />
+                {customerQuoteData.quotedPrice && parseFloat(customerQuoteData.quotedPrice) !== (sample.unitPrice || 0) && (
+                  <p className="text-xs text-amber-600">⚠️ Fiyat değiştirildi - Revize teklif olarak gönderilecek</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>İstediğiniz Süre (Gün)</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={customerQuoteData.quoteDays}
+                  onChange={(e) => {
+                    const newDays = e.target.value;
+                    const originalDays = sample.productionDays || 0;
+                    const quoteType = parseInt(newDays) !== originalDays ? "REVISION" : "STANDARD";
+                    setCustomerQuoteData({
+                      ...customerQuoteData,
+                      quoteDays: newDays,
+                      quoteType,
+                    });
+                  }}
+                  placeholder="30"
+                />
+                {customerQuoteData.quoteDays && parseInt(customerQuoteData.quoteDays) !== (sample.productionDays || 0) && (
+                  <p className="text-xs text-amber-600">⚠️ Süre değiştirildi - Revize teklif olarak gönderilecek</p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Notunuz (Opsiyonel)</Label>
+              <Textarea
+                value={customerQuoteData.quoteNote}
+                onChange={(e) =>
+                  setCustomerQuoteData({
+                    ...customerQuoteData,
+                    quoteNote: e.target.value,
+                  })
+                }
+                placeholder="Teklifiniz hakkında notlarınız..."
+                rows={3}
+              />
+            </div>
+
+            <div className="bg-slate-100 p-3 rounded-lg">
+              <p className="text-sm font-medium">
+                Teklif Tipi:{" "}
+                <Badge className={customerQuoteData.quoteType === "STANDARD" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}>
+                  {customerQuoteData.quoteType === "STANDARD" ? "✅ Standart (Aynen Kabul)" : "📝 Revize Teklif"}
+                </Badge>
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCustomerQuoteDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!customerQuoteData.quotedPrice || !customerQuoteData.quoteDays) {
+                  toast.error("Lütfen fiyat ve süre bilgilerini girin");
+                  return;
+                }
+
+                setIsSubmitting(true);
+                try {
+                  const result = await submitCustomerQuote({
+                    sampleId: sample.id,
+                    quotedPrice: parseFloat(customerQuoteData.quotedPrice),
+                    quoteDays: parseInt(customerQuoteData.quoteDays),
+                    note: customerQuoteData.quoteNote || undefined,
+                    quoteType: customerQuoteData.quoteType,
+                  });
+
+                  if (result.error) {
+                    throw new Error(result.error.message);
+                  }
+
+                  toast.success(
+                    customerQuoteData.quoteType === "STANDARD"
+                      ? "✅ Teklif aynen kabul edildi ve üreticiye gönderildi!"
+                      : "📝 Revize teklifiniz üreticiye gönderildi!"
+                  );
+                  setIsCustomerQuoteDialogOpen(false);
+                  reexecuteQuery({ requestPolicy: "network-only" });
+                } catch (error: any) {
+                  toast.error(error.message || "Teklif gönderilemedi");
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Teklifi Gönder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manufacturer Review Dialog */}
+      <Dialog open={isManufacturerReviewDialogOpen} onOpenChange={setIsManufacturerReviewDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Müşteri Teklifini Onayla</DialogTitle>
+            <DialogDescription>
+              Müşteri teklifini kabul ederek üretimi başlatabilirsiniz.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2 text-sm">Müşteri Teklifi:</h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-gray-600">Fiyat:</span>
+                  <span className="ml-2 font-medium">₺{sample.customerQuotedPrice?.toFixed(2) || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Süre:</span>
+                  <span className="ml-2 font-medium">{sample.customerQuoteDays || "-"} gün</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Onay Notu (Opsiyonel)</Label>
+              <Textarea
+                value={manufacturerReviewNote}
+                onChange={(e) => setManufacturerReviewNote(e.target.value)}
+                placeholder="Onay notunuz..."
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsManufacturerReviewDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={async () => {
+                setIsSubmitting(true);
+                try {
+                  const result = await approveCustomerQuote({
+                    sampleId: sample.id,
+                    approvalNote: manufacturerReviewNote || "Teklif kabul edildi, üretim başlatıldı",
+                  });
+
+                  if (result.error) {
+                    throw new Error(result.error.message);
+                  }
+
+                  toast.success("✅ Teklif onaylandı! Üretim başlatılabilir.");
+                  setIsManufacturerReviewDialogOpen(false);
+                  setManufacturerReviewNote("");
+                  reexecuteQuery({ requestPolicy: "network-only" });
+                } catch (error: any) {
+                  toast.error(error.message || "Onay işlemi başarısız");
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+              disabled={isSubmitting}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              ✅ Onayla ve Üretimi Başlat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

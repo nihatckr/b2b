@@ -150,9 +150,22 @@ export const taskMutations = (t: any) => {
       },
       context: Context
     ) => {
-      requireAuth(context);
+      const userId = requireAuth(context);
 
-      return context.prisma.task.update({
+      const task = await context.prisma.task.findUnique({
+        where: { id: args.id },
+        include: {
+          user: true,
+          assignedTo: true,
+          order: true,
+        },
+      });
+
+      if (!task) {
+        throw new Error("Task not found");
+      }
+
+      const updatedTask = await context.prisma.task.update({
         where: { id: args.id },
         data: {
           status: "COMPLETED" as any,
@@ -167,6 +180,28 @@ export const taskMutations = (t: any) => {
           productionTracking: true,
         },
       });
+
+      // Send notification to the other party
+      if (task.order) {
+        const isManufacturer = task.assignedToId === userId;
+        const notifyUserId = isManufacturer
+          ? task.order.customerId
+          : task.order.manufactureId;
+
+        if (notifyUserId) {
+          const { createNotification } = await import("../utils/notificationHelper");
+          await createNotification(context.prisma, {
+            type: "SYSTEM",
+            title: "✅ Task Completed",
+            message: `Task "${task.title}" has been completed for order #${task.order.orderNumber}.`,
+            userId: notifyUserId,
+            link: `/dashboard/orders/${task.order.id}`,
+            orderId: task.order.id,
+          });
+        }
+      }
+
+      return updatedTask;
     },
   });
 

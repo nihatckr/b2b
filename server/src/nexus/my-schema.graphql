@@ -498,6 +498,11 @@ type GrowthMetrics {
   totalTransactionVolume: Int!
 }
 
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+
 type LatestCollection {
   createdAt: String!
   gender: String!
@@ -548,6 +553,7 @@ type Mutation {
   addProductionStageUpdate(delayReason: String, extraDays: Int, hasDelay: Boolean!, notes: String, photos: String, productionId: Int!, stage: ProductionStage!): ProductionStageUpdate
   analyzeProductWithOllama(imageUrl: String!, userNotes: String): ProductAnalysisResult
   answerQuestion(input: AnswerQuestionInput!): Question
+  approveCustomerQuote(note: String, orderId: Int!): Order
   approveReview(input: ApproveReviewInput!): Review
   approveSample(approve: Boolean!, estimatedDays: Int, id: Int!, manufacturerNote: String): Sample
   askQuestion(input: CreateQuestionInput!): Question
@@ -601,11 +607,13 @@ type Mutation {
   markAllNotificationsAsRead: Int!
   markMessageAsRead(id: Int!): Message
   markNotificationAsRead(id: Int!): Notification
+  rejectCustomerQuote(orderId: Int!, rejectionReason: String!): Order
   resetUserPassword(newPassword: String!, userId: Int!): User
   resumeSample(id: Int!, note: String): Sample
   revertProductionStage(productionId: Int, targetStage: ProductionStage): ProductionTracking
   sendMessage(input: CreateMessageInput!): Message
   signup(input: SignupInput!): AuthPayload
+  submitCustomerQuote(orderId: Int!, quoteDays: Int!, quoteNote: String, quotedPrice: Float!): Order
   toggleFavoriteCollection(collectionId: Int!): Collection
   updateCategory(companyId: Int, description: String, id: Int!, name: String, parentCategoryId: Int): Category
   updateCertification(category: CertificationCategory, certificateFile: String, certificateNumber: String, code: String, description: String, id: Int!, isActive: Boolean, issuer: String, name: String, validFrom: DateTime, validUntil: DateTime): Certification
@@ -673,6 +681,11 @@ type Order {
   createdAt: DateTime!
   customer: User
   customerNote: String
+  customerQuoteDays: Int
+  customerQuoteNote: String
+  customerQuoteSentAt: DateTime
+  customerQuoteType: String
+  customerQuotedPrice: Float
   deliveryAddress: String
   estimatedProductionDate: DateTime
   id: Int!
@@ -702,17 +715,23 @@ type OrderProduction {
   updatedBy: User
 }
 
-"""Status workflow for order production"""
+"""
+Status workflow for order production - Complete quotation and approval flow
+"""
 enum OrderStatus {
   CANCELLED
   CONFIRMED
+  CUSTOMER_QUOTE_SENT
   DELIVERED
   IN_PRODUCTION
+  MANUFACTURER_REVIEWING_QUOTE
   PENDING
   PRODUCTION_COMPLETE
   QUALITY_CHECK
   QUOTE_SENT
   REJECTED
+  REJECTED_BY_CUSTOMER
+  REJECTED_BY_MANUFACTURER
   REVIEWED
   SHIPPED
 }
@@ -971,6 +990,11 @@ type Sample {
   customDesignImages: String
   customer: User
   customerNote: String
+  customerQuoteDays: Int
+  customerQuoteNote: String
+  customerQuoteSentAt: DateTime
+  customerQuoteType: String
+  customerQuotedPrice: Float
   deliveryAddress: String
   description: String
   estimatedProductionDate: DateTime
@@ -989,6 +1013,7 @@ type Sample {
   sampleType: SampleType!
   shippingDate: DateTime
   status: SampleStatus!
+  unitPrice: Float
   updatedAt: DateTime!
 }
 
@@ -1004,21 +1029,31 @@ type SampleProduction {
 }
 
 """
-Status workflow for sample production - 13 stages (including AI design, hold and cancel options)
+Status workflow for sample production - Complete workflow matching Order system with backward compatibility
 """
 enum SampleStatus {
   AI_DESIGN
   CANCELLED
   COMPLETED
+  CONFIRMED
+  CUSTOMER_QUOTE_SENT
+  DELIVERED
   IN_DESIGN
   IN_PRODUCTION
+  MANUFACTURER_REVIEWING_QUOTE
   ON_HOLD
   PATTERN_READY
+  PENDING
   PENDING_APPROVAL
+  PRODUCTION_COMPLETE
   QUALITY_CHECK
+  QUOTE_SENT
   RECEIVED
   REJECTED
+  REJECTED_BY_CUSTOMER
+  REJECTED_BY_MANUFACTURER
   REQUESTED
+  REVIEWED
   SHIPPED
 }
 
@@ -1123,19 +1158,24 @@ type SustainabilityMetrics {
 }
 
 type Task {
+  actionData: JSON
   assignedTo: User
   collection: Collection
   completedAt: DateTime
   createdAt: DateTime!
   description: String
   dueDate: DateTime
+  entityType: String
   id: Int!
   notes: String
   order: Order
   priority: TaskPriority!
+  productionStage: String
   productionTracking: ProductionTracking
+  relatedStatus: String
   sample: Sample
   status: TaskStatus!
+  targetStatus: String
   title: String!
   type: TaskType!
   updatedAt: DateTime!
@@ -1156,23 +1196,21 @@ enum TaskStatus {
 }
 
 enum TaskType {
-  APPROVE_SAMPLE
-  DOCUMENT_REVIEW
-  DOCUMENT_SUBMIT
-  MATERIAL_PROCUREMENT
+  APPROVE_REJECT
+  DEADLINE_WARNING
+  DOCUMENT
+  MATERIAL
   MEETING
+  NOTIFICATION
   OTHER
-  PAYMENT_PENDING
-  PRODUCTION_QUALITY_CHECK
-  PRODUCTION_SHIPMENT
-  PRODUCTION_START
-  PURCHASE_ORDER
+  PAYMENT
+  PRODUCTION_STAGE
+  QUALITY_CHECK
   QUOTATION
-  REVIEW_PRODUCTION
-  REVISION_REQUEST
-  SAMPLE_PRODUCTION
-  SAMPLE_REQUEST
-  SAMPLE_RESPONSE
+  REVIEW_QUOTE
+  REVISION
+  SHIPMENT
+  STATUS_CHANGE
 }
 
 type Testimonial {
@@ -1281,6 +1319,10 @@ input UpdateSampleInput {
   actualProductionDate: DateTime
   cargoTrackingNumber: String
   customerNote: String
+  customerQuoteDays: Int
+  customerQuoteNote: String
+  customerQuoteType: String
+  customerQuotedPrice: Float
   deliveryAddress: String
   description: String
   estimatedProductionDate: DateTime
@@ -1291,6 +1333,7 @@ input UpdateSampleInput {
   productionDays: Int
   shippingDate: DateTime
   status: SampleStatus
+  unitPrice: Float
 }
 
 input UpdateSampleStatusInput {

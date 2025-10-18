@@ -547,6 +547,64 @@ export const UPDATE_ORDER_MUTATION = gql`
   }
 `;
 
+// Customer Quote Mutations
+export const SUBMIT_CUSTOMER_QUOTE_MUTATION = gql`
+  mutation SubmitCustomerQuote(
+    $orderId: Int!
+    $quotedPrice: Float!
+    $quoteDays: Int!
+    $quoteNote: String
+  ) {
+    submitCustomerQuote(
+      orderId: $orderId
+      quotedPrice: $quotedPrice
+      quoteDays: $quoteDays
+      quoteNote: $quoteNote
+    ) {
+      id
+      orderNumber
+      status
+      customerQuotedPrice
+      customerQuoteDays
+      customerQuoteNote
+      customerQuoteType
+      customerQuoteSentAt
+      unitPrice
+      totalPrice
+      updatedAt
+    }
+  }
+`;
+
+export const APPROVE_CUSTOMER_QUOTE_MUTATION = gql`
+  mutation ApproveCustomerQuote($orderId: Int!, $note: String) {
+    approveCustomerQuote(orderId: $orderId, note: $note) {
+      id
+      orderNumber
+      status
+      unitPrice
+      totalPrice
+      productionDays
+      estimatedProductionDate
+      actualProductionStart
+      manufacturerResponse
+      updatedAt
+    }
+  }
+`;
+
+export const REJECT_CUSTOMER_QUOTE_MUTATION = gql`
+  mutation RejectCustomerQuote($orderId: Int!, $rejectionReason: String!) {
+    rejectCustomerQuote(orderId: $orderId, rejectionReason: $rejectionReason) {
+      id
+      orderNumber
+      status
+      manufacturerResponse
+      updatedAt
+    }
+  }
+`;
+
 export const UPDATE_CUSTOMER_ORDER_MUTATION = gql`
   mutation UpdateCustomerOrder(
     $id: Int!

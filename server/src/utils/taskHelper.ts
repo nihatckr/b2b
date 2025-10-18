@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '../generated/prisma';
+
 
 export class TaskHelper {
   constructor(private prisma: PrismaClient) {}
@@ -145,9 +146,16 @@ export class TaskHelper {
     manufacturerId: number,
     collectionId: number
   ) {
+    console.log("🎯 Creating order tasks:", {
+      orderId,
+      customerId,
+      manufacturerId,
+      collectionId,
+    });
+
     try {
       // Müşteri: Sipariş verdi, bekleniyor
-      await this.prisma.task.create({
+      const customerTask = await this.prisma.task.create({
         data: {
           title: "Sipariş Verildi - Bekleniyor",
           description:
@@ -161,9 +169,10 @@ export class TaskHelper {
           collectionId: collectionId,
         },
       });
+      console.log("✅ Customer task created:", customerTask.id);
 
       // Üretici: Sipariş incelemeye geçme
-      await this.prisma.task.create({
+      const manufacturerTask = await this.prisma.task.create({
         data: {
           title: "Sipariş İncelemesine Başla",
           description:
@@ -178,8 +187,10 @@ export class TaskHelper {
           collectionId: collectionId,
         },
       });
+      console.log("✅ Manufacturer task created:", manufacturerTask.id);
+      console.log("🎉 Order tasks created successfully!");
     } catch (error) {
-      console.error("Error creating order tasks:", error);
+      console.error("❌ Error creating order tasks:", error);
     }
   }
 
@@ -195,10 +206,23 @@ export class TaskHelper {
     message: string
   ) {
     try {
+      // Önce QUOTATION taskını tamamla
+      await this.prisma.task.updateMany({
+        where: {
+          orderId: orderId,
+          type: "QUOTATION",
+          status: { not: "COMPLETED" },
+        },
+        data: {
+          status: "COMPLETED",
+          completedAt: new Date(),
+        },
+      });
+
       // Müşteri: Üretici cevap verdi, onaylaması lazım
       await this.prisma.task.create({
         data: {
-          title: "Sipariş Detayları - Onay Bekleniyor",
+          title: "Sipariş Teklifi - Onay Bekleniyor",
           description: `Üretici siparişinizi inceledi: "${message}". Lütfen onaylayın veya reddedin.`,
           type: "APPROVE_SAMPLE" as any,
           status: "TODO" as any,
@@ -210,8 +234,119 @@ export class TaskHelper {
           notes: message,
         },
       });
+
+      console.log("✅ Order approval task created for customer:", customerId);
     } catch (error) {
       console.error("Error creating order approval task:", error);
+    }
+  }
+
+  /**
+   * Üretici revize teklif sunduğunda
+   * Müşteriye yeni teklif için task oluştur
+   */
+  async createRevisionQuoteTask(
+    orderId: number,
+    customerId: number,
+    manufacturerId: number,
+    collectionId: number,
+    revisionMessage: string,
+    revisedPrice?: number,
+    revisedDays?: number
+  ) {
+    try {
+      let description = `Üretici revize teklif gönderdi: "${revisionMessage}".`;
+      if (revisedPrice) {
+        description += ` Yeni fiyat: ${revisedPrice} TL.`;
+      }
+      if (revisedDays) {
+        description += ` Yeni üretim süresi: ${revisedDays} gün.`;
+      }
+      description += " Lütfen inceleyin ve onaylayın.";
+
+      // Müşteri: Revize teklif geldi
+      await this.prisma.task.create({
+        data: {
+          title: "Revize Teklif - Onay Bekleniyor",
+          description: description,
+          type: "APPROVE_SAMPLE" as any,
+          status: "TODO" as any,
+          priority: "HIGH" as any,
+          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          userId: customerId,
+          orderId: orderId,
+          collectionId: collectionId,
+          notes: revisionMessage,
+        },
+      });
+
+      console.log("✅ Revision quote task created for customer:", customerId);
+    } catch (error) {
+      console.error("Error creating revision quote task:", error);
+    }
+  }
+
+  /**
+   * Müşteri teklif gönderdiğinde üreticiye inceleme görevi oluştur
+   * CUSTOMER_QUOTE_SENT durumunda çağrılır
+   */
+  async createReviewCustomerQuoteTask(
+    orderId: number,
+    manufacturerId: number,
+    customerId: number,
+    collectionId: number,
+    customerQuoteType: string,
+    quotedPrice: number,
+    quoteDays: number,
+    quoteNote?: string
+  ) {
+    try {
+      console.log("🎯 Creating review customer quote task:", {
+        orderId,
+        manufacturerId,
+        customerQuoteType,
+        quotedPrice,
+        quoteDays,
+      });
+
+      const quoteTypeLabel =
+        customerQuoteType === "STANDARD"
+          ? "Standart Teklif"
+          : "Revize Teklif";
+
+      let description = `Müşteri ${quoteTypeLabel} gönderdi:\n`;
+      description += `💰 Teklif Fiyatı: ${quotedPrice} TL (birim)\n`;
+      description += `⏱️ İstenen Süre: ${quoteDays} gün\n`;
+      if (quoteNote) {
+        description += `📝 Not: "${quoteNote}"\n`;
+      }
+      description += `\nLütfen tekli inceleyin ve onaylayın veya reddedin.`;
+
+      // Üretici: Müşteri teklifi inceleme görevi
+      const task = await this.prisma.task.create({
+        data: {
+          title: `${quoteTypeLabel} - Müşteri Teklifi İnceleme`,
+          description: description,
+          type: "REVIEW_CUSTOMER_QUOTE" as any,
+          status: "TODO" as any,
+          priority: "HIGH" as any,
+          dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 gün
+          userId: manufacturerId,
+          assignedToId: manufacturerId,
+          orderId: orderId,
+          collectionId: collectionId,
+          notes: `Teklif Tipi: ${customerQuoteType}, Fiyat: ${quotedPrice} TL, Süre: ${quoteDays} gün`,
+        },
+      });
+
+      console.log(
+        "✅ Review customer quote task created for manufacturer:",
+        manufacturerId,
+        "Task ID:",
+        task.id
+      );
+    } catch (error) {
+      console.error("❌ Error creating review customer quote task:", error);
     }
   }
 

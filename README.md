@@ -15,6 +15,7 @@
 - [Genel Bakış](#-genel-bakış)
 - [Özellikler](#-temel-özellikler)
 - [Teknoloji Stack](#-teknoloji-stack)
+- [Dynamic Task System](#-dynamic-task-system-yeni)
 - [Kurulum](#-kurulum)
 - [Kullanım](#-kullanım)
 - [Dökümantasyon](#-dökümantasyon)
@@ -83,14 +84,38 @@ Müşteri → Katalog Görüntüle → Numune Talep Et → Sipariş Ver → Taki
 - Fit (kalıp) tanımları
 - Sertifikalar (GOTS, OEKO-TEX, vb.)
 
-### 📊 Reusable Data Table Component (🆕)
+### 🎯 Dynamic Task System (🆕)
+- **Status-based task creation** - Sample/Order status değişikliklerinde otomatik görev oluşturma
+- **28 SampleStatus mappings** - Her durum için özel görev tanımları
+- **15 OrderStatus mappings** - Sipariş workflow otomasyonu
+- **7 Production stage tasks** - Üretim aşaması takibi
+- **Role-specific tasks** - Müşteri ve üretici için ayrı görevler
+- **Auto-completion** - Eski görevleri otomatik tamamlama
+- **Deadline tracking** - Son tarih uyarıları
+- **Rich metadata** - JSON actionData ile detaylı bilgi
+- **700+ lines DynamicTaskHelper** - Merkezi görev yönetimi
+
+```typescript
+// Otomatik görev oluşturma örneği
+const dynamicTaskHelper = new DynamicTaskHelper(prisma);
+await dynamicTaskHelper.createTasksForSampleStatus(
+  sample.id,
+  'QUOTE_SENT',  // Yeni status
+  customerId,
+  manufacturerId
+);
+// ✅ Müşteriye: "Teklif Geldi - İncele" görevi
+// ✅ Üreticiye: "Müşteri Yanıtı Bekleniyor" görevi
+```
+
+📖 **Full Documentation**: See [DYNAMIC_TASK_SYSTEM_COMPLETED.md](./DYNAMIC_TASK_SYSTEM_COMPLETED.md)
+
+### 📊 Reusable Data Table Component
 - **Generic TypeScript support** - Type-safe table for any data type
 - **Sortable columns** - Automatic sorting for dates, numbers, and strings
 - **Flexible column definitions** - Custom cell renderers and styling
 - **Performance optimized** - useMemo for efficient re-renders
 - **Clean API** - Simple props interface
-- **Documentation included** - Full usage guide and examples
-- **Multiple use cases** - Samples, orders, collections, production tracking
 
 ```typescript
 // Simple usage example
@@ -102,7 +127,6 @@ Müşteri → Katalog Görüntüle → Numune Talep Et → Sipariş Ver → Taki
   defaultSortDirection="desc"
 />
 ```
-📖 **Usage Guide**: See [SIMPLE_DATATABLE_USAGE.md](./SIMPLE_DATATABLE_USAGE.md)
 
 ### 💬 İletişim & İşbirliği
 - Mesajlaşma sistemi
@@ -138,21 +162,101 @@ State           : Context API + URQL Cache
 ```typescript
 Runtime         : Node.js
 Framework       : Express.js 5.1.0
-GraphQL         : Apollo Server 5.0.0
-Schema          : Nexus (Code-first)
+GraphQL         : Nexus GraphQL (Code-first)
+Schema Tools    : Nexus + graphql-scalars
 Database        : MySQL
 ORM             : Prisma 6.17.1
 Authentication  : JWT
-Authorization   : graphql-shield 7.6.5
 File Upload     : Multer 2.0.2
 ```
 
-### Database Models (11)
+### Database Models (20+)
 ```
-User, Company, Category, Collection, Sample, Order,
-ProductionTracking, QualityControl, Message,
-+ Library Models (Color, Fabric, SizeGroup, etc.)
+Core: User, Company, Category, Collection, Sample, Order
+Production: ProductionTracking, QualityControl, Task
+Library: Color, Fabric, SizeGroup, Season, Fit, Certificate
+Communication: Message, Notification, SampleQuestion
 ```
+
+### Key Enums
+```typescript
+SampleStatus    : 28 values (PENDING → DELIVERED)
+OrderStatus     : 15 values (PENDING → COMPLETED)
+TaskType        : 15 values (STATUS_CHANGE, QUOTATION, etc.)
+ProductionStage : 7 values (PLANNING → SHIPPING)
+```
+
+---
+
+## 🎯 Dynamic Task System (Yeni)
+
+### Mimari Yapı
+
+```typescript
+// 700+ satırlık merkezi task yönetimi
+DynamicTaskHelper
+├── SAMPLE_STATUS_TASK_MAP (28 status)
+├── ORDER_STATUS_TASK_MAP (15 status)
+└── PRODUCTION_STAGE_TASK_MAP (7 stage)
+
+// Her status için otomatik görev oluşturma
+Status Change → DynamicTaskHelper → Dual Task Creation
+                                   ├── Customer Task
+                                   └── Manufacturer Task
+```
+
+### Özellikler
+
+**1. Status-Based Automation**
+- Sample status değiştiğinde otomatik görev
+- Order status değiştiğinde otomatik görev
+- Production stage değiştiğinde otomatik görev
+
+**2. Role-Specific Tasks**
+- Müşteri görevleri (inceleme, onay, ödeme)
+- Üretici görevleri (teklif, üretim, teslimat)
+- Öncelik ve deadline yönetimi
+
+**3. Task Metadata**
+```typescript
+Task {
+  relatedStatus   : "QUOTE_SENT"     // Tetikleyen status
+  targetStatus    : "QUOTE_APPROVED"  // Hedef status
+  entityType      : "SAMPLE"          // Varlık tipi
+  productionStage : "FABRIC"          // Üretim aşaması
+  actionData      : JSON              // Özel metadata
+}
+```
+
+**4. Auto-Completion**
+- Yeni görev oluşturulduğunda eski TODO görevleri otomatik tamamlanır
+- Status geçişi otomatik doğrulama
+
+**5. Deadline Management**
+- Her görev tipi için özel süre (3-14 gün)
+- Deadline Warning görevleri
+- Öncelik bazlı sıralama (HIGH, MEDIUM, LOW)
+
+### Kullanım Örnekleri
+
+```typescript
+// Sample teklif gönderildiğinde
+Status: QUOTE_SENT
+→ Müşteri: "✅ Teklif Geldi - İncele ve Yanıtla" (3 gün)
+→ Üretici: "⏳ Müşteri Yanıtı Bekleniyor" (5 gün)
+
+// Müşteri teklifi onayladığında
+Status: QUOTE_APPROVED
+→ Müşteri: "✅ Teklifin Onaylandı - Sipariş Aşamasına Geç"
+→ Üretici: "🎉 Teklif Onaylandı - Sipariş Bekliyor"
+
+// Üretim başladığında
+Stage: FABRIC
+→ Üretici: "🧵 Kumaş Aşaması - Tedarik ve Hazırlık"
+→ Müşteri: "📢 Bilgilendirme: Kumaş aşamasında"
+```
+
+📖 **Detaylı Döküman**: [DYNAMIC_TASK_SYSTEM_COMPLETED.md](./DYNAMIC_TASK_SYSTEM_COMPLETED.md)
 
 ---
 
@@ -246,14 +350,11 @@ Password: demo123
 ## 📚 Dökümantasyon
 
 ### Ana Dökümanlar
-- **[CURRENT_FEATURES_REPORT.md](./CURRENT_FEATURES_REPORT.md)** - Tüm özellikler detaylı liste
-- **[DETAILED_PROJECT_ANALYSIS.md](./DETAILED_PROJECT_ANALYSIS.md)** - Proje mimarisi ve analiz
-- **[FINAL_CLEANUP_REPORT.md](./FINAL_CLEANUP_REPORT.md)** - Code cleanup raporu
-- **[UNUSED_FILES_REPORT.md](./UNUSED_FILES_REPORT.md)** - Kullanılmayan dosyalar
-- **[SIMPLE_DATATABLE_USAGE.md](./SIMPLE_DATATABLE_USAGE.md)** - 🆕 SimpleDataTable kullanım rehberi
-
-### Component Dökümanları
-- **[DataTable/README.md](./client/src/components/DataTable/README.md)** - 🆕 SimpleDataTable API referansı
+- **[PROJECT_CLEANUP_ANALYSIS.md](./PROJECT_CLEANUP_ANALYSIS.md)** - 🆕 Proje durum analizi ve temizlik raporu
+- **[DYNAMIC_TASK_SYSTEM_COMPLETED.md](./DYNAMIC_TASK_SYSTEM_COMPLETED.md)** - 🆕 Dynamic task system dökümantasyonu
+- **[DATABASE_RESET_SOLUTION.md](./DATABASE_RESET_SOLUTION.md)** - Database reset sonrası çözüm rehberi
+- **[DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md)** - Database mimarisi ve şema
+- **[PROJECT_SUMMARY_TASK_WORKFLOWS.md](./PROJECT_SUMMARY_TASK_WORKFLOWS.md)** - Task workflow özeti
 
 ### Döküman Klasörü (`/docs`)
 - **[README.md](./docs/README.md)** - Proje özeti
@@ -310,7 +411,15 @@ fullstack/
 │   ├── public/               # Static files
 │   └── package.json
 │
-├── server/                   # Express + GraphQL Backend
+├── backend/                  # 🔧 Refactoring/Backup Area (NOT ACTIVE)
+│   ├── README.md             # Klasör amacı ve kullanım rehberi
+│   ├── CHANGELOG.md          # Refactoring değişiklikleri
+│   ├── package.json          # Minimal dependencies
+│   ├── .env.example          # Test environment variables
+│   └── prisma/
+│       └── schema.prisma     # Server schema backup/refactoring copy
+│
+├── server/                   # ✅ Express + GraphQL Backend (ACTIVE)
 │   ├── prisma/
 │   │   ├── schema.prisma     # Database schema
 │   │   └── seed.ts           # Seed data
@@ -327,8 +436,8 @@ fullstack/
 │   │   │   ├── Query.ts      # Main queries
 │   │   │   └── ...
 │   │   ├── types/            # Nexus Types
-│   │   ├── permission/       # Authorization
 │   │   ├── utils/            # Utilities
+│   │   │   └── dynamicTaskHelper.ts  # 🆕 700+ lines task automation
 │   │   ├── context.ts        # GraphQL Context
 │   │   ├── schema.ts         # Nexus Schema
 │   │   └── server.ts         # Express + Apollo Server
@@ -340,11 +449,12 @@ fullstack/
 │   ├── QUICK-START.md
 │   └── 01-07-UPDATED.md files
 │
-├── CURRENT_FEATURES_REPORT.md    # Tüm özellikler listesi
-├── DETAILED_PROJECT_ANALYSIS.md  # Proje analizi
-├── FINAL_CLEANUP_REPORT.md       # Cleanup raporu
-├── UNUSED_FILES_REPORT.md        # Unused files
-└── README.md                      # Bu dosya
+├── PROJECT_CLEANUP_ANALYSIS.md       # 🆕 Proje analizi ve temizlik
+├── DYNAMIC_TASK_SYSTEM_COMPLETED.md  # 🆕 Dynamic task system
+├── DATABASE_RESET_SOLUTION.md        # Database reset rehberi
+├── DATABASE_ARCHITECTURE.md          # Database mimarisi
+├── PROJECT_SUMMARY_TASK_WORKFLOWS.md # Task workflow özeti
+└── README.md                         # Bu dosya
 ```
 
 ---
@@ -387,10 +497,14 @@ fullstack/
 ✨ Özellikler          : 100+ feature
 📄 Sayfalar            : 30+ pages
 🔄 GraphQL Operations  : 100+ query/mutation
-🎭 Kullanıcı Rolü      : 6 roles
+� Dynamic Task System : 700+ lines automation
+�🎭 Kullanıcı Rolü      : 6 roles
 🏭 Üretim Aşaması      : 7 stages
 ✅ Kalite Testi        : 7 test types
-📦 Database Modeli     : 11 models
+📊 Sample Status       : 28 states
+📦 Order Status        : 15 states
+⚡ Task Types          : 15 types
+🗄️ Database Modeli     : 20+ models
 🎨 UI Components       : 150+ components
 ```
 
@@ -491,6 +605,6 @@ Bu projeyi geliştirmede kullanılan teknolojilere ve açık kaynak topluluğuna
 
 **⭐ Projeyi beğendiyseniz star vermeyi unutmayın!**
 
-**Son Güncelleme:** 15 Ekim 2025
-**Versiyon:** 1.0.0 (Production Ready)
+**Son Güncelleme:** 18 Ekim 2025
+**Versiyon:** 2.0.0 (Production Ready + Dynamic Task System)
 **Durum:** ✅ Aktif Geliştirme

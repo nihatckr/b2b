@@ -267,6 +267,8 @@ export const orderMutations = (t: any) => {
 
       // Auto-complete related tasks when order status changes to completion statuses
       const taskHelper = new TaskHelper(context.prisma);
+
+      // Complete old tasks on final statuses
       if (
         args.status === "DELIVERED" ||
         args.status === "COMPLETED" ||
@@ -275,11 +277,48 @@ export const orderMutations = (t: any) => {
         await taskHelper.completeRelatedTasks(undefined, order.id);
       }
 
+      // Create new tasks based on status transitions
+      if (args.status === "QUOTE_SENT") {
+        // Üretici teklif gönderdi -> Müşteriye onay görevi
+        await taskHelper.createOrderApprovalTask(
+          order.id,
+          order.customerId,
+          order.manufactureId,
+          order.collectionId,
+          args.note || "Üretici teklif gönderdi, lütfen inceleyin ve onaylayın."
+        );
+      }
+
+      if (args.status === "CONFIRMED") {
+        // Müşteri onayladı -> Üreticiye üretim başlama görevi
+        await taskHelper.createProductionStartTask(
+          order.id,
+          order.manufactureId,
+          order.collectionId,
+          order.quantity
+        );
+      }
+
+      if (args.status === "IN_PRODUCTION") {
+        // Üretim başladı -> İlk aşama görevi oluştur (Planning)
+        await taskHelper.createProductionStageTask(
+          order.id,
+          order.manufactureId,
+          "PLANNING",
+          2 // 2 gün
+        );
+      }
+
       // Send notifications based on status change
       const statusMessages: Record<
         string,
         { title: string; customerMsg: string; manufacturerMsg?: string }
       > = {
+        REVIEWED: {
+          title: "👀 Order Under Review",
+          customerMsg: `Your order #${order.orderNumber} is being reviewed by the manufacturer.`,
+          manufacturerMsg: `You are reviewing order #${order.orderNumber}.`,
+        },
         QUOTE_SENT: {
           title: "💰 Quote Received",
           customerMsg: `Manufacturer has sent a quote for order #${
@@ -328,6 +367,26 @@ export const orderMutations = (t: any) => {
           title: "🚫 Order Cancelled",
           customerMsg: `Order #${order.orderNumber} has been cancelled.`,
           manufacturerMsg: `Order #${order.orderNumber} was cancelled.`,
+        },
+        CUSTOMER_QUOTE_SENT: {
+          title: "💰 Müşteri Teklifi",
+          customerMsg: `Teklifiniz sipariş #${order.orderNumber} için gönderildi. Üretici inceleyecek.`,
+          manufacturerMsg: `Müşteri sipariş #${order.orderNumber} için teklif gönderdi. Lütfen inceleyin.`,
+        },
+        MANUFACTURER_REVIEWING_QUOTE: {
+          title: "🔍 Teklif İnceleniyor",
+          customerMsg: `Üretici teklifinizi inceliyor: sipariş #${order.orderNumber}`,
+          manufacturerMsg: `Müşteri teklifini inceliyorsunuz: sipariş #${order.orderNumber}`,
+        },
+        REJECTED_BY_CUSTOMER: {
+          title: "❌ Müşteri Tarafından Reddedildi",
+          customerMsg: `Sipariş #${order.orderNumber} tarafınızdan reddedildi.`,
+          manufacturerMsg: `Müşteri sipariş #${order.orderNumber} için teklifinizi reddetti.`,
+        },
+        REJECTED_BY_MANUFACTURER: {
+          title: "❌ Üretici Tarafından Reddedildi",
+          customerMsg: `Üretici sipariş #${order.orderNumber} için teklifinizi reddetti.`,
+          manufacturerMsg: `Müşteri teklifini reddettiniz: sipariş #${order.orderNumber}`,
         },
       };
 
@@ -804,6 +863,404 @@ export const orderMutations = (t: any) => {
       });
 
       return deletedOrder;
+    },
+  });
+
+  // Submit Customer Quote (Müşteri Teklif Gönder)
+  t.field("submitCustomerQuote", {
+    type: "Order",
+    args: {
+      orderId: nonNull(intArg()),
+      quotedPrice: nonNull(floatArg()),
+      quoteDays: nonNull(intArg()),
+      quoteNote: stringArg(),
+      // quoteType kaldırıldı - backend otomatik belirleyecek
+    },
+    resolve: async (_parent: unknown, args: any, context: Context) => {
+      const userId = requireAuth(context);
+
+      const user = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const existingOrder = await context.prisma.order.findUnique({
+        where: { id: args.orderId },
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: true,
+        },
+      });
+
+      if (!existingOrder) {
+        throw new Error("Order not found");
+      }
+
+      // Permission check - Only customer can submit quote
+      const isCustomer = existingOrder.customerId === userId;
+      if (!isCustomer) {
+        throw new Error("Only customer can submit a quote");
+      }
+
+      // Validation: Can only submit quote from QUOTE_SENT status
+      if (existingOrder.status !== "QUOTE_SENT") {
+        throw new Error(
+          "Can only submit customer quote when order status is QUOTE_SENT"
+        );
+      }
+
+      // ✅ BACKEND'DE OTOMATİK TİP BELİRLEME
+      // Eğer müşteri fiyat veya süreyi değiştirdiyse REVISION, aksi halde STANDARD
+      const priceChanged = args.quotedPrice !== existingOrder.unitPrice;
+      const daysChanged = args.quoteDays !== existingOrder.productionDays;
+      const quoteType = (priceChanged || daysChanged) ? "REVISION" : "STANDARD";
+
+      console.log("🔍 Quote Type Auto-Detection:", {
+        originalPrice: existingOrder.unitPrice,
+        quotedPrice: args.quotedPrice,
+        priceChanged,
+        originalDays: existingOrder.productionDays,
+        quotedDays: args.quoteDays,
+        daysChanged,
+        determinedType: quoteType,
+      });
+
+      // Update order with customer quote
+      const order = await context.prisma.order.update({
+        where: { id: args.orderId },
+        data: {
+          status: "CUSTOMER_QUOTE_SENT",
+          customerQuotedPrice: args.quotedPrice,
+          customerQuoteDays: args.quoteDays,
+          customerQuoteNote: args.quoteNote || null,
+          customerQuoteType: quoteType, // Backend tarafından belirlenen tip
+          customerQuoteSentAt: new Date(),
+        },
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+      });
+
+      // Create production history
+      await context.prisma.orderProduction.create({
+        data: {
+          orderId: order.id,
+          status: "CUSTOMER_QUOTE_SENT",
+          note: `Customer submitted ${quoteType} quote: ${args.quotedPrice} TL / ${args.quoteDays} days`,
+          updatedById: userId,
+        },
+      });
+
+      // Create task for manufacturer to review customer quote
+      const taskHelper = new TaskHelper(context.prisma);
+      await taskHelper.createReviewCustomerQuoteTask(
+        order.id,
+        order.manufactureId,
+        order.customerId,
+        order.collectionId,
+        quoteType,
+        args.quotedPrice,
+        args.quoteDays,
+        args.quoteNote
+      );
+
+      // Send notification to manufacturer
+      const quoteTypeLabel =
+        quoteType === "STANDARD" ? "Standart Teklif" : "Revize Teklif";
+      await createNotification(context.prisma, {
+        type: "ORDER",
+        title: `💰 Yeni ${quoteTypeLabel}`,
+        message: `Müşteri sipariş #${order.orderNumber} için ${args.quotedPrice} TL / ${args.quoteDays} gün teklif gönderdi. Lütfen inceleyin.`,
+        userId: order.manufactureId,
+        link: `/dashboard/orders/${order.id}`,
+        orderId: order.id,
+      });
+
+      // Also notify company members if exists
+      if (order.companyId) {
+        const companyMembers = await context.prisma.user.findMany({
+          where: {
+            companyId: order.companyId,
+            role: {
+              in: ["COMPANY_OWNER", "COMPANY_EMPLOYEE"],
+            },
+            id: { not: order.manufactureId },
+          },
+          select: { id: true },
+        });
+
+        for (const member of companyMembers) {
+          await createNotification(context.prisma, {
+            type: "ORDER",
+            title: `💰 Yeni ${quoteTypeLabel}`,
+            message: `Müşteri sipariş #${order.orderNumber} için ${args.quotedPrice} TL / ${args.quoteDays} gün teklif gönderdi.`,
+            userId: member.id,
+            link: `/dashboard/orders/${order.id}`,
+            orderId: order.id,
+          });
+        }
+      }
+
+      console.log("✅ Customer quote submitted:", {
+        orderId: order.id,
+        type: quoteType,
+        price: args.quotedPrice,
+        days: args.quoteDays,
+      });
+
+      return order;
+    },
+  });
+
+  // Approve Customer Quote (Üretici Müşteri Teklifini Onaylar)
+  t.field("approveCustomerQuote", {
+    type: "Order",
+    args: {
+      orderId: nonNull(intArg()),
+      note: stringArg(),
+    },
+    resolve: async (_parent: unknown, args: any, context: Context) => {
+      const userId = requireAuth(context);
+
+      const user = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const existingOrder = await context.prisma.order.findUnique({
+        where: { id: args.orderId },
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: true,
+        },
+      });
+
+      if (!existingOrder) {
+        throw new Error("Order not found");
+      }
+
+      // Permission check - Only manufacturer can approve
+      const isManufacturer = existingOrder.manufactureId === userId;
+      if (!isManufacturer) {
+        throw new Error("Only manufacturer can approve customer quote");
+      }
+
+      // Validation: Must be in CUSTOMER_QUOTE_SENT status
+      if (existingOrder.status !== "CUSTOMER_QUOTE_SENT") {
+        throw new Error("Order must be in CUSTOMER_QUOTE_SENT status");
+      }
+
+      // Update order: Apply customer quote and move to CONFIRMED → IN_PRODUCTION
+      const order = await context.prisma.order.update({
+        where: { id: args.orderId },
+        data: {
+          status: "CONFIRMED",
+          unitPrice: existingOrder.customerQuotedPrice || existingOrder.unitPrice,
+          totalPrice:
+            (existingOrder.customerQuotedPrice || existingOrder.unitPrice) *
+            existingOrder.quantity,
+          productionDays: existingOrder.customerQuoteDays || existingOrder.productionDays,
+          estimatedProductionDate: existingOrder.customerQuoteDays
+            ? new Date(
+                Date.now() +
+                  existingOrder.customerQuoteDays * 24 * 60 * 60 * 1000
+              )
+            : existingOrder.estimatedProductionDate,
+          manufacturerResponse:
+            args.note || "Müşteri teklifi kabul edildi",
+        },
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+      });
+
+      // Create production history
+      await context.prisma.orderProduction.create({
+        data: {
+          orderId: order.id,
+          status: "CONFIRMED",
+          note:
+            args.note ||
+            `Manufacturer approved customer quote: ${existingOrder.customerQuotedPrice} TL / ${existingOrder.customerQuoteDays} days`,
+          updatedById: userId,
+        },
+      });
+
+      // Auto-complete REVIEW_QUOTE task
+      await context.prisma.task.updateMany({
+        where: {
+          orderId: order.id,
+          type: "REVIEW_QUOTE",
+          status: { not: "COMPLETED" },
+        },
+        data: {
+          status: "COMPLETED",
+          completedAt: new Date(),
+        },
+      });
+
+      // Create production start task for manufacturer
+      const taskHelper = new TaskHelper(context.prisma);
+      await taskHelper.createProductionStartTask(
+        order.id,
+        order.manufactureId,
+        order.collectionId,
+        order.quantity
+      );
+
+      // Send notification to customer
+      await createNotification(context.prisma, {
+        type: "ORDER",
+        title: "✅ Teklifiniz Onaylandı!",
+        message: `Üretici sipariş #${order.orderNumber} için teklifinizi onayladı. Üretim başlayacak.`,
+        userId: order.customerId,
+        link: `/dashboard/orders/${order.id}`,
+        orderId: order.id,
+      });
+
+      // Auto-transition to IN_PRODUCTION
+      const productionOrder = await context.prisma.order.update({
+        where: { id: order.id },
+        data: { status: "IN_PRODUCTION", actualProductionStart: new Date() },
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+      });
+
+      // Create production tracking and stage tasks
+      await context.prisma.orderProduction.create({
+        data: {
+          orderId: productionOrder.id,
+          status: "IN_PRODUCTION",
+          note: "Production started automatically after quote approval",
+          updatedById: userId,
+        },
+      });
+
+      // Create first stage task (PLANNING)
+      await taskHelper.createProductionStageTask(
+        productionOrder.id,
+        productionOrder.manufactureId,
+        "PLANNING",
+        2
+      );
+
+      console.log("✅ Customer quote approved and production started:", {
+        orderId: productionOrder.id,
+        status: "IN_PRODUCTION",
+      });
+
+      return productionOrder;
+    },
+  });
+
+  // Reject Customer Quote (Üretici Müşteri Teklifini Reddeder)
+  t.field("rejectCustomerQuote", {
+    type: "Order",
+    args: {
+      orderId: nonNull(intArg()),
+      rejectionReason: nonNull(stringArg()),
+    },
+    resolve: async (_parent: unknown, args: any, context: Context) => {
+      const userId = requireAuth(context);
+
+      const user = await context.prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const existingOrder = await context.prisma.order.findUnique({
+        where: { id: args.orderId },
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: true,
+        },
+      });
+
+      if (!existingOrder) {
+        throw new Error("Order not found");
+      }
+
+      // Permission check - Only manufacturer can reject
+      const isManufacturer = existingOrder.manufactureId === userId;
+      if (!isManufacturer) {
+        throw new Error("Only manufacturer can reject customer quote");
+      }
+
+      // Validation: Must be in CUSTOMER_QUOTE_SENT status
+      if (existingOrder.status !== "CUSTOMER_QUOTE_SENT") {
+        throw new Error("Order must be in CUSTOMER_QUOTE_SENT status");
+      }
+
+      // Update order to REJECTED_BY_MANUFACTURER
+      const order = await context.prisma.order.update({
+        where: { id: args.orderId },
+        data: {
+          status: "REJECTED_BY_MANUFACTURER",
+          manufacturerResponse: args.rejectionReason,
+        },
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+      });
+
+      // Create production history
+      await context.prisma.orderProduction.create({
+        data: {
+          orderId: order.id,
+          status: "REJECTED_BY_MANUFACTURER",
+          note: `Manufacturer rejected customer quote: ${args.rejectionReason}`,
+          updatedById: userId,
+        },
+      });
+
+      // Complete all related tasks
+      const taskHelper = new TaskHelper(context.prisma);
+      await taskHelper.completeRelatedTasks(undefined, order.id);
+
+      // Send notification to customer
+      await createNotification(context.prisma, {
+        type: "SYSTEM",
+        title: "❌ Teklifiniz Reddedildi",
+        message: `Üretici sipariş #${order.orderNumber} için teklifinizi reddetti: "${args.rejectionReason}"`,
+        userId: order.customerId,
+        link: `/dashboard/orders/${order.id}`,
+        orderId: order.id,
+      });
+
+      console.log("❌ Customer quote rejected:", {
+        orderId: order.id,
+        reason: args.rejectionReason,
+      });
+
+      return order;
     },
   });
 };

@@ -3248,7 +3248,7 @@ async function main() {
         title: "Yeni Koleksiyon İçin Numune İsteği",
         description:
           "2025 Bahar/Yaz koleksiyonu için T-Shirt örnekleri istiyoruz",
-        type: "SAMPLE_REQUEST",
+        type: "STATUS_CHANGE",
         status: "TODO",
         priority: "HIGH",
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -3276,7 +3276,7 @@ async function main() {
         title: "Teklifi Gözden Geçir ve Onayla",
         description:
           "Defacto'dan gelen fiyat teklifini ve teknik özellikleri gözden geçir",
-        type: "APPROVE_SAMPLE",
+        type: "APPROVE_REJECT",
         status: "TODO",
         priority: "MEDIUM",
         dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
@@ -3290,7 +3290,7 @@ async function main() {
         title: "Ham Madde Tedariki",
         description:
           "Üretim için gerekli iplik ve boyalı kumaşın tedarikini sağla",
-        type: "MATERIAL_PROCUREMENT",
+        type: "MATERIAL",
         status: "IN_PROGRESS",
         priority: "HIGH",
         dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
@@ -3303,7 +3303,7 @@ async function main() {
       {
         title: "Kalite Kontrol Prosesi",
         description: "Ham maddelerin kalite kontrolü ve uygunluk testleri",
-        type: "PRODUCTION_QUALITY_CHECK",
+        type: "QUALITY_CHECK",
         status: "TODO",
         priority: "HIGH",
         dueDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
@@ -3316,7 +3316,7 @@ async function main() {
       {
         title: "Numune Gönderimi Hazırlığı",
         description: "Onaylanan numunelerin paketlenmesi ve sevkiyat belgeleri",
-        type: "PRODUCTION_SHIPMENT",
+        type: "SHIPMENT",
         status: "TODO",
         priority: "MEDIUM",
         dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
@@ -3329,7 +3329,7 @@ async function main() {
       {
         title: "Ödeme İşlemi",
         description: "Numune üretimi ve gönderim maliyetinin ödenmesi",
-        type: "PAYMENT_PENDING",
+        type: "PAYMENT",
         status: "TODO",
         priority: "HIGH",
         dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
@@ -3342,7 +3342,7 @@ async function main() {
       {
         title: "Ön Tasarım Onayı Tamamlandı",
         description: "Koleksiyon tasarımının temel onayı yapıldı",
-        type: "DOCUMENT_REVIEW",
+        type: "DOCUMENT",
         status: "COMPLETED",
         priority: "HIGH",
         dueDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
@@ -3356,7 +3356,7 @@ async function main() {
       {
         title: "Revizyon İsteklerine Yanıt Ver",
         description: "Müşteri tarafından istenen tasarım değişikliklerini yap",
-        type: "REVISION_REQUEST",
+        type: "REVISION",
         status: "IN_PROGRESS",
         priority: "MEDIUM",
         dueDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
@@ -3369,7 +3369,7 @@ async function main() {
       {
         title: "Sertifika ve Belgeleri Gönder",
         description: "Üretim kalite sertifikaları, ürün güvenlik belgeleri",
-        type: "DOCUMENT_SUBMIT",
+        type: "DOCUMENT",
         status: "TODO",
         priority: "HIGH",
         dueDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
@@ -3383,7 +3383,7 @@ async function main() {
         title: "İhraç Numunesi Hazırlama",
         description:
           "Uluslararası pazara gönderilecek numunelerin hazırlanması",
-        type: "SAMPLE_PRODUCTION",
+        type: "PRODUCTION_STAGE",
         status: "IN_PROGRESS",
         priority: "HIGH",
         dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
@@ -3396,7 +3396,7 @@ async function main() {
       {
         title: "Üretim Başlangıcı Onayı",
         description: "Tüm hazırlıklar tamamlandı, üretim başlangıcı onaylaması",
-        type: "PRODUCTION_START",
+        type: "PRODUCTION_STAGE",
         status: "TODO",
         priority: "MEDIUM",
         dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
@@ -3410,7 +3410,7 @@ async function main() {
         title: "Müşteri Onayı Bekleniyor",
         description:
           "Nihai ürün örneğinin müşteri tarafından onaylanmasını bekle",
-        type: "REVIEW_PRODUCTION",
+        type: "STATUS_CHANGE",
         status: "IN_PROGRESS",
         priority: "HIGH",
         dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),

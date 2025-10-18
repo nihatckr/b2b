@@ -101,6 +101,16 @@ const apolloServer = new ApolloServer<Context>({
   schema,
   plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   introspection: env !== "production",
+  formatError: (formattedError, error) => {
+    // Log all GraphQL errors to console
+    console.error("❌ GraphQL Error:", {
+      message: formattedError.message,
+      path: formattedError.path,
+      extensions: formattedError.extensions,
+      originalError: error,
+    });
+    return formattedError;
+  },
 });
 
 async function startServer() {
@@ -120,6 +130,36 @@ async function startServer() {
   await apolloServer.start();
 
   initializeMiddleware(app);
+
+  // --- Debug middleware: log incoming GraphQL POST bodies (truncated) ---
+  app.use((req, _res, next) => {
+    try {
+      if (req.method === "POST" && req.path === graphqlPath) {
+        const maxLen = 2000; // truncate large bodies
+        let bodyPreview = "";
+        try {
+          bodyPreview = JSON.stringify(req.body);
+        } catch (e) {
+          bodyPreview = String(req.body || "(unserializable)");
+        }
+
+        if (bodyPreview.length > maxLen) {
+          bodyPreview = bodyPreview.slice(0, maxLen) + "...[truncated]";
+        }
+
+        console.log("📥 Incoming GraphQL POST ->", {
+          method: req.method,
+          path: req.path,
+          auth: !!req.headers["authorization"],
+          body: bodyPreview,
+        });
+      }
+    } catch (err) {
+      console.error("Error in GraphQL request logger:", err);
+    }
+
+    return next();
+  });
 
   // Handle preflight requests for upload endpoint
   app.options("/api/upload", (req, res) => {

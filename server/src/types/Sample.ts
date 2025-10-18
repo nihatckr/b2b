@@ -56,12 +56,20 @@ export const Sample = objectType({
     t.int("originalCollectionId");
 
     // Production fields
+    t.float("unitPrice");
     t.int("productionDays");
     t.field("estimatedProductionDate", { type: "DateTime" });
     t.field("actualProductionDate", { type: "DateTime" });
     t.field("shippingDate", { type: "DateTime" });
     t.string("deliveryAddress");
     t.string("cargoTrackingNumber");
+
+    // Customer Quote fields (Order ile aynı)
+    t.float("customerQuotedPrice");
+    t.int("customerQuoteDays");
+    t.string("customerQuoteNote");
+    t.string("customerQuoteType");
+    t.field("customerQuoteSentAt", { type: "DateTime" });
 
     t.nonNull.field("createdAt", { type: "DateTime" });
     t.nonNull.field("updatedAt", { type: "DateTime" });
@@ -201,12 +209,19 @@ export const UpdateSampleInput = inputObjectType({
     t.int("manufactureId"); // Added for assigning manufacturer
     t.string("customerNote");
     t.string("manufacturerResponse");
+    t.float("unitPrice");
     t.int("productionDays");
     t.field("estimatedProductionDate", { type: "DateTime" });
     t.field("actualProductionDate", { type: "DateTime" });
     t.field("shippingDate", { type: "DateTime" });
     t.string("cargoTrackingNumber");
     t.string("deliveryAddress");
+
+    // Customer Quote fields
+    t.float("customerQuotedPrice");
+    t.int("customerQuoteDays");
+    t.string("customerQuoteNote");
+    t.string("customerQuoteType");
   },
 });
 

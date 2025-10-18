@@ -24,6 +24,7 @@ export * from "./QualityControl";
 export * from "./Question";
 export * from "./Review";
 export * from "./Sample";
+export * from "./scalars";
 export * from "./SeasonItem";
 export * from "./SignupInput";
 export * from "./SizeGroup";

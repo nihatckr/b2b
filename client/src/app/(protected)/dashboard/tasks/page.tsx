@@ -4,18 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -35,11 +35,20 @@ const TASKS_QUERY = `
       type
       dueDate
       completedAt
+      relatedStatus
+      targetStatus
+      entityType
+      productionStage
+      actionData
       user {
         id
         firstName
         lastName
         email
+        company {
+          id
+          name
+        }
       }
       assignedTo {
         id
@@ -50,6 +59,7 @@ const TASKS_QUERY = `
       collection {
         id
         name
+        modelCode
       }
       sample {
         id
@@ -58,6 +68,26 @@ const TASKS_QUERY = `
       order {
         id
         orderNumber
+        status
+        customerQuoteType
+        collection {
+          id
+          name
+          modelCode
+        }
+        customer {
+          id
+          firstName
+          lastName
+          company {
+            id
+            name
+          }
+        }
+        company {
+          id
+          name
+        }
       }
       createdAt
     }
@@ -91,11 +121,20 @@ interface Task {
   type: string;
   dueDate?: string;
   completedAt?: string;
+  relatedStatus?: string;
+  targetStatus?: string;
+  entityType?: string;
+  productionStage?: string;
+  actionData?: any;
   user: {
     id: number;
     firstName?: string;
     lastName?: string;
     email?: string;
+    company?: {
+      id: number;
+      name: string;
+    };
   };
   assignedTo?: {
     id: number;
@@ -106,6 +145,7 @@ interface Task {
   collection?: {
     id: number;
     name: string;
+    modelCode?: string;
   };
   sample?: {
     id: number;
@@ -114,6 +154,26 @@ interface Task {
   order?: {
     id: number;
     orderNumber: string;
+    status?: string;
+    customerQuoteType?: string;
+    collection?: {
+      id: number;
+      name: string;
+      modelCode?: string;
+    };
+    customer?: {
+      id: number;
+      firstName?: string;
+      lastName?: string;
+      company?: {
+        id: number;
+        name: string;
+      };
+    };
+    company?: {
+      id: number;
+      name: string;
+    };
   };
   createdAt: string;
 }
@@ -144,10 +204,43 @@ const priorityLabels = {
   HIGH: "Yüksek",
 };
 
+const orderStatusLabels: Record<string, string> = {
+  DRAFT: "Taslak",
+  QUOTE_SENT: "Teklif Gönderildi",
+  CUSTOMER_QUOTE_SENT: "Müşteri Teklifi",
+  CUSTOMER_QUOTE_APPROVED: "Müşteri Teklifi Onaylandı",
+  CUSTOMER_QUOTE_REJECTED: "Müşteri Teklifi Reddedildi",
+  QUOTE_APPROVED: "Teklif Onaylandı",
+  QUOTE_REJECTED: "Teklif Reddedildi",
+  IN_PRODUCTION: "Üretimde",
+  PRODUCTION_COMPLETED: "Üretim Tamamlandı",
+  SHIPPED: "Kargoya Verildi",
+  DELIVERED: "Teslim Edildi",
+  CANCELLED: "İptal Edildi",
+};
+
+const orderStatusColors: Record<string, string> = {
+  DRAFT: "bg-gray-100 text-gray-700",
+  QUOTE_SENT: "bg-blue-100 text-blue-700",
+  CUSTOMER_QUOTE_SENT: "bg-purple-100 text-purple-700",
+  CUSTOMER_QUOTE_APPROVED: "bg-green-100 text-green-700",
+  CUSTOMER_QUOTE_REJECTED: "bg-red-100 text-red-700",
+  QUOTE_APPROVED: "bg-green-100 text-green-700",
+  QUOTE_REJECTED: "bg-red-100 text-red-700",
+  IN_PRODUCTION: "bg-yellow-100 text-yellow-700",
+  PRODUCTION_COMPLETED: "bg-teal-100 text-teal-700",
+  SHIPPED: "bg-indigo-100 text-indigo-700",
+  DELIVERED: "bg-green-100 text-green-700",
+  CANCELLED: "bg-red-100 text-red-700",
+};
+
 function TaskRow({ task }: { task: Task }) {
   const router = useRouter();
   const [, updateTaskStatus] = useMutation(UPDATE_TASK_STATUS);
   const [, deleteTask] = useMutation(DELETE_TASK);
+
+  // Null safety check
+  if (!task) return null;
 
   const dueDate = task.dueDate ? new Date(task.dueDate) : null;
   const isOverdue =
@@ -222,18 +315,80 @@ function TaskRow({ task }: { task: Task }) {
         )}
       </TableCell>
       <TableCell className="text-sm">
-        {task.collection ? (
-          <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-            {task.collection.name}
-          </span>
+        {task.order ? (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Sipariş:</span>
+              <span className="px-2 py-0.5 bg-blue-100 rounded text-xs font-medium">
+                {task.order.orderNumber}
+              </span>
+            </div>
+            {task.order.collection?.modelCode && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">Ürün:</span>
+                <span className="px-2 py-0.5 bg-purple-100 rounded text-xs font-medium">
+                  {task.order.collection.modelCode}
+                </span>
+              </div>
+            )}
+            {task.order.status && (
+              <div className="flex items-center gap-2">
+                <Badge className={orderStatusColors[task.order.status] || "bg-gray-100 text-gray-700"}>
+                  {orderStatusLabels[task.order.status] || task.order.status}
+                  {task.order.customerQuoteType === "REVISION" && " (Revize)"}
+                </Badge>
+              </div>
+            )}
+          </div>
+        ) : task.collection ? (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Koleksiyon:</span>
+              <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">
+                {task.collection.name}
+              </span>
+            </div>
+            {task.collection.modelCode && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">Kod:</span>
+                <span className="px-2 py-0.5 bg-purple-100 rounded text-xs font-medium">
+                  {task.collection.modelCode}
+                </span>
+              </div>
+            )}
+          </div>
         ) : task.sample ? (
           <span className="px-2 py-1 bg-gray-100 rounded text-xs">
             {task.sample.sampleNumber}
           </span>
-        ) : task.order ? (
-          <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-            {task.order.orderNumber}
-          </span>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
+      </TableCell>
+      <TableCell className="text-sm">
+        {task.order?.customer ? (
+          <div className="space-y-1">
+            <div className="font-medium">
+              {getUserName(task.order.customer)}
+            </div>
+            {task.order.customer.company && (
+              <div className="text-xs text-gray-500">
+                {task.order.customer.company.name}
+              </div>
+            )}
+            {task.order.company && !task.order.customer.company && (
+              <div className="text-xs text-gray-500">
+                {task.order.company.name}
+              </div>
+            )}
+          </div>
+        ) : task.user?.company ? (
+          <div className="space-y-1">
+            <div className="font-medium">{getUserName(task.user)}</div>
+            <div className="text-xs text-gray-500">
+              {task.user.company.name}
+            </div>
+          </div>
         ) : (
           <span className="text-gray-400">-</span>
         )}
@@ -248,7 +403,17 @@ function TaskRow({ task }: { task: Task }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-              onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
+              onClick={() => {
+                if (task.order) {
+                  router.push(`/dashboard/orders/${task.order.id}`);
+                } else if (task.sample) {
+                  router.push(`/dashboard/samples/${task.sample.id}`);
+                } else if (task.collection) {
+                  router.push(`/dashboard/collections`);
+                } else {
+                  router.push(`/dashboard/tasks/${task.id}`);
+                }
+              }}
             >
               Detayları Gör
             </DropdownMenuItem>
@@ -293,8 +458,8 @@ export default function TasksPage() {
   const isLoading = result.fetching;
   const error = result.error;
 
-  // Sort tasks
-  tasks = [...tasks].sort((a: Task, b: Task) => {
+  // Filter out null/undefined tasks and sort
+  tasks = [...tasks].filter(t => t != null).sort((a: Task, b: Task) => {
     if (sortBy === "priority") {
       const priorityOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
       return priorityOrder[a.priority] - priorityOrder[b.priority];
@@ -307,12 +472,12 @@ export default function TasksPage() {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
-  // Calculate stats
+  // Calculate stats with null safety
   const stats = {
     total: tasks.length,
-    todo: tasks.filter((t: Task) => t.status === "TODO").length,
-    inProgress: tasks.filter((t: Task) => t.status === "IN_PROGRESS").length,
-    completed: tasks.filter((t: Task) => t.status === "COMPLETED").length,
+    todo: tasks.filter((t: Task) => t?.status === "TODO").length,
+    inProgress: tasks.filter((t: Task) => t?.status === "IN_PROGRESS").length,
+    completed: tasks.filter((t: Task) => t?.status === "COMPLETED").length,
   };
 
   if (isLoading) {
@@ -357,7 +522,12 @@ export default function TasksPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-md ${
+            statusFilter === "" ? "ring-2 ring-primary" : ""
+          }`}
+          onClick={() => setStatusFilter("")}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
               Toplam Görev
@@ -367,7 +537,12 @@ export default function TasksPage() {
             <p className="text-2xl font-bold">{stats.total}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-md ${
+            statusFilter === "TODO" ? "ring-2 ring-blue-500" : ""
+          }`}
+          onClick={() => setStatusFilter("TODO")}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
               Yapılacak
@@ -377,7 +552,12 @@ export default function TasksPage() {
             <p className="text-2xl font-bold text-blue-600">{stats.todo}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-md ${
+            statusFilter === "IN_PROGRESS" ? "ring-2 ring-yellow-500" : ""
+          }`}
+          onClick={() => setStatusFilter("IN_PROGRESS")}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
               Devam Ediyor
@@ -389,7 +569,12 @@ export default function TasksPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-md ${
+            statusFilter === "COMPLETED" ? "ring-2 ring-green-500" : ""
+          }`}
+          onClick={() => setStatusFilter("COMPLETED")}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
               Tamamlandı
@@ -451,7 +636,8 @@ export default function TasksPage() {
                 <TableHead className="w-28">Öncelik</TableHead>
                 <TableHead className="w-32">Durum</TableHead>
                 <TableHead className="w-28">Son Tarih</TableHead>
-                <TableHead className="w-40">İlişkili</TableHead>
+                <TableHead className="w-52">Sipariş/Ürün Bilgisi</TableHead>
+                <TableHead className="w-48">Gönderen Firma</TableHead>
                 <TableHead className="w-32">Atanan Kişi</TableHead>
                 <TableHead className="w-12 text-right">İşlem</TableHead>
               </TableRow>
@@ -459,12 +645,12 @@ export default function TasksPage() {
             <TableBody>
               {tasks.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     <p className="text-gray-500">Görev bulunamadı</p>
                   </TableCell>
                 </TableRow>
               ) : (
-                tasks.map((task: Task) => <TaskRow key={task.id} task={task} />)
+                tasks.map((task: Task) => task && <TaskRow key={task.id} task={task} />)
               )}
             </TableBody>
           </Table>

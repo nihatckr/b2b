@@ -481,7 +481,7 @@ async function main() {
   console.log("✅ Koleksiyon Kategorisi: Gömlek");
 
   // 18. Defacto için Koleksiyon Oluştur
-  const defactoCollection = await prisma.collection.create({
+  const defactoCollection1 = await prisma.collection.create({
     data: {
       name: "Premium Comfort - SS25",
       description:
@@ -500,9 +500,9 @@ async function main() {
         labels: "Dokuma",
       }),
       images: JSON.stringify([
-        "https://images.unsplash.com/photo-1485455299119-5fbf5e4ec5a8?w=500",
-        "https://images.unsplash.com/photo-1490578474895-699cd4e1d83e?w=500",
-        "https://images.unsplash.com/photo-1554568618-0f6694e9b0b1?w=500",
+        "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=800&q=80",
+        "https://images.unsplash.com/photo-1564859228273-274232fdb516?w=800&q=80",
+        "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80",
       ]),
       moq: 500,
       targetPrice: 15.5,
@@ -527,7 +527,193 @@ async function main() {
       companyId: defactoCompany.id,
     },
   });
-  console.log("✅ Koleksiyon Oluşturuldu: " + defactoCollection.name);
+  console.log("✅ Koleksiyon 1: " + defactoCollection1.name);
+
+  const defactoCollection2 = await prisma.collection.create({
+    data: {
+      name: "Urban Casual Denim",
+      description: "Modern şehir yaşamı için rahat denim koleksiyonu",
+      modelCode: "DEF-SS25-002",
+      season: "SS25",
+      gender: "UNISEX",
+      fit: "Regular",
+      trend: "Casual",
+      colors: JSON.stringify(["Mavi", "Siyah", "Beyaz"]),
+      sizeGroups: JSON.stringify([1, 2]),
+      fabricComposition: "98% Cotton, 2% Elastane",
+      accessories: JSON.stringify({
+        buttons: "Metal",
+        zipper: "YKK",
+        rivets: "Bakır",
+      }),
+      images: JSON.stringify([
+        "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&q=80",
+        "https://images.unsplash.com/photo-1495105787522-5334e3ffa0ef?w=800&q=80",
+        "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=800&q=80",
+      ]),
+      moq: 1000,
+      targetPrice: 25.0,
+      targetLeadTime: 28,
+      notes: "Stretch denim, konforu maksimum",
+      price: 25.0,
+      stock: 3000,
+      isActive: true,
+      isFeatured: true,
+      slug: "urban-casual-denim",
+      productionSchedule: JSON.stringify({
+        PLANNING: 3,
+        FABRIC: 3,
+        CUTTING: 2,
+        SEWING: 10,
+        QUALITY: 3,
+        PACKAGING: 2,
+        SHIPPING: 2,
+      }),
+      categoryId: defactoCategory.id,
+      authorId: defactoOwner.id,
+      companyId: defactoCompany.id,
+    },
+  });
+  console.log("✅ Koleksiyon 2: " + defactoCollection2.name);
+
+  const defactoCollection3 = await prisma.collection.create({
+    data: {
+      name: "Summer Breeze Collection",
+      description: "Hafif ve havadar yaz elbiseleri",
+      modelCode: "DEF-SS25-003",
+      season: "SS25",
+      gender: "WOMEN",
+      fit: "Slim Fit",
+      trend: "Bohemian",
+      colors: JSON.stringify(["Beyaz", "Beige", "Mavi"]),
+      sizeGroups: JSON.stringify([1]),
+      fabricComposition: "100% Linen",
+      accessories: JSON.stringify({
+        buttons: "Ahşap",
+        labels: "Dokuma",
+      }),
+      images: JSON.stringify([
+        "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&q=80",
+        "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80",
+        "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=800&q=80",
+      ]),
+      moq: 300,
+      targetPrice: 32.0,
+      targetLeadTime: 25,
+      notes: "Doğal keten kumaş, eco-friendly",
+      price: 32.0,
+      stock: 1500,
+      isActive: true,
+      isFeatured: false,
+      slug: "summer-breeze-collection",
+      productionSchedule: JSON.stringify({
+        PLANNING: 2,
+        FABRIC: 3,
+        CUTTING: 2,
+        SEWING: 8,
+        QUALITY: 2,
+        PACKAGING: 2,
+        SHIPPING: 1,
+      }),
+      categoryId: defactoCategory.id,
+      authorId: defactoOwner.id,
+      companyId: defactoCompany.id,
+    },
+  });
+  console.log("✅ Koleksiyon 3: " + defactoCollection3.name);
+
+  const defactoCollection4 = await prisma.collection.create({
+    data: {
+      name: "Active Sport Pro",
+      description: "Performans odaklı aktif spor giyim serisi",
+      modelCode: "DEF-SS25-004",
+      season: "SS25",
+      gender: "MEN",
+      fit: "Athletic",
+      trend: "Athletic",
+      colors: JSON.stringify(["Siyah", "Mavi"]),
+      sizeGroups: JSON.stringify([2]),
+      fabricComposition: "88% Polyester, 12% Elastane",
+      accessories: JSON.stringify({
+        zipper: "YKK Sport",
+        labels: "Silikon baskı",
+      }),
+      images: JSON.stringify([
+        "https://images.unsplash.com/photo-1571731956672-f2b94d7dd0cb?w=800&q=80",
+        "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80",
+        "https://images.unsplash.com/photo-1578932750294-f5075e85f44a?w=800&q=80",
+      ]),
+      moq: 800,
+      targetPrice: 18.5,
+      targetLeadTime: 20,
+      notes: "Nefes alan kumaş, nem emici",
+      price: 18.5,
+      stock: 2000,
+      isActive: true,
+      isFeatured: true,
+      slug: "active-sport-pro",
+      productionSchedule: JSON.stringify({
+        PLANNING: 2,
+        FABRIC: 2,
+        CUTTING: 1,
+        SEWING: 6,
+        QUALITY: 2,
+        PACKAGING: 1,
+        SHIPPING: 1,
+      }),
+      categoryId: defactoCategory.id,
+      authorId: defactoOwner.id,
+      companyId: defactoCompany.id,
+    },
+  });
+  console.log("✅ Koleksiyon 4: " + defactoCollection4.name);
+
+  const defactoCollection5 = await prisma.collection.create({
+    data: {
+      name: "Winter Elegance FW25",
+      description: "Kış sezonu zarif iş kıyafetleri",
+      modelCode: "DEF-FW25-001",
+      season: "FW25",
+      gender: "WOMEN",
+      fit: "Slim Fit",
+      trend: "Business",
+      colors: JSON.stringify(["Siyah", "Beige"]),
+      sizeGroups: JSON.stringify([1]),
+      fabricComposition: "70% Wool, 30% Polyester",
+      accessories: JSON.stringify({
+        buttons: "Metal altın kaplama",
+        lining: "Satin",
+        labels: "Deri",
+      }),
+      images: JSON.stringify([
+        "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80",
+        "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=800&q=80",
+        "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&q=80",
+      ]),
+      moq: 400,
+      targetPrice: 55.0,
+      targetLeadTime: 35,
+      notes: "Premium yün kumaş, astar dahil",
+      price: 55.0,
+      stock: 800,
+      isActive: true,
+      isFeatured: true,
+      slug: "winter-elegance-fw25",
+      productionSchedule: JSON.stringify({
+        PLANNING: 4,
+        FABRIC: 4,
+        CUTTING: 3,
+        SEWING: 12,
+        QUALITY: 3,
+        PACKAGING: 2,
+        SHIPPING: 2,
+      }),
+      categoryId: defactoCategory.id,
+      authorId: defactoOwner.id,
+      companyId: defactoCompany.id,
+    },
+  });
+  console.log("✅ Koleksiyon 5: " + defactoCollection5.name);
 
   console.log("\n" + "=".repeat(60));
   console.log("📋 Test Kimlik Bilgileri Özeti");

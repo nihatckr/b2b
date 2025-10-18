@@ -23,26 +23,28 @@ export const TaskPriority = enumType({
 export const TaskType = enumType({
   name: "TaskType",
   members: {
-    // Müşteri taskleri
-    SAMPLE_REQUEST: "SAMPLE_REQUEST",
-    PURCHASE_ORDER: "PURCHASE_ORDER",
-    APPROVE_SAMPLE: "APPROVE_SAMPLE",
-    PAYMENT_PENDING: "PAYMENT_PENDING",
-    DOCUMENT_SUBMIT: "DOCUMENT_SUBMIT",
-    REVIEW_PRODUCTION: "REVIEW_PRODUCTION",
-    // Üretici taskleri
-    SAMPLE_PRODUCTION: "SAMPLE_PRODUCTION",
-    SAMPLE_RESPONSE: "SAMPLE_RESPONSE",
-    QUOTATION: "QUOTATION",
-    PRODUCTION_START: "PRODUCTION_START",
-    PRODUCTION_QUALITY_CHECK: "PRODUCTION_QUALITY_CHECK",
-    PRODUCTION_SHIPMENT: "PRODUCTION_SHIPMENT",
-    MATERIAL_PROCUREMENT: "MATERIAL_PROCUREMENT",
-    REVISION_REQUEST: "REVISION_REQUEST",
-    // Genel
-    MEETING: "MEETING",
-    DOCUMENT_REVIEW: "DOCUMENT_REVIEW",
-    OTHER: "OTHER",
+    // === STATUS BAZLI GÖREVLER (Dinamik) ===
+    STATUS_CHANGE: "STATUS_CHANGE", // Status değişikliği gerektiren görev
+
+    // === ÖZEL GÖREV TİPLERİ ===
+    QUOTATION: "QUOTATION", // Fiyat teklifi hazırla/gönder
+    REVIEW_QUOTE: "REVIEW_QUOTE", // Teklifi incele (müşteri veya üretici)
+    APPROVE_REJECT: "APPROVE_REJECT", // Onay/Red aksiyonu gerekli
+    PAYMENT: "PAYMENT", // Ödeme işlemi
+    DOCUMENT: "DOCUMENT", // Belge/Doküman işlemi
+
+    // === ÜRETİM SÜRECİ GÖREVLER ===
+    PRODUCTION_STAGE: "PRODUCTION_STAGE", // Üretim aşama görevleri
+    QUALITY_CHECK: "QUALITY_CHECK", // Kalite kontrol görevi
+    SHIPMENT: "SHIPMENT", // Kargo/Sevkiyat işlemi
+    MATERIAL: "MATERIAL", // Malzeme tedarik/kontrol
+
+    // === GENEL GÖREVLER ===
+    MEETING: "MEETING", // Toplantı
+    REVISION: "REVISION", // Revize talebi
+    NOTIFICATION: "NOTIFICATION", // Bilgilendirme (aksiyon gerektirmeyen)
+    DEADLINE_WARNING: "DEADLINE_WARNING", // Termin uyarısı
+    OTHER: "OTHER", // Diğer
   },
 });
 
@@ -56,6 +58,14 @@ export const Task = objectType({
     t.nonNull.field("status", { type: TaskStatus });
     t.nonNull.field("priority", { type: TaskPriority });
     t.nonNull.field("type", { type: TaskType });
+
+    // Status İlişkisi
+    t.string("relatedStatus"); // Hangi status için bu task oluşturuldu
+    t.string("targetStatus"); // Hedef status
+    t.string("entityType"); // "ORDER", "SAMPLE", "PRODUCTION"
+
+    // Üretim Aşaması İlişkisi
+    t.string("productionStage"); // "PLANNING", "FABRIC", "CUTTING", vb.
 
     // User Relations
     t.nonNull.field("user", {
@@ -125,5 +135,6 @@ export const Task = objectType({
 
     // Metadata
     t.string("notes");
+    t.field("actionData", { type: "JSON" }); // Aksiyon metadata
   },
 });

@@ -31,6 +31,9 @@ import {
   SEND_MESSAGE_MUTATION,
 } from "@/lib/graphql/message-operations";
 import {
+  APPROVE_CUSTOMER_QUOTE_MUTATION,
+  REJECT_CUSTOMER_QUOTE_MUTATION,
+  SUBMIT_CUSTOMER_QUOTE_MUTATION,
   UPDATE_ORDER_MUTATION,
   UPDATE_ORDER_STATUS_MUTATION,
 } from "@/lib/graphql/mutations";
@@ -65,8 +68,24 @@ const getOrderStatusBadge = (status: string) => {
       label: "Teklif Gönderildi",
       className: "bg-yellow-100 text-yellow-800",
     },
+    CUSTOMER_QUOTE_SENT: {
+      label: "Müşteri Teklifi",
+      className: "bg-amber-100 text-amber-800",
+    },
+    MANUFACTURER_REVIEWING_QUOTE: {
+      label: "Teklif İnceleniyor",
+      className: "bg-violet-100 text-violet-800",
+    },
     CONFIRMED: { label: "Onaylandı", className: "bg-green-100 text-green-800" },
     REJECTED: { label: "Reddedildi", className: "bg-red-100 text-red-800" },
+    REJECTED_BY_CUSTOMER: {
+      label: "Müşteri Reddetti",
+      className: "bg-rose-100 text-rose-800",
+    },
+    REJECTED_BY_MANUFACTURER: {
+      label: "Üretici Reddetti",
+      className: "bg-red-100 text-red-800",
+    },
     IN_PRODUCTION: {
       label: "Üretimde",
       className: "bg-orange-100 text-orange-800",
@@ -106,6 +125,8 @@ export default function OrderDetailPage() {
 
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCustomerQuoteDialogOpen, setIsCustomerQuoteDialogOpen] = useState(false);
+  const [isManufacturerReviewDialogOpen, setIsManufacturerReviewDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [messageContent, setMessageContent] = useState("");
@@ -117,7 +138,17 @@ export default function OrderDetailPage() {
     manufacturerResponse: "",
     productionDays: "",
     estimatedProductionDate: "",
+    unitPrice: "",
   });
+
+  const [customerQuoteData, setCustomerQuoteData] = useState({
+    quotedPrice: "",
+    quoteDays: "",
+    quoteNote: "",
+    quoteType: "STANDARD", // "STANDARD" or "REVISION"
+  });
+
+  const [manufacturerReviewNote, setManufacturerReviewNote] = useState("");
 
   const [{ data, fetching, error }, reexecuteQuery] = useQuery({
     query: ORDER_BY_ID_QUERY,
@@ -126,6 +157,9 @@ export default function OrderDetailPage() {
 
   const [, updateOrderStatus] = useMutation(UPDATE_ORDER_STATUS_MUTATION);
   const [, updateOrder] = useMutation(UPDATE_ORDER_MUTATION);
+  const [, submitCustomerQuote] = useMutation(SUBMIT_CUSTOMER_QUOTE_MUTATION);
+  const [, approveCustomerQuote] = useMutation(APPROVE_CUSTOMER_QUOTE_MUTATION);
+  const [, rejectCustomerQuote] = useMutation(REJECT_CUSTOMER_QUOTE_MUTATION);
   const [, sendMessage] = useMutation(SEND_MESSAGE_MUTATION);
   const [, markAsRead] = useMutation(MARK_MESSAGE_READ_MUTATION);
 
@@ -309,6 +343,7 @@ export default function OrderDetailPage() {
       estimatedProductionDate: order.estimatedProductionDate
         ? new Date(order.estimatedProductionDate).toISOString().split("T")[0]
         : "",
+      unitPrice: "",
     });
     setIsEditDialogOpen(true);
   };
@@ -480,6 +515,241 @@ export default function OrderDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Manufacturer Actions for REVIEWED Status */}
+      {isCurrentUserManufacturer && order.status === "REVIEWED" && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="text-blue-900">
+              📋 Sipariş İnceleme - Aksiyon Gerekli
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-blue-800">
+              Siparişi incelemeyi tamamladınız. Şimdi müşteriye teklif gönderebilir
+              veya revize teklif sunabilirsiniz.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Button
+                onClick={async () => {
+                  if (!confirm("Teklifi müşteriye göndermek istediğinizden emin misiniz?")) {
+                    return;
+                  }
+                  setIsSubmitting(true);
+                  try {
+                    const result = await updateOrderStatus({
+                      id: order.id,
+                      status: "QUOTE_SENT",
+                    });
+                    if (result.error) {
+                      throw new Error(result.error.message);
+                    }
+                    toast.success("✅ Teklif müşteriye gönderildi!");
+                    reexecuteQuery({ requestPolicy: "network-only" });
+                  } catch (error: any) {
+                    toast.error(error.message || "Hata oluştu");
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "💰 Teklif Gönder (Onaya Gönder)"
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setActionType("SEND_REVISION");
+                  setIsActionDialogOpen(true);
+                }}
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                📝 Revize Teklif Sun
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Customer Actions for QUOTE_SENT Status */}
+      {isCurrentUserCustomer && order.status === "QUOTE_SENT" && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="text-amber-900">
+              💰 Üretici Teklifi Geldi - Aksiyon Gerekli
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white p-4 rounded-lg border border-amber-200">
+              <h4 className="font-semibold mb-2">Üretici Teklifi:</h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-600">Birim Fiyat:</span>
+                  <p className="font-bold text-lg">₺{order.unitPrice.toFixed(2)}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Üretim Süresi:</span>
+                  <p className="font-bold text-lg">{order.productionDays || "-"} gün</p>
+                </div>
+              </div>
+              {order.manufacturerResponse && (
+                <div className="mt-3">
+                  <span className="text-gray-600 text-sm">Not:</span>
+                  <p className="text-sm mt-1">{order.manufacturerResponse}</p>
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-amber-800">
+              Üreticinin teklifini inceleyebilir, aynen kabul edebilir veya revize ederek gönderebilirsiniz.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Button
+                onClick={() => {
+                  setCustomerQuoteData({
+                    quotedPrice: order.unitPrice.toString(),
+                    quoteDays: order.productionDays?.toString() || "",
+                    quoteNote: "",
+                    quoteType: "STANDARD", // İlk başta standart, değişiklik olursa revize
+                  });
+                  setIsCustomerQuoteDialogOpen(true);
+                }}
+                disabled={isSubmitting}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                ✅ Teklifi İncele ve Gönder
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (!confirm("Teklifi reddetmek istediğinizden emin misiniz?")) return;
+                  setIsSubmitting(true);
+                  try {
+                    const result = await updateOrderStatus({
+                      id: order.id,
+                      status: "REJECTED_BY_CUSTOMER",
+                      note: "Müşteri teklifi uygun bulmadı",
+                    });
+                    if (result.error) {
+                      throw new Error(result.error.message);
+                    }
+                    toast.success("Teklif reddedildi");
+                    reexecuteQuery({ requestPolicy: "network-only" });
+                  } catch (error: any) {
+                    toast.error(error.message || "Hata oluştu");
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                ❌ Teklifi Reddet
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Manufacturer Actions for CUSTOMER_QUOTE_SENT Status */}
+      {isCurrentUserManufacturer && order.status === "CUSTOMER_QUOTE_SENT" && (
+        <Card className="border-violet-200 bg-violet-50">
+          <CardHeader>
+            <CardTitle className="text-violet-900">
+              💼 Müşteri Teklifi Geldi - Aksiyon Gerekli
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white p-4 rounded-lg border border-violet-200">
+              <div className="flex items-center gap-2 mb-3">
+                <h4 className="font-semibold">Müşteri Teklifi:</h4>
+                <Badge className="bg-violet-100 text-violet-800">
+                  {order.customerQuoteType === "STANDARD" ? "Standart Teklif" : "Revize Teklif"}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-600">Teklif Edilen Fiyat:</span>
+                  <p className="font-bold text-lg">₺{order.customerQuotedPrice?.toFixed(2) || "-"}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">İstenen Süre:</span>
+                  <p className="font-bold text-lg">{order.customerQuoteDays || "-"} gün</p>
+                </div>
+              </div>
+              {order.customerQuoteNote && (
+                <div className="mt-3">
+                  <span className="text-gray-600 text-sm">Müşteri Notu:</span>
+                  <p className="text-sm mt-1 italic">{order.customerQuoteNote}</p>
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-violet-800">
+              {order.customerQuoteType === "REVISION"
+                ? "Müşteri revize teklif gönderdi. Kabul edebilir, yeni revize teklif sunabilir veya reddedebilirsiniz."
+                : "Müşteri standart teklifinizi kabul etti. Onaylayarak üretimi başlatabilir veya reddedebilirsiniz."}
+            </p>
+            <div className={`grid grid-cols-1 ${order.customerQuoteType === "REVISION" ? "md:grid-cols-3" : "md:grid-cols-2"} gap-3`}>
+              <Button
+                onClick={() => setIsManufacturerReviewDialogOpen(true)}
+                disabled={isSubmitting}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                ✅ Kabul Et - Üretimi Başlat
+              </Button>
+
+              {/* Revize teklif butonu sadece müşteri REVISION gönderdiyse göster */}
+              {order.customerQuoteType && order.customerQuoteType === "REVISION" && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setActionType("SEND_REVISION");
+                    setIsActionDialogOpen(true);
+                  }}
+                  disabled={isSubmitting}
+                  className="w-full"
+                >
+                  📝 Revize Teklif Sun
+                </Button>
+              )}
+
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  const reason = prompt("Ret sebebini belirtin:");
+                  if (!reason) return;
+
+                  setIsSubmitting(true);
+                  try {
+                    const result = await rejectCustomerQuote({
+                      orderId: order.id,
+                      rejectionReason: reason,
+                    });
+                    if (result.error) {
+                      throw new Error(result.error.message);
+                    }
+                    toast.success("❌ Müşteri teklifi reddedildi");
+                    reexecuteQuery({ requestPolicy: "network-only" });
+                  } catch (error: any) {
+                    toast.error(error.message || "Hata oluştu");
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                ❌ Reddet - Sipariş İptal
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Production Timeline */}
       <Card>
@@ -760,6 +1030,429 @@ export default function OrderDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Action Dialog for Quote/Revision */}
+      <Dialog open={isActionDialogOpen} onOpenChange={setIsActionDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {actionType === "SEND_QUOTE"
+                ? "💰 Teklif Gönder"
+                : "📝 Revize Teklif"}
+            </DialogTitle>
+            <DialogDescription>
+              {actionType === "SEND_QUOTE"
+                ? "Müşteriye teklif gönderin ve onayına sunun"
+                : "Müşteriye revize teklif gönderin"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {actionType === "SEND_REVISION" && (
+              <div className="space-y-2">
+                <Label>Revize Birim Fiyat (₺) *</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Örn: 50.00"
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      unitPrice: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label>Üretim Süresi (Gün) *</Label>
+              <Input
+                type="number"
+                min="1"
+                placeholder="Örn: 30"
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    productionDays: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Mesajınız *</Label>
+              <Textarea
+                placeholder={
+                  actionType === "SEND_QUOTE"
+                    ? "Siparişinizi kabul ediyoruz. Üretim süresi..."
+                    : "Revize teklifimiz: Fiyat ve süre değişiklikleri..."
+                }
+                rows={4}
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    manufacturerResponse: e.target.value,
+                  })
+                }
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsActionDialogOpen(false);
+                setActionType("");
+              }}
+              disabled={isSubmitting}
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={async () => {
+                // Validation
+                if (!editFormData.productionDays || !editFormData.manufacturerResponse) {
+                  toast.error("Lütfen tüm alanları doldurun");
+                  return;
+                }
+
+                if (actionType === "SEND_REVISION" && !editFormData.unitPrice) {
+                  toast.error("Lütfen revize fiyat girin");
+                  return;
+                }
+
+                setIsSubmitting(true);
+                try {
+                  // Eğer CUSTOMER_QUOTE_SENT durumundaysa, önce müşteri teklifini reddet
+                  if (order.status === "CUSTOMER_QUOTE_SENT") {
+                    const rejectResult = await rejectCustomerQuote({
+                      orderId: order.id,
+                      rejectionReason: "Üretici revize teklif sunuyor",
+                    });
+
+                    if (rejectResult.error) {
+                      throw new Error(rejectResult.error.message);
+                    }
+                  }
+
+                  // Revize teklif için fiyat güncellemesi
+                  const updateData: any = {
+                    id: order.id,
+                    status: "QUOTE_SENT",
+                    note: editFormData.manufacturerResponse,
+                    estimatedDays: parseInt(editFormData.productionDays),
+                  };
+
+                  if (actionType === "SEND_REVISION" && editFormData.unitPrice) {
+                    updateData.quotedPrice = parseFloat(editFormData.unitPrice);
+                  }
+
+                  const result = await updateOrderStatus(updateData);
+
+                  if (result.error) {
+                    throw new Error(result.error.message);
+                  }
+
+                  toast.success(
+                    actionType === "SEND_QUOTE"
+                      ? "✅ Teklif başarıyla gönderildi"
+                      : "✅ Revize teklif gönderildi"
+                  );
+                  setIsActionDialogOpen(false);
+                  setActionType("");
+                  setEditFormData({
+                    status: "",
+                    manufacturerResponse: "",
+                    productionDays: "",
+                    estimatedProductionDate: "",
+                    unitPrice: "",
+                  });
+                  reexecuteQuery({ requestPolicy: "network-only" });
+                } catch (error: unknown) {
+                  const errorMessage =
+                    error instanceof Error
+                      ? error.message
+                      : "Teklif gönderilirken hata oluştu";
+                  toast.error(errorMessage);
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              Gönder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Customer Quote Dialog */}
+      <Dialog open={isCustomerQuoteDialogOpen} onOpenChange={setIsCustomerQuoteDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>💰 Teklifi İncele ve Gönder</DialogTitle>
+            <DialogDescription>
+              Üreticinin teklifini olduğu gibi kabul edebilir veya fiyat/süre değiştirerek revize teklif gönderebilirsiniz.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Orijinal Teklif Bilgisi */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <h4 className="text-sm font-semibold text-blue-900 mb-2">Üretici Teklifi:</h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-blue-700">Birim Fiyat:</span>
+                  <p className="font-bold">₺{order.unitPrice.toFixed(2)}</p>
+                </div>
+                <div>
+                  <span className="text-blue-700">Üretim Süresi:</span>
+                  <p className="font-bold">{order.productionDays} gün</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Form Alanları */}
+            <div className="space-y-2">
+              <Label htmlFor="quotedPrice">
+                Teklif Ettiğiniz Birim Fiyat (₺) *
+              </Label>
+              <Input
+                id="quotedPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                value={customerQuoteData.quotedPrice}
+                onChange={(e) =>
+                  setCustomerQuoteData({
+                    ...customerQuoteData,
+                    quotedPrice: e.target.value,
+                  })
+                }
+                placeholder="Örn: 45.50"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="quoteDays">
+                İstediğiniz Üretim Süresi (Gün) *
+              </Label>
+              <Input
+                id="quoteDays"
+                type="number"
+                min="1"
+                value={customerQuoteData.quoteDays}
+                onChange={(e) =>
+                  setCustomerQuoteData({
+                    ...customerQuoteData,
+                    quoteDays: e.target.value,
+                  })
+                }
+                placeholder="Örn: 25"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="quoteNote">Not (Opsiyonel)</Label>
+              <Textarea
+                id="quoteNote"
+                value={customerQuoteData.quoteNote}
+                onChange={(e) =>
+                  setCustomerQuoteData({
+                    ...customerQuoteData,
+                    quoteNote: e.target.value,
+                  })
+                }
+                placeholder="Varsa notunuzu yazın..."
+                rows={3}
+              />
+            </div>
+
+            {/* Otomatik Tip Belirleme Mesajı */}
+            {(() => {
+              const originalPrice = order.unitPrice.toString();
+              const originalDays = order.productionDays?.toString() || "";
+              const isChanged =
+                customerQuoteData.quotedPrice !== originalPrice ||
+                customerQuoteData.quoteDays !== originalDays;
+
+              return (
+                <div className={`border rounded-lg p-3 ${isChanged ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
+                  <p className={`text-sm ${isChanged ? 'text-amber-800' : 'text-green-800'}`}>
+                    {isChanged ? (
+                      <>📝 <strong>Revize Teklif:</strong> Fiyat veya süre değiştirdiniz. Bu revize teklif olarak gönderilecek.</>
+                    ) : (
+                      <>✅ <strong>Standart Teklif:</strong> Üreticinin teklifini aynen kabul ediyorsunuz. Üretim otomatik başlayacak.</>
+                    )}
+                  </p>
+                </div>
+              );
+            })()}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCustomerQuoteDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!customerQuoteData.quotedPrice || !customerQuoteData.quoteDays) {
+                  toast.error("Lütfen fiyat ve süre alanlarını doldurun");
+                  return;
+                }
+
+                // Frontend'de gösterim için tip belirleme
+                const originalPrice = order.unitPrice.toString();
+                const originalDays = order.productionDays?.toString() || "";
+                const isChanged =
+                  customerQuoteData.quotedPrice !== originalPrice ||
+                  customerQuoteData.quoteDays !== originalDays;
+
+                setIsSubmitting(true);
+                try {
+                  // Backend otomatik tip belirleyecek, quoteType göndermeye gerek yok
+                  const result = await submitCustomerQuote({
+                    orderId: order.id,
+                    quotedPrice: parseFloat(customerQuoteData.quotedPrice),
+                    quoteDays: parseInt(customerQuoteData.quoteDays),
+                    quoteNote: customerQuoteData.quoteNote || undefined,
+                  });
+
+                  if (result.error) {
+                    throw new Error(result.error.message);
+                  }
+
+                  toast.success(
+                    isChanged
+                      ? "📝 Revize teklif gönderildi"
+                      : "✅ Teklif onaylandı! Üretim başlayacak."
+                  );
+                  setIsCustomerQuoteDialogOpen(false);
+                  setCustomerQuoteData({
+                    quotedPrice: "",
+                    quoteDays: "",
+                    quoteNote: "",
+                    quoteType: "STANDARD",
+                  });
+                  reexecuteQuery({ requestPolicy: "network-only" });
+                } catch (error: any) {
+                  toast.error(error.message || "Hata oluştu");
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+              disabled={isSubmitting}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Teklifi Gönder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manufacturer Review Dialog */}
+      <Dialog open={isManufacturerReviewDialogOpen} onOpenChange={setIsManufacturerReviewDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>✅ Müşteri Teklifini Onayla</DialogTitle>
+            <DialogDescription>
+              Müşterinin teklifini kabul ederek üretim otomatik başlayacak.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-violet-50 border border-violet-200 rounded-lg p-4">
+              <h4 className="font-semibold mb-2">Müşteri Teklifi:</h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-600">Birim Fiyat:</span>
+                  <p className="font-bold">₺{order.customerQuotedPrice?.toFixed(2) || "-"}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Üretim Süresi:</span>
+                  <p className="font-bold">{order.customerQuoteDays || "-"} gün</p>
+                </div>
+              </div>
+              {order.customerQuoteNote && (
+                <div className="mt-2 text-sm">
+                  <span className="text-gray-600">Not:</span>
+                  <p className="italic">{order.customerQuoteNote}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="manufacturerReviewNote">Onay Notu (Opsiyonel)</Label>
+              <Textarea
+                id="manufacturerReviewNote"
+                value={manufacturerReviewNote}
+                onChange={(e) => setManufacturerReviewNote(e.target.value)}
+                placeholder="Onay notunuz..."
+                rows={3}
+              />
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <p className="text-sm text-green-800">
+                ✅ Onayladığınızda sipariş durumu CONFIRMED → IN_PRODUCTION olarak güncellenecek
+                ve üretim otomatik başlayacak.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsManufacturerReviewDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={async () => {
+                setIsSubmitting(true);
+                try {
+                  const result = await approveCustomerQuote({
+                    orderId: order.id,
+                    note: manufacturerReviewNote || undefined,
+                  });
+
+                  if (result.error) {
+                    throw new Error(result.error.message);
+                  }
+
+                  toast.success("✅ Müşteri teklifi onaylandı! Üretim başladı.");
+                  setIsManufacturerReviewDialogOpen(false);
+                  setManufacturerReviewNote("");
+                  reexecuteQuery({ requestPolicy: "network-only" });
+                } catch (error: any) {
+                  toast.error(error.message || "Hata oluştu");
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+              disabled={isSubmitting}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Onayla - Üretimi Başlat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Order Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

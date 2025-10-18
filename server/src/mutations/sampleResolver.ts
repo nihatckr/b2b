@@ -1,5 +1,6 @@
 import { intArg, nonNull } from "nexus";
 import { Context } from "../context";
+import { DynamicTaskHelper } from "../utils/dynamicTaskHelper";
 import { createNotification } from "../utils/notificationHelper";
 import { isBuyer, requirePermission } from "../utils/permissions";
 import { TaskHelper } from "../utils/taskHelper";
@@ -262,7 +263,21 @@ export const sampleMutations = (t: any) => {
       if (input.name !== undefined) updateData.name = input.name;
       if (input.description !== undefined)
         updateData.description = input.description;
-      if (input.status !== undefined) updateData.status = input.status;
+
+      // Status update validation - prevent moving to production stages without customer approval
+      if (input.status !== undefined) {
+        const currentStatus = existingSample.status;
+        const newStatus = input.status;
+        const needsCustomerApproval = ["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(currentStatus);
+        const productionStages = ["IN_PRODUCTION", "PRODUCTION_COMPLETE", "QUALITY_CHECK", "SHIPPED", "DELIVERED"];
+
+        if (needsCustomerApproval && productionStages.includes(newStatus)) {
+          throw new Error("Müşteri teklifi onaylamadan üretim aşamalarına geçilemez! (Customer approval required before production stages)");
+        }
+
+        updateData.status = input.status;
+      }
+
       if (input.manufactureId !== undefined)
         updateData.manufactureId = input.manufactureId;
       if (input.customerNote !== undefined)
@@ -343,6 +358,16 @@ export const sampleMutations = (t: any) => {
           );
         }
         requirePermission(user, "samples", "updateStatus");
+      }
+
+      // Status update validation - prevent moving to production stages without customer approval
+      const currentStatus = existingSample.status;
+      const newStatus = input.status;
+      const needsCustomerApproval = ["QUOTE_SENT", "CUSTOMER_QUOTE_SENT"].includes(currentStatus);
+      const productionStages = ["IN_PRODUCTION", "PRODUCTION_COMPLETE", "QUALITY_CHECK", "SHIPPED", "DELIVERED"];
+
+      if (needsCustomerApproval && productionStages.includes(newStatus)) {
+        throw new Error("Müşteri teklifi onaylamadan üretim aşamalarına geçilemez! (Customer approval required before production stages)");
       }
 
       // Calculate estimated production date if production days provided
@@ -511,90 +536,19 @@ export const sampleMutations = (t: any) => {
         }
       }
 
-      // AUTO-CREATE TASKS based on status change
-      // Get collection owner (customer) - Collection has userId, not customerId
-      let customerId: number | null = sample.customerId;
+      // ============================================
+      // 🚀 DYNAMIC TASK SYSTEM - Otomatik Task Oluşturma
+      // ============================================
+      const dynamicTaskHelper = new DynamicTaskHelper(context.prisma);
 
-      // Task creation based on sample status transitions
-      if (
-        input.status === "PATTERN_READY" &&
-        sample.status !== "PATTERN_READY"
-      ) {
-        // Sample approved and ready for pattern - Create approval task for customer
-        if (customerId) {
-          await context.prisma.task.create({
-            data: {
-              title: `Approve Sample Pattern - ${sample.sampleNumber}`,
-              description: `Sample ${sample.sampleNumber} pattern is ready. Please review and approve to proceed with production.`,
-              status: "TODO" as any,
-              priority: "HIGH" as any,
-              type: "APPROVE_SAMPLE" as any,
-              assignedToId: customerId,
-              userId: userId,
-              sampleId: sample.id,
-              collectionId: sample.collectionId || undefined,
-              dueDate: new Date(Date.now() + 72 * 60 * 60 * 1000), // 3 days
-              notes: `Auto-created when sample pattern is ready for approval`,
-            },
-          });
-        }
-      }
-
-      if (
-        input.status === "IN_PRODUCTION" &&
-        sample.status !== "IN_PRODUCTION"
-      ) {
-        // Sample production started - Create task for manufacturer
-        if (sample.manufactureId) {
-          await context.prisma.task.create({
-            data: {
-              title: `Start Sample Production - ${sample.sampleNumber}`,
-              description: `Begin production for sample ${
-                sample.sampleNumber
-              }. Production days: ${
-                input.estimatedDays || sample.productionDays || 15
-              }`,
-              status: "TODO" as any,
-              priority: "HIGH" as any,
-              type: "SAMPLE_PRODUCTION" as any,
-              assignedToId: sample.manufactureId,
-              userId: userId,
-              sampleId: sample.id,
-              collectionId: sample.collectionId || undefined,
-              dueDate: new Date(
-                Date.now() +
-                  (input.estimatedDays || sample.productionDays || 15) *
-                    24 *
-                    60 *
-                    60 *
-                    1000
-              ),
-              notes: `Auto-created when sample production starts`,
-            },
-          });
-        }
-      }
-
-      if (input.status === "REJECTED" && sample.status !== "REJECTED") {
-        // Sample rejected - Create revision task for manufacturer
-        if (sample.manufactureId) {
-          await context.prisma.task.create({
-            data: {
-              title: `Revise Sample - ${sample.sampleNumber}`,
-              description: `Sample ${sample.sampleNumber} was rejected. Please revise and resubmit for inspection.`,
-              status: "TODO" as any,
-              priority: "HIGH" as any,
-              type: "REVISION_REQUEST" as any,
-              assignedToId: sample.manufactureId,
-              userId: userId,
-              sampleId: sample.id,
-              collectionId: sample.collectionId || undefined,
-              dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days for revision
-              notes: `Auto-created when sample is rejected - unlimited revisions allowed`,
-            },
-          });
-        }
-      }
+      // Status değiştiğinde otomatik task oluştur
+      await dynamicTaskHelper.createTasksForSampleStatus(
+        sample.id,
+        input.status,
+        sample.customerId,
+        sample.manufactureId,
+        sample.collectionId || undefined
+      );
 
       // Auto-complete related tasks when sample status changes to completion statuses
       const taskHelper = new TaskHelper(context.prisma);

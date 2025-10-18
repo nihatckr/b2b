@@ -121,7 +121,7 @@ const getNavMainByRole = (userRole: string, companyType?: string) => {
       },
       {
         title: "Tasks",
-        url: "/dashboard/tasks/manufacturer",
+        url: "/dashboard/tasks",
         icon: IconClipboardList,
       },
       {

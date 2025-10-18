@@ -1,0 +1,40 @@
+{
+  "name": "@fullstack/backend-refactoring",
+  "version": "1.0.0",
+  "description": "Refactoring and backup area for main backend system",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node -r @swc-node/register src/server.ts",
+    "prisma:validate": "prisma validate",
+    "prisma:format": "prisma format",
+    "prisma:generate": "prisma generate",
+    "prisma:studio": "prisma studio",
+    "sync:schema": "cp ../server/prisma/schema.prisma ./prisma/schema.prisma && echo Schema synced from server!",
+    "diff:schema": "echo 'Compare schemas:' && diff ../server/prisma/schema.prisma ./prisma/schema.prisma || true",
+    "test": "echo \"⚠️  This is a refactoring/backup area, not for running tests\""
+  },
+  "keywords": [
+    "prisma",
+    "refactoring",
+    "backup",
+    "schema"
+  ],
+  "author": "Textile Production System Team",
+  "license": "Private",
+  "devDependencies": {
+    "@types/node": "^24.8.1",
+    "prisma": "^6.17.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@pothos/core": "^4.10.0",
+    "@prisma/client": "^6.17.1",
+    "graphql": "^16.11.0",
+    "graphql-middleware": "^6.1.35",
+    "graphql-shield": "^7.6.5",
+    "graphql-yoga": "^5.16.0"
+  }
+}

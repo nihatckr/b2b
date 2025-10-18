@@ -37,11 +37,24 @@ export const libraryQueries = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true, company: { select: { type: true } } },
+        select: {
+          companyId: true,
+          email: true,
+          company: { select: { type: true, name: true } }
+        },
+      });
+
+      console.log("📚 myFabrics - User:", {
+        userId,
+        email: user?.email,
+        companyId: user?.companyId,
+        companyType: user?.company?.type,
+        companyName: user?.company?.name
       });
 
       if (!user?.companyId) {
-        throw new Error("Must be associated with a company");
+        console.error("❌ User has no companyId:", { userId, email: user?.email });
+        throw new Error(`Must be associated with a company. Please contact support. (User ID: ${userId})`);
       }
 
       // Only manufacturers can access library
@@ -64,11 +77,23 @@ export const libraryQueries = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true, company: { select: { type: true } } },
+        select: {
+          companyId: true,
+          email: true,
+          company: { select: { type: true, name: true } }
+        },
+      });
+
+      console.log("📏 mySizeGroups - User:", {
+        userId,
+        email: user?.email,
+        companyId: user?.companyId,
+        companyType: user?.company?.type
       });
 
       if (!user?.companyId) {
-        throw new Error("Must be associated with a company");
+        console.error("❌ User has no companyId:", { userId, email: user?.email });
+        throw new Error(`Must be associated with a company. Please contact support. (User ID: ${userId})`);
       }
 
       // Only manufacturers can access library
@@ -91,11 +116,23 @@ export const libraryQueries = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true, company: { select: { type: true } } },
+        select: {
+          companyId: true,
+          email: true,
+          company: { select: { type: true, name: true } }
+        },
+      });
+
+      console.log("🌸 mySeasons - User:", {
+        userId,
+        email: user?.email,
+        companyId: user?.companyId,
+        companyType: user?.company?.type
       });
 
       if (!user?.companyId) {
-        throw new Error("Must be associated with a company");
+        console.error("❌ User has no companyId:", { userId, email: user?.email });
+        throw new Error(`Must be associated with a company. Please contact support. (User ID: ${userId})`);
       }
 
       // Only manufacturers can access library
@@ -118,11 +155,23 @@ export const libraryQueries = (t: any) => {
 
       const user = await context.prisma.user.findUnique({
         where: { id: userId },
-        select: { companyId: true, company: { select: { type: true } } },
+        select: {
+          companyId: true,
+          email: true,
+          company: { select: { type: true, name: true } }
+        },
+      });
+
+      console.log("👔 myFits - User:", {
+        userId,
+        email: user?.email,
+        companyId: user?.companyId,
+        companyType: user?.company?.type
       });
 
       if (!user?.companyId) {
-        throw new Error("Must be associated with a company");
+        console.error("❌ User has no companyId:", { userId, email: user?.email });
+        throw new Error(`Must be associated with a company. Please contact support. (User ID: ${userId})`);
       }
 
       // Only manufacturers can access library

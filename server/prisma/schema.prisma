@@ -392,12 +392,20 @@ model Sample {
   aiSketchUrl  String? // The sketch/reference image URL used
 
   // Üretim süreci bilgileri
+  unitPrice               Float? // Numune birim fiyatı
   productionDays          Int? // Üretici: "X günde üretebilirim"
   estimatedProductionDate DateTime? // Hesaplanan üretim tarihi
   actualProductionDate    DateTime? // Gerçek üretim tamamlanma tarihi
   shippingDate            DateTime? // Kargoya veriliş tarihi
   deliveryAddress         String? // Teslimat adresi
   cargoTrackingNumber     String? // Kargo takip numarası (opsiyonel)
+
+  // Müşteri Teklif Bilgileri (Order ile aynı)
+  customerQuotedPrice     Float? // Müşterinin teklif ettiği fiyat
+  customerQuoteDays       Int? // Müşterinin istediği üretim süresi (gün)
+  customerQuoteNote       String? @db.Text // Müşterinin teklif notu/açıklaması
+  customerQuoteType       String? // "STANDARD" (standartlara uygun) veya "REVISION" (revize teklif)
+  customerQuoteSentAt     DateTime? // Müşteri teklifi gönderme zamanı
 
   collection         Collection?          @relation("SampleCollection", fields: [collectionId], references: [id])
   collectionId       Int?
@@ -496,6 +504,13 @@ model Order {
   customerNote         String? // Müşteri sipariş notu
   manufacturerResponse String? // Üretici yanıtı/değerlendirme
 
+  // Müşteri Teklif Bilgileri
+  customerQuotedPrice  Float? // Müşterinin teklif ettiği birim fiyat
+  customerQuoteDays    Int? // Müşterinin istediği üretim süresi (gün)
+  customerQuoteNote    String? @db.Text // Müşterinin teklif notu/açıklaması
+  customerQuoteType    String? // "STANDARD" (standartlara uygun) veya "REVISION" (revize teklif)
+  customerQuoteSentAt  DateTime? // Müşteri teklifi gönderme zamanı
+
   // Üretim süreci bilgileri
   productionDays          Int? // Üretici: "X günde üretebilirim"
   estimatedProductionDate DateTime? // Hesaplanan üretim tarihi
@@ -581,27 +596,54 @@ enum SampleType {
 }
 
 enum SampleStatus {
+  // === İLK AŞAMALAR (AI ve Talep) ===
   AI_DESIGN // AI ile oluşturulmuş tasarım (henüz üreticiye gönderilmedi)
-  PENDING_APPROVAL // Üretici onayı bekleniyor
-  REQUESTED // Müşteri tarafından talep edildi ve üretici onayladı
-  RECEIVED // Üretici talebi aldı
-  IN_DESIGN // Tasarım aşamasında
-  PATTERN_READY // Kalıp hazır
+  PENDING_APPROVAL // Üretici onayı bekleniyor (eski flow için)
+  PENDING // Beklemede - Yeni talep
+
+  // === İNCELEME ve TEKLİF AŞAMASI ===
+  REVIEWED // Üretici tarafından inceleniyor
+  QUOTE_SENT // Üretici süre ve fiyat teklifi gönderdi
+  CUSTOMER_QUOTE_SENT // Müşteri teklif gönderdi (standart veya revize)
+  MANUFACTURER_REVIEWING_QUOTE // Üretici müşteri teklifini inceliyor
+
+  // === ONAY/RED DURUMLAR ===
+  CONFIRMED // Müşteri onayladı, üretim başlayabilir
+  REJECTED // Genel red
+  REJECTED_BY_CUSTOMER // Müşteri tarafından reddedildi
+  REJECTED_BY_MANUFACTURER // Üretici tarafından reddedildi
+
+  // === ÜRETİM AŞAMALARI ===
+  IN_DESIGN // Tasarım aşamasında (eski flow)
+  PATTERN_READY // Kalıp hazır (eski flow)
   IN_PRODUCTION // Üretim aşamasında
-  ON_HOLD // Durduruldu (geçici olarak askıya alındı)
+  PRODUCTION_COMPLETE // Üretim tamamlandı
+
+  // === KALİTE ve TESLİMAT ===
   QUALITY_CHECK // Kalite kontrolde
-  COMPLETED // Tamamlandı
-  REJECTED // Reddedildi
-  CANCELLED // İptal edildi
   SHIPPED // Kargoya verildi
+  DELIVERED // Müşteriye teslim edildi
+
+  // === DİĞER DURUMLAR ===
+  ON_HOLD // Durduruldu (geçici olarak askıya alındı)
+  CANCELLED // İptal edildi
+
+  // === ESKİ FLOW İÇİN (Geriye dönük uyumluluk) ===
+  REQUESTED // Müşteri tarafından talep edildi (eski)
+  RECEIVED // Üretici talebi aldı (eski)
+  COMPLETED // Tamamlandı (eski - artık DELIVERED kullanılıyor)
 }
 
 enum OrderStatus {
   PENDING // Sipariş beklemede
   REVIEWED // Üretici tarafından inceleniyor
   QUOTE_SENT // Üretici süre ve fiyat teklifi gönderdi
+  CUSTOMER_QUOTE_SENT // Müşteri teklif gönderdi (standart veya revize)
+  MANUFACTURER_REVIEWING_QUOTE // Üretici müşteri teklifini inceliyor
   CONFIRMED // Müşteri siparişi onayladı
   REJECTED // Sipariş reddedildi
+  REJECTED_BY_CUSTOMER // Müşteri tarafından reddedildi
+  REJECTED_BY_MANUFACTURER // Üretici tarafından reddedildi
   IN_PRODUCTION // Üretim aşamasında
   PRODUCTION_COMPLETE // Üretim tamamlandı
   QUALITY_CHECK // Kalite kontrolü yapılıyor
@@ -964,72 +1006,85 @@ enum TaskPriority {
 }
 
 enum TaskType {
-  // === MÜŞTERI TASKLERİ ===
-  SAMPLE_REQUEST // Örnek talebesi gönder
-  PURCHASE_ORDER // Satın alma siparişi gönder
-  APPROVE_SAMPLE // Örnek onay/ret
-  PAYMENT_PENDING // Ödeme yap
-  DOCUMENT_SUBMIT // Belge gönder (iş ortağı kontratı, vb)
-  REVIEW_PRODUCTION // Üretim progress'ini incele
-  
-  // === ÜRETİCİ TASKLERİ ===
-  SAMPLE_PRODUCTION // Örnek üret
-  SAMPLE_RESPONSE // Örnek talebine cevap ver
-  QUOTATION // Fiyat teklifi ver
-  PRODUCTION_START // Üretimi başlat
-  PRODUCTION_QUALITY_CHECK // Kalite kontrolü yap
-  PRODUCTION_SHIPMENT // Malları kargoya ver
-  MATERIAL_PROCUREMENT // Malzeme tedarik et
-  REVISION_REQUEST // Revize isteğine cevap ver
-  
-  // === GENEL ===
+  // === STATUS BAZLI GÖREVLER (Dinamik) ===
+  STATUS_CHANGE // Status değişikliği gerektiren görev (SampleStatus, OrderStatus ile ilişkili)
+
+  // === ÖZEL GÖREV TİPLERİ ===
+  QUOTATION // Fiyat teklifi hazırla/gönder
+  REVIEW_QUOTE // Teklifi incele (müşteri veya üretici)
+  APPROVE_REJECT // Onay/Red aksiyonu gerekli
+  PAYMENT // Ödeme işlemi
+  DOCUMENT // Belge/Doküman işlemi
+
+  // === ÜRETİM SÜRECİ GÖREVLER ===
+  PRODUCTION_STAGE // Üretim aşama görevleri (ProductionStage ile ilişkili)
+  QUALITY_CHECK // Kalite kontrol görevi
+  SHIPMENT // Kargo/Sevkiyat işlemi
+  MATERIAL // Malzeme tedarik/kontrol
+
+  // === GENEL GÖREVLER ===
   MEETING // Toplantı
-  DOCUMENT_REVIEW // Belge inceleme
+  REVISION // Revize talebi
+  NOTIFICATION // Bilgilendirme (aksiyon gerektirmeyen)
+  DEADLINE_WARNING // Termin uyarısı
   OTHER // Diğer
 }
 
 model Task {
   id            Int      @id @default(autoincrement())
-  title         String   // Görev başlığı (örn: "Örnek Onayı Beklemede")
+  title         String   // Görev başlığı (örn: "Teklif Onayı Bekliyor")
   description   String?  @db.LongText // Detaylı açıklama
   status        TaskStatus @default(TODO)
   priority      TaskPriority @default(MEDIUM)
   type          TaskType
-  
+
+  // STATUS İLİŞKİSİ - Hangi status için bu task oluşturuldu
+  relatedStatus String? // "QUOTE_SENT", "CUSTOMER_QUOTE_SENT", vb.
+  targetStatus  String? // Hedef status (bu task tamamlandığında gidilecek status)
+  entityType    String? // "ORDER", "SAMPLE", "PRODUCTION" - Hangi entity için
+
+  // ÜRETİM AŞAMASI İLİŞKİSİ
+  productionStage String? // "PLANNING", "FABRIC", "CUTTING", vb. (ProductionStage enum değeri)
+
   // Kullanıcı ve İlişkilendirmeler
   userId        Int      // Görevin oluşturduğu kullanıcı (müşteri veya üretici)
   user          User     @relation("UserTasks", fields: [userId], references: [id], onDelete: Cascade)
-  
+
   // Gözlemci (Üretici taraf için gelen görevlerde atanan kişi)
   assignedToId  Int?     // Kime atanıyor (null ise kendisine atanmış)
   assignedTo    User?    @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
-  
+
   // Opsiyonel İlişkiler
   collectionId  Int?     // Koleksiyonla ilgili görev
   collection    Collection? @relation("CollectionTasks", fields: [collectionId], references: [id], onDelete: SetNull)
-  
+
   sampleId      Int?     // Örnek talebesiyle ilgili görev
   sample        Sample?  @relation("SampleTasks", fields: [sampleId], references: [id], onDelete: SetNull)
-  
+
   orderId       Int?     // Sipariş talebesiyle ilgili görev
   order         Order?   @relation("OrderTasks", fields: [orderId], references: [id], onDelete: SetNull)
-  
+
   productionTrackingId Int?
   productionTracking ProductionTracking? @relation("ProductionTrackingTasks", fields: [productionTrackingId], references: [id], onDelete: SetNull)
-  
+
   // Tarihler
   dueDate       DateTime? // Son teslim tarihi
   completedAt   DateTime? // Tamamlanma tarihi
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   // Metadata
   notes         String?  @db.LongText // Notlar
   assignedBy    Int? // Kimin tarafından atandığı
-  
+
+  // Aksiyon Metadata (JSON)
+  actionData    Json? // Aksiyonla ilgili ekstra data: {buttonText, endpoint, requiredFields, etc.}
+
   @@index([userId, status])
   @@index([userId, dueDate])
   @@index([status, priority])
+  @@index([relatedStatus]) // Status bazlı filtreleme için
+  @@index([entityType, relatedStatus]) // Entity ve status kombinasyonu
   @@index([createdAt])
   @@map("tasks")
 }

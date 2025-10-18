@@ -15,6 +15,13 @@ export const Order = objectType({
     t.string("deliveryAddress");
     t.string("cargoTrackingNumber");
 
+    // Customer quote fields
+    t.float("customerQuotedPrice");
+    t.int("customerQuoteDays");
+    t.string("customerQuoteNote");
+    t.string("customerQuoteType");
+    t.field("customerQuoteSentAt", { type: "DateTime" });
+
     // Production dates
     t.int("productionDays");
     t.field("estimatedProductionDate", { type: "DateTime" });

@@ -22,12 +22,16 @@ export const taskQueries = (t: any) => {
     ) => {
       const userId = requireAuth(context);
 
+      console.log("🔍 MyTasks Query - User ID:", userId);
+
       const where: any = {
         OR: [
           { userId: userId }, // Görevleri oluşturan
           { assignedToId: userId }, // Kendisine atanan görevler
         ],
       };
+
+      console.log("📋 Where clause:", JSON.stringify(where, null, 2));
 
       if (args.status) {
         where.status = args.status;
@@ -41,10 +45,16 @@ export const taskQueries = (t: any) => {
         where.priority = args.priority;
       }
 
-      return context.prisma.task.findMany({
+      console.log("📋 Where clause:", JSON.stringify(where, null, 2));
+
+      const tasks = await context.prisma.task.findMany({
         where,
         include: {
-          user: true,
+          user: {
+            include: {
+              company: true,
+            },
+          },
           assignedTo: true,
           collection: true,
           sample: true,
@@ -57,6 +67,19 @@ export const taskQueries = (t: any) => {
           { createdAt: "desc" }, // En yeni görevler
         ],
       });
+
+      console.log(`✅ Found ${tasks.length} tasks for user ${userId}`);
+      console.log("📦 Tasks:", JSON.stringify(tasks.map(t => ({
+        id: t.id,
+        title: t.title,
+        userId: t.userId,
+        assignedToId: t.assignedToId,
+        status: t.status,
+        type: t.type
+      })), null, 2));
+
+      // Filter out any null/undefined tasks
+      return tasks.filter(task => task != null);
     },
   });
 
@@ -80,7 +103,11 @@ export const taskQueries = (t: any) => {
           collectionId: args.collectionId,
         },
         include: {
-          user: true,
+          user: {
+            include: {
+              company: true,
+            },
+          },
           assignedTo: true,
           collection: true,
           sample: true,
@@ -112,7 +139,11 @@ export const taskQueries = (t: any) => {
           sampleId: args.sampleId,
         },
         include: {
-          user: true,
+          user: {
+            include: {
+              company: true,
+            },
+          },
           assignedTo: true,
           collection: true,
           sample: true,
@@ -144,7 +175,11 @@ export const taskQueries = (t: any) => {
           orderId: args.orderId,
         },
         include: {
-          user: true,
+          user: {
+            include: {
+              company: true,
+            },
+          },
           assignedTo: true,
           collection: true,
           sample: true,
@@ -169,19 +204,47 @@ export const taskQueries = (t: any) => {
       },
       context: Context
     ) => {
-      requireAuth(context);
+      const userId = requireAuth(context);
 
-      return context.prisma.task.findUnique({
-        where: { id: args.id },
-        include: {
-          user: true,
-          assignedTo: true,
-          collection: true,
-          sample: true,
-          order: true,
-          productionTracking: true,
-        },
-      });
+      console.log("🔍 Task Detail Query - User ID:", userId, "Task ID:", args.id);
+
+      try {
+        const task = await context.prisma.task.findUnique({
+          where: { id: args.id },
+          include: {
+            user: {
+              include: {
+                company: true,
+              },
+            },
+            assignedTo: true,
+            collection: true,
+            sample: true,
+            order: true,
+            productionTracking: true,
+          },
+        });
+
+        console.log("✅ Task found:", task ? `ID: ${task.id}, Title: ${task.title}` : "null");
+
+        if (task) {
+          console.log("📦 Task details:", {
+            userId: task.userId,
+            assignedToId: task.assignedToId,
+            hasUser: !!task.user,
+            hasCompany: !!(task.user as any)?.company,
+            collectionId: task.collectionId,
+            sampleId: task.sampleId,
+            orderId: task.orderId,
+            productionTrackingId: task.productionTrackingId,
+          });
+        }
+
+        return task;
+      } catch (error) {
+        console.error("❌ Error in task query:", error);
+        throw error;
+      }
     },
   });
 };

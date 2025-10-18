@@ -772,6 +772,11 @@ export const ORDER_BY_ID_QUERY = gql`
       totalPrice
       customerNote
       manufacturerResponse
+      customerQuotedPrice
+      customerQuoteDays
+      customerQuoteNote
+      customerQuoteType
+      customerQuoteSentAt
       specifications
       deliveryAddress
       cargoTrackingNumber
