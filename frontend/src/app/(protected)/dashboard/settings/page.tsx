@@ -592,72 +592,139 @@ export default function SettingsPage() {
                   onSubmit={profileForm.handleSubmit(onProfileSubmit)}
                   className="space-y-6"
                 >
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormInput
-                      control={profileForm.control}
-                      name="name"
-                      label="Full Name *"
-                      placeholder="John Doe"
-                    />
+                  {/* Profile Picture Preview */}
+                  <div className="flex items-start gap-6 p-6 rounded-lg border bg-muted/50">
+                    <div className="relative">
+                      <div className="h-24 w-24 rounded-full border-4 border-background shadow-lg overflow-hidden">
+                        {profileForm.watch("customAvatar") ||
+                        session?.user?.image ? (
+                          <img
+                            src={
+                              profileForm.watch("customAvatar") ||
+                              session?.user?.image ||
+                              ""
+                            }
+                            alt="Profile"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center bg-primary/10">
+                            <User className="h-12 w-12 text-primary/50" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold">
+                        {profileForm.watch("name") ||
+                          session?.user?.name ||
+                          "Your Name"}
+                      </h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {profileForm.watch("jobTitle") || "Add your job title"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {session?.user?.email}
+                      </p>
+                      {profileForm.watch("bio") && (
+                        <p className="text-sm mt-3 text-muted-foreground line-clamp-2">
+                          {profileForm.watch("bio")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Basic Information */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium">Basic Information</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Your personal details
+                      </p>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <FormInput
+                        control={profileForm.control}
+                        name="name"
+                        label="Full Name *"
+                        placeholder="John Doe"
+                      />
+
+                      <FormInput
+                        control={profileForm.control}
+                        name="jobTitle"
+                        label="Job Title"
+                        placeholder="Production Manager"
+                      />
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <FormInput
+                        control={profileForm.control}
+                        name="firstName"
+                        label="First Name"
+                        placeholder="John"
+                      />
+
+                      <FormInput
+                        control={profileForm.control}
+                        name="lastName"
+                        label="Last Name"
+                        placeholder="Doe"
+                      />
+                    </div>
 
                     <FormInput
                       control={profileForm.control}
-                      name="jobTitle"
-                      label="Job Title"
-                      placeholder="Production Manager"
+                      name="phone"
+                      label="Phone Number"
+                      placeholder="+90 555 123 4567"
+                    />
+
+                    <FormTextarea
+                      control={profileForm.control}
+                      name="bio"
+                      label="Bio"
+                      placeholder="Tell us about yourself..."
+                      description="Brief description for your profile (max 500 characters)"
+                      rows={4}
+                      maxLength={500}
                     />
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormInput
-                      control={profileForm.control}
-                      name="firstName"
-                      label="First Name"
-                      placeholder="John"
-                    />
+                  <Separator />
 
-                    <FormInput
-                      control={profileForm.control}
-                      name="lastName"
-                      label="Last Name"
-                      placeholder="Doe"
+                  {/* Profile Picture Upload */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium">Profile Picture</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Upload a custom profile picture
+                      </p>
+                    </div>
+
+                    <FormImageUpload
+                      value={profileForm.watch("customAvatar")}
+                      onChange={(url) =>
+                        profileForm.setValue("customAvatar", url)
+                      }
+                      onDelete={() => profileForm.setValue("customAvatar", "")}
+                      label="Custom Avatar"
+                      description="PNG or JPG - Will replace your OAuth profile picture"
+                      maxSize={3}
+                      recommended="256x256px (square)"
+                      aspectRatio="square"
+                      uploadType="avatar"
                     />
                   </div>
 
-                  <FormInput
-                    control={profileForm.control}
-                    name="phone"
-                    label="Phone Number"
-                    placeholder="+90 555 123 4567"
-                  />
-
-                  <FormTextarea
-                    control={profileForm.control}
-                    name="bio"
-                    label="Bio"
-                    placeholder="Tell us about yourself..."
-                    description="Brief description for your profile (max 500 characters)"
-                    rows={4}
-                    maxLength={500}
-                  />
-
-                  {/* Avatar Upload */}
-                  <FormImageUpload
-                    value={profileForm.watch("customAvatar")}
-                    onChange={(url) =>
-                      profileForm.setValue("customAvatar", url)
-                    }
-                    onDelete={() => profileForm.setValue("customAvatar", "")}
-                    label="Profile Picture"
-                    description="PNG veya JPG (OAuth profil fotoğrafınızın yerine kullanılır)"
-                    maxSize={3}
-                    recommended="256x256px"
-                    aspectRatio="square"
-                    uploadType="avatar"
-                  />
+                  <Separator />
 
                   {/* Social Links Section */}
-                  <div className="space-y-4 pt-6 border-t">
+                  <div className="space-y-4">
                     <div>
                       <h3 className="text-lg font-medium">Social Media</h3>
                       <p className="text-sm text-muted-foreground">
@@ -689,27 +756,30 @@ export default function SettingsPage() {
                     />
                   </div>
 
-                  <Button
-                    type="submit"
-                    disabled={isLoading || !isEmailVerified}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Changes
-                      </>
+                  <div className="flex items-center gap-4 pt-4">
+                    <Button
+                      type="submit"
+                      disabled={isLoading || !isEmailVerified}
+                      size="lg"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving Changes...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Save Profile
+                        </>
+                      )}
+                    </Button>
+                    {!isEmailVerified && (
+                      <p className="text-sm text-muted-foreground">
+                        * Email verification required
+                      </p>
                     )}
-                  </Button>
-                  {!isEmailVerified && (
-                    <p className="text-sm text-muted-foreground">
-                      * Email doğrulaması gereklidir
-                    </p>
-                  )}
+                  </div>
                 </form>
               </Form>
             </CardContent>
@@ -854,50 +924,192 @@ export default function SettingsPage() {
                       onSubmit={companyForm.handleSubmit(onCompanySubmit)}
                       className="space-y-6"
                     >
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <FormInput
-                          control={companyForm.control}
-                          name="name"
-                          label="Company Name *"
-                          placeholder="Acme Corporation"
-                        />
+                      {/* Visual Branding Section - Cover + Logo + Profile */}
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-medium">
+                            Visual Identity
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            Customize your company's visual appearance
+                          </p>
+                        </div>
 
-                        <FormInput
+                        {/* Cover Image Preview */}
+                        <div className="relative rounded-lg border overflow-hidden bg-muted">
+                          {/* Cover Image Background */}
+                          <div className="relative h-48 w-full bg-gradient-to-br from-primary/20 to-primary/5">
+                            {companyForm.watch("coverImage") ? (
+                              <img
+                                src={companyForm.watch("coverImage")}
+                                alt="Cover"
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center">
+                                <p className="text-sm text-muted-foreground">
+                                  No cover image
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Edit Cover Button */}
+                            <div className="absolute top-4 right-4">
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="shadow-md"
+                                onClick={() => {
+                                  // Scroll to cover image upload
+                                  document
+                                    .getElementById("cover-upload-section")
+                                    ?.scrollIntoView({ behavior: "smooth" });
+                                }}
+                              >
+                                Edit Cover
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Logo + Profile Section */}
+                          <div className="relative px-6 pb-6">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-16">
+                              {/* Company Logo */}
+                              <div className="relative">
+                                <div className="h-32 w-32 rounded-lg border-4 border-background bg-background shadow-xl overflow-hidden">
+                                  {companyForm.watch("logo") ? (
+                                    <img
+                                      src={companyForm.watch("logo")}
+                                      alt="Logo"
+                                      className="h-full w-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="h-full w-full flex items-center justify-center bg-muted">
+                                      <Building2 className="h-12 w-12 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                </div>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="secondary"
+                                  className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-xs shadow-md"
+                                  onClick={() => {
+                                    document
+                                      .getElementById("logo-upload-section")
+                                      ?.scrollIntoView({ behavior: "smooth" });
+                                  }}
+                                >
+                                  Edit Logo
+                                </Button>
+                              </div>
+
+                              {/* Company Info */}
+                              <div className="flex-1 pt-2">
+                                <h3 className="text-2xl font-bold">
+                                  {companyForm.watch("name") || "Company Name"}
+                                </h3>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {companyForm.watch("description") ||
+                                    "Add a description for your company"}
+                                </p>
+                                {companyForm.watch("website") && (
+                                  <a
+                                    href={companyForm.watch("website")}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-primary hover:underline mt-2 inline-flex items-center gap-1"
+                                  >
+                                    <Globe className="h-3 w-3" />
+                                    {companyForm.watch("website")}
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Alert for Preview */}
+                        <Alert>
+                          <Building2 className="h-4 w-4" />
+                          <AlertTitle>Preview</AlertTitle>
+                          <AlertDescription>
+                            This is how your company profile will appear to
+                            others. Update your logo, cover image, and company
+                            information below.
+                          </AlertDescription>
+                        </Alert>
+                      </div>
+
+                      <Separator />
+
+                      {/* Basic Information */}
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="text-lg font-medium">
+                            Basic Information
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            Essential company details
+                          </p>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <FormInput
+                            control={companyForm.control}
+                            name="name"
+                            label="Company Name *"
+                            placeholder="Acme Corporation"
+                          />
+
+                          <FormInput
+                            control={companyForm.control}
+                            name="email"
+                            label="Company Email"
+                            type="email"
+                            placeholder="info@company.com"
+                          />
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <FormInput
+                            control={companyForm.control}
+                            name="phone"
+                            label="Company Phone"
+                            placeholder="+90 555 123 4567"
+                          />
+
+                          <FormInput
+                            control={companyForm.control}
+                            name="website"
+                            label="Website"
+                            placeholder="https://www.company.com"
+                          />
+                        </div>
+
+                        <FormTextarea
                           control={companyForm.control}
-                          name="email"
-                          label="Company Email"
-                          type="email"
-                          placeholder="info@company.com"
+                          name="description"
+                          label="Company Description"
+                          placeholder="Tell us about your company..."
+                          description="Brief description about your company (max 1000 characters)"
+                          rows={4}
+                          maxLength={1000}
                         />
                       </div>
 
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <FormInput
-                          control={companyForm.control}
-                          name="phone"
-                          label="Company Phone"
-                          placeholder="+90 555 123 4567"
-                        />
+                      <Separator />
 
-                        <FormInput
-                          control={companyForm.control}
-                          name="website"
-                          label="Website"
-                          placeholder="https://www.company.com"
-                        />
-                      </div>
+                      {/* Location */}
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="text-lg font-medium">Location</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Company address and location details
+                          </p>
+                        </div>
 
-                      <FormTextarea
-                        control={companyForm.control}
-                        name="description"
-                        label="Company Description"
-                        placeholder="Tell us about your company..."
-                        description="Brief description about your company (max 1000 characters)"
-                        rows={4}
-                        maxLength={1000}
-                      />
-
-                      <div className="grid gap-4">
                         <FormInput
                           control={companyForm.control}
                           name="address"
@@ -924,88 +1136,151 @@ export default function SettingsPage() {
 
                       <Separator />
 
+                      {/* Branding Assets Upload */}
                       <div className="space-y-6">
-                        <h3 className="text-lg font-medium">Branding</h3>
+                        <div>
+                          <h3 className="text-lg font-medium">
+                            Branding Assets
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            Upload your company's visual assets
+                          </p>
+                        </div>
 
                         {/* Logo Upload */}
-                        <FormImageUpload
-                          value={companyForm.watch("logo")}
-                          onChange={(url) => companyForm.setValue("logo", url)}
-                          onDelete={() => companyForm.setValue("logo", "")}
-                          label="Company Logo"
-                          description="PNG, JPG veya SVG"
-                          maxSize={5}
-                          recommended="512x512px"
-                          aspectRatio="square"
-                          uploadType="logo"
-                        />
+                        <div id="logo-upload-section">
+                          <FormImageUpload
+                            value={companyForm.watch("logo")}
+                            onChange={(url) =>
+                              companyForm.setValue("logo", url)
+                            }
+                            onDelete={() => companyForm.setValue("logo", "")}
+                            label="Company Logo"
+                            description="PNG, JPG or SVG - Square format recommended"
+                            maxSize={5}
+                            recommended="512x512px"
+                            aspectRatio="square"
+                            uploadType="logo"
+                          />
+                        </div>
 
                         {/* Cover Image Upload */}
-                        <FormImageUpload
-                          value={companyForm.watch("coverImage")}
-                          onChange={(url) =>
-                            companyForm.setValue("coverImage", url)
-                          }
-                          onDelete={() =>
-                            companyForm.setValue("coverImage", "")
-                          }
-                          label="Cover Image"
-                          description="PNG veya JPG"
-                          maxSize={10}
-                          recommended="1920x1080px"
-                          aspectRatio="wide"
-                          uploadType="cover"
-                        />
+                        <div id="cover-upload-section">
+                          <FormImageUpload
+                            value={companyForm.watch("coverImage")}
+                            onChange={(url) =>
+                              companyForm.setValue("coverImage", url)
+                            }
+                            onDelete={() =>
+                              companyForm.setValue("coverImage", "")
+                            }
+                            label="Cover Image"
+                            description="PNG or JPG - Wide format for banner background"
+                            maxSize={10}
+                            recommended="1920x1080px"
+                            aspectRatio="wide"
+                            uploadType="cover"
+                          />
+                        </div>
 
                         {/* Brand Colors */}
-                        <div className="grid gap-4 md:grid-cols-3 mt-4">
-                          <FormField
-                            control={companyForm.control}
-                            name="primaryColor"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Primary Color</FormLabel>
-                                <FormControl>
-                                  <Input type="color" {...field} />
-                                </FormControl>
-                                <FormDescription className="text-xs">
-                                  Main brand color
-                                </FormDescription>
-                              </FormItem>
-                            )}
-                          />
+                        <div className="space-y-4 pt-4">
+                          <div>
+                            <h4 className="text-sm font-medium">
+                              Brand Colors
+                            </h4>
+                            <p className="text-xs text-muted-foreground">
+                              Define your brand's color palette
+                            </p>
+                          </div>
+                          <div className="grid gap-4 md:grid-cols-3">
+                            <FormField
+                              control={companyForm.control}
+                              name="primaryColor"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Primary Color</FormLabel>
+                                  <FormControl>
+                                    <div className="flex items-center gap-2">
+                                      <Input
+                                        type="color"
+                                        {...field}
+                                        className="h-10 w-20"
+                                      />
+                                      <Input
+                                        type="text"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        className="flex-1 font-mono text-sm"
+                                        placeholder="#000000"
+                                      />
+                                    </div>
+                                  </FormControl>
+                                  <FormDescription className="text-xs">
+                                    Main brand color
+                                  </FormDescription>
+                                </FormItem>
+                              )}
+                            />
 
-                          <FormField
-                            control={companyForm.control}
-                            name="secondaryColor"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Secondary Color</FormLabel>
-                                <FormControl>
-                                  <Input type="color" {...field} />
-                                </FormControl>
-                                <FormDescription className="text-xs">
-                                  Secondary brand color
-                                </FormDescription>
-                              </FormItem>
-                            )}
-                          />
+                            <FormField
+                              control={companyForm.control}
+                              name="secondaryColor"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Secondary Color</FormLabel>
+                                  <FormControl>
+                                    <div className="flex items-center gap-2">
+                                      <Input
+                                        type="color"
+                                        {...field}
+                                        className="h-10 w-20"
+                                      />
+                                      <Input
+                                        type="text"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        className="flex-1 font-mono text-sm"
+                                        placeholder="#666666"
+                                      />
+                                    </div>
+                                  </FormControl>
+                                  <FormDescription className="text-xs">
+                                    Secondary brand color
+                                  </FormDescription>
+                                </FormItem>
+                              )}
+                            />
 
-                          <FormField
-                            control={companyForm.control}
-                            name="accentColor"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Accent Color</FormLabel>
-                                <FormControl>
-                                  <Input type="color" {...field} />
-                                </FormControl>
-                                <FormDescription className="text-xs">
-                                  Accent/highlight color
-                                </FormDescription>
-                              </FormItem>
-                            )}
-                          />
+                            <FormField
+                              control={companyForm.control}
+                              name="accentColor"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Accent Color</FormLabel>
+                                  <FormControl>
+                                    <div className="flex items-center gap-2">
+                                      <Input
+                                        type="color"
+                                        {...field}
+                                        className="h-10 w-20"
+                                      />
+                                      <Input
+                                        type="text"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        className="flex-1 font-mono text-sm"
+                                        placeholder="#0066FF"
+                                      />
+                                    </div>
+                                  </FormControl>
+                                  <FormDescription className="text-xs">
+                                    Accent/highlight color
+                                  </FormDescription>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -1057,31 +1332,11 @@ export default function SettingsPage() {
                           </p>
                         </div>
 
-                        <FormField
+                        <FormSwitch
                           control={companyForm.control}
                           name="isPublicProfile"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                              <div className="space-y-0.5">
-                                <FormLabel className="text-base">
-                                  Public Profile
-                                </FormLabel>
-                                <FormDescription>
-                                  Allow anyone to view your company profile
-                                </FormDescription>
-                              </div>
-                              <FormControl>
-                                <Input
-                                  type="checkbox"
-                                  checked={field.value}
-                                  onChange={(e) =>
-                                    field.onChange(e.target.checked)
-                                  }
-                                  className="w-10 h-6"
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
+                          label="Public Profile"
+                          description="Allow anyone to view your company profile"
                         />
 
                         <FormInput
@@ -1101,35 +1356,39 @@ export default function SettingsPage() {
                       </div>
 
                       {companyData?.myCompany?.type && (
-                        <div className="rounded-lg border p-4 bg-muted/50">
-                          <Label>Company Type</Label>
-                          <p className="text-sm text-muted-foreground mt-1">
+                        <Alert>
+                          <Building2 className="h-4 w-4" />
+                          <AlertTitle>Company Type</AlertTitle>
+                          <AlertDescription>
                             {companyData.myCompany.type}
-                          </p>
-                        </div>
+                          </AlertDescription>
+                        </Alert>
                       )}
 
-                      <Button
-                        type="submit"
-                        disabled={isLoading || !isEmailVerified}
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="mr-2 h-4 w-4" />
-                            Save Company Information
-                          </>
+                      <div className="flex items-center gap-4 pt-4">
+                        <Button
+                          type="submit"
+                          disabled={isLoading || !isEmailVerified}
+                          size="lg"
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Saving Changes...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="mr-2 h-4 w-4" />
+                              Save Company Information
+                            </>
+                          )}
+                        </Button>
+                        {!isEmailVerified && (
+                          <p className="text-sm text-muted-foreground">
+                            * Email verification required
+                          </p>
                         )}
-                      </Button>
-                      {!isEmailVerified && (
-                        <p className="text-sm text-muted-foreground mt-2">
-                          * Email doğrulaması gereklidir
-                        </p>
-                      )}
+                      </div>
                     </form>
                   </Form>
                 )}
