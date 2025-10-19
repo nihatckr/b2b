@@ -6,13 +6,29 @@ builder.queryField("me", (t) =>
     type: "User",
     authScopes: { user: true },
     resolve: async (query, _root, _args, context) => {
+      console.log("🔍 ME Query Debug:", {
+        hasContext: !!context,
+        hasUser: !!context.user,
+        userId: context.user?.id,
+        userIdType: typeof context.user?.id,
+      });
+
       if (!context.user) {
         throw new Error("Not authenticated");
       }
-      return context.prisma.user.findUniqueOrThrow({
+
+      const user = await context.prisma.user.findUniqueOrThrow({
         ...query,
         where: { id: context.user.id },
       });
+
+      console.log("✅ ME Query: User found", {
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+      });
+
+      return user;
     },
   })
 );

@@ -1,57 +1,105 @@
-# 🚀 Backend - GraphQL API
+# 🔧 Backend - GraphQL API Server# 🚀 Backend - GraphQL API
 
-**Tech Stack**: GraphQL Yoga v5 + Pothos + Prisma + TypeScript
+> ProtexFlow GraphQL Yoga server with Prisma ORM**Tech Stack**: GraphQL Yoga v5 + Pothos + Prisma + TypeScript
+
 **Port**: 4001
-**Status**: ✅ Production Ready
 
----
+---**Status**: ✅ Production Ready
 
-## 🎯 Hızlı Başlangıç
+## 🚀 Quick Start---
 
-```bash
+````bash## 🎯 Hızlı Başlangıç
+
+# Install dependencies
+
+npm install```bash
+
 # 1. Dependencies kurulumu
-npm install
 
-# 2. Environment setup
+# Setup environmentnpm install
+
 cp .env.example .env
 
-# 3. Database migration
-npx prisma migrate dev
-npx prisma generate
+# Edit .env with your database credentials# 2. Environment setup
 
-# 4. Development server
-npm run dev
-```
+cp .env.example .env
 
-**Backend URL**: http://localhost:4001/graphql
+# Database setup
 
----
+npx prisma generate# 3. Database migration
 
-## 📋 Önemli Dökümanlar
+npx prisma migrate devnpx prisma migrate dev
 
-### ⭐ Başlangıç İçin
-1. **[HOW_TO_ADD_NEW_FEATURES.md](./HOW_TO_ADD_NEW_FEATURES.md)** - Yeni model/query/mutation ekleme rehberi
-2. **[OPTIMIZATION_SUMMARY.md](./OPTIMIZATION_SUMMARY.md)** - Aktif optimizasyonlar ve kullanım örnekleri
+npx prisma db seed  # Optional: Create test datanpx prisma generate
+
+
+
+# Start development server# 4. Development server
+
+npm run devnpm run dev
+
+# → http://localhost:4001```
+
+# → GraphQL Playground: http://localhost:4001/graphql
+
+```**Backend URL**: http://localhost:4001/graphql
+
+
+
+------
+
+
+
+## 📦 Scripts## 📋 Önemli Dökümanlar
+
+
+
+```bash### ⭐ Başlangıç İçin
+
+npm run dev          # Development server with hot reload1. **[HOW_TO_ADD_NEW_FEATURES.md](./HOW_TO_ADD_NEW_FEATURES.md)** - Yeni model/query/mutation ekleme rehberi
+
+npm run build        # Build for production2. **[OPTIMIZATION_SUMMARY.md](./OPTIMIZATION_SUMMARY.md)** - Aktif optimizasyonlar ve kullanım örnekleri
+
+npm start            # Start production server
 
 ### 📚 Teknik Detaylar
-- **[POTHOS_OPTIMIZATION_GUIDE.md](./POTHOS_OPTIMIZATION_GUIDE.md)** - Pothos best practices
-- **[RELAY_NODES_GUIDE.md](./RELAY_NODES_GUIDE.md)** - Global ID sistemi
-- **[FINAL_IMPLEMENTATION_SUMMARY.md](./FINAL_IMPLEMENTATION_SUMMARY.md)** - Tüm değişiklikler
 
-### 🔒 Güvenlik & Production
-- **[PRODUCTION_READINESS_CHECKLIST.md](./PRODUCTION_READINESS_CHECKLIST.md)** - Production kontrol listesi
+# Prisma- **[POTHOS_OPTIMIZATION_GUIDE.md](./POTHOS_OPTIMIZATION_GUIDE.md)** - Pothos best practices
+
+npx prisma studio    # Open visual database editor- **[RELAY_NODES_GUIDE.md](./RELAY_NODES_GUIDE.md)** - Global ID sistemi
+
+npx prisma generate  # Generate Prisma Client- **[FINAL_IMPLEMENTATION_SUMMARY.md](./FINAL_IMPLEMENTATION_SUMMARY.md)** - Tüm değişiklikler
+
+npx prisma migrate dev --name <name>  # Create migration
+
+npx prisma db seed   # Seed database### 🔒 Güvenlik & Production
+
+```- **[PRODUCTION_READINESS_CHECKLIST.md](./PRODUCTION_READINESS_CHECKLIST.md)** - Production kontrol listesi
+
 - **[ERROR_HANDLING_GUIDE.md](./ERROR_HANDLING_GUIDE.md)** - Error handling stratejileri
-- **[CORS_CONFIGURATION.md](./CORS_CONFIGURATION.md)** - CORS ayarları
 
----
+---- **[CORS_CONFIGURATION.md](./CORS_CONFIGURATION.md)** - CORS ayarları
 
-## 🔧 Aktif Özellikler
 
-### Pothos Plugin'ler (5 adet)
+
+## 📚 Documentation---
+
+
+
+- **[Main Docs](../docs/README.md)** - Complete documentation## 🔧 Aktif Özellikler
+
+- **[Architecture](../docs/ARCHITECTURE.md)** - System design
+
+- **[New Features Guide](../docs/GUIDES/NEW_FEATURES.md)** - Development workflow### Pothos Plugin'ler (5 adet)
+
 - ✅ **ScopeAuthPlugin** - Field-level authorization
-- ✅ **PrismaPlugin** - Database integration + optimization
+
+---- ✅ **PrismaPlugin** - Database integration + optimization
+
 - ✅ **RelayPlugin** - Cursor pagination + Global ID
-- ✅ **DataloaderPlugin** - Automatic batching (N+1 prevention)
+
+**Version**: 2.0.0 | **Status**: Production Ready- ✅ **DataloaderPlugin** - Automatic batching (N+1 prevention)
+
 - ✅ **ValidationPlugin** - Type-safe input validation
 
 ### Performans Optimizasyonları
@@ -65,41 +113,43 @@ npm run dev
 
 ## 📂 Proje Yapısı
 
-```
+````
+
 backend/
 ├── src/
-│   ├── server.ts                      # GraphQL Yoga server
-│   ├── graphql/
-│   │   ├── builder.ts                 # Pothos SchemaBuilder
-│   │   ├── schema.ts                  # GraphQL Schema
-│   │   ├── context.ts                 # Request context
-│   │   ├── types/
-│   │   │   └── index.ts              # GraphQL types (User, Company, etc.)
-│   │   ├── queries/
-│   │   │   ├── index.ts              # Query exports
-│   │   │   ├── userQuery.ts          # User queries
-│   │   │   ├── companyQuery.ts       # Company queries
-│   │   │   └── ...
-│   │   ├── mutations/
-│   │   │   ├── index.ts              # Mutation exports
-│   │   │   ├── authMutation.ts       # Authentication
-│   │   │   └── ...
-│   │   └── subscriptions/            # Real-time subscriptions
-│   │
-│   ├── types/                        # TypeScript types
-│   └── utils/                        # Helpers
+│ ├── server.ts # GraphQL Yoga server
+│ ├── graphql/
+│ │ ├── builder.ts # Pothos SchemaBuilder
+│ │ ├── schema.ts # GraphQL Schema
+│ │ ├── context.ts # Request context
+│ │ ├── types/
+│ │ │ └── index.ts # GraphQL types (User, Company, etc.)
+│ │ ├── queries/
+│ │ │ ├── index.ts # Query exports
+│ │ │ ├── userQuery.ts # User queries
+│ │ │ ├── companyQuery.ts # Company queries
+│ │ │ └── ...
+│ │ ├── mutations/
+│ │ │ ├── index.ts # Mutation exports
+│ │ │ ├── authMutation.ts # Authentication
+│ │ │ └── ...
+│ │ └── subscriptions/ # Real-time subscriptions
+│ │
+│ ├── types/ # TypeScript types
+│ └── utils/ # Helpers
 │
 ├── prisma/
-│   ├── schema.prisma                 # Database schema
-│   ├── migrations/                   # Migration history
-│   └── seed.ts                       # Database seeding
+│ ├── schema.prisma # Database schema
+│ ├── migrations/ # Migration history
+│ └── seed.ts # Database seeding
 │
 ├── lib/
-│   ├── prisma.ts                     # Prisma client
-│   └── pothos-prisma-types.ts        # Generated types
+│ ├── prisma.ts # Prisma client
+│ └── pothos-prisma-types.ts # Generated types
 │
-└── uploads/                          # File uploads
-```
+└── uploads/ # File uploads
+
+````
 
 ---
 
@@ -117,19 +167,22 @@ npx prisma db seed       # Seed database
 
 # Type Checking
 npx tsc --noEmit        # TypeScript type check
-```
+````
 
 ---
 
 ## 🔐 Authentication
 
 ### JWT Token
+
 Authorization header:
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 ### Auth Scopes
+
 - `public` - Herkes erişebilir
 - `user` - Authenticated user gerekli
 - `employee` - Company employee gerekli
@@ -137,6 +190,7 @@ Authorization: Bearer <jwt_token>
 - `admin` - Admin gerekli
 
 ### Örnek Query
+
 ```graphql
 query Me {
   me {
@@ -155,6 +209,7 @@ query Me {
 ## 📊 GraphQL Schema
 
 ### Relay Connections (Pagination)
+
 ```graphql
 query GetEmployees {
   company(id: 1) {
@@ -178,6 +233,7 @@ query GetEmployees {
 ```
 
 ### Global ID Queries
+
 ```graphql
 query GetNode {
   node(id: "VXNlcjox") {
@@ -216,12 +272,15 @@ FRONTEND_URL="http://localhost:3000"
 ## 🧪 Testing GraphQL
 
 ### GraphiQL Interface
+
 Development modda GraphiQL otomatik aktif:
+
 ```
 http://localhost:4001/graphql
 ```
 
 ### Example Mutations
+
 ```graphql
 # Login
 mutation Login {
@@ -237,10 +296,7 @@ mutation Login {
 
 # Create Sample
 mutation CreateSample {
-  createSample(
-    name: "New Sample"
-    sampleType: FABRIC
-  ) {
+  createSample(name: "New Sample", sampleType: FABRIC) {
     id
     name
     sampleNumber
@@ -253,16 +309,21 @@ mutation CreateSample {
 ## 🚨 Common Issues
 
 ### Issue: "File scalar has not been implemented"
+
 **Solution**: File scalar registration zaten mevcut (`src/graphql/builder.ts`)
 
 ### Issue: "Introspection disabled"
+
 **Solution**: `NODE_ENV=development` ile çalıştırın
 
 ### Issue: "Unauthorized"
+
 **Solution**: JWT token'ı Authorization header'a ekleyin
 
 ### Issue: TypeScript errors after schema change
+
 **Solution**:
+
 ```bash
 npx prisma generate
 npx tsc --noEmit
@@ -283,6 +344,7 @@ npx tsc --noEmit
 ## 🤝 Contributing
 
 Yeni feature eklerken:
+
 1. **HOW_TO_ADD_NEW_FEATURES.md** rehberini takip edin
 2. Prisma migration oluşturun
 3. GraphQL type/query/mutation ekleyin
@@ -295,6 +357,7 @@ Yeni feature eklerken:
 ## 📞 Support
 
 Issues ve sorular için:
+
 - 📧 Email: [team@example.com]
 - 📚 Docs: [HOW_TO_ADD_NEW_FEATURES.md](./HOW_TO_ADD_NEW_FEATURES.md)
 

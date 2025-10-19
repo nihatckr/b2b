@@ -4,17 +4,26 @@ import { useResponseCache } from "@graphql-yoga/plugin-response-cache";
 import { createFetch } from "@whatwg-node/fetch";
 import express from "express";
 import { GraphQLError } from "graphql";
+import { useServer } from 'graphql-ws/use/ws';
 import { createYoga, maskError, useExecutionCancellation, useReadinessCheck } from "graphql-yoga";
-import path from "path";
+import { createServer } from "http";
+import path from 'path';
+import { WebSocketServer } from 'ws';
 import prisma from "../lib/prisma";
 import { createContext } from "./graphql/context";
 import { schema } from "./graphql/schema";
+import uploadRouter from "./routes/upload";
 
 async function main() {
+
+  // Create Express app
   const app = express();
 
-  // Serve static files from uploads directory
+  // Serve static files from uploads directory (before upload routes)
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+  // File upload routes (must be before other middleware that parses body)
+  app.use('/upload', uploadRouter);
 
   // Determine if running in development mode
   const isDev = process.env.NODE_ENV === 'development';
@@ -214,7 +223,57 @@ async function main() {
   // This ensures GraphQL-specific configurations don't affect other endpoints
   app.use(yoga.graphqlEndpoint, yoga);
 
-  // Health check endpoints are provided by Yoga:
+  // Create HTTP server (needed for WebSocket upgrade)
+  const httpServer = createServer(app);
+
+  // Configure WebSocket server for GraphQL subscriptions
+  // Uses graphql-ws library for GraphQL over WebSocket protocol
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: yoga.graphqlEndpoint
+  });
+
+  // Integrate Yoga's Enveloped instance with graphql-ws
+  // This connects the WebSocket server to Yoga's execution layer
+  useServer(
+    {
+      execute: (args: any) => args.rootValue.execute(args),
+      subscribe: (args: any) => args.rootValue.subscribe(args),
+      onSubscribe: async (ctx, msg, args) => {
+        console.log("🔌 WebSocket onSubscribe called");
+        console.log("🔌 Subscription ID (msg):", msg);
+        console.log("🔌 args keys:", Object.keys(args || {}));
+        console.log("🔌 args:", args);
+
+        const { schema, execute, subscribe, contextFactory, parse, validate } =
+          yoga.getEnveloped({
+            ...ctx,
+            req: ctx.extra.request,
+            socket: ctx.extra.socket,
+            connectionParams: ctx.connectionParams,
+          });
+
+        const params = {
+          schema,
+          operationName: args.operationName,
+          document: typeof args.query === 'string' ? parse(args.query) : args.query,
+          variableValues: args.variables,
+          contextValue: await contextFactory(),
+          rootValue: {
+            execute,
+            subscribe,
+          },
+        };
+
+        // Validate GraphQL document
+        const errors = validate(params.schema, params.document);
+        if (errors.length) return errors;
+
+        return params;
+      },
+    },
+    wsServer
+  );  // Health check endpoints are provided by Yoga:
   // - /health (liveness): Built-in, checks if server is running
   // - /ready (readiness): Custom check via useReadinessCheck plugin, checks database connectivity
 
@@ -222,14 +281,16 @@ async function main() {
   const maxAttempts = 11; // try ports basePort .. basePort+10
 
   // Store server instance for graceful shutdown
-  let serverInstance: ReturnType<typeof app.listen> | null = null;
+  let serverInstance: ReturnType<typeof httpServer.listen> | null = null;
 
   for (let i = 0; i < maxAttempts; i++) {
     const port = basePort + i;
     try {
       await new Promise<void>((resolve, reject) => {
-        serverInstance = app.listen(port, () => {
+        serverInstance = httpServer.listen(port, () => {
           console.log(`✅ Backend running on http://localhost:${port}/graphql`);
+          console.log(`✅ WebSocket subscriptions enabled on ws://localhost:${port}/graphql`);
+          console.log(`💡 Yoga WebSocket protocol: graphql-transport-ws`);
           resolve();
         });
         serverInstance.once("error", reject);
@@ -273,7 +334,7 @@ async function main() {
       });
       console.log('✅ HTTP server closed');
 
-      // 2. Dispose of Yoga resources
+      // 2. Dispose of Yoga resources (includes WebSocket cleanup)
       console.log('🧹 Disposing Yoga resources...');
       await yoga.dispose();
       console.log('✅ Yoga disposed');

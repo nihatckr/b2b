@@ -1,3 +1,4 @@
+import { DynamicTaskHelper } from "../../utils/dynamicTaskHelper";
 import builder from "../builder";
 
 const ValidOrderStatuses = [
@@ -32,7 +33,7 @@ builder.mutationField("createOrder", (t) =>
     authScopes: { user: true },
     resolve: async (query, _root, args, context) => {
       const totalPrice = args.quantity * args.unitPrice;
-      return context.prisma.order.create({
+      const order = await context.prisma.order.create({
         ...query,
         data: {
           orderNumber: `ORDER-${Date.now()}`,
@@ -48,6 +49,19 @@ builder.mutationField("createOrder", (t) =>
           status: "PENDING" as any,
         },
       });
+
+      // ✅ Create tasks for PENDING status
+      const dynamicTaskHelper = new DynamicTaskHelper(context.prisma);
+      await dynamicTaskHelper.createTasksForOrderStatus(
+        order.id,
+        "PENDING",
+        order.customerId,
+        order.manufactureId
+      );
+
+      console.log(`✅ Order created: ${order.orderNumber} - Tasks created for PENDING status`);
+
+      return order;
     },
   })
 );
@@ -152,11 +166,30 @@ builder.mutationField("updateOrder", (t) =>
       if (args.manufacturerResponse !== null && args.manufacturerResponse !== undefined)
         updateData.manufacturerResponse = args.manufacturerResponse;
 
-      return context.prisma.order.update({
+      const updatedOrder = await context.prisma.order.update({
         ...query,
         where: { id: args.id },
         data: updateData,
       });
+
+      // ✅ Create tasks if status changed
+      if (args.status !== null && args.status !== undefined && args.status !== order.status) {
+        console.log(`📋 Order status changed: ${order.status} → ${args.status}`);
+
+        const dynamicTaskHelper = new DynamicTaskHelper(context.prisma);
+
+        // Old tasks are auto-completed in createTasksForOrderStatus
+        await dynamicTaskHelper.createTasksForOrderStatus(
+          updatedOrder.id,
+          args.status,
+          updatedOrder.customerId,
+          updatedOrder.manufactureId
+        );
+
+        console.log(`✅ Tasks created for order ${updatedOrder.orderNumber} - Status: ${args.status}`);
+      }
+
+      return updatedOrder;
     },
   })
 );

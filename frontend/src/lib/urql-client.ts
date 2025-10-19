@@ -4,13 +4,14 @@ import { type Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 import {
-  cacheExchange,
-  Client,
-  createClient,
-  fetchExchange,
-  ssrExchange,
-  subscriptionExchange,
-  type SSRExchange
+    cacheExchange,
+    Client,
+    createClient,
+    errorExchange,
+    fetchExchange,
+    ssrExchange,
+    subscriptionExchange,
+    type SSRExchange
 } from "urql";
 
 // ============================================
@@ -22,14 +23,16 @@ const isBrowser = typeof window !== "undefined";
 let ssrCache: SSRExchange | null = null;
 
 // ============================================
-// WebSocket Client (Singleton - Client Side Only)
+// WebSocket Client (Per-Token Instance - Client Side Only)
 // ============================================
 
 let wsClient: ReturnType<typeof createWSClient> | null = null;
+let currentToken: string | undefined = undefined;
 
 /**
  * WebSocket client for GraphQL subscriptions
  * Sadece browser'da çalışır (SSR'da undefined)
+ * Token değiştiğinde yeni client oluşturur
  */
 function getWSClient(token?: string) {
   // Server-side'da WebSocket yok
@@ -37,7 +40,14 @@ function getWSClient(token?: string) {
     return null;
   }
 
-  // Mevcut client'ı yeniden kullan (singleton)
+  // Token değişti mi? Eski client'ı temizle ve yeni oluştur
+  if (wsClient && currentToken !== token) {
+    console.log("🔄 Token changed, recreating WebSocket client...");
+    wsClient.dispose();
+    wsClient = null;
+  }
+
+  // Mevcut client'ı yeniden kullan (token aynıysa)
   if (wsClient) {
     return wsClient;
   }
@@ -46,15 +56,23 @@ function getWSClient(token?: string) {
   const graphqlUrl = process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:4001/graphql";
   const wsUrl = graphqlUrl.replace("http://", "ws://").replace("https://", "wss://");
 
+  console.log("🔌 Creating WebSocket client...", {
+    url: wsUrl,
+    hasToken: !!token,
+    tokenPreview: token ? `${token.substring(0, 20)}...` : "NO TOKEN",
+  });
+
   wsClient = createWSClient({
     url: wsUrl,
     connectionParams: () => {
       // Auth token gönder (backend JWT auth için)
       if (token) {
+        console.log("🔑 WebSocket connectionParams: Sending token");
         return {
           authorization: `Bearer ${token}`,
         };
       }
+      console.log("⚠️ WebSocket connectionParams: No token");
       return {};
     },
     // Reconnect stratejisi
@@ -65,8 +83,21 @@ function getWSClient(token?: string) {
       const waitTime = Math.min(1000 * Math.pow(2, retries), 30000);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     },
+    on: {
+      connecting: () => console.log("🔄 WebSocket connecting..."),
+      connected: (socket, payload) => {
+        console.log("✅ WebSocket connected", { socket: !!socket, payload });
+      },
+      opened: (socket) => console.log("🔓 WebSocket opened", { socket: !!socket }),
+      ping: (received, payload) => console.log("🏓 WebSocket ping", { received, payload }),
+      pong: (received, payload) => console.log("🏓 WebSocket pong", { received, payload }),
+      message: (message) => console.log("📨 WebSocket message", message),
+      error: (err) => console.error("❌ WebSocket error:", err),
+      closed: (event) => console.log("🔌 WebSocket closed", event),
+    },
   });
 
+  currentToken = token;
   return wsClient;
 }
 
@@ -107,8 +138,48 @@ export function createUrqlClient(
   includeSSR: boolean = true,
   includeSubscriptions: boolean = true
 ): Client {
-  // Exchange sırası önemli: cache → ssr → subscription → fetch
+  // Exchange sırası önemli: cache → error → ssr → subscription → fetch
   const exchanges = [cacheExchange];
+
+  // Error exchange (401 Unauthorized → Auto logout)
+  // MUST be before fetchExchange to catch network errors
+  if (isBrowser) {
+    exchanges.push(
+      errorExchange({
+        onError: (error) => {
+          // Check for authentication/authorization errors
+          const isAuthError = error.graphQLErrors.some((e) => {
+            const message = e.message.toLowerCase();
+            return (
+              message.includes("unauthorized") ||
+              message.includes("unauthenticated") ||
+              message.includes("authentication") ||
+              message.includes("token") ||
+              message.includes("jwt")
+            );
+          });
+
+          // Check for network errors with 401 status
+          const is401 = error.networkError && "statusCode" in error.networkError
+            && error.networkError.statusCode === 401;
+
+          if (isAuthError || is401) {
+            console.warn("🚨 Authentication error detected, logging out...");
+
+            // Cleanup WebSocket connection
+            cleanupWSClient();
+
+            // Only redirect if NOT already on login page (prevent loop)
+            if (typeof window !== "undefined" && !window.location.pathname.startsWith("/auth")) {
+              // Redirect to login and clear session
+              // Use window.location to force full page reload and clear all client state
+              window.location.href = "/auth/login?error=session-expired";
+            }
+          }
+        },
+      })
+    );
+  }
 
   // SSR exchange (server-side rendering için)
   if (includeSSR) {
@@ -217,7 +288,9 @@ export function createAuthenticatedClient(token: string): Client {
  */
 export function cleanupWSClient() {
   if (wsClient) {
+    console.log("🧹 Cleaning up WebSocket client...");
     wsClient.dispose();
     wsClient = null;
+    currentToken = undefined;
   }
 }

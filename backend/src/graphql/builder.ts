@@ -1,14 +1,14 @@
 import SchemaBuilder from "@pothos/core";
+import DataloaderPlugin from '@pothos/plugin-dataloader';
 import PrismaPlugin from "@pothos/plugin-prisma";
 import RelayPlugin from "@pothos/plugin-relay";
 import ScopeAuthPlugin from "@pothos/plugin-scope-auth";
-import DataloaderPlugin from '@pothos/plugin-dataloader';
-import type { YogaInitialContext } from "graphql-yoga";
-import prisma from "../../lib/prisma";
 import ValidationPlugin from '@pothos/plugin-validation';
 import { DateResolver, JSONResolver } from "graphql-scalars";
+import type { YogaInitialContext } from "graphql-yoga";
 import type PrismaTypes from "../../lib/pothos-prisma-types"; // path to generated types, specified in your prisma.schema
 import { getDatamodel } from "../../lib/pothos-prisma-types";
+import prisma from "../../lib/prisma";
 
 // removed duplicate/incorrect SchemaBuilder; the fully-configured `export const builder` below is used
 
@@ -19,6 +19,7 @@ export interface Context extends YogaInitialContext {
     email: string;
     role: string;
     companyId?: number;
+    department?: string | null; // Department for permission checks
   } | null;
   prisma: typeof prisma;
 }

@@ -1,0 +1,31 @@
+# ============================================
+# REAL-TIME NOTIFICATION SUBSCRIPTIONS
+# ============================================
+# WebSocket subscriptions for real-time updates
+
+# New notification subscription
+subscription OnNewNotification {
+  newNotification {
+    id
+    title
+    message
+    type
+    isRead
+    relatedEntityType
+    relatedEntityId
+    actionUrl
+    createdAt
+  }
+}
+
+# Task assigned subscription
+subscription OnTaskAssigned {
+  taskAssigned {
+    id
+    title
+    description
+    priority
+    dueDate
+    createdAt
+  }
+}

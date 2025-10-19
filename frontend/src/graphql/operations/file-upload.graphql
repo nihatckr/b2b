@@ -1,0 +1,19 @@
+# ============================================
+# FILE UPLOAD OPERATIONS
+# ============================================
+# Single and multiple file upload mutations
+# Note: Backend returns JSON type, so we can't select specific fields
+
+# Single file upload
+mutation SingleUpload($file: File!, $category: String, $description: String) {
+  singleUpload(file: $file, category: $category, description: $description)
+}
+
+# Multiple files upload
+mutation MultipleUpload(
+  $files: [File!]!
+  $category: String
+  $description: String
+) {
+  multipleUpload(files: $files, category: $category, description: $description)
+}

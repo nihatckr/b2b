@@ -1,3 +1,4 @@
+import { DynamicTaskHelper } from "../../utils/dynamicTaskHelper";
 import builder from "../builder";
 
 // Revert Production Stage
@@ -169,6 +170,7 @@ builder.mutationField("completeProductionStage", (t) =>
 
       const production = await context.prisma.productionTracking.findUnique({
         where: { id: args.productionId },
+        include: { order: true }, // Include order to get customer and manufacturer IDs
       });
 
       if (!production) {
@@ -203,6 +205,23 @@ builder.mutationField("completeProductionStage", (t) =>
         where: { productionId: args.productionId, stage: args.stage as any },
         data: { status: "COMPLETED" as any, actualEndDate: new Date() },
       });
+
+      // ✅ Create task for next stage
+      if (nextStage !== "COMPLETED" && production.order) {
+        console.log(`📦 Production stage completed: ${args.stage} → ${nextStage}`);
+
+        const dynamicTaskHelper = new DynamicTaskHelper(context.prisma);
+        await dynamicTaskHelper.createTaskForProductionStage(
+          production.id,
+          nextStage,
+          production.order.manufactureId,
+          production.order.id
+        );
+
+        console.log(`✅ Task created for production stage: ${nextStage} (Order ID: ${production.order.id})`);
+      } else if (nextStage === "COMPLETED") {
+        console.log(`🎉 Production completed! All stages finished for Production ID: ${production.id}`);
+      }
 
       return updated;
     },

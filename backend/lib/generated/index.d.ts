@@ -4690,6 +4690,8 @@ export namespace Prisma {
     email: string | null
     phone: string | null
     address: string | null
+    city: string | null
+    country: string | null
     location: string | null
     website: string | null
     type: $Enums.CompanyType | null
@@ -4734,6 +4736,8 @@ export namespace Prisma {
     email: string | null
     phone: string | null
     address: string | null
+    city: string | null
+    country: string | null
     location: string | null
     website: string | null
     type: $Enums.CompanyType | null
@@ -4778,6 +4782,8 @@ export namespace Prisma {
     email: number
     phone: number
     address: number
+    city: number
+    country: number
     location: number
     website: number
     type: number
@@ -4858,6 +4864,8 @@ export namespace Prisma {
     email?: true
     phone?: true
     address?: true
+    city?: true
+    country?: true
     location?: true
     website?: true
     type?: true
@@ -4902,6 +4910,8 @@ export namespace Prisma {
     email?: true
     phone?: true
     address?: true
+    city?: true
+    country?: true
     location?: true
     website?: true
     type?: true
@@ -4946,6 +4956,8 @@ export namespace Prisma {
     email?: true
     phone?: true
     address?: true
+    city?: true
+    country?: true
     location?: true
     website?: true
     type?: true
@@ -5078,9 +5090,11 @@ export namespace Prisma {
   export type CompanyGroupByOutputType = {
     id: number
     name: string
-    email: string
+    email: string | null
     phone: string | null
     address: string | null
+    city: string | null
+    country: string | null
     location: string | null
     website: string | null
     type: $Enums.CompanyType
@@ -5148,6 +5162,8 @@ export namespace Prisma {
     email?: boolean
     phone?: boolean
     address?: boolean
+    city?: boolean
+    country?: boolean
     location?: boolean
     website?: boolean
     type?: boolean
@@ -5214,6 +5230,8 @@ export namespace Prisma {
     email?: boolean
     phone?: boolean
     address?: boolean
+    city?: boolean
+    country?: boolean
     location?: boolean
     website?: boolean
     type?: boolean
@@ -5256,7 +5274,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type CompanyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "phone" | "address" | "location" | "website" | "type" | "description" | "ownerId" | "isActive" | "settings" | "subscriptionPlan" | "subscriptionStatus" | "trialStartedAt" | "trialEndsAt" | "subscriptionStartedAt" | "currentPeriodStart" | "currentPeriodEnd" | "cancelAtPeriodEnd" | "cancelledAt" | "billingCycle" | "billingEmail" | "billingAddress" | "taxId" | "maxUsers" | "maxSamples" | "maxOrders" | "maxCollections" | "maxStorageGB" | "currentUsers" | "currentSamples" | "currentOrders" | "currentCollections" | "currentStorageGB" | "logo" | "coverImage" | "brandColors" | "profileSlug" | "isPublicProfile" | "socialLinks" | "defaultView" | "enabledModules" | "createdAt" | "updatedAt", ExtArgs["result"]["company"]>
+  export type CompanyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "phone" | "address" | "city" | "country" | "location" | "website" | "type" | "description" | "ownerId" | "isActive" | "settings" | "subscriptionPlan" | "subscriptionStatus" | "trialStartedAt" | "trialEndsAt" | "subscriptionStartedAt" | "currentPeriodStart" | "currentPeriodEnd" | "cancelAtPeriodEnd" | "cancelledAt" | "billingCycle" | "billingEmail" | "billingAddress" | "taxId" | "maxUsers" | "maxSamples" | "maxOrders" | "maxCollections" | "maxStorageGB" | "currentUsers" | "currentSamples" | "currentOrders" | "currentCollections" | "currentStorageGB" | "logo" | "coverImage" | "brandColors" | "profileSlug" | "isPublicProfile" | "socialLinks" | "defaultView" | "enabledModules" | "createdAt" | "updatedAt", ExtArgs["result"]["company"]>
   export type CompanyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | Company$ownerArgs<ExtArgs>
     employees?: boolean | Company$employeesArgs<ExtArgs>
@@ -5298,9 +5316,11 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: number
       name: string
-      email: string
+      email: string | null
       phone: string | null
       address: string | null
+      city: string | null
+      country: string | null
       location: string | null
       website: string | null
       type: $Enums.CompanyType
@@ -5730,6 +5750,8 @@ export namespace Prisma {
     readonly email: FieldRef<"Company", 'String'>
     readonly phone: FieldRef<"Company", 'String'>
     readonly address: FieldRef<"Company", 'String'>
+    readonly city: FieldRef<"Company", 'String'>
+    readonly country: FieldRef<"Company", 'String'>
     readonly location: FieldRef<"Company", 'String'>
     readonly website: FieldRef<"Company", 'String'>
     readonly type: FieldRef<"Company", 'CompanyType'>
@@ -10176,11 +10198,17 @@ export namespace Prisma {
     isActive: boolean | null
     isPendingApproval: boolean | null
     avatar: string | null
+    customAvatar: string | null
     bio: string | null
     emailNotifications: boolean | null
     pushNotifications: boolean | null
     language: string | null
     timezone: string | null
+    resetToken: string | null
+    resetTokenExpiry: Date | null
+    emailVerified: boolean | null
+    emailVerificationToken: string | null
+    emailVerificationExpiry: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -10202,11 +10230,17 @@ export namespace Prisma {
     isActive: boolean | null
     isPendingApproval: boolean | null
     avatar: string | null
+    customAvatar: string | null
     bio: string | null
     emailNotifications: boolean | null
     pushNotifications: boolean | null
     language: string | null
     timezone: string | null
+    resetToken: string | null
+    resetTokenExpiry: Date | null
+    emailVerified: boolean | null
+    emailVerificationToken: string | null
+    emailVerificationExpiry: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -10229,12 +10263,18 @@ export namespace Prisma {
     isActive: number
     isPendingApproval: number
     avatar: number
+    customAvatar: number
     bio: number
     socialLinks: number
     emailNotifications: number
     pushNotifications: number
     language: number
     timezone: number
+    resetToken: number
+    resetTokenExpiry: number
+    emailVerified: number
+    emailVerificationToken: number
+    emailVerificationExpiry: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -10268,11 +10308,17 @@ export namespace Prisma {
     isActive?: true
     isPendingApproval?: true
     avatar?: true
+    customAvatar?: true
     bio?: true
     emailNotifications?: true
     pushNotifications?: true
     language?: true
     timezone?: true
+    resetToken?: true
+    resetTokenExpiry?: true
+    emailVerified?: true
+    emailVerificationToken?: true
+    emailVerificationExpiry?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -10294,11 +10340,17 @@ export namespace Prisma {
     isActive?: true
     isPendingApproval?: true
     avatar?: true
+    customAvatar?: true
     bio?: true
     emailNotifications?: true
     pushNotifications?: true
     language?: true
     timezone?: true
+    resetToken?: true
+    resetTokenExpiry?: true
+    emailVerified?: true
+    emailVerificationToken?: true
+    emailVerificationExpiry?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -10321,12 +10373,18 @@ export namespace Prisma {
     isActive?: true
     isPendingApproval?: true
     avatar?: true
+    customAvatar?: true
     bio?: true
     socialLinks?: true
     emailNotifications?: true
     pushNotifications?: true
     language?: true
     timezone?: true
+    resetToken?: true
+    resetTokenExpiry?: true
+    emailVerified?: true
+    emailVerificationToken?: true
+    emailVerificationExpiry?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -10436,12 +10494,18 @@ export namespace Prisma {
     isActive: boolean
     isPendingApproval: boolean
     avatar: string | null
+    customAvatar: string | null
     bio: string | null
     socialLinks: JsonValue | null
     emailNotifications: boolean
     pushNotifications: boolean
     language: string
     timezone: string
+    resetToken: string | null
+    resetTokenExpiry: Date | null
+    emailVerified: boolean
+    emailVerificationToken: string | null
+    emailVerificationExpiry: Date | null
     createdAt: Date
     updatedAt: Date
     _count: UserCountAggregateOutputType | null
@@ -10483,12 +10547,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: boolean
+    customAvatar?: boolean
     bio?: boolean
     socialLinks?: boolean
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: boolean
     timezone?: boolean
+    resetToken?: boolean
+    resetTokenExpiry?: boolean
+    emailVerified?: boolean
+    emailVerificationToken?: boolean
+    emailVerificationExpiry?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     company?: boolean | User$companyArgs<ExtArgs>
@@ -10543,17 +10613,23 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: boolean
+    customAvatar?: boolean
     bio?: boolean
     socialLinks?: boolean
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: boolean
     timezone?: boolean
+    resetToken?: boolean
+    resetTokenExpiry?: boolean
+    emailVerified?: boolean
+    emailVerificationToken?: boolean
+    emailVerificationExpiry?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "name" | "username" | "firstName" | "lastName" | "phone" | "companyId" | "role" | "isCompanyOwner" | "department" | "jobTitle" | "permissions" | "isActive" | "isPendingApproval" | "avatar" | "bio" | "socialLinks" | "emailNotifications" | "pushNotifications" | "language" | "timezone" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "name" | "username" | "firstName" | "lastName" | "phone" | "companyId" | "role" | "isCompanyOwner" | "department" | "jobTitle" | "permissions" | "isActive" | "isPendingApproval" | "avatar" | "customAvatar" | "bio" | "socialLinks" | "emailNotifications" | "pushNotifications" | "language" | "timezone" | "resetToken" | "resetTokenExpiry" | "emailVerified" | "emailVerificationToken" | "emailVerificationExpiry" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     company?: boolean | User$companyArgs<ExtArgs>
     ownedCompanies?: boolean | User$ownedCompaniesArgs<ExtArgs>
@@ -10638,12 +10714,18 @@ export namespace Prisma {
       isActive: boolean
       isPendingApproval: boolean
       avatar: string | null
+      customAvatar: string | null
       bio: string | null
       socialLinks: Prisma.JsonValue | null
       emailNotifications: boolean
       pushNotifications: boolean
       language: string
       timezone: string
+      resetToken: string | null
+      resetTokenExpiry: Date | null
+      emailVerified: boolean
+      emailVerificationToken: string | null
+      emailVerificationExpiry: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["user"]>
@@ -11061,12 +11143,18 @@ export namespace Prisma {
     readonly isActive: FieldRef<"User", 'Boolean'>
     readonly isPendingApproval: FieldRef<"User", 'Boolean'>
     readonly avatar: FieldRef<"User", 'String'>
+    readonly customAvatar: FieldRef<"User", 'String'>
     readonly bio: FieldRef<"User", 'String'>
     readonly socialLinks: FieldRef<"User", 'Json'>
     readonly emailNotifications: FieldRef<"User", 'Boolean'>
     readonly pushNotifications: FieldRef<"User", 'Boolean'>
     readonly language: FieldRef<"User", 'String'>
     readonly timezone: FieldRef<"User", 'String'>
+    readonly resetToken: FieldRef<"User", 'String'>
+    readonly resetTokenExpiry: FieldRef<"User", 'DateTime'>
+    readonly emailVerified: FieldRef<"User", 'Boolean'>
+    readonly emailVerificationToken: FieldRef<"User", 'String'>
+    readonly emailVerificationExpiry: FieldRef<"User", 'DateTime'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
   }
@@ -40562,6 +40650,8 @@ export namespace Prisma {
     email: 'email',
     phone: 'phone',
     address: 'address',
+    city: 'city',
+    country: 'country',
     location: 'location',
     website: 'website',
     type: 'type',
@@ -40682,12 +40772,18 @@ export namespace Prisma {
     isActive: 'isActive',
     isPendingApproval: 'isPendingApproval',
     avatar: 'avatar',
+    customAvatar: 'customAvatar',
     bio: 'bio',
     socialLinks: 'socialLinks',
     emailNotifications: 'emailNotifications',
     pushNotifications: 'pushNotifications',
     language: 'language',
     timezone: 'timezone',
+    resetToken: 'resetToken',
+    resetTokenExpiry: 'resetTokenExpiry',
+    emailVerified: 'emailVerified',
+    emailVerificationToken: 'emailVerificationToken',
+    emailVerificationExpiry: 'emailVerificationExpiry',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -41299,6 +41395,8 @@ export namespace Prisma {
     email: 'email',
     phone: 'phone',
     address: 'address',
+    city: 'city',
+    country: 'country',
     location: 'location',
     website: 'website',
     description: 'description',
@@ -41348,9 +41446,12 @@ export namespace Prisma {
     phone: 'phone',
     jobTitle: 'jobTitle',
     avatar: 'avatar',
+    customAvatar: 'customAvatar',
     bio: 'bio',
     language: 'language',
-    timezone: 'timezone'
+    timezone: 'timezone',
+    resetToken: 'resetToken',
+    emailVerificationToken: 'emailVerificationToken'
   };
 
   export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
@@ -41860,9 +41961,11 @@ export namespace Prisma {
     NOT?: CompanyWhereInput | CompanyWhereInput[]
     id?: IntFilter<"Company"> | number
     name?: StringFilter<"Company"> | string
-    email?: StringFilter<"Company"> | string
+    email?: StringNullableFilter<"Company"> | string | null
     phone?: StringNullableFilter<"Company"> | string | null
     address?: StringNullableFilter<"Company"> | string | null
+    city?: StringNullableFilter<"Company"> | string | null
+    country?: StringNullableFilter<"Company"> | string | null
     location?: StringNullableFilter<"Company"> | string | null
     website?: StringNullableFilter<"Company"> | string | null
     type?: EnumCompanyTypeFilter<"Company"> | $Enums.CompanyType
@@ -41923,9 +42026,11 @@ export namespace Prisma {
   export type CompanyOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
-    email?: SortOrder
+    email?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
     address?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    country?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
     website?: SortOrderInput | SortOrder
     type?: SortOrder
@@ -41995,6 +42100,8 @@ export namespace Prisma {
     name?: StringFilter<"Company"> | string
     phone?: StringNullableFilter<"Company"> | string | null
     address?: StringNullableFilter<"Company"> | string | null
+    city?: StringNullableFilter<"Company"> | string | null
+    country?: StringNullableFilter<"Company"> | string | null
     location?: StringNullableFilter<"Company"> | string | null
     website?: StringNullableFilter<"Company"> | string | null
     type?: EnumCompanyTypeFilter<"Company"> | $Enums.CompanyType
@@ -42053,9 +42160,11 @@ export namespace Prisma {
   export type CompanyOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
-    email?: SortOrder
+    email?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
     address?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    country?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
     website?: SortOrderInput | SortOrder
     type?: SortOrder
@@ -42109,9 +42218,11 @@ export namespace Prisma {
     NOT?: CompanyScalarWhereWithAggregatesInput | CompanyScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"Company"> | number
     name?: StringWithAggregatesFilter<"Company"> | string
-    email?: StringWithAggregatesFilter<"Company"> | string
+    email?: StringNullableWithAggregatesFilter<"Company"> | string | null
     phone?: StringNullableWithAggregatesFilter<"Company"> | string | null
     address?: StringNullableWithAggregatesFilter<"Company"> | string | null
+    city?: StringNullableWithAggregatesFilter<"Company"> | string | null
+    country?: StringNullableWithAggregatesFilter<"Company"> | string | null
     location?: StringNullableWithAggregatesFilter<"Company"> | string | null
     website?: StringNullableWithAggregatesFilter<"Company"> | string | null
     type?: EnumCompanyTypeWithAggregatesFilter<"Company"> | $Enums.CompanyType
@@ -42517,12 +42628,18 @@ export namespace Prisma {
     isActive?: BoolFilter<"User"> | boolean
     isPendingApproval?: BoolFilter<"User"> | boolean
     avatar?: StringNullableFilter<"User"> | string | null
+    customAvatar?: StringNullableFilter<"User"> | string | null
     bio?: StringNullableFilter<"User"> | string | null
     socialLinks?: JsonNullableFilter<"User">
     emailNotifications?: BoolFilter<"User"> | boolean
     pushNotifications?: BoolFilter<"User"> | boolean
     language?: StringFilter<"User"> | string
     timezone?: StringFilter<"User"> | string
+    resetToken?: StringNullableFilter<"User"> | string | null
+    resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
+    emailVerified?: BoolFilter<"User"> | boolean
+    emailVerificationToken?: StringNullableFilter<"User"> | string | null
+    emailVerificationExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
@@ -42574,12 +42691,18 @@ export namespace Prisma {
     isActive?: SortOrder
     isPendingApproval?: SortOrder
     avatar?: SortOrderInput | SortOrder
+    customAvatar?: SortOrderInput | SortOrder
     bio?: SortOrderInput | SortOrder
     socialLinks?: SortOrderInput | SortOrder
     emailNotifications?: SortOrder
     pushNotifications?: SortOrder
     language?: SortOrder
     timezone?: SortOrder
+    resetToken?: SortOrderInput | SortOrder
+    resetTokenExpiry?: SortOrderInput | SortOrder
+    emailVerified?: SortOrder
+    emailVerificationToken?: SortOrderInput | SortOrder
+    emailVerificationExpiry?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     company?: CompanyOrderByWithRelationInput
@@ -42635,12 +42758,18 @@ export namespace Prisma {
     isActive?: BoolFilter<"User"> | boolean
     isPendingApproval?: BoolFilter<"User"> | boolean
     avatar?: StringNullableFilter<"User"> | string | null
+    customAvatar?: StringNullableFilter<"User"> | string | null
     bio?: StringNullableFilter<"User"> | string | null
     socialLinks?: JsonNullableFilter<"User">
     emailNotifications?: BoolFilter<"User"> | boolean
     pushNotifications?: BoolFilter<"User"> | boolean
     language?: StringFilter<"User"> | string
     timezone?: StringFilter<"User"> | string
+    resetToken?: StringNullableFilter<"User"> | string | null
+    resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
+    emailVerified?: BoolFilter<"User"> | boolean
+    emailVerificationToken?: StringNullableFilter<"User"> | string | null
+    emailVerificationExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
@@ -42692,12 +42821,18 @@ export namespace Prisma {
     isActive?: SortOrder
     isPendingApproval?: SortOrder
     avatar?: SortOrderInput | SortOrder
+    customAvatar?: SortOrderInput | SortOrder
     bio?: SortOrderInput | SortOrder
     socialLinks?: SortOrderInput | SortOrder
     emailNotifications?: SortOrder
     pushNotifications?: SortOrder
     language?: SortOrder
     timezone?: SortOrder
+    resetToken?: SortOrderInput | SortOrder
+    resetTokenExpiry?: SortOrderInput | SortOrder
+    emailVerified?: SortOrder
+    emailVerificationToken?: SortOrderInput | SortOrder
+    emailVerificationExpiry?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: UserCountOrderByAggregateInput
@@ -42728,12 +42863,18 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"User"> | boolean
     isPendingApproval?: BoolWithAggregatesFilter<"User"> | boolean
     avatar?: StringNullableWithAggregatesFilter<"User"> | string | null
+    customAvatar?: StringNullableWithAggregatesFilter<"User"> | string | null
     bio?: StringNullableWithAggregatesFilter<"User"> | string | null
     socialLinks?: JsonNullableWithAggregatesFilter<"User">
     emailNotifications?: BoolWithAggregatesFilter<"User"> | boolean
     pushNotifications?: BoolWithAggregatesFilter<"User"> | boolean
     language?: StringWithAggregatesFilter<"User"> | string
     timezone?: StringWithAggregatesFilter<"User"> | string
+    resetToken?: StringNullableWithAggregatesFilter<"User"> | string | null
+    resetTokenExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+    emailVerified?: BoolWithAggregatesFilter<"User"> | boolean
+    emailVerificationToken?: StringNullableWithAggregatesFilter<"User"> | string | null
+    emailVerificationExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
   }
@@ -45797,9 +45938,11 @@ export namespace Prisma {
 
   export type CompanyCreateInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -45859,9 +46002,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -45920,9 +46065,11 @@ export namespace Prisma {
 
   export type CompanyUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -45982,9 +46129,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -46044,9 +46193,11 @@ export namespace Prisma {
   export type CompanyCreateManyInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -46091,9 +46242,11 @@ export namespace Prisma {
 
   export type CompanyUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -46138,9 +46291,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -46537,12 +46692,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -46594,12 +46755,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -46648,12 +46815,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -46705,12 +46878,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -46761,12 +46940,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -46787,12 +46972,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -46815,12 +47006,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -50463,6 +50660,8 @@ export namespace Prisma {
     email?: SortOrder
     phone?: SortOrder
     address?: SortOrder
+    city?: SortOrder
+    country?: SortOrder
     location?: SortOrder
     website?: SortOrder
     type?: SortOrder
@@ -50526,6 +50725,8 @@ export namespace Prisma {
     email?: SortOrder
     phone?: SortOrder
     address?: SortOrder
+    city?: SortOrder
+    country?: SortOrder
     location?: SortOrder
     website?: SortOrder
     type?: SortOrder
@@ -50570,6 +50771,8 @@ export namespace Prisma {
     email?: SortOrder
     phone?: SortOrder
     address?: SortOrder
+    city?: SortOrder
+    country?: SortOrder
     location?: SortOrder
     website?: SortOrder
     type?: SortOrder
@@ -51277,12 +51480,18 @@ export namespace Prisma {
     isActive?: SortOrder
     isPendingApproval?: SortOrder
     avatar?: SortOrder
+    customAvatar?: SortOrder
     bio?: SortOrder
     socialLinks?: SortOrder
     emailNotifications?: SortOrder
     pushNotifications?: SortOrder
     language?: SortOrder
     timezone?: SortOrder
+    resetToken?: SortOrder
+    resetTokenExpiry?: SortOrder
+    emailVerified?: SortOrder
+    emailVerificationToken?: SortOrder
+    emailVerificationExpiry?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -51309,11 +51518,17 @@ export namespace Prisma {
     isActive?: SortOrder
     isPendingApproval?: SortOrder
     avatar?: SortOrder
+    customAvatar?: SortOrder
     bio?: SortOrder
     emailNotifications?: SortOrder
     pushNotifications?: SortOrder
     language?: SortOrder
     timezone?: SortOrder
+    resetToken?: SortOrder
+    resetTokenExpiry?: SortOrder
+    emailVerified?: SortOrder
+    emailVerificationToken?: SortOrder
+    emailVerificationExpiry?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -51335,11 +51550,17 @@ export namespace Prisma {
     isActive?: SortOrder
     isPendingApproval?: SortOrder
     avatar?: SortOrder
+    customAvatar?: SortOrder
     bio?: SortOrder
     emailNotifications?: SortOrder
     pushNotifications?: SortOrder
     language?: SortOrder
     timezone?: SortOrder
+    resetToken?: SortOrder
+    resetTokenExpiry?: SortOrder
+    emailVerified?: SortOrder
+    emailVerificationToken?: SortOrder
+    emailVerificationExpiry?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -59502,12 +59723,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -59558,12 +59785,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
@@ -59616,12 +59849,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyCreateNestedManyWithoutOwnerInput
@@ -59671,12 +59910,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -60557,12 +60802,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -60613,12 +60864,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
@@ -60687,12 +60944,18 @@ export namespace Prisma {
     isActive?: BoolFilter<"User"> | boolean
     isPendingApproval?: BoolFilter<"User"> | boolean
     avatar?: StringNullableFilter<"User"> | string | null
+    customAvatar?: StringNullableFilter<"User"> | string | null
     bio?: StringNullableFilter<"User"> | string | null
     socialLinks?: JsonNullableFilter<"User">
     emailNotifications?: BoolFilter<"User"> | boolean
     pushNotifications?: BoolFilter<"User"> | boolean
     language?: StringFilter<"User"> | string
     timezone?: StringFilter<"User"> | string
+    resetToken?: StringNullableFilter<"User"> | string | null
+    resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
+    emailVerified?: BoolFilter<"User"> | boolean
+    emailVerificationToken?: StringNullableFilter<"User"> | string | null
+    emailVerificationExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
   }
@@ -61230,12 +61493,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -61286,12 +61555,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -61344,12 +61619,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -61400,12 +61681,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -61610,9 +61897,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutMessagesInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -61671,9 +61960,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutMessagesInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -61761,12 +62052,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -61817,12 +62114,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -61881,12 +62184,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -61937,12 +62246,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -62165,9 +62480,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutMessagesInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -62226,9 +62543,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutMessagesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -62452,9 +62771,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutProductionTrackingInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -62513,9 +62834,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutProductionTrackingInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -63075,9 +63398,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutProductionTrackingInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -63136,9 +63461,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutProductionTrackingInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -63939,9 +64266,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutEmployeesInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -64000,9 +64329,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutEmployeesInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -64065,9 +64396,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutOwnerInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -64126,9 +64459,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutOwnerInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -65590,9 +65925,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutEmployeesInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -65651,9 +65988,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutEmployeesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -65731,9 +66070,11 @@ export namespace Prisma {
     NOT?: CompanyScalarWhereInput | CompanyScalarWhereInput[]
     id?: IntFilter<"Company"> | number
     name?: StringFilter<"Company"> | string
-    email?: StringFilter<"Company"> | string
+    email?: StringNullableFilter<"Company"> | string | null
     phone?: StringNullableFilter<"Company"> | string | null
     address?: StringNullableFilter<"Company"> | string | null
+    city?: StringNullableFilter<"Company"> | string | null
+    country?: StringNullableFilter<"Company"> | string | null
     location?: StringNullableFilter<"Company"> | string | null
     website?: StringNullableFilter<"Company"> | string | null
     type?: EnumCompanyTypeFilter<"Company"> | $Enums.CompanyType
@@ -66502,12 +66843,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -66558,12 +66905,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -66709,12 +67062,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -66765,12 +67124,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -66848,9 +67213,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutCompanyCategoriesInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -66909,9 +67276,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutCompanyCategoriesInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -67278,12 +67647,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -67334,12 +67709,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -67439,9 +67820,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutCompanyCategoriesInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -67500,9 +67883,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutCompanyCategoriesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -67703,12 +68088,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -67759,12 +68150,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -67812,12 +68209,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -67868,12 +68271,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -68076,9 +68485,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutCategoriesInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -68137,9 +68548,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutCategoriesInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -68227,12 +68640,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -68283,12 +68702,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -68399,9 +68824,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutCategoriesInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -68460,9 +68887,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutCategoriesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -68679,12 +69108,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -68735,12 +69170,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -69175,9 +69616,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutCollectionsInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -69236,9 +69679,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutCollectionsInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -69446,12 +69891,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -69502,12 +69953,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -69648,9 +70105,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutCollectionsInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -69709,9 +70168,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutCollectionsInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -69783,12 +70244,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -69839,12 +70306,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -70006,12 +70479,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -70062,12 +70541,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -70415,12 +70900,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -70471,12 +70962,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -70529,12 +71026,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -70585,12 +71088,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -70787,9 +71296,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutSamplesInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -70848,9 +71359,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutSamplesInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -71300,12 +71813,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -71356,12 +71875,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -71420,12 +71945,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -71476,12 +72007,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -71590,9 +72127,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutSamplesInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -71651,9 +72190,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutSamplesInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -72109,12 +72650,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -72165,12 +72712,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -72334,12 +72887,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -72390,12 +72949,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -72541,12 +73106,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -72597,12 +73168,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -72655,12 +73232,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -72711,12 +73294,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -72913,9 +73502,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutOrdersInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -72974,9 +73565,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutOrdersInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -73264,12 +73857,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -73320,12 +73919,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -73384,12 +73989,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -73440,12 +74051,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -73554,9 +74171,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutOrdersInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -73615,9 +74234,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutOrdersInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -73793,12 +74414,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -73849,12 +74476,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -73996,12 +74629,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -74052,12 +74691,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -74203,12 +74848,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -74259,12 +74910,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -74317,12 +74974,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -74373,12 +75036,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -74546,12 +75215,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -74602,12 +75277,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -74666,12 +75347,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -74722,12 +75409,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -74873,12 +75566,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -74929,12 +75628,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -75102,12 +75807,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -75158,12 +75869,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -75373,12 +76090,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -75429,12 +76152,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -75556,12 +76285,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -75612,12 +76347,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -75665,12 +76406,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -75721,12 +76468,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -75904,12 +76657,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -75960,12 +76719,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -76031,9 +76796,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutLibraryItemsInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -76092,9 +76859,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutLibraryItemsInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -76370,12 +77139,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -76426,12 +77201,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -76481,9 +77262,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutLibraryItemsInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -76542,9 +77325,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutLibraryItemsInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -76713,12 +77498,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -76769,12 +77560,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -76874,12 +77671,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -76930,12 +77733,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -77057,12 +77866,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -77113,12 +77928,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -77166,12 +77987,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -77222,12 +78049,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -77509,12 +78342,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -77565,12 +78404,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -77854,12 +78699,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -77910,12 +78761,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -77968,12 +78825,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -78024,12 +78887,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -78409,12 +79278,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -78465,12 +79340,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -78529,12 +79410,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -78585,12 +79472,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -78964,9 +79857,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutPartnershipsAsInitiatorInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -79025,9 +79920,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutPartnershipsAsInitiatorInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -79090,9 +79987,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutPartnershipsAsPartnerInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -79151,9 +80050,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutPartnershipsAsPartnerInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -79273,12 +80174,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -79329,12 +80236,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -79387,12 +80300,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -79443,12 +80362,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -79498,9 +80423,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutPartnershipsAsInitiatorInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -79559,9 +80486,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutPartnershipsAsInitiatorInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -79630,9 +80559,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutPartnershipsAsPartnerInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -79691,9 +80622,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutPartnershipsAsPartnerInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -79792,12 +80725,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -79848,12 +80787,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -79912,12 +80857,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -79968,12 +80919,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -80069,9 +81026,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutSourceCategoryMappingsInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -80130,9 +81089,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutSourceCategoryMappingsInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -80243,9 +81204,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutTargetCategoryMappingsInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -80304,9 +81267,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutTargetCategoryMappingsInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -80431,12 +81396,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -80487,12 +81458,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -80610,9 +81587,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutSourceCategoryMappingsInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -80671,9 +81650,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutSourceCategoryMappingsInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -80796,9 +81777,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutTargetCategoryMappingsInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -80857,9 +81840,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutTargetCategoryMappingsInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -80996,12 +81981,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -81052,12 +82043,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -81105,12 +82102,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutEmployeesInput
@@ -81161,12 +82164,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     ownedCompanies?: CompanyUncheckedCreateNestedManyWithoutOwnerInput
@@ -81230,12 +82239,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutEmployeesNestedInput
@@ -81286,12 +82301,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -81325,9 +82346,11 @@ export namespace Prisma {
 
   export type CompanyCreateWithoutMetricsInput = {
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -81386,9 +82409,11 @@ export namespace Prisma {
   export type CompanyUncheckedCreateWithoutMetricsInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -81462,9 +82487,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutMetricsInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -81523,9 +82550,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutMetricsInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -81598,12 +82627,18 @@ export namespace Prisma {
     isActive?: boolean
     isPendingApproval?: boolean
     avatar?: string | null
+    customAvatar?: string | null
     bio?: string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: boolean
     pushNotifications?: boolean
     language?: string
     timezone?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerified?: boolean
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -81934,12 +82969,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUpdateManyWithoutOwnerNestedInput
@@ -81989,12 +83030,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownedCompanies?: CompanyUncheckedUpdateManyWithoutOwnerNestedInput
@@ -82044,12 +83091,18 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPendingApproval?: BoolFieldUpdateOperationsInput | boolean
     avatar?: NullableStringFieldUpdateOperationsInput | string | null
+    customAvatar?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     socialLinks?: NullableJsonNullValueInput | InputJsonValue
     emailNotifications?: BoolFieldUpdateOperationsInput | boolean
     pushNotifications?: BoolFieldUpdateOperationsInput | boolean
     language?: StringFieldUpdateOperationsInput | string
     timezone?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -83430,9 +84483,11 @@ export namespace Prisma {
   export type CompanyCreateManyOwnerInput = {
     id?: number
     name: string
-    email: string
+    email?: string | null
     phone?: string | null
     address?: string | null
+    city?: string | null
+    country?: string | null
     location?: string | null
     website?: string | null
     type?: $Enums.CompanyType
@@ -83998,9 +85053,11 @@ export namespace Prisma {
 
   export type CompanyUpdateWithoutOwnerInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -84059,9 +85116,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateWithoutOwnerInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType
@@ -84120,9 +85179,11 @@ export namespace Prisma {
   export type CompanyUncheckedUpdateManyWithoutOwnerInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumCompanyTypeFieldUpdateOperationsInput | $Enums.CompanyType

@@ -8,7 +8,8 @@ function generateSlug(name: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-// Create collection (company owner or admin)
+// Create collection (manufacturer companies only)
+// Only MANUFACTURER or BOTH type companies can create collections
 builder.mutationField("createCollection", (t) =>
   t.prismaField({
     type: "Collection",
@@ -21,8 +22,34 @@ builder.mutationField("createCollection", (t) =>
       images: t.arg.string(),
       mainImage: t.arg.string(),
     },
-    authScopes: { companyOwner: true, admin: true },
+    authScopes: { user: true }, // ✅ Allow all logged-in users (will check company type inside)
     resolve: async (query, _root, args, context) => {
+      // ✅ Check if user has a company
+      if (!context.user?.companyId) {
+        throw new Error("You must be part of a company to create collections");
+      }
+
+      // ✅ Get user's company to check type
+      const userCompany = await context.prisma.company.findUnique({
+        where: { id: context.user.companyId },
+        select: { id: true, type: true, name: true }
+      });
+
+      if (!userCompany) {
+        throw new Error("Company not found");
+      }
+
+      // ✅ Only MANUFACTURER or BOTH type companies can create collections
+      if (userCompany.type === "BUYER") {
+        throw new Error(
+          "Only manufacturer companies can create product collections. " +
+          "Your company is registered as BUYER type. " +
+          "Please contact support to change company type if needed."
+        );
+      }
+
+      console.log(`✅ Collection creation allowed for ${userCompany.name} (Type: ${userCompany.type})`);
+
       const slug = generateSlug(args.name);
 
       const data: any = {
@@ -50,10 +77,14 @@ builder.mutationField("createCollection", (t) =>
       if (args.mainImage !== null && args.mainImage !== undefined)
         data.mainImage = args.mainImage;
 
-      return context.prisma.collection.create({
+      const collection = await context.prisma.collection.create({
         ...query,
         data,
       });
+
+      console.log(`✅ Collection created: ${collection.name} (ID: ${collection.id}) by ${userCompany.name}`);
+
+      return collection;
     },
   })
 );

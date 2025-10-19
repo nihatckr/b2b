@@ -6,9 +6,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 
-import { RegisterSchema } from "../../lib/schema";
+import { SignupDocument } from "@/__generated__/graphql";
+import { useMutation } from "urql";
+import { RegisterSchema, type RegisterInput } from "../../lib/zod-schema";
 import { Button } from "../ui/button";
 import {
   Form,
@@ -19,16 +20,16 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { CardWrapper } from "./card-wrapper";
 import { FormError } from "./form-error";
 import { FormSuccess } from "./form-success";
-
-// GraphQL Mutation query string
-const SIGNUP_MUTATION = `
-  mutation Signup($email: String!, $password: String!, $name: String!) {
-    signup(email: $email, password: $password, name: $name)
-  }
-`;
 
 export const SignupForm = () => {
   const router = useRouter();
@@ -36,63 +37,56 @@ export const SignupForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string>("");
   const [formSuccess, setFormSuccess] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
   const [isGithubLoading, setIsGithubLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof RegisterSchema>>({
+  // URQL Mutation
+  const [{ fetching: isLoading }, signupMutation] = useMutation(SignupDocument);
+
+  const form = useForm<RegisterInput>({
     resolver: zodResolver(RegisterSchema),
     defaultValues: {
       email: "",
       password: "",
       name: "",
+      accountType: "INDIVIDUAL",
     },
     mode: "onChange",
   });
 
-  const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
+  const onSubmit = async (values: RegisterInput) => {
     setFormError("");
     setFormSuccess("");
-    setIsLoading(true);
 
     try {
-      // Backend'e GraphQL signup mutation gönder
-      const response = await fetch("http://localhost:4001/graphql", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const result = await signupMutation({
+        input: {
+          name: values.name,
+          email: values.email,
+          password: values.password,
+          accountType: values.accountType,
         },
-        body: JSON.stringify({
-          query: SIGNUP_MUTATION,
-          variables: {
-            email: values.email,
-            password: values.password,
-            name: values.name,
-          },
-        }),
       });
 
-      const data = await response.json();
-
-      if (data.errors) {
-        const errorMessage = data.errors[0].message || "Kayıt başarısız oldu";
+      if (result.error) {
+        const errorMessage = result.error.message || "Kayıt başarısız oldu";
         setFormError(errorMessage);
-        setIsLoading(false);
         return;
       }
 
-      if (data.data?.signup) {
+      if (result.data?.signup) {
         setFormSuccess(
-          "Hesap başarıyla oluşturuldu! Giriş sayfasına yönlendiriliyorsunuz..."
+          "Hesap başarıyla oluşturuldu! ✅ E-posta adresinize doğrulama linki gönderildi. Lütfen e-postanızı kontrol edin."
         );
+
+        // 3 saniye bekle, sonra login'e yönlendir
         setTimeout(() => {
-          router.push("/auth/login");
-        }, 1500);
+          router.push("/auth/login?message=verify-email");
+        }, 3000);
       }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Beklenmeyen bir hata oluştu";
       setFormError(errorMessage);
-      setIsLoading(false);
     }
   };
 
@@ -166,6 +160,61 @@ export const SignupForm = () => {
                         />
                       </div>
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid gap-3">
+              <FormField
+                control={form.control}
+                name="accountType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hesap Türü</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={isLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Hesap türünüzü seçin" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="INDIVIDUAL">
+                          <div className="flex flex-col py-1">
+                            <span className="font-medium">
+                              👤 Bireysel Müşteri
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              Kişisel kullanım - Ürünleri görüntüle ve sipariş
+                              ver
+                            </span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="MANUFACTURER">
+                          <div className="flex flex-col py-1">
+                            <span className="font-medium">🏭 Üretici</span>
+                            <span className="text-xs text-muted-foreground">
+                              Ürün üret ve üretim süreçlerini yönet
+                            </span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="BUYER">
+                          <div className="flex flex-col py-1">
+                            <span className="font-medium">
+                              🛒 Alıcı / Perakendeci
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              Sipariş ver ve stok yönetimi yap
+                            </span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

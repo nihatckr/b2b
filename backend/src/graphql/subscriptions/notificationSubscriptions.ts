@@ -80,10 +80,20 @@ builder.subscriptionField("newNotification", (t) =>
     subscribe: (root, args, context) => {
       requireAuth(context.user?.id);
 
+      console.log(`🔔 [newNotification] Subscription started for user ${context.user.id}`);
+
       // Subscribe to notification events for this specific user
       return pubsub.subscribe("notification:new", context.user.id);
     },
-    resolve: (payload) => payload,
+    resolve: (payload) => {
+      console.log(`📤 [newNotification] Resolving payload:`, {
+        id: payload.id,
+        userId: payload.userId,
+        title: payload.title,
+        type: payload.type,
+      });
+      return payload;
+    },
   })
 );
 

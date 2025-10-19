@@ -126,6 +126,8 @@ exports.Prisma.CompanyScalarFieldEnum = {
   email: 'email',
   phone: 'phone',
   address: 'address',
+  city: 'city',
+  country: 'country',
   location: 'location',
   website: 'website',
   type: 'type',
@@ -234,12 +236,18 @@ exports.Prisma.UserScalarFieldEnum = {
   isActive: 'isActive',
   isPendingApproval: 'isPendingApproval',
   avatar: 'avatar',
+  customAvatar: 'customAvatar',
   bio: 'bio',
   socialLinks: 'socialLinks',
   emailNotifications: 'emailNotifications',
   pushNotifications: 'pushNotifications',
   language: 'language',
   timezone: 'timezone',
+  resetToken: 'resetToken',
+  resetTokenExpiry: 'resetTokenExpiry',
+  emailVerified: 'emailVerified',
+  emailVerificationToken: 'emailVerificationToken',
+  emailVerificationExpiry: 'emailVerificationExpiry',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -758,6 +766,8 @@ exports.Prisma.CompanyOrderByRelevanceFieldEnum = {
   email: 'email',
   phone: 'phone',
   address: 'address',
+  city: 'city',
+  country: 'country',
   location: 'location',
   website: 'website',
   description: 'description',
@@ -795,9 +805,12 @@ exports.Prisma.UserOrderByRelevanceFieldEnum = {
   phone: 'phone',
   jobTitle: 'jobTitle',
   avatar: 'avatar',
+  customAvatar: 'customAvatar',
   bio: 'bio',
   language: 'language',
-  timezone: 'timezone'
+  timezone: 'timezone',
+  resetToken: 'resetToken',
+  emailVerificationToken: 'emailVerificationToken'
 };
 
 exports.Prisma.StandardCategoryOrderByRelevanceFieldEnum = {

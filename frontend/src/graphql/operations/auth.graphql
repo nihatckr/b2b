@@ -1,0 +1,20 @@
+# ============================================
+# AUTHENTICATION OPERATIONS
+# ============================================
+# Server-side authentication mutations for NextAuth callbacks
+# Note: Backend returns JSON type for login/signupOAuth, String for refreshToken
+
+# Login with email and password
+mutation Login($email: String!, $password: String!) {
+  login(email: $email, password: $password)
+}
+
+# OAuth signup (GitHub, Google, etc.)
+mutation SignupOAuth($email: String!, $name: String!) {
+  signupOAuth(email: $email, name: $name)
+}
+
+# Refresh authentication token
+mutation RefreshToken {
+  refreshToken
+}

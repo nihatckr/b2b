@@ -99,10 +99,12 @@ enum Fit {
 model Company {
   id          Int         @id @default(autoincrement())
   name        String
-  email       String      @unique
+  email       String?     @unique
   phone       String?
   address     String?
-  location    String? // Şehir/Bölge: "İstanbul", "İzmir", "Denizli"
+  city        String? // Şehir: "İstanbul", "İzmir", "Denizli"
+  country     String? // Ülke: "Turkey", "Germany", etc.
+  location    String? // Deprecated - use city instead
   website     String?
   type        CompanyType @default(MANUFACTURER)
   description String?     @db.Text
@@ -326,9 +328,10 @@ model User {
   // ========================================
   // USER PROFILE & SETTINGS
   // ========================================
-  avatar      String? @db.Text // Profile picture URL (Unsplash URLs can be long)
-  bio         String? @db.Text // User bio/description
-  socialLinks Json? // { twitter: "...", linkedin: "...", github: "..." }
+  avatar       String? @db.Text // Profile picture URL from OAuth providers (GitHub/Google)
+  customAvatar String? @db.Text // User's custom uploaded profile picture (overrides avatar)
+  bio          String? @db.Text // User bio/description
+  socialLinks  Json? // { twitter: "...", linkedin: "...", github: "..." }
 
   // Notification Settings
   emailNotifications Boolean @default(true)
@@ -337,6 +340,15 @@ model User {
   // Localization
   language String @default("tr") // "tr", "en"
   timezone String @default("Europe/Istanbul")
+
+  // Password Reset
+  resetToken       String? // Token for password reset
+  resetTokenExpiry DateTime? // Token expiration date
+
+  // Email Verification
+  emailVerified           Boolean   @default(false) // Email doğrulandı mı?
+  emailVerificationToken  String? // Email doğrulama token
+  emailVerificationExpiry DateTime? // Token son kullanma tarihi
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,0 +1,18 @@
+# Dashboard Page GraphQL Operations
+
+# Query: Get Company Data for Dashboard
+query GetMyCompanyDashboard {
+  myCompany {
+    id
+    name
+    email
+    phone
+    website
+    address
+  }
+}
+
+# Mutation: Resend Email Verification (reusing from settings)
+mutation ResendVerificationEmailDashboard {
+  resendVerificationEmail
+}

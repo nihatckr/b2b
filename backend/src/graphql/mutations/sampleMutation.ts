@@ -1,3 +1,4 @@
+import { DynamicTaskHelper } from "../../utils/dynamicTaskHelper";
 import builder from "../builder";
 
 const ValidSampleStatuses = [
@@ -35,6 +36,7 @@ builder.mutationField("createSample", (t) =>
       description: t.arg.string(),
       collectionId: t.arg.int(),
       sampleType: t.arg.string(),
+      manufacturerId: t.arg.int({ required: true }), // ✅ Manufacturer must be specified
 
       // AI Design fields
       aiGenerated: t.arg.boolean(),
@@ -50,12 +52,14 @@ builder.mutationField("createSample", (t) =>
     },
     authScopes: { user: true },
     resolve: async (query, _root, args, context) => {
+      const initialStatus = args.aiGenerated ? "AI_DESIGN" : "PENDING";
+
       const data: any = {
         sampleNumber: `SAMPLE-${Date.now()}`,
         name: args.name,
         customerId: context.user?.id || 0,
-        manufactureId: context.user?.id || 0,
-        status: args.aiGenerated ? "AI_DESIGN" : "PENDING",
+        manufactureId: args.manufacturerId, // ✅ Use provided manufacturer
+        status: initialStatus,
 
         // Analytics initialization
         viewCount: 0,
@@ -80,10 +84,22 @@ builder.mutationField("createSample", (t) =>
       // Notes
       if (args.customerNote) data.customerNote = args.customerNote;
 
-      return context.prisma.sample.create({
+      const sample = await context.prisma.sample.create({
         ...query,
         data,
       });
+
+      // ✅ Create tasks for initial status
+      const dynamicTaskHelper = new DynamicTaskHelper(context.prisma);
+      await dynamicTaskHelper.createTasksForSampleStatus(
+        sample.id,
+        initialStatus,
+        sample.customerId,
+        sample.manufactureId,
+        sample.collectionId ?? undefined
+      );
+
+      return sample;
     },
   })
 );
@@ -184,11 +200,25 @@ builder.mutationField("updateSample", (t) =>
       if (args.manufacturerResponse !== null && args.manufacturerResponse !== undefined)
         updateData.manufacturerResponse = args.manufacturerResponse;
 
-      return context.prisma.sample.update({
+      const updatedSample = await context.prisma.sample.update({
         ...query,
         where: { id: args.id },
         data: updateData,
       });
+
+      // ✅ Create tasks if status changed
+      if (args.status !== null && args.status !== undefined) {
+        const dynamicTaskHelper = new DynamicTaskHelper(context.prisma);
+        await dynamicTaskHelper.createTasksForSampleStatus(
+          updatedSample.id,
+          args.status,
+          updatedSample.customerId,
+          updatedSample.manufactureId,
+          updatedSample.collectionId ?? undefined
+        );
+      }
+
+      return updatedSample;
     },
   })
 );

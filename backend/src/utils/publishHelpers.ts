@@ -6,20 +6,20 @@
  */
 
 import type {
-    MessagePayload,
-    MessageReadPayload,
-    NotificationPayload,
-    OrderQuotePayload,
-    OrderShippedPayload,
-    OrderStatusPayload,
-    ProductionStagePayload,
-    ProductionStatusPayload,
-    QualityControlPayload,
-    SampleQuotePayload,
-    SampleShippedPayload,
-    SampleStatusPayload,
-    TaskPayload,
-    TaskStatusPayload
+  MessagePayload,
+  MessageReadPayload,
+  NotificationPayload,
+  OrderQuotePayload,
+  OrderShippedPayload,
+  OrderStatusPayload,
+  ProductionStagePayload,
+  ProductionStatusPayload,
+  QualityControlPayload,
+  SampleQuotePayload,
+  SampleShippedPayload,
+  SampleStatusPayload,
+  TaskPayload,
+  TaskStatusPayload
 } from "./pubsub";
 import { pubsub } from "./pubsub";
 
@@ -31,7 +31,13 @@ import { pubsub } from "./pubsub";
  * Publish a new notification event
  */
 export async function publishNotification(notification: NotificationPayload) {
+  console.log(`📢 [publishNotification] Publishing to user ${notification.userId}:`, {
+    id: notification.id,
+    title: notification.title,
+    type: notification.type,
+  });
   pubsub.publish("notification:new", notification.userId, notification);
+  console.log(`✅ [publishNotification] Published successfully`);
 }
 
 // ========================================

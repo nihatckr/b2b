@@ -41,6 +41,7 @@ builder.prismaNode("User", {
 
     // Profile
     avatar: t.exposeString("avatar", { nullable: true }),
+    customAvatar: t.exposeString("customAvatar", { nullable: true }),
     bio: t.exposeString("bio", { nullable: true }),
     socialLinks: t.field({
       type: 'String',
@@ -84,7 +85,14 @@ builder.prismaNode("Company", {
 
     address: t.exposeString("address", {
       nullable: true,
-      authScopes: { user: true }, // Sensitive business information
+    }),
+
+    city: t.exposeString("city", {
+      nullable: true,
+    }),
+
+    country: t.exposeString("country", {
+      nullable: true,
     }),
 
     location: t.exposeString("location", { nullable: true }),

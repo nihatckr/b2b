@@ -1,3 +1,4 @@
+import { publishNotification } from "../../utils/publishHelpers";
 import builder from "../builder";
 
 const ValidCompanyTypes = ["MANUFACTURER", "BUYER", "BOTH"];
@@ -47,6 +48,10 @@ builder.mutationField("updateCompany", (t) =>
       email: t.arg.string(),
       phone: t.arg.string(),
       description: t.arg.string(),
+      website: t.arg.string(),
+      address: t.arg.string(),
+      city: t.arg.string(),
+      country: t.arg.string(),
 
       // Subscription fields (admin only)
       subscriptionPlan: t.arg.string(),
@@ -75,11 +80,21 @@ builder.mutationField("updateCompany", (t) =>
     },
     authScopes: { companyOwner: true, admin: true },
     resolve: async (query, _root, args, context) => {
+      // Debug log
+      console.log("🔍 UpdateCompany Debug:", {
+        requestedCompanyId: args.id,
+        userCompanyId: context.user?.companyId,
+        userRole: context.user?.role,
+        userId: context.user?.id,
+        isCompanyOwner: context.user?.role === "COMPANY_OWNER",
+      });
+
       // Check if user owns this company
       if (
         context.user?.companyId !== args.id &&
         context.user?.role !== "ADMIN"
       ) {
+        console.error("❌ Unauthorized: User companyId doesn't match requested id");
         throw new Error("Unauthorized");
       }
 
@@ -95,6 +110,14 @@ builder.mutationField("updateCompany", (t) =>
         updateData.phone = args.phone;
       if (args.description !== null && args.description !== undefined)
         updateData.description = args.description;
+      if (args.website !== null && args.website !== undefined)
+        updateData.website = args.website;
+      if (args.address !== null && args.address !== undefined)
+        updateData.address = args.address;
+      if (args.city !== null && args.city !== undefined)
+        updateData.city = args.city;
+      if (args.country !== null && args.country !== undefined)
+        updateData.country = args.country;
 
       // Subscription fields (admin only)
       if (isAdmin) {
@@ -140,11 +163,44 @@ builder.mutationField("updateCompany", (t) =>
       if (args.enabledModules !== null && args.enabledModules !== undefined)
         updateData.enabledModules = args.enabledModules;
 
-      return context.prisma.company.update({
+      const updatedCompany = await context.prisma.company.update({
         ...query,
         where: { id: args.id },
         data: updateData,
       });
+
+      // ✅ Create company update notification (notify all company members)
+      try {
+        // Get all company members
+        const companyMembers = await context.prisma.user.findMany({
+          where: { companyId: args.id },
+          select: { id: true },
+        });
+
+        // Notify all members
+        for (const member of companyMembers) {
+          const isOwner = member.id === context.user?.id;
+          const notification = await context.prisma.notification.create({
+            data: {
+              type: "SYSTEM",
+              title: "🏢 Şirket Bilgileri Güncellendi",
+              message: isOwner
+                ? "Şirket bilgileri başarıyla güncellendi."
+                : "Şirket bilgileri bir yönetici tarafından güncellendi.",
+              userId: member.id,
+              link: "/settings/company",
+              isRead: false,
+            },
+          });
+          await publishNotification(notification);
+        }
+
+        console.log(`📢 Company update notifications sent to ${companyMembers.length} members`);
+      } catch (notifError) {
+        console.error("⚠️  Notification failed (continuing anyway):", notifError instanceof Error ? notifError.message : notifError);
+      }
+
+      return updatedCompany;
     },
   })
 );

@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useRouter } from "next/navigation";
+import { ArrowLeft, Loader2, Mail } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Mail, Loader2, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
+import { RequestPasswordResetDocument } from "@/__generated__/graphql";
+import { CardWrapper } from "@/components/auth/card-wrapper";
+import { FormError } from "@/components/auth/form-error";
+import { FormSuccess } from "@/components/auth/form-success";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,46 +22,65 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { CardWrapper } from "@/components/auth/card-wrapper";
-import { FormError } from "@/components/auth/form-error";
-import { FormSuccess } from "@/components/auth/form-success";
-
-const ResetSchema = z.object({
-  email: z.string().email("Geçerli bir e-posta adresi giriniz"),
-});
+import { ResetSchema, type ResetInput } from "@/lib/zod-schema";
+import { useMutation } from "urql";
 
 export default function ResetPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [formError, setFormError] = useState<string>("");
   const [formSuccess, setFormSuccess] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof ResetSchema>>({
+  const [{ fetching: isLoading }, requestResetMutation] = useMutation(
+    RequestPasswordResetDocument
+  );
+
+  // Eğer zaten giriş yapılmışsa dashboard'a yönlendir
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      router.push("/dashboard");
+    }
+  }, [status, session, router]);
+
+  const form = useForm<ResetInput>({
     resolver: zodResolver(ResetSchema),
     defaultValues: {
       email: "",
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof ResetSchema>) => {
+  const onSubmit = async (values: ResetInput) => {
     setFormError("");
     setFormSuccess("");
-    setIsLoading(true);
 
-    try {
-      // TODO: Backend'e password reset mutation gönder
-      // Şimdilik mock response
+    const result = await requestResetMutation({ email: values.email });
+
+    if (result.error) {
+      setFormError(result.error.message);
+    } else if (result.data) {
       setFormSuccess(
         "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi"
       );
+
       setTimeout(() => {
         router.push("/auth/login");
-      }, 2000);
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Bir hata oluştu");
-      setIsLoading(false);
+      }, 3000);
     }
   };
+
+  // Loading state
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="text-lg text-white">Yükleniyor...</div>
+      </div>
+    );
+  }
+
+  // Don't render if authenticated (will redirect)
+  if (status === "authenticated") {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">

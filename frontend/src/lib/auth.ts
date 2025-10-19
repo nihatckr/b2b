@@ -1,3 +1,5 @@
+import { LoginDocument, RefreshTokenDocument, SignupOAuthDocument } from "@/__generated__/graphql";
+import { print } from "graphql";
 import { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
@@ -58,9 +60,7 @@ export const authOptions: NextAuthOptions = {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                query: `mutation Login($email: String!, $password: String!) {
-                  login(email: $email, password: $password)
-                }`,
+                query: print(LoginDocument),
                 variables: {
                   email: credentials.email,
                   password: credentials.password,
@@ -76,7 +76,8 @@ export const authOptions: NextAuthOptions = {
             throw new Error(errorMessage);
           }
 
-          const loginResult = JSON.parse(data.data.login);
+          // data.data.login is already an object, no need to parse
+          const loginResult = data.data.login;
 
           // Reset rate limit on successful login
           resetRateLimit(credentials.email);
@@ -87,10 +88,15 @@ export const authOptions: NextAuthOptions = {
             name: loginResult.user.name || "",
             role: loginResult.user.role,
             companyId: loginResult.user.companyId,
+            companyType: loginResult.user.companyType,
             backendToken: loginResult.token,
+            permissions: loginResult.user.permissions || undefined,
+            isCompanyOwner: loginResult.user.isCompanyOwner || false,
+            department: loginResult.user.department || undefined,
+            jobTitle: loginResult.user.jobTitle || undefined,
+            emailVerified: loginResult.user.emailVerified || false,
           };
         } catch (error) {
-          console.error("Kimlik doğrulama hatası:", error);
           if (error instanceof Error) {
             throw new Error(error.message);
           }
@@ -118,9 +124,7 @@ export const authOptions: NextAuthOptions = {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                query: `mutation SignupOAuth($email: String!, $name: String!) {
-                  signupOAuth(email: $email, name: $name)
-                }`,
+                query: print(SignupOAuthDocument),
                 variables: {
                   email: user.email,
                   name: user.name || user.email.split("@")[0],
@@ -132,19 +136,25 @@ export const authOptions: NextAuthOptions = {
           const data = await response.json();
 
           if (data.errors) {
-            console.error("Backend OAuth signup error:", data.errors);
             return true;
           }
 
           if (data.data?.signupOAuth) {
-            const signupResult = JSON.parse(data.data.signupOAuth);
+            // data.data.signupOAuth is already an object, no need to parse
+            const signupResult = data.data.signupOAuth;
             user.backendToken = signupResult.token;
             user.id = String(signupResult.user.id);
             user.role = signupResult.user.role;
             user.companyId = signupResult.user.companyId;
+            user.companyType = signupResult.user.companyType;
+            user.permissions = signupResult.user.permissions || undefined;
+            user.isCompanyOwner = signupResult.user.isCompanyOwner || false;
+            user.department = signupResult.user.department || undefined;
+            user.jobTitle = signupResult.user.jobTitle || undefined;
+            user.emailVerified = signupResult.user.emailVerified || false;
           }
         } catch (error) {
-          console.error("GitHub OAuth Backend sync error:", error);
+          // Silent fail - user can still sign in
         }
       }
 
@@ -155,35 +165,36 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.companyId = user.companyId;
+        token.companyType = user.companyType;
         token.backendToken = user.backendToken;
+        token.permissions = user.permissions;
+        token.isCompanyOwner = user.isCompanyOwner;
+        token.department = user.department;
+        token.jobTitle = user.jobTitle;
+        token.emailVerified = typeof user.emailVerified === 'boolean'
+          ? user.emailVerified
+          : user.emailVerified instanceof Date
+            ? true
+            : undefined;
       }
 
-      // Refresh token rotation
-      // If token is older than 12 hours, refresh backend token
+      // Refresh token rotation (token > 12 hours old)
       const now = Math.floor(Date.now() / 1000);
-      const tokenAge = token.iat ? now - token.iat : 0;
+      const tokenAge = token.iat ? now - Number(token.iat) : 0;
       const twelveHours = 12 * 60 * 60;
 
-      if (
-        tokenAge > twelveHours &&
-        token.backendToken &&
-        trigger !== "update"
-      ) {
+      if (tokenAge > twelveHours && token.backendToken && trigger !== "update") {
         try {
-          // Call backend to refresh token
           const response = await fetch(
-            process.env.NEXT_PUBLIC_GRAPHQL_URL ||
-              "http://localhost:4001/graphql",
+            process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:4001/graphql",
             {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                authorization: `Bearer ${token.backendToken}`,
+                Authorization: `Bearer ${token.backendToken}`,
               },
               body: JSON.stringify({
-                query: `mutation RefreshToken {
-                  refreshToken
-                }`,
+                query: print(RefreshTokenDocument),
               }),
             }
           );
@@ -193,9 +204,10 @@ export const authOptions: NextAuthOptions = {
           if (data.data?.refreshToken) {
             token.backendToken = data.data.refreshToken;
             token.iat = now; // Update issued at time
+            console.log(`🔄 Token refreshed for user: ${token.email}`);
           }
         } catch (error) {
-          console.error("Token refresh error:", error);
+          console.error("❌ Token refresh failed:", error);
           // Keep existing token if refresh fails
         }
       }
@@ -207,7 +219,13 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id || "";
         session.user.role = token.role || "user";
         session.user.companyId = token.companyId;
+        session.user.companyType = token.companyType;
         session.user.backendToken = token.backendToken;
+        session.user.permissions = token.permissions;
+        session.user.isCompanyOwner = token.isCompanyOwner;
+        session.user.department = token.department;
+        session.user.jobTitle = token.jobTitle;
+        session.user.emailVerified = token.emailVerified;
       }
       return session;
     },
@@ -218,19 +236,11 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 24 * 60 * 60,
-    updateAge: 60 * 60,
+    maxAge: 7 * 24 * 60 * 60, // 7 days (match backend)
+    updateAge: 60 * 60, // Update session every hour
   },
   jwt: {
     secret: process.env.NEXTAUTH_SECRET,
-    maxAge: 24 * 60 * 60,
-  },
-  events: {
-    async signIn({ user }) {
-      console.log("Kullanıcı giriş yaptı:", user.email);
-    },
-    async signOut() {
-      console.log("Kullanıcı çıkış yaptı");
-    },
+    maxAge: 7 * 24 * 60 * 60, // 7 days (match backend)
   },
 };

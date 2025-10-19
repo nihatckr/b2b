@@ -1,0 +1,8 @@
+# ============================================
+# SIGNUP OPERATIONS
+# ============================================
+# User registration with email, password, name, and account type
+
+mutation Signup($input: SignupInput!) {
+  signup(input: $input)
+}

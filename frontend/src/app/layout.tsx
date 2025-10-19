@@ -1,13 +1,8 @@
-import { AuthProvider } from "@/components/providers/AuthProvider";
-import { GraphQLProvider } from "@/components/providers/GraphQLProvider";
+import { AppProvider } from "@/components/providers/app-provider";
 import { authOptions } from "@/lib/auth";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth/next";
-import { Toaster } from "sonner";
-import { NotificationProvider } from "../components/providers/NotificationContext";
-import { ThemeProvider } from "../components/providers/ThemeProvider";
 import "./globals.css";
-
 
 export const metadata: Metadata = {
   title: "Textile Production System",
@@ -23,17 +18,8 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={` antialiased`}>
-        <ThemeProvider>
-          <AuthProvider session={session}>
-            <GraphQLProvider>
-              <NotificationProvider>
-                <Toaster position="top-right" richColors />
-                {children}
-              </NotificationProvider>
-            </GraphQLProvider>
-          </AuthProvider>
-        </ThemeProvider>
+      <body className="antialiased">
+        <AppProvider session={session}>{children}</AppProvider>
       </body>
     </html>
   );

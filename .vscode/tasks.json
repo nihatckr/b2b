@@ -4,7 +4,7 @@
     {
       "label": "🚀 Start Development Server",
       "type": "shell",
-      "command": "cd server && npm run dev",
+      "command": "cd backend && npm run dev",
       "group": "build",
       "presentation": {
         "echo": true,
@@ -19,7 +19,10 @@
         "owner": "typescript",
         "source": "ts",
         "applyTo": "closedDocuments",
-        "fileLocation": ["relative", "${workspaceFolder}/server"],
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}/backend"
+        ],
         "pattern": {
           "regexp": "^([^\\s].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
           "file": 1,
@@ -38,7 +41,7 @@
     {
       "label": "🏗️ Build Server",
       "type": "shell",
-      "command": "cd server && npm run build",
+      "command": "cd backend && npm run build",
       "group": "build",
       "presentation": {
         "echo": true,
@@ -48,12 +51,14 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "problemMatcher": ["$tsc"]
+      "problemMatcher": [
+        "$tsc"
+      ]
     },
     {
       "label": "🗄️ Prisma Generate",
       "type": "shell",
-      "command": "cd server && npx prisma generate",
+      "command": "cd backend && npx prisma generate",
       "group": "build",
       "presentation": {
         "echo": true,
@@ -67,7 +72,7 @@
     {
       "label": "🔄 Prisma Migrate Dev",
       "type": "shell",
-      "command": "cd server && npx prisma migrate dev",
+      "command": "cd backend && npx prisma migrate dev",
       "group": "build",
       "presentation": {
         "echo": true,
@@ -81,7 +86,7 @@
     {
       "label": "📊 Prisma Studio",
       "type": "shell",
-      "command": "cd server && npx prisma studio",
+      "command": "cd backend && npx prisma studio",
       "group": "test",
       "isBackground": true,
       "presentation": {
@@ -96,7 +101,7 @@
     {
       "label": "🧪 Run Tests",
       "type": "shell",
-      "command": "cd server && npm test",
+      "command": "cd backend && npm test",
       "group": "test",
       "presentation": {
         "echo": true,
@@ -106,12 +111,14 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "problemMatcher": ["$tsc"]
+      "problemMatcher": [
+        "$tsc"
+      ]
     },
     {
       "label": "🔍 Type Check",
       "type": "shell",
-      "command": "cd server && npx tsc --noEmit",
+      "command": "cd backend && npx tsc --noEmit",
       "group": "test",
       "presentation": {
         "echo": true,
@@ -121,12 +128,66 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "problemMatcher": ["$tsc"]
+      "problemMatcher": [
+        "$tsc"
+      ]
+    },
+    {
+      "label": "🎨 GraphQL Codegen",
+      "type": "shell",
+      "command": "cd frontend && npm run codegen",
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 Start Frontend",
+      "type": "shell",
+      "command": "cd frontend && npm run dev",
+      "group": "build",
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": {
+        "owner": "typescript",
+        "source": "ts",
+        "applyTo": "closedDocuments",
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}/frontend"
+        ],
+        "pattern": {
+          "regexp": "^([^\\s].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+          "file": 1,
+          "location": 2,
+          "severity": 3,
+          "code": 4,
+          "message": 5
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*starting.*$",
+          "endsPattern": "^.*ready.*$"
+        }
+      }
     },
     {
       "label": "📦 Install Dependencies",
       "type": "shell",
-      "command": "cd server && npm install",
+      "command": "cd backend && npm install",
       "group": "build",
       "presentation": {
         "echo": true,
@@ -140,7 +201,7 @@
     {
       "label": "🧹 Clean Build",
       "type": "shell",
-      "command": "cd server && rm -rf dist node_modules && npm install && npm run build",
+      "command": "cd backend && rm -rf dist node_modules && npm install && npm run build",
       "group": "build",
       "presentation": {
         "echo": true,

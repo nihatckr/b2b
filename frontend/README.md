@@ -1,6 +1,8 @@
-# Frontend - Next.js 15 + URQL GraphQL Client
+# 🎨 Frontend - Next.js Application
 
-Modern fullstack textile ERP frontend built with Next.js 15, React 19, and URQL v5.
+> ProtexFlow Next.js 15 app with React 19, TypeScript, and URQL
+
+---
 
 ## 🚀 Quick Start
 
@@ -8,63 +10,134 @@ Modern fullstack textile ERP frontend built with Next.js 15, React 19, and URQL 
 # Install dependencies
 npm install
 
-# Run development server
-npm run dev
+# Setup environment
+cp .env.example .env.local
+# Edit .env.local with your configuration
 
-# GraphQL codegen (after backend is running)
+# Generate GraphQL types
 npm run codegen
+
+# Start development server
+npm run dev
+# → http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the app.
+---
+
+## 📦 Scripts
+
+```bash
+npm run dev          # Development server
+npm run build        # Build for production
+npm start            # Start production server
+npm run lint         # Run ESLint
+npm run codegen      # Generate GraphQL types
+npm run type-check   # TypeScript check
+```
+
+---
+
+## 🗂️ Project Structure
+
+```
+src/
+├── app/              # Next.js 15 App Router
+│   ├── (auth)/      # Auth pages (login, signup)
+│   ├── (dashboard)/ # Protected pages
+│   └── layout.tsx
+├── components/       # React components
+│   ├── ui/          # shadcn/ui base components
+│   ├── providers/   # Context providers
+│   └── ...
+├── lib/             # Core utilities
+│   ├── auth.ts      # NextAuth config
+│   ├── urql-client.ts # GraphQL client
+│   └── dal.ts       # Data Access Layer
+├── hooks/           # Custom React hooks
+├── graphql/         # GraphQL operations (.graphql)
+└── middleware.ts    # Route protection
+```
+
+---
+
+## 🔐 Authentication
+
+**Provider**: NextAuth.js v4
+
+**Strategy**: JWT tokens
+
+**Protected Routes**: Handled by `middleware.ts`
+
+**Session**: Available via `useSession()` hook
+
+---
+
+## 🔄 GraphQL Client
+
+**Client**: URQL
+
+**Features**:
+
+- Normalized cache
+- WebSocket subscriptions
+- Auto token refresh
+- Error handling
+
+**Usage**:
+
+```typescript
+import { useQuery } from "urql";
+import { MeDocument } from "@/__generated__/graphql";
+
+const [{ data, fetching, error }] = useQuery({ query: MeDocument });
+```
+
+---
+
+## 🎨 UI Components
+
+**Library**: shadcn/ui + TailwindCSS
+
+**Adding Components**:
+
+```bash
+npx shadcn-ui@latest add button
+npx shadcn-ui@latest add dialog
+npx shadcn-ui@latest add form
+```
+
+---
 
 ## 📚 Documentation
 
-- **[URQL Usage Guide](./URQL_USAGE_GUIDE.md)** - GraphQL queries & mutations
-- **[URQL Modernization Summary](./URQL_MODERNIZATION_SUMMARY.md)** - Latest updates
-- **[Backend Integration](../server/HOW_TO_ADD_NEW_FEATURES.md)** - API reference
+- **[Main Docs](../docs/README.md)** - Complete documentation
+- **[Architecture](../docs/ARCHITECTURE.md)** - System design
+- **[URQL Usage Guide](./URQL_USAGE_GUIDE.md)** - GraphQL client
+- **[Authentication Guide](./AUTHENTICATION_GUIDE.md)** - Auth flow
+- **[WebSocket Guide](./WEBSOCKET_SUBSCRIPTIONS_GUIDE.md)** - Real-time
 
-## 🛠️ Tech Stack
+---
 
-- **Framework:** Next.js 15.5.6 (App Router)
-- **React:** 19.1.0
-- **GraphQL Client:** URQL v5.0.1 (SSR + Cache-first)
-- **Authentication:** NextAuth v4.24.11
-- **Styling:** TailwindCSS + shadcn/ui
-- **TypeScript:** Type-safe GraphQL with Codegen
+## 🔧 Development
 
-## 🔥 Key Features
+### After Backend Schema Changes
 
-✅ **Modern URQL Setup:**
-- SSR exchange for Next.js hydration
-- Cache-first strategy for performance
-- NextAuth integration (JWT tokens)
-- Optimistic updates ready
+```bash
+# 1. Backend generates new schema
+cd backend
+npx prisma generate
 
-✅ **Backend Integration:**
-- Relay Nodes (Global ID support)
-- Relay Connections (Pagination)
-- DataLoader batching (~87% faster)
+# 2. Generate frontend types
+cd frontend
+npm run codegen
+```
 
-✅ **Developer Experience:**
-- GraphQL Codegen (type-safe queries)
-- Comprehensive documentation
-- Test components included
+### Adding GraphQL Operations
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Create `.graphql` file in `src/graphql/`
+2. Run `npm run codegen`
+3. Use generated hooks in components
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Version**: 2.0.0 | **Status**: Production Ready

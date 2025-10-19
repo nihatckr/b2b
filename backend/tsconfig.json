@@ -8,8 +8,9 @@
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "module": "es2020",
-
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -33,16 +34,16 @@
     "noImplicitAny": false,
     "jsx": "react-jsx",
     "verbatimModuleSyntax": false,
-
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-
     "skipLibCheck": true,
-
     "target": "es2019",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["prisma/*.ts", "src/**/*"]
+  "include": [
+    "prisma/*.ts",
+    "src/**/*"
+  ]
 }

@@ -1,4 +1,5 @@
 "use client";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
@@ -39,6 +40,8 @@ export const Navbar = () => {
             <div className="flex items-center gap-3">
               {session ? (
                 <>
+                  {/* Notification Bell */}
+                  <NotificationBell />
                   <Link href="/dashboard">
                     <Button
                       variant="outline"

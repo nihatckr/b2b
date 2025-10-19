@@ -61,15 +61,26 @@ builder.queryField("company", (t) =>
 builder.queryField("myCompany", (t) =>
   t.prismaField({
     type: "Company",
+    nullable: true, // Company yoksa null dön
     authScopes: { employee: true, companyOwner: true },
     resolve: async (query, _root, _args, context) => {
       if (!context.user?.companyId) {
-        throw new Error("User is not part of a company");
+        console.log("⚠️  User has no companyId:", context.user?.email);
+        return null; // Throw yerine null dön
       }
-      return context.prisma.company.findUniqueOrThrow({
+
+      // Company var mı kontrol et
+      const company = await context.prisma.company.findUnique({
         ...query,
         where: { id: context.user.companyId },
       });
+
+      if (!company) {
+        console.log("⚠️  Company not found for ID:", context.user.companyId);
+        return null; // Throw yerine null dön
+      }
+
+      return company;
     },
   })
 );

@@ -1,15 +1,33 @@
 "use client";
 
-import { SignupForm } from "@/components/auth";
 import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { SignupForm } from "../../../components/auth";
 
 export default function SignupPage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
 
   // Eğer zaten giriş yapılmışsa dashboard'a yönlendir
-  if (status === "authenticated" && session) {
-    redirect("/dashboard");
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      router.push("/dashboard");
+    }
+  }, [status, session, router]);
+
+  // Loading state
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-svh items-center justify-center">
+        <div className="text-lg">Yükleniyor...</div>
+      </div>
+    );
+  }
+
+  // Don't render if authenticated (will redirect)
+  if (status === "authenticated") {
+    return null;
   }
 
   return (

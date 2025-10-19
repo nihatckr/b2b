@@ -12,9 +12,10 @@ const protectedRoutes = [
   "/production",
   "/quality-control",
   "/messages",
+  "/notifications", // Protected: Notification page
 ];
 
-const authRoutes = ["/auth/login", "/auth/signup"];
+const authRoutes = ["/auth/login", "/auth/signup", "/auth/reset"];
 
 const publicRoutes = ["/", "/api/auth"];
 
@@ -23,6 +24,13 @@ export async function middleware(req: NextRequest) {
 
   // Allow public routes
   if (publicRoutes.some((route) => path.startsWith(route))) {
+    return NextResponse.next();
+  }
+
+  // CRITICAL FIX: Only bypass auth routes with session-expired error
+  // This prevents redirect loops while maintaining security for protected routes
+  const isAuthRoute = authRoutes.some((route) => path.startsWith(route));
+  if (isAuthRoute && req.nextUrl.searchParams.get("error") === "session-expired") {
     return NextResponse.next();
   }
 
@@ -37,9 +45,6 @@ export async function middleware(req: NextRequest) {
     path.startsWith(route)
   );
 
-  // Check if current route is auth route
-  const isAuthRoute = authRoutes.some((route) => path.startsWith(route));
-
   // Redirect unauthenticated users from protected routes to login
   if (isProtectedRoute && !token) {
     const url = new URL("/auth/login", req.url);
@@ -48,36 +53,44 @@ export async function middleware(req: NextRequest) {
   }
 
   // Redirect authenticated users away from auth pages to dashboard
-  if (isAuthRoute && token) {
+  // BUT NOT if there's any error in the URL (like session-expired)
+  if (isAuthRoute && token && !req.nextUrl.searchParams.has("error")) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   // Role-based access control (optional)
   if (token && isProtectedRoute) {
     const userRole = token.role as string;
+    const companyType = token.companyType as string;
 
     // Admin-only routes
     if (path.startsWith("/admin") && userRole !== "ADMIN") {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    // Manufacturer-only routes
-    if (
-      path.startsWith("/production") &&
-      userRole !== "MANUFACTURER" &&
-      userRole !== "ADMIN"
-    ) {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+    // Manufacturer-only routes (check companyType, not role)
+    if (path.startsWith("/production")) {
+      const isManufacturer =
+        companyType === "MANUFACTURER" || companyType === "BOTH";
+      if (!isManufacturer && userRole !== "ADMIN") {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
     }
 
-    // Customer-only routes
-    if (
-      path.startsWith("/orders") &&
-      userRole !== "CUSTOMER" &&
-      userRole !== "ADMIN"
-    ) {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+    // Quality control - manufacturers and admins
+    if (path.startsWith("/quality-control")) {
+      const isManufacturer =
+        companyType === "MANUFACTURER" || companyType === "BOTH";
+      if (!isManufacturer && userRole !== "ADMIN") {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
     }
+
+    // Orders - accessible by all roles but with different views
+    // (filtering will be done in the page component)
+
+    // Collections & Samples - accessible by all authenticated users
+    // (visibility will be controlled by backend permissions)
   }
 
   return NextResponse.next();

@@ -1,281 +1,308 @@
-# 📚 Tekstil Üretim Yönetim Sistemi - Dökümantasyon
+# 📚 Documentation Index
 
-**Güncelleme:** 15 Ekim 2025
-**Durum:** ✅ Production Ready
+> Complete guide to ProtexFlow documentation
 
----
-
-## 🎯 Proje Özeti
-
-B2B tekstil üretim ve sipariş yönetim platformu. Üretici ve müşteri arasında tam döngülü dijital iş birliği sağlar.
+**Last Updated**: October 20, 2025 | **Version**: 2.0.0
 
 ---
 
-## 📋 Dökümantasyon Yapısı
+## 🎯 Getting Started
 
-### 🚀 Başlangıç Dökümanları
+**New to the project?** Start here:
 
-#### [QUICK-START.md](./QUICK-START.md)
-Hızlı kurulum ve başlangıç rehberi
-- Backend kurulumu
-- Frontend kurulumu
-- Demo hesapları
-- İlk adımlar
+1. **[README.md](../README.md)** - Project overview & quick start
+2. **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design & architecture
+3. **[GUIDES/NEW_FEATURES.md](./GUIDES/NEW_FEATURES.md)** - Adding new features
 
 ---
 
-### � İş Akışı Dökümanları
+## 📖 Core Documentation
 
-#### [01-manufacturer-flow-UPDATED.md](./01-manufacturer-flow-UPDATED.md)
-**Üretici İş Akışları**
-- Koleksiyon oluşturma
-- Sample yönetimi
-- Order kabul/red
-- Üretim planlaması
-- Kalite kontrol
+### System Architecture
 
-#### [02-customer-flow-UPDATED.md](./02-customer-flow-UPDATED.md)
-**Müşteri İş Akışları**
-- Katalog görüntüleme
-- Sample talebi
-- Sipariş oluşturma
-- Üretim takibi
-- Ürün değerlendirme
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)**
+  - System overview
+  - Architecture layers (Frontend, Backend, Database)
+  - Tech stack decisions & rationale
+  - Design patterns (Repository, Provider, Hooks, GraphQL Shield)
+  - 4-layer security architecture
+  - Data flow diagrams
+  - Real-time WebSocket architecture
+  - File storage strategy
+  - Best practices
 
-#### [03-system-workflow-UPDATED.md](./03-system-workflow-UPDATED.md)
-**Sistem Süreçleri**
-- Sample süreci (Request → Approval → Production → Delivery)
-- Order süreci (Create → Confirm → Production → QC → Ship)
-- Production tracking (7 aşama)
-- Quality control workflow
-- Message & notification flow
+### Database
 
----
+- **[DATABASE.md](./DATABASE.md)**
+  - Complete database schema
+  - Entity relationships (ERD)
+  - 20+ models explained
+  - Key enums (Role, Department, CompanyType, Status)
+  - Indexes & optimization
+  - Migration guide
 
-### �️ Teknik Dökümanlar
+### Authentication & Security
 
-#### [04-database-schema-UPDATED.md](./04-database-schema-UPDATED.md)
-**Database Yapısı**
-- 11 ana model (User, Company, Collection, Sample, Order, vb.)
-- İlişkiler (Relations)
-- Enum tanımları
-- Index stratejileri
-- Migration notları
+- **[AUTHENTICATION.md](./AUTHENTICATION.md)**
 
-#### [05-api-endpoints-UPDATED.md](./05-api-endpoints-UPDATED.md)
-**GraphQL API Referansı**
-- 100+ Query/Mutation listesi
-- Authentication & Authorization
-- Input/Output şemaları
-- Error handling
-- Örnek kullanımlar
+  - JWT token system (7-day expiry)
+  - NextAuth.js configuration
+  - Token refresh (12-hour rotation)
+  - Session management
+  - OAuth providers (GitHub)
 
-#### [06-user-interface-UPDATED.md](./06-user-interface-UPDATED.md)
-**UI/UX Dökümanı**
-- Sayfa yapıları (30+ page)
-- Component listesi
-- Role-based navigation
-- Form validations
-- Responsive design
-
-#### [07-implementation-guide-UPDATED.md](./07-implementation-guide-UPDATED.md)
-**Implementation Rehberi**
-- Code organization
-- Best practices
-- Testing stratejileri
-- Deployment
-- Troubleshooting
+- **[RBAC.md](./RBAC.md)**
+  - Role-based access control
+  - 5 role types with permission matrices
+  - 40+ granular permissions
+  - 4-layer security implementation
+  - Permission checking on Frontend & Backend
 
 ---
 
-## 🏗️ Sistem Mimarisi
+## 🎨 Feature Documentation
+
+### Completed Features
+
+- **[NOTIFICATIONS.md](./FEATURES/NOTIFICATIONS.md)**
+
+  - Real-time notification system
+  - WebSocket subscriptions
+  - Notification types & categories
+  - Frontend implementation
+  - Backend subscriptions
+
+- **[ONBOARDING.md](./FEATURES/ONBOARDING.md)**
+
+  - User onboarding flow
+  - Welcome emails
+  - Email verification
+  - Initial setup wizard
+
+- **[REVISIONS.md](./FEATURES/REVISIONS.md)**
+  - Revision system for orders
+  - Change tracking
+  - Approval workflow
+
+### Feature Guides (To Be Created)
+
+- **ORDERS.md** - Complete order lifecycle
+- **PRODUCTION.md** - 7-stage production tracking
+- **QUALITY.md** - Quality control system
+- **COMPANIES.md** - Company & employee management
+- **SAMPLES.md** - Sample management flow
+
+---
+
+## 🛠️ Developer Guides
+
+### Development
+
+- **[GUIDES/NEW_FEATURES.md](./GUIDES/NEW_FEATURES.md)** ✅
+  - Step-by-step feature development
+  - Backend workflow (Prisma → GraphQL → Resolvers)
+  - Frontend workflow (Operations → Components → Pages)
+  - Testing checklist
+  - Common patterns
+
+### To Be Created
+
+- **GUIDES/GETTING_STARTED.md** - Detailed setup guide
+- **GUIDES/BEST_PRACTICES.md** - Coding standards
+- **GUIDES/TESTING.md** - Testing strategies
+- **GUIDES/DEPLOYMENT.md** - Production deployment
+- **GUIDES/TROUBLESHOOTING.md** - Common issues & solutions
+
+---
+
+## 📊 Quick Reference
+
+### Project Stats
 
 ```
-┌─────────────────────────────────────────────────┐
-│              Frontend (Next.js)                  │
-│  React 19 + TypeScript + Tailwind + Shadcn UI  │
-└────────────────┬────────────────────────────────┘
-                 │ GraphQL (URQL)
-                 ↓
-┌─────────────────────────────────────────────────┐
-│         Backend (Express + Apollo Server)       │
-│    GraphQL API (Nexus) + JWT Auth + Shield     │
-└────────────────┬────────────────────────────────┘
-                 │ Prisma ORM
-                 ↓
-┌─────────────────────────────────────────────────┐
-│              Database (MySQL)                   │
-│         11 Models + Relations + Enums           │
-└─────────────────────────────────────────────────┘
+Features:        50+ implemented
+Pages:           30+
+GraphQL Ops:     100+ (queries, mutations, subscriptions)
+User Roles:      5 roles with granular permissions
+Database Models: 20+ with relationships
+React Components:150+
+Production Ready: ✅ Yes
 ```
 
----
+### Tech Stack Summary
 
-## 🎯 Temel Özellikler
+**Frontend**: Next.js 15 + React 19 + TypeScript + TailwindCSS + URQL + NextAuth.js
 
-### 👔 Koleksiyon Yönetimi
-- 4 adımlı detaylı form
-- Çoklu renk ve beden
-- Tech pack yükleme
-- Kategori organizasyonu
+**Backend**: Node.js + Express + GraphQL Yoga + Pothos + Prisma + MySQL + JWT
 
-### 🎨 Sample (Numune) Süreci
-- Dijital talep sistemi
-- Onay/red workflow
-- 7 aşamalı üretim
-- Revizyon yönetimi
+**Real-Time**: WebSocket (graphql-ws) + GraphQL Subscriptions
 
-### 📦 Sipariş Yönetimi
-- Sample'dan sipariş
-- Fiyat ve miktar
-- Üretim planlaması
-- Teslimat takibi
-
-### 🏭 Üretim Takibi (7 Aşama)
-1. Planlama
-2. Kumaş
-3. Kesim
-4. Dikim
-5. Kalite
-6. Paketleme
-7. Kargo
-
-### ✅ Kalite Kontrol (7 Test)
-1. Kumaş Kalitesi
-2. Ölçü Kontrolü
-3. Renk Uyumu
-4. Dikiş Kalitesi
-5. Aksesuar Kontrolü
-6. Genel Görünüm
-7. Paketleme Kontrolü
-
-### � Kütüphane
-- Renkler
-- Kumaşlar
-- Beden grupları
-- Sezonlar
-- Fit tanımları
-- Sertifikalar
-
-### 💬 İletişim
-- Mesajlaşma
-- Q&A sistemi
-- Review & Rating
-- Bildirimler
-
----
-
-## 👥 Kullanıcı Rolleri
-
-| Role | Açıklama | Yetkiler |
-|------|----------|----------|
-| **ADMIN** | Platform yöneticisi | Tüm sistem erişimi |
-| **COMPANY_OWNER** | Şirket sahibi | Şirket ve çalışan yönetimi |
-| **COMPANY_EMPLOYEE** | Çalışan | Atanan görevler |
-| **MANUFACTURE** | Üretici (Legacy) | Üretim işlemleri |
-| **CUSTOMER** | Müşteri | Katalog ve sipariş |
-| **INDIVIDUAL_CUSTOMER** | Bireysel müşteri | Temel müşteri özellikleri |
-
----
-
-## 📊 Proje İstatistikleri
+### Key Files
 
 ```
-✨ Toplam Özellik       : 100+
-📄 Sayfa Sayısı         : 30+
-🔄 GraphQL Operations   : 100+
-🎭 Kullanıcı Rolü       : 6
-🏭 Üretim Aşaması       : 7
-✅ Kalite Test Türü     : 7
-📦 Database Model       : 11
-🎨 UI Component         : 150+
+Backend:
+- prisma/schema.prisma       # Database schema
+- src/server.ts              # Server entry point
+- src/graphql/types/         # GraphQL type definitions
+- src/permission/index.ts    # GraphQL Shield rules
+
+Frontend:
+- src/app/                   # Next.js pages (App Router)
+- src/components/            # React components
+- src/lib/auth.ts            # NextAuth config
+- src/lib/urql-client.ts     # GraphQL client
+- src/middleware.ts          # Route protection
+- src/graphql/               # GraphQL operations
 ```
 
 ---
 
-## 🔗 Hızlı Linkler
+## 🎓 Learning Path
 
-### Ana Dökümanlar
-- **[Ana README](../README.md)** - Proje genel bakış
-- **[CURRENT_FEATURES_REPORT](../CURRENT_FEATURES_REPORT.md)** - Tüm özellikler detaylı
-- **[DETAILED_PROJECT_ANALYSIS](../DETAILED_PROJECT_ANALYSIS.md)** - Proje analizi
-- **[FINAL_CLEANUP_REPORT](../FINAL_CLEANUP_REPORT.md)** - Cleanup raporu
+### For New Developers
 
-### İş Akışları
-- [Üretici İş Akışı](./01-manufacturer-flow-UPDATED.md)
-- [Müşteri İş Akışı](./02-customer-flow-UPDATED.md)
-- [Sistem Workflow](./03-system-workflow-UPDATED.md)
+**Week 1: Foundation**
 
-### Teknik Dökümanlar
-- [Database Schema](./04-database-schema-UPDATED.md)
-- [API Endpoints](./05-api-endpoints-UPDATED.md)
-- [UI/UX Guide](./06-user-interface-UPDATED.md)
-- [Implementation Guide](./07-implementation-guide-UPDATED.md)
+1. Read [README.md](../README.md)
+2. Setup local environment
+3. Explore database with Prisma Studio
+4. Test GraphQL API in Playground
+
+**Week 2: Architecture**
+
+1. Study [ARCHITECTURE.md](./ARCHITECTURE.md)
+2. Understand 4-layer security
+3. Review authentication flow
+4. Explore codebase structure
+
+**Week 3: Development**
+
+1. Read [NEW_FEATURES.md](./GUIDES/NEW_FEATURES.md)
+2. Add a simple feature (e.g., comments)
+3. Test with different roles
+4. Code review with team
+
+**Week 4: Advanced**
+
+1. Real-time subscriptions
+2. Permission system deep dive
+3. Production deployment
+4. Performance optimization
 
 ---
 
-## 🚀 Hızlı Başlangıç
+## 🔗 External Resources
 
-### 1. Kurulum
-```bash
-# Backend
-cd server && npm install
-npx prisma migrate dev
-npm run dev
+### Official Documentation
 
-# Frontend
-cd client && npm install
-npm run dev
+- [Next.js 15 Docs](https://nextjs.org/docs)
+- [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server/docs)
+- [Pothos GraphQL](https://pothos-graphql.dev/)
+- [Prisma Docs](https://www.prisma.io/docs)
+- [URQL Docs](https://formidable.com/open-source/urql/docs/)
+- [NextAuth.js](https://next-auth.js.org/)
+
+### Learning Resources
+
+- [GraphQL Best Practices](https://graphql.org/learn/best-practices/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [React 19 Docs](https://react.dev/)
+- [TailwindCSS](https://tailwindcss.com/docs)
+
+---
+
+## 📝 Documentation Status
+
+### ✅ Completed
+
+- [x] README.md (Root)
+- [x] ARCHITECTURE.md
+- [x] DATABASE.md
+- [x] AUTHENTICATION.md
+- [x] RBAC.md
+- [x] GUIDES/NEW_FEATURES.md
+- [x] FEATURES/NOTIFICATIONS.md
+- [x] FEATURES/ONBOARDING.md
+- [x] FEATURES/REVISIONS.md
+
+### 🚧 In Progress
+
+- [ ] API.md (GraphQL API complete reference)
+- [ ] FEATURES/ORDERS.md
+- [ ] FEATURES/PRODUCTION.md
+- [ ] FEATURES/QUALITY.md
+- [ ] FEATURES/COMPANIES.md
+
+### 📋 Planned
+
+- [ ] GUIDES/GETTING_STARTED.md
+- [ ] GUIDES/BEST_PRACTICES.md
+- [ ] GUIDES/TESTING.md
+- [ ] GUIDES/DEPLOYMENT.md
+- [ ] GUIDES/TROUBLESHOOTING.md
+- [ ] GUIDES/PERFORMANCE.md
+- [ ] FEATURES/SAMPLES.md
+- [ ] FEATURES/COLLECTIONS.md
+
+---
+
+## 🤝 Contributing to Docs
+
+### Guidelines
+
+1. **Clear & Concise**: Keep explanations simple
+2. **Code Examples**: Include working code samples
+3. **Up-to-Date**: Update when features change
+4. **Diagrams**: Use diagrams for complex flows
+5. **Cross-Reference**: Link to related docs
+
+### File Structure
+
+```
+docs/
+├── README.md               # This file (documentation index)
+├── ARCHITECTURE.md         # System architecture
+├── DATABASE.md             # Database schema
+├── AUTHENTICATION.md       # Auth & security
+├── RBAC.md                # Permissions
+├── FEATURES/              # Feature-specific guides
+│   ├── ORDERS.md
+│   ├── PRODUCTION.md
+│   ├── QUALITY.md
+│   ├── NOTIFICATIONS.md   ✅
+│   ├── ONBOARDING.md      ✅
+│   └── REVISIONS.md       ✅
+└── GUIDES/                # Development guides
+    ├── NEW_FEATURES.md    ✅
+    ├── GETTING_STARTED.md
+    ├── BEST_PRACTICES.md
+    ├── TESTING.md
+    └── DEPLOYMENT.md
 ```
 
-### 2. Demo Hesapları
-```
-Admin: admin@demo.com / demo123
-Üretici: manufacturer@demo.com / demo123
-Müşteri: customer@demo.com / demo123
-```
+### Adding New Docs
 
-### 3. İlk Adımlar
-1. Üretici olarak login
-2. Koleksiyon ekle
-3. Library'yi doldur
-4. Müşteri olarak sample talep et
-5. Üretim sürecini takip et
-
-Detaylı rehber için: [QUICK-START.md](./QUICK-START.md)
+1. Create file in appropriate directory
+2. Follow markdown best practices
+3. Add to this index
+4. Update status in README.md
+5. Cross-reference related docs
 
 ---
 
-## 💡 Notlar
+## 📧 Support
 
-### Döküman Güncellemeleri
-- Tüm `-UPDATED.md` dosyaları en güncel versiyonlardır
-- Eski dosyalar temizlenmiştir
-- Son güncelleme: 15 Ekim 2025
+**Questions?** Check:
 
-### Geliştirme Durumu
-- ✅ Backend: %100 tamamlandı
-- ✅ Frontend: %98 tamamlandı
-- ✅ Database: %100 tamamlandı
-- ✅ API: %100 tamamlandı
-- ⚠️ Testing: Devam ediyor
+1. This documentation
+2. Code comments in source files
+3. GraphQL Playground (http://localhost:4001/graphql)
+4. Prisma Studio (`npx prisma studio`)
 
-### Bilinen Limitasyonlar
-- Real-time WebSocket subscriptions (planlanıyor)
-- Email notifications (implementasyon devam ediyor)
-- Advanced analytics (gelecek versiyon)
+**Still stuck?** Contact the team or open an issue.
 
 ---
 
-## 📞 Destek
+**Happy Coding! 🚀**
 
-Sorularınız için:
-- GitHub Issues: [nihatckr/fullstack/issues](https://github.com/nihatckr/fullstack/issues)
-- Email: nihat@example.com
-- Döküman: Bu klasördeki dosyaları inceleyin
-
----
-
-**Son Güncelleme:** 15 Ekim 2025
-**Döküman Versiyonu:** 2.0
-**Proje Durumu:** ✅ Production Ready
+_ProtexFlow Documentation Team_

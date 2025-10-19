@@ -9,6 +9,7 @@ import "./libraryQuery";
 import "./messageQuery";
 import "./notificationQuery";
 import "./orderQuery";
+import "./permissionQuery"; // Permission queries
 import "./productionQuery";
 import "./questionQuery";
 import "./reviewQuery";

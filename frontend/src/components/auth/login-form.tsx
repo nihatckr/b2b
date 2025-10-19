@@ -8,8 +8,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { OAuthProviderId, oauthProviders } from '../../lib/auth';
-import { LoginSchema } from "../../lib/schema";
+import { OAuthProviderId, oauthProviders } from "../../lib/auth";
+import { LoginSchema } from "../../lib/zod-schema";
 import { Button } from "../ui/button";
 import {
   Form,
@@ -29,12 +29,23 @@ export const LoginForm = () => {
   const router = useRouter();
 
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const urlMessage = searchParams.get("message");
+  const urlError = searchParams.get("error");
 
   const [showPassword, setShowPassword] = useState(false);
-  const [formError, setFormError] = useState<string>("");
-  const [formSuccess, setFormSuccess] = useState<string>("");
+  const [formError, setFormError] = useState<string>(
+    urlError === "session-expired"
+      ? "Oturumunuz sona erdi veya yetkilendirme hatası oluştu. Lütfen tekrar giriş yapın."
+      : ""
+  );
+  const [formSuccess, setFormSuccess] = useState<string>(
+    urlMessage === "verify-email"
+      ? "Hesabınız oluşturuldu! E-postanızı kontrol ederek hesabınızı doğrulayın."
+      : ""
+  );
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingProvider, setLoadingProvider] = useState<OAuthProviderId | null>(null);
+  const [loadingProvider, setLoadingProvider] =
+    useState<OAuthProviderId | null>(null);
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -175,6 +186,7 @@ export const LoginForm = () => {
                   </FormItem>
                 )}
               />
+
               <FormError message={formError} />
               <FormSuccess message={formSuccess} />
               <Button
