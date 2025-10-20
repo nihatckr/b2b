@@ -1,15 +1,15 @@
 "use client";
 
 import {
-  CompaniesDocument,
-  CreateUserDocument,
-  DeleteUserDocument,
-  ToggleUserStatusDocument,
-  UpdateUserCompanyDocument,
-  UpdateUserForAdminDocument,
-  UpdateUserRoleDocument,
-  UsersCountByRoleDocument,
-  UsersDocument,
+  AdminCompaniesDocument,
+  AdminCreateUserDocument,
+  AdminDeleteUserDocument,
+  AdminToggleUserStatusDocument,
+  AdminUpdateUserCompanyDocument,
+  AdminUpdateUserDocument,
+  AdminUpdateUserRoleDocument,
+  AdminUsersCountByRoleDocument,
+  AdminUsersDocument,
 } from "@/__generated__/graphql";
 import {
   AlertDialog,
@@ -147,7 +147,7 @@ export default function AdminUsersPage() {
 
   // Fetch users count statistics
   const [{ data: statsData }, refetchStats] = useQuery({
-    query: UsersCountByRoleDocument,
+    query: AdminUsersCountByRoleDocument,
     pause: status !== "authenticated" || session?.user?.role !== "ADMIN",
     requestPolicy: "cache-and-network",
   });
@@ -155,7 +155,7 @@ export default function AdminUsersPage() {
   // Fetch users with filters
   const [{ data: usersData, fetching: fetchingUsers }, refetchUsers] = useQuery(
     {
-      query: UsersDocument,
+      query: AdminUsersDocument,
       variables: {
         skip: (currentPage - 1) * itemsPerPage,
         take: itemsPerPage,
@@ -171,7 +171,7 @@ export default function AdminUsersPage() {
   const [
     { data: companiesData, fetching: fetchingCompanies, error: companiesError },
   ] = useQuery({
-    query: CompaniesDocument,
+    query: AdminCompaniesDocument,
     variables: { take: 100 },
     pause: status !== "authenticated" || session?.user?.role !== "ADMIN",
     requestPolicy: "cache-and-network", // Always get fresh data
@@ -186,18 +186,18 @@ export default function AdminUsersPage() {
   });
 
   // Toggle user status mutation
-  const [, toggleUserStatus] = useMutation(ToggleUserStatusDocument);
+  const [, toggleUserStatus] = useMutation(AdminToggleUserStatusDocument);
 
   // Create user mutation
-  const [, createUser] = useMutation(CreateUserDocument);
+  const [, createUser] = useMutation(AdminCreateUserDocument);
 
   // Delete user mutation
-  const [, deleteUser] = useMutation(DeleteUserDocument);
+  const [, deleteUser] = useMutation(AdminDeleteUserDocument);
 
   // Update user mutations
-  const [, updateUser] = useMutation(UpdateUserForAdminDocument);
-  const [, updateUserRole] = useMutation(UpdateUserRoleDocument);
-  const [, updateUserCompany] = useMutation(UpdateUserCompanyDocument);
+  const [, updateUser] = useMutation(AdminUpdateUserDocument);
+  const [, updateUserRole] = useMutation(AdminUpdateUserRoleDocument);
+  const [, updateUserCompany] = useMutation(AdminUpdateUserCompanyDocument);
 
   // Handle create user
   const handleCreateUser = async (e: React.FormEvent) => {

@@ -1,4 +1,4 @@
-import { LoginDocument, RefreshTokenDocument, SignupOAuthDocument } from "@/__generated__/graphql";
+import { AuthOperationLoginDocument, AuthOperationSignupDocument, AuthRefreshTokenDocument } from "@/__generated__/graphql";
 import { print } from "graphql";
 import { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -60,7 +60,7 @@ export const authOptions: NextAuthOptions = {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                query: print(LoginDocument),
+                query: print(AuthOperationLoginDocument),
                 variables: {
                   email: credentials.email,
                   password: credentials.password,
@@ -124,7 +124,7 @@ export const authOptions: NextAuthOptions = {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                query: print(SignupOAuthDocument),
+                query: print(AuthOperationSignupDocument),
                 variables: {
                   email: user.email,
                   name: user.name || user.email.split("@")[0],
@@ -194,7 +194,7 @@ export const authOptions: NextAuthOptions = {
                 Authorization: `Bearer ${token.backendToken}`,
               },
               body: JSON.stringify({
-                query: print(RefreshTokenDocument),
+                query: print(AuthRefreshTokenDocument),
               }),
             }
           );
