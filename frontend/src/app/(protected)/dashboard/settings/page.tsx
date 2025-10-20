@@ -1,5 +1,4 @@
 "use client";
-
 import {
   FormImageUpload,
   FormInput,
@@ -46,6 +45,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import NextImage from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -58,13 +58,13 @@ import {
 
 // URQL imports
 import {
-  GetCurrentUserDocument,
-  GetMyCompanyDocument,
-  ResendVerificationEmailDocument,
-  UpdateCompanyInfoDocument,
-  UpdateUserNotificationsDocument,
-  UpdateUserPreferencesDocument,
-  UpdateUserProfileDocument,
+  SettingsGetCurrentUserDocument,
+  SettingsGetMyCompanyDocument,
+  SettingsResendVerificationEmailDocument,
+  SettingsUpdateCompanyInfoDocument,
+  SettingsUpdateUserNotificationsDocument,
+  SettingsUpdateUserPreferencesDocument,
+  SettingsUpdateUserProfileDocument,
 } from "@/__generated__/graphql";
 import { useMutation, useQuery } from "urql";
 
@@ -103,29 +103,33 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
 
   // URQL Queries
-  const [{ data: userData, fetching: fetchingUser }] = useQuery({
-    query: GetCurrentUserDocument,
+  const [{ data: userData }] = useQuery({
+    query: SettingsGetCurrentUserDocument,
   });
 
   const isCompanyOwner = session?.user?.isCompanyOwner || false;
   const hasCompany = !!session?.user?.companyId;
 
-  const [{ data: companyData, fetching: fetchingCompany }] = useQuery({
-    query: GetMyCompanyDocument,
+  const [{ data: companyData }] = useQuery({
+    query: SettingsGetMyCompanyDocument,
     pause: !hasCompany || !isCompanyOwner, // Only fetch if user has company and is owner
   });
 
   // URQL Mutations
-  const [, updateProfileMutation] = useMutation(UpdateUserProfileDocument);
+  const [, updateProfileMutation] = useMutation(
+    SettingsUpdateUserProfileDocument
+  );
   const [, updateNotificationsMutation] = useMutation(
-    UpdateUserNotificationsDocument
+    SettingsUpdateUserNotificationsDocument
   );
   const [, updatePreferencesMutation] = useMutation(
-    UpdateUserPreferencesDocument
+    SettingsUpdateUserPreferencesDocument
   );
-  const [, updateCompanyMutation] = useMutation(UpdateCompanyInfoDocument);
+  const [, updateCompanyMutation] = useMutation(
+    SettingsUpdateCompanyInfoDocument
+  );
   const [{ fetching: isResendingEmail }, resendEmailMutation] = useMutation(
-    ResendVerificationEmailDocument
+    SettingsResendVerificationEmailDocument
   );
 
   // URL'den tab parametresini al ve set et
@@ -211,6 +215,9 @@ export default function SettingsPage() {
       coverImage: "",
     },
   });
+
+  // Ensure coverImage is always a string (avoid string | undefined for NextImage src)
+  const coverImage = companyForm.watch("coverImage") || "";
 
   // Load user data from URQL query
   useEffect(() => {
@@ -455,6 +462,7 @@ export default function SettingsPage() {
 
       toast.success("Firma bilgileri başarıyla güncellendi! 🏢");
     } catch (error) {
+      console.error("❌ Error updating company:", error);
       toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setIsLoading(false);
@@ -590,7 +598,7 @@ export default function SettingsPage() {
               <div className="relative">
                 <div className="h-20 w-20 rounded-full border-2 border-background shadow-md overflow-hidden bg-primary/10">
                   {profileForm.watch("customAvatar") || session?.user?.image ? (
-                    <img
+                    <NextImage
                       src={
                         profileForm.watch("customAvatar") ||
                         session?.user?.image ||
@@ -801,8 +809,8 @@ export default function SettingsPage() {
                 <div className="rounded-lg border p-4 bg-muted/50">
                   <h3 className="font-medium mb-2">Coming Soon</h3>
                   <p className="text-sm text-muted-foreground">
-                    Message management features will be available soon. You'll
-                    be able to:
+                    Message management features will be available soon.
+                    You&apos;ll be able to:
                   </p>
                   <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
                     <li>View and manage your messages</li>
@@ -830,8 +838,8 @@ export default function SettingsPage() {
                 <div className="rounded-lg border p-4 bg-muted/50">
                   <h3 className="font-medium mb-2">Coming Soon</h3>
                   <p className="text-sm text-muted-foreground">
-                    Billing management features will be available soon. You'll
-                    be able to:
+                    Billing management features will be available soon.
+                    You&apos;ll be able to:
                   </p>
                   <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
                     <li>View current subscription plan</li>
@@ -874,27 +882,26 @@ export default function SettingsPage() {
                             Visual Identity
                           </h3>
                           <p className="text-sm text-muted-foreground">
-                            Customize your company's visual appearance
+                            Customize your company&apos;s visual appearance
                           </p>
-                        </div>
-
-                        {/* Cover Image Preview */}
-                        <div className="relative rounded-lg border overflow-hidden bg-muted">
-                          {/* Cover Image Background */}
-                          <div className="relative h-48 w-full bg-gradient-to-br from-primary/20 to-primary/5">
-                            {companyForm.watch("coverImage") ? (
-                              <img
-                                src={companyForm.watch("coverImage")}
-                                alt=""
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="h-full w-full flex items-center justify-center">
-                                <p className="text-sm text-muted-foreground">
-                                  Kapak görseli yok
-                                </p>
-                              </div>
-                            )}
+                          {/* Cover Image Preview */}
+                          <div className="relative rounded-lg border overflow-hidden bg-muted">
+                            {/* Cover Image Background */}
+                            <div className="relative h-48 w-full bg-gradient-to-br from-primary/20 to-primary/5">
+                              {coverImage ? (
+                                <NextImage
+                                  src={coverImage}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center">
+                                  <p className="text-sm text-muted-foreground">
+                                    Kapak görseli yok
+                                  </p>
+                                </div>
+                              )}
+                            </div>
 
                             {/* Edit Cover Button */}
                             <div className="absolute top-4 right-4">
@@ -922,8 +929,8 @@ export default function SettingsPage() {
                               <div className="relative">
                                 <div className="h-32 w-32 rounded-lg border-4 border-background bg-background shadow-xl overflow-hidden">
                                   {companyForm.watch("logo") ? (
-                                    <img
-                                      src={companyForm.watch("logo")}
+                                    <NextImage
+                                      src={companyForm.watch("logo")!}
                                       alt=""
                                       className="h-full w-full object-cover"
                                     />
@@ -1086,7 +1093,7 @@ export default function SettingsPage() {
                             Branding Assets
                           </h3>
                           <p className="text-sm text-muted-foreground">
-                            Upload your company's visual assets
+                            Upload your company&apos;s visual assets
                           </p>
                         </div>
 
@@ -1203,7 +1210,7 @@ export default function SettingsPage() {
                               Brand Colors
                             </h4>
                             <p className="text-xs text-muted-foreground">
-                              Define your brand's color palette
+                              Define your brand&apos;s color palette
                             </p>
                           </div>
                           <div className="grid gap-6 md:grid-cols-3">
@@ -1304,7 +1311,7 @@ export default function SettingsPage() {
                         <div>
                           <h3 className="text-lg font-medium">Social Media</h3>
                           <p className="text-sm text-muted-foreground">
-                            Connect your company's social media accounts
+                            Connect your company&apos;s social media accounts
                           </p>
                         </div>
 
@@ -1579,9 +1586,9 @@ export default function SettingsPage() {
                       <Bell className="h-4 w-4" />
                       <AlertTitle>Real-time Notifications Active</AlertTitle>
                       <AlertDescription>
-                        You're receiving real-time notifications via WebSocket.
-                        Notifications appear instantly in the bell icon and
-                        important alerts show as toast popups.
+                        You&apos;re receiving real-time notifications via
+                        WebSocket. Notifications appear instantly in the bell
+                        icon and important alerts show as toast popups.
                       </AlertDescription>
                     </Alert>
                   </div>

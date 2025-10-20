@@ -1,14 +1,18 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import * as crypto from "node:crypto";
-import { sendEmailVerification, sendPasswordResetEmail, sendWelcomeEmail } from "../../utils/emailService";
-import { requireAuth } from '../../utils/errors';
+import {
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  sendWelcomeEmail,
+} from "../../utils/emailService";
+import { requireAuth } from "../../utils/errors";
 import { publishNotification } from "../../utils/publishHelpers";
 import builder from "../builder";
 
 // JWT Secret from environment variables
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-only-for-dev';
-const JWT_EXPIRES_IN = '7d'; // Token expires in 7 days
+const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-only-for-dev";
+const JWT_EXPIRES_IN = "7d"; // Token expires in 7 days
 
 // Helper function to generate JWT token
 function generateToken(user: {
@@ -27,30 +31,26 @@ function generateToken(user: {
   });
 
   const payload = {
-    sub: user.id.toString(),      // Subject (user ID) - standard JWT claim
+    sub: user.id.toString(), // Subject (user ID) - standard JWT claim
     email: user.email,
     role: user.role,
     department: user.department || null, // Include department for permission checks
-    companyId: user.companyId || null,   // Include companyId for authorization
+    companyId: user.companyId || null, // Include companyId for authorization
   };
 
   console.log("🎫 generateToken PAYLOAD:", payload);
 
-  return jwt.sign(
-    payload,
-    JWT_SECRET,
-    {
-      expiresIn: JWT_EXPIRES_IN,
-      algorithm: 'HS256',
-    }
-  );
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: JWT_EXPIRES_IN,
+    algorithm: "HS256",
+  });
 }
 
 // ============================================
 // INPUT TYPES FOR SIMPLE SIGNUP
 // ============================================
 
-const SignupInput = builder.inputType('SignupInput', {
+const SignupInput = builder.inputType("SignupInput", {
   fields: (t) => ({
     name: t.string({ required: true }),
     email: t.string({ required: true }),
@@ -95,7 +95,9 @@ builder.mutationField("login", (t) =>
         companyIdIsUndefined: user.companyId === undefined,
         department: user.department,
         hasCompanyRelation: !!user.company,
-        companyData: user.company ? { id: user.company.id, name: user.company.name } : null,
+        companyData: user.company
+          ? { id: user.company.id, name: user.company.name }
+          : null,
       });
 
       // Generate real JWT token
@@ -177,8 +179,12 @@ builder.mutationField("signup", (t) =>
 
       // If COMPANY_OWNER, create company automatically
       if (role === "COMPANY_OWNER" && accountType) {
-        const companyType = accountType === "MANUFACTURER" ? "MANUFACTURER" :
-                           accountType === "BUYER" ? "BUYER" : "BOTH";
+        const companyType =
+          accountType === "MANUFACTURER"
+            ? "MANUFACTURER"
+            : accountType === "BUYER"
+            ? "BUYER"
+            : "BOTH";
 
         userData.company = {
           create: {
@@ -186,7 +192,7 @@ builder.mutationField("signup", (t) =>
             type: companyType as any,
             // Don't set email initially - user will update in settings
             // This prevents unique constraint errors
-          }
+          },
         };
       }
 
@@ -201,13 +207,20 @@ builder.mutationField("signup", (t) =>
       // Send verification email
       try {
         if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-          await sendEmailVerification(user.email, emailVerificationToken, user.name || undefined);
+          await sendEmailVerification(
+            user.email,
+            emailVerificationToken,
+            user.name || undefined
+          );
           console.log(`✅ Verification email sent to: ${user.email}`);
         } else {
           console.log("⚠️  Email not configured - skipping verification email");
         }
       } catch (emailError) {
-        console.error("⚠️  Email send failed (continuing anyway):", emailError instanceof Error ? emailError.message : emailError);
+        console.error(
+          "⚠️  Email send failed (continuing anyway):",
+          emailError instanceof Error ? emailError.message : emailError
+        );
       }
 
       // ✅ Create welcome notification
@@ -216,7 +229,8 @@ builder.mutationField("signup", (t) =>
           data: {
             type: "SYSTEM",
             title: "🎉 Hoş Geldiniz!",
-            message: "Hesabınız başarıyla oluşturuldu. Lütfen email adresinizi doğrulayın.",
+            message:
+              "Hesabınız başarıyla oluşturuldu. Lütfen email adresinizi doğrulayın.",
             userId: user.id,
             link: "/auth/verify-email",
             isRead: false,
@@ -225,13 +239,56 @@ builder.mutationField("signup", (t) =>
         await publishNotification(notification);
         console.log(`📢 Welcome notification sent to user ${user.id}`);
       } catch (notifError) {
-        console.error("⚠️  Notification failed (continuing anyway):", notifError instanceof Error ? notifError.message : notifError);
+        console.error(
+          "⚠️  Notification failed (continuing anyway):",
+          notifError instanceof Error ? notifError.message : notifError
+        );
+      }
+
+      // ✅ Notify all admins about new user registration
+      try {
+        const admins = await context.prisma.user.findMany({
+          where: { role: "ADMIN" },
+          select: { id: true, name: true },
+        });
+
+        for (const admin of admins) {
+          const adminNotification = await context.prisma.notification.create({
+            data: {
+              type: "USER_MANAGEMENT",
+              title: "👤 Yeni Kullanıcı Kaydı",
+              message: `${user.name} (${user.email}) sisteme kayıt oldu. Rol: ${
+                user.role
+              }${user.company ? `, Şirket: ${user.company.name}` : ""}`,
+              userId: admin.id,
+              link: "/dashboard/admin/users",
+              isRead: false,
+            },
+          });
+          await publishNotification(adminNotification);
+          console.log(
+            `📢 New user registration notification sent to admin ${admin.id} (${admin.name})`
+          );
+        }
+      } catch (adminNotifError) {
+        console.error(
+          "⚠️  Admin notification failed (continuing anyway):",
+          adminNotifError instanceof Error
+            ? adminNotifError.message
+            : adminNotifError
+        );
       }
 
       // Development mode - log verification link
       if (process.env.NODE_ENV === "development") {
-        console.log(`🔑 Email verification token for ${user.email}: ${emailVerificationToken}`);
-        console.log(`🔗 Verification link: ${process.env.FRONTEND_URL || "http://localhost:3000"}/auth/verify-email/${emailVerificationToken}`);
+        console.log(
+          `🔑 Email verification token for ${user.email}: ${emailVerificationToken}`
+        );
+        console.log(
+          `🔗 Verification link: ${
+            process.env.FRONTEND_URL || "http://localhost:3000"
+          }/auth/verify-email/${emailVerificationToken}`
+        );
       }
 
       // Generate real JWT token
@@ -259,11 +316,14 @@ builder.mutationField("signup", (t) =>
           emailVerified: user.emailVerified,
         },
         // Dev only:
-        verificationToken: process.env.NODE_ENV === "development" ? emailVerificationToken : undefined,
+        verificationToken:
+          process.env.NODE_ENV === "development"
+            ? emailVerificationToken
+            : undefined,
       };
     },
   })
-);// Register (alias for signup)
+); // Register (alias for signup)
 builder.mutationField("register", (t) =>
   t.field({
     type: "JSON", // { token: string, user: User }
@@ -294,6 +354,40 @@ builder.mutationField("register", (t) =>
           company: true,
         },
       });
+
+      // ✅ Notify all admins about new user registration
+      try {
+        const admins = await context.prisma.user.findMany({
+          where: { role: "ADMIN" },
+          select: { id: true, name: true },
+        });
+
+        for (const admin of admins) {
+          const adminNotification = await context.prisma.notification.create({
+            data: {
+              type: "USER_MANAGEMENT",
+              title: "👤 Yeni Kullanıcı Kaydı",
+              message: `${user.name} (${args.email}) sisteme kayıt oldu. Rol: ${
+                user.role
+              }${user.company ? `, Şirket: ${user.company.name}` : ""}`,
+              userId: admin.id,
+              link: "/dashboard/admin/users",
+              isRead: false,
+            },
+          });
+          await publishNotification(adminNotification);
+          console.log(
+            `📢 New user registration notification sent to admin ${admin.id} (${admin.name})`
+          );
+        }
+      } catch (adminNotifError) {
+        console.error(
+          "⚠️  Admin notification failed (continuing anyway):",
+          adminNotifError instanceof Error
+            ? adminNotifError.message
+            : adminNotifError
+        );
+      }
 
       // Generate real JWT token
       const token = generateToken({
@@ -366,6 +460,38 @@ builder.mutationField("signupOAuth", (t) =>
             company: true,
           },
         });
+
+        // ✅ Notify all admins about new OAuth user registration
+        try {
+          const admins = await context.prisma.user.findMany({
+            where: { role: "ADMIN" },
+            select: { id: true, name: true },
+          });
+
+          for (const admin of admins) {
+            const adminNotification = await context.prisma.notification.create({
+              data: {
+                type: "USER_MANAGEMENT",
+                title: "👤 Yeni OAuth Kullanıcı Kaydı",
+                message: `${args.name} (${args.email}) OAuth ile sisteme kayıt oldu. Rol: ${user.role}`,
+                userId: admin.id,
+                link: "/dashboard/admin/users",
+                isRead: false,
+              },
+            });
+            await publishNotification(adminNotification);
+            console.log(
+              `📢 New OAuth user registration notification sent to admin ${admin.id} (${admin.name})`
+            );
+          }
+        } catch (adminNotifError) {
+          console.error(
+            "⚠️  Admin notification failed (continuing anyway):",
+            adminNotifError instanceof Error
+              ? adminNotifError.message
+              : adminNotifError
+          );
+        }
       }
 
       // Generate real JWT token
@@ -476,7 +602,9 @@ builder.mutationField("updateProfile", (t) =>
         userRole: context.user?.role,
         hasJWT: !!(context as any).jwt,
         jwtPayload: (context as any).jwt?.payload,
-        receivedArgs: Object.keys(args).filter(k => args[k] !== null && args[k] !== undefined),
+        receivedArgs: Object.keys(args).filter(
+          (k) => args[k] !== null && args[k] !== undefined
+        ),
       });
 
       if (!context.user?.id) {
@@ -484,7 +612,9 @@ builder.mutationField("updateProfile", (t) =>
         console.error("❌ Full context:", {
           hasUser: !!context.user,
           hasJWT: !!(context as any).jwt,
-          jwtKeys: (context as any).jwt ? Object.keys((context as any).jwt) : [],
+          jwtKeys: (context as any).jwt
+            ? Object.keys((context as any).jwt)
+            : [],
         });
         throw new Error("Not authenticated");
       }
@@ -516,9 +646,15 @@ builder.mutationField("updateProfile", (t) =>
         updateData.socialLinks = args.socialLinks;
 
       // Settings
-      if (args.emailNotifications !== null && args.emailNotifications !== undefined)
+      if (
+        args.emailNotifications !== null &&
+        args.emailNotifications !== undefined
+      )
         updateData.emailNotifications = args.emailNotifications;
-      if (args.pushNotifications !== null && args.pushNotifications !== undefined)
+      if (
+        args.pushNotifications !== null &&
+        args.pushNotifications !== undefined
+      )
         updateData.pushNotifications = args.pushNotifications;
       if (args.language !== null && args.language !== undefined)
         updateData.language = args.language;
@@ -554,9 +690,14 @@ builder.mutationField("updateProfile", (t) =>
           },
         });
         await publishNotification(notification);
-        console.log(`📢 Profile update notification sent to user ${context.user.id}`);
+        console.log(
+          `📢 Profile update notification sent to user ${context.user.id}`
+        );
       } catch (notifError) {
-        console.error("⚠️  Notification failed (continuing anyway):", notifError instanceof Error ? notifError.message : notifError);
+        console.error(
+          "⚠️  Notification failed (continuing anyway):",
+          notifError instanceof Error ? notifError.message : notifError
+        );
       }
 
       return updatedUser;
@@ -666,14 +807,21 @@ builder.mutationField("requestPasswordReset", (t) =>
           console.log("⚠️  Email not configured - skipping email send");
         }
       } catch (emailError) {
-        console.error("⚠️  Email send failed (continuing anyway):", emailError instanceof Error ? emailError.message : emailError);
+        console.error(
+          "⚠️  Email send failed (continuing anyway):",
+          emailError instanceof Error ? emailError.message : emailError
+        );
         // Don't throw error - token is saved, user can still use console token in dev
       }
 
       // Development mode - also log to console
       if (process.env.NODE_ENV === "development") {
         console.log(`🔑 Password reset token for ${user.email}: ${resetToken}`);
-        console.log(`🔗 Reset link: ${process.env.FRONTEND_URL || "http://localhost:3000"}/auth/reset/${resetToken}`);
+        console.log(
+          `🔗 Reset link: ${
+            process.env.FRONTEND_URL || "http://localhost:3000"
+          }/auth/reset/${resetToken}`
+        );
       }
 
       return {
@@ -725,7 +873,8 @@ builder.mutationField("resetPassword", (t) =>
 
       return {
         success: true,
-        message: "Password has been reset successfully. You can now login with your new password.",
+        message:
+          "Password has been reset successfully. You can now login with your new password.",
       };
     },
   })
@@ -771,7 +920,10 @@ builder.mutationField("verifyEmail", (t) =>
           console.log(`✅ Welcome email sent to: ${user.email}`);
         }
       } catch (emailError) {
-        console.error("⚠️  Welcome email failed:", emailError instanceof Error ? emailError.message : emailError);
+        console.error(
+          "⚠️  Welcome email failed:",
+          emailError instanceof Error ? emailError.message : emailError
+        );
         // Don't throw - verification was successful
       }
 
@@ -781,21 +933,28 @@ builder.mutationField("verifyEmail", (t) =>
           data: {
             type: "SYSTEM",
             title: "✅ Email Doğrulandı",
-            message: "Email adresiniz başarıyla doğrulandı! Artık profil bilgilerinizi tamamlayabilirsiniz.",
+            message:
+              "Email adresiniz başarıyla doğrulandı! Artık profil bilgilerinizi tamamlayabilirsiniz.",
             userId: user.id,
             link: "/settings",
             isRead: false,
           },
         });
         await publishNotification(notification);
-        console.log(`📢 Email verification notification sent to user ${user.id}`);
+        console.log(
+          `📢 Email verification notification sent to user ${user.id}`
+        );
       } catch (notifError) {
-        console.error("⚠️  Notification failed (continuing anyway):", notifError instanceof Error ? notifError.message : notifError);
+        console.error(
+          "⚠️  Notification failed (continuing anyway):",
+          notifError instanceof Error ? notifError.message : notifError
+        );
       }
 
       return {
         success: true,
-        message: "Email has been verified successfully! Welcome to the platform.",
+        message:
+          "Email has been verified successfully! Welcome to the platform.",
       };
     },
   })
@@ -839,26 +998,42 @@ builder.mutationField("resendVerificationEmail", (t) =>
       // Send verification email
       try {
         if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-          await sendEmailVerification(user.email, emailVerificationToken, user.name || undefined);
+          await sendEmailVerification(
+            user.email,
+            emailVerificationToken,
+            user.name || undefined
+          );
           console.log(`✅ Verification email resent to: ${user.email}`);
         } else {
           console.log("⚠️  Email not configured - skipping verification email");
         }
       } catch (emailError) {
-        console.error("⚠️  Email send failed (continuing anyway):", emailError instanceof Error ? emailError.message : emailError);
+        console.error(
+          "⚠️  Email send failed (continuing anyway):",
+          emailError instanceof Error ? emailError.message : emailError
+        );
       }
 
       // Development mode - log verification link
       if (process.env.NODE_ENV === "development") {
-        console.log(`🔑 Email verification token for ${user.email}: ${emailVerificationToken}`);
-        console.log(`🔗 Verification link: ${process.env.FRONTEND_URL || "http://localhost:3000"}/auth/verify-email/${emailVerificationToken}`);
+        console.log(
+          `🔑 Email verification token for ${user.email}: ${emailVerificationToken}`
+        );
+        console.log(
+          `🔗 Verification link: ${
+            process.env.FRONTEND_URL || "http://localhost:3000"
+          }/auth/verify-email/${emailVerificationToken}`
+        );
       }
 
       return {
         success: true,
         message: "Verification email has been sent to your email address.",
         // Dev only:
-        verificationToken: process.env.NODE_ENV === "development" ? emailVerificationToken : undefined,
+        verificationToken:
+          process.env.NODE_ENV === "development"
+            ? emailVerificationToken
+            : undefined,
       };
     },
   })

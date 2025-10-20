@@ -4,7 +4,7 @@
 # WebSocket subscriptions for real-time updates
 
 # New notification subscription
-subscription OnNewNotification {
+subscription NotificationOnNewNotification {
   newNotification {
     id
     title
@@ -19,7 +19,7 @@ subscription OnNewNotification {
 }
 
 # Task assigned subscription
-subscription OnTaskAssigned {
+subscription NotificationOnTaskAssigned {
   taskAssigned {
     id
     title

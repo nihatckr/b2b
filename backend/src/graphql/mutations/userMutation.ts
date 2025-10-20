@@ -74,6 +74,47 @@ builder.mutationField("createUserByAdmin", (t) =>
         companyId: user.companyId,
       });
 
+      // ✅ Notify other admins about new user created by admin
+      try {
+        const currentUserId = context.user?.id;
+        const admins = await context.prisma.user.findMany({
+          where: {
+            role: "ADMIN",
+            ...(currentUserId && { id: { not: currentUserId } }), // Don't notify the admin who created the user
+          },
+          select: { id: true, name: true },
+        });
+
+        for (const admin of admins) {
+          const adminNotification = await context.prisma.notification.create({
+            data: {
+              type: "USER_MANAGEMENT",
+              title: "👤 Admin Tarafından Kullanıcı Oluşturuldu",
+              message: `Admin tarafından yeni kullanıcı oluşturuldu: ${user.name} (${user.email}). Rol: ${user.role}`,
+              userId: admin.id,
+              link: "/dashboard/admin/users",
+              isRead: false,
+            },
+          });
+
+          // Import publishNotification here since it's not imported in this file
+          const { publishNotification } = await import(
+            "../../utils/publishHelpers"
+          );
+          await publishNotification(adminNotification);
+          console.log(
+            `📢 Admin user creation notification sent to admin ${admin.id} (${admin.name})`
+          );
+        }
+      } catch (adminNotifError) {
+        console.error(
+          "⚠️  Admin notification failed (continuing anyway):",
+          adminNotifError instanceof Error
+            ? adminNotifError.message
+            : adminNotifError
+        );
+      }
+
       return user;
     },
   })
@@ -152,9 +193,15 @@ builder.mutationField("updateUser", (t) =>
         updateData.socialLinks = args.socialLinks;
 
       // Settings
-      if (args.emailNotifications !== null && args.emailNotifications !== undefined)
+      if (
+        args.emailNotifications !== null &&
+        args.emailNotifications !== undefined
+      )
         updateData.emailNotifications = args.emailNotifications;
-      if (args.pushNotifications !== null && args.pushNotifications !== undefined)
+      if (
+        args.pushNotifications !== null &&
+        args.pushNotifications !== undefined
+      )
         updateData.pushNotifications = args.pushNotifications;
       if (args.language !== null && args.language !== undefined)
         updateData.language = args.language;
@@ -291,7 +338,9 @@ builder.mutationField("bulkToggleUserStatus", (t) =>
       return {
         success: true,
         count: result.count,
-        message: `${result.count} users ${args.isActive ? "activated" : "deactivated"} successfully`,
+        message: `${result.count} users ${
+          args.isActive ? "activated" : "deactivated"
+        } successfully`,
       };
     },
   })

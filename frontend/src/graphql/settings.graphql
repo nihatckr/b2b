@@ -3,7 +3,7 @@
 # ============================================
 
 # Query: Get Current User Data
-query GetCurrentUser {
+query SettingsGetCurrentUser {
   me {
     id
     name
@@ -24,7 +24,7 @@ query GetCurrentUser {
 }
 
 # Query: Get Company Data
-query GetMyCompany {
+query SettingsGetMyCompany {
   myCompany {
     id
     name
@@ -46,7 +46,7 @@ query GetMyCompany {
 }
 
 # Mutation: Update User Profile
-mutation UpdateUserProfile(
+mutation SettingsUpdateUserProfile(
   $name: String
   $firstName: String
   $lastName: String
@@ -82,7 +82,7 @@ mutation UpdateUserProfile(
 }
 
 # Mutation: Update User Notifications
-mutation UpdateUserNotifications(
+mutation SettingsUpdateUserNotifications(
   $emailNotifications: Boolean
   $pushNotifications: Boolean
 ) {
@@ -97,7 +97,7 @@ mutation UpdateUserNotifications(
 }
 
 # Mutation: Update User Preferences
-mutation UpdateUserPreferences($language: String, $timezone: String) {
+mutation SettingsUpdateUserPreferences($language: String, $timezone: String) {
   updateProfile(language: $language, timezone: $timezone) {
     id
     language
@@ -106,7 +106,7 @@ mutation UpdateUserPreferences($language: String, $timezone: String) {
 }
 
 # Mutation: Update Company Information
-mutation UpdateCompanyInfo(
+mutation SettingsUpdateCompanyInfo(
   $id: Int!
   $name: String
   $email: String
@@ -159,6 +159,6 @@ mutation UpdateCompanyInfo(
 }
 
 # Mutation: Resend Email Verification
-mutation ResendVerificationEmail {
+mutation SettingsResendVerificationEmail {
   resendVerificationEmail
 }

@@ -5,16 +5,21 @@
 # Note: Backend returns JSON type for login/signupOAuth, String for refreshToken
 
 # Login with email and password
-mutation Login($email: String!, $password: String!) {
+
+mutation AuthOperationSignup($input: SignupInput!) {
+  signup(input: $input)
+}
+
+mutation AuthOperationLogin($email: String!, $password: String!) {
   login(email: $email, password: $password)
 }
 
 # OAuth signup (GitHub, Google, etc.)
-mutation SignupOAuth($email: String!, $name: String!) {
+mutation AuthOperationSignupOAuth($email: String!, $name: String!) {
   signupOAuth(email: $email, name: $name)
 }
 
 # Refresh authentication token
-mutation RefreshToken {
+mutation AuthOperationRefreshToken {
   refreshToken
 }

@@ -1,5 +1,5 @@
 # Get all users with filters
-query Users($skip: Int, $take: Int, $role: String, $search: String) {
+query AdminUsers($skip: Int, $take: Int, $role: String, $search: String) {
   users(skip: $skip, take: $take, role: $role, search: $search) {
     id
     email
@@ -23,12 +23,12 @@ query Users($skip: Int, $take: Int, $role: String, $search: String) {
 }
 
 # Get users count by role
-query UsersCountByRole {
+query AdminUsersCountByRole {
   usersCountByRole
 }
 
 # Get single user
-query User($id: Int!) {
+query AdminUser($id: Int!) {
   user(id: $id) {
     id
     email
@@ -61,12 +61,12 @@ query User($id: Int!) {
 }
 
 # Get user activity
-query UserActivity($userId: Int!) {
+query AdminUserActivity($userId: Int!) {
   userActivity(userId: $userId)
 }
 
 # Get all companies (for dropdown)
-query Companies($take: Int, $search: String) {
+query AdminCompanies($take: Int, $search: String) {
   companies(take: $take, search: $search) {
     id
     name
@@ -76,7 +76,7 @@ query Companies($take: Int, $search: String) {
 }
 
 # Create user
-mutation CreateUser(
+mutation AdminCreateUser(
   $email: String!
   $password: String!
   $name: String!
@@ -103,7 +103,7 @@ mutation CreateUser(
 }
 
 # Update user (admin - can change everything including role and company)
-mutation UpdateUserForAdmin(
+mutation AdminUpdateUser(
   $id: Int!
   $name: String
   $email: String
@@ -138,12 +138,12 @@ mutation UpdateUserForAdmin(
 }
 
 # Delete user
-mutation DeleteUser($id: Int!) {
+mutation AdminDeleteUser($id: Int!) {
   deleteUserByAdmin(id: $id)
 }
 
 # Reset user password
-mutation ResetUserPassword($userId: Int!, $newPassword: String!) {
+mutation AdminResetUserPassword($userId: Int!, $newPassword: String!) {
   resetUserPassword(userId: $userId, newPassword: $newPassword) {
     id
     email
@@ -152,7 +152,7 @@ mutation ResetUserPassword($userId: Int!, $newPassword: String!) {
 }
 
 # Update user role
-mutation UpdateUserRole($userId: Int!, $role: String!) {
+mutation AdminUpdateUserRole($userId: Int!, $role: String!) {
   updateUserRole(userId: $userId, role: $role) {
     id
     email
@@ -162,7 +162,7 @@ mutation UpdateUserRole($userId: Int!, $role: String!) {
 }
 
 # Toggle user status
-mutation ToggleUserStatus($userId: Int!, $isActive: Boolean!) {
+mutation AdminToggleUserStatus($userId: Int!, $isActive: Boolean!) {
   toggleUserStatusByAdmin(userId: $userId, isActive: $isActive) {
     id
     email
@@ -172,7 +172,7 @@ mutation ToggleUserStatus($userId: Int!, $isActive: Boolean!) {
 }
 
 # Update user company
-mutation UpdateUserCompany($userId: Int!, $companyId: Int) {
+mutation AdminUpdateUserCompany($userId: Int!, $companyId: Int) {
   updateUserCompanyByAdmin(userId: $userId, companyId: $companyId) {
     id
     email
@@ -185,11 +185,11 @@ mutation UpdateUserCompany($userId: Int!, $companyId: Int) {
 }
 
 # Bulk toggle user status
-mutation BulkToggleUserStatus($userIds: [Int!]!, $isActive: Boolean!) {
+mutation AdminBulkToggleUserStatus($userIds: [Int!]!, $isActive: Boolean!) {
   bulkToggleUserStatus(userIds: $userIds, isActive: $isActive)
 }
 
 # Bulk delete users
-mutation BulkDeleteUsers($userIds: [Int!]!) {
+mutation AdminBulkDeleteUsers($userIds: [Int!]!) {
   bulkDeleteUsersByAdmin(userIds: $userIds)
 }

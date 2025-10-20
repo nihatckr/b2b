@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  GetMyCompanyDashboardDocument,
-  ResendVerificationEmailDashboardDocument,
+  SettingsGetMyCompanyDocument,
+  SettingsResendVerificationEmailDocument,
 } from "@/__generated__/graphql";
 import { PermissionGate } from "@/components/auth/permission-gate";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -37,12 +37,12 @@ export default function DashboardPage() {
 
   // URQL Queries & Mutations
   const [{ data: companyData }] = useQuery({
-    query: GetMyCompanyDashboardDocument,
+    query: SettingsGetMyCompanyDocument,
     pause: !isCompanyOwner || !hasCompanyId,
   });
 
   const [{ fetching: isResendingEmail }, resendEmailMutation] = useMutation(
-    ResendVerificationEmailDashboardDocument
+    SettingsResendVerificationEmailDocument
   );
 
   // Email verification durumunu kontrol et

@@ -421,7 +421,8 @@ export const NotificationType: {
   MESSAGE: 'MESSAGE',
   PRODUCTION: 'PRODUCTION',
   QUALITY: 'QUALITY',
-  SYSTEM: 'SYSTEM'
+  SYSTEM: 'SYSTEM',
+  USER_MANAGEMENT: 'USER_MANAGEMENT'
 };
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

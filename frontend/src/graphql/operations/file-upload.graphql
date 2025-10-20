@@ -5,12 +5,16 @@
 # Note: Backend returns JSON type, so we can't select specific fields
 
 # Single file upload
-mutation SingleUpload($file: File!, $category: String, $description: String) {
+mutation FileUploadSingle(
+  $file: File!
+  $category: String
+  $description: String
+) {
   singleUpload(file: $file, category: $category, description: $description)
 }
 
 # Multiple files upload
-mutation MultipleUpload(
+mutation FileUploadMultiple(
   $files: [File!]!
   $category: String
   $description: String

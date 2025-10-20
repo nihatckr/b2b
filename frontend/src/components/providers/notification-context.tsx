@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  OnNewNotificationDocument,
-  OnTaskAssignedDocument,
+  NotificationOnNewNotificationDocument,
+  NotificationOnTaskAssignedDocument,
 } from "@/__generated__/graphql";
 import { useSession } from "next-auth/react";
 import React, {
@@ -183,7 +183,7 @@ export function NotificationProvider({
 
   // New Notification Subscription
   const [subscriptionResult] = useSubscription(
-    { query: OnNewNotificationDocument },
+    { query: NotificationOnNewNotificationDocument },
     (prev, data) => {
       if (data.newNotification) {
         const notification = data.newNotification;
@@ -244,22 +244,25 @@ export function NotificationProvider({
   );
 
   // Task Assigned Subscription
-  useSubscription({ query: OnTaskAssignedDocument }, (prev, data) => {
-    if (data.taskAssigned) {
-      const task = data.taskAssigned;
+  useSubscription(
+    { query: NotificationOnTaskAssignedDocument },
+    (prev, data) => {
+      if (data.taskAssigned) {
+        const task = data.taskAssigned;
 
-      addNotification({
-        type: "info",
-        title: "Yeni Görev Atandı",
-        message: `${task.title} - ${task.description}`,
-      });
+        addNotification({
+          type: "info",
+          title: "Yeni Görev Atandı",
+          message: `${task.title} - ${task.description}`,
+        });
 
-      toast.info("Yeni Görev", {
-        description: task.title,
-      });
+        toast.info("Yeni Görev", {
+          description: task.title,
+        });
+      }
+      return data;
     }
-    return data;
-  });
+  );
 
   // ============================================
   // Computed Values

@@ -1177,7 +1177,8 @@ exports.NotificationType = exports.$Enums.NotificationType = {
   MESSAGE: 'MESSAGE',
   PRODUCTION: 'PRODUCTION',
   QUALITY: 'QUALITY',
-  SYSTEM: 'SYSTEM'
+  SYSTEM: 'SYSTEM',
+  USER_MANAGEMENT: 'USER_MANAGEMENT'
 };
 
 exports.TaskStatus = exports.$Enums.TaskStatus = {

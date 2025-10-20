@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { SignupDocument } from "@/__generated__/graphql";
+import { AuthOperationSignupDocument } from "@/__generated__/graphql";
 import { useMutation } from "urql";
 import { RegisterSchema, type RegisterInput } from "../../lib/zod-schema";
 import { Button } from "../ui/button";
@@ -40,7 +40,9 @@ export const SignupForm = () => {
   const [isGithubLoading, setIsGithubLoading] = useState(false);
 
   // URQL Mutation
-  const [{ fetching: isLoading }, signupMutation] = useMutation(SignupDocument);
+  const [{ fetching: isLoading }, signupMutation] = useMutation(
+    AuthOperationSignupDocument
+  );
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(RegisterSchema),

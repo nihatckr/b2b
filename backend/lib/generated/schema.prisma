@@ -1260,6 +1260,7 @@ enum NotificationType {
   PRODUCTION // Üretim bildirimleri
   QUALITY // Kalite kontrol bildirimleri
   SYSTEM // Sistem bildirimleri
+  USER_MANAGEMENT // Kullanıcı yönetimi bildirimleri
 }
 
 model Notification {
