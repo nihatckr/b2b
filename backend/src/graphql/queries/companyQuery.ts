@@ -12,6 +12,13 @@ builder.queryField("companies", (t) =>
     },
     authScopes: { public: true },
     resolve: async (query, _root, args, context) => {
+      console.log("📊 Companies query called with args:", {
+        skip: args.skip,
+        take: args.take,
+        search: args.search,
+        type: args.type,
+      });
+
       const where: any = { isActive: true };
 
       if (args.search) {
@@ -25,7 +32,7 @@ builder.queryField("companies", (t) =>
         where.type = args.type;
       }
 
-      return context.prisma.company.findMany({
+      const companies = await context.prisma.company.findMany({
         ...query,
         where,
         ...(args.skip !== null && args.skip !== undefined
@@ -36,6 +43,10 @@ builder.queryField("companies", (t) =>
           : {}),
         orderBy: { createdAt: "desc" },
       });
+
+      console.log(`✅ Found ${companies.length} active companies`);
+
+      return companies;
     },
   })
 );

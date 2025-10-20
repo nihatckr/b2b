@@ -7,6 +7,11 @@ import {
   FormSwitch,
   FormTextarea,
 } from "@/components/forms";
+import {
+  ImageUploadWithSync,
+  SettingsCard,
+  SettingsSection,
+} from "@/components/settings";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -209,13 +214,6 @@ export default function SettingsPage() {
 
   // Load user data from URQL query
   useEffect(() => {
-    console.log("📊 Settings Page - User Data:", {
-      hasUserData: !!userData,
-      hasMeField: !!userData?.me,
-      userData: userData,
-      fetchingUser,
-    });
-
     if (userData?.me) {
       const user = userData.me;
 
@@ -579,211 +577,156 @@ export default function SettingsPage() {
 
         {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Update your personal information and how others see you
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...profileForm}>
-                <form
-                  onSubmit={profileForm.handleSubmit(onProfileSubmit)}
-                  className="space-y-6"
-                >
-                  {/* Profile Picture Preview */}
-                  <div className="flex items-start gap-6 p-6 rounded-lg border bg-muted/50">
-                    <div className="relative">
-                      <div className="h-24 w-24 rounded-full border-4 border-background shadow-lg overflow-hidden">
-                        {profileForm.watch("customAvatar") ||
-                        session?.user?.image ? (
-                          <img
-                            src={
-                              profileForm.watch("customAvatar") ||
-                              session?.user?.image ||
-                              ""
-                            }
-                            alt="Profile"
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center bg-primary/10">
-                            <User className="h-12 w-12 text-primary/50" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-lg font-semibold">
-                        {profileForm.watch("name") ||
-                          session?.user?.name ||
-                          "Your Name"}
-                      </h4>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {profileForm.watch("jobTitle") || "Add your job title"}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {session?.user?.email}
-                      </p>
-                      {profileForm.watch("bio") && (
-                        <p className="text-sm mt-3 text-muted-foreground line-clamp-2">
-                          {profileForm.watch("bio")}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Basic Information */}
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-medium">Basic Information</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Your personal details
-                      </p>
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FormInput
-                        control={profileForm.control}
-                        name="name"
-                        label="Full Name *"
-                        placeholder="John Doe"
-                      />
-
-                      <FormInput
-                        control={profileForm.control}
-                        name="jobTitle"
-                        label="Job Title"
-                        placeholder="Production Manager"
-                      />
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FormInput
-                        control={profileForm.control}
-                        name="firstName"
-                        label="First Name"
-                        placeholder="John"
-                      />
-
-                      <FormInput
-                        control={profileForm.control}
-                        name="lastName"
-                        label="Last Name"
-                        placeholder="Doe"
-                      />
-                    </div>
-
-                    <FormInput
-                      control={profileForm.control}
-                      name="phone"
-                      label="Phone Number"
-                      placeholder="+90 555 123 4567"
-                    />
-
-                    <FormTextarea
-                      control={profileForm.control}
-                      name="bio"
-                      label="Bio"
-                      placeholder="Tell us about yourself..."
-                      description="Brief description for your profile (max 500 characters)"
-                      rows={4}
-                      maxLength={500}
-                    />
-                  </div>
-
-                  <Separator />
-
-                  {/* Profile Picture Upload */}
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-medium">Profile Picture</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Upload a custom profile picture
-                      </p>
-                    </div>
-
-                    <FormImageUpload
-                      value={profileForm.watch("customAvatar")}
-                      onChange={(url) =>
-                        profileForm.setValue("customAvatar", url)
+          <SettingsCard
+            title="Profile Information"
+            description="Update your personal information and how others see you"
+            form={profileForm}
+            onSubmit={onProfileSubmit}
+            isLoading={isLoading}
+            submitLabel="Save Profile"
+          >
+            {/* Profile Picture Preview */}
+            <div className="flex items-start gap-4 p-4 rounded-lg border bg-muted/50">
+              <div className="relative">
+                <div className="h-20 w-20 rounded-full border-2 border-background shadow-md overflow-hidden bg-primary/10">
+                  {profileForm.watch("customAvatar") || session?.user?.image ? (
+                    <img
+                      src={
+                        profileForm.watch("customAvatar") ||
+                        session?.user?.image ||
+                        ""
                       }
-                      onDelete={() => profileForm.setValue("customAvatar", "")}
-                      label="Custom Avatar"
-                      description="PNG or JPG - Will replace your OAuth profile picture"
-                      maxSize={3}
-                      recommended="256x256px (square)"
-                      aspectRatio="square"
-                      uploadType="avatar"
+                      alt=""
+                      className="h-full w-full object-cover"
                     />
-                  </div>
-
-                  <Separator />
-
-                  {/* Social Links Section */}
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-medium">Social Media</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Connect your social media accounts
-                      </p>
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <UserCircle className="h-16 w-16 text-muted-foreground" />
                     </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-base font-semibold truncate">
+                  {profileForm.watch("name") ||
+                    session?.user?.name ||
+                    "Your Name"}
+                </h4>
+                <p className="text-sm text-muted-foreground mt-0.5 truncate">
+                  {profileForm.watch("jobTitle") || "Add your job title"}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1 truncate">
+                  {session?.user?.email}
+                </p>
+              </div>
+            </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FormInput
-                        control={profileForm.control}
-                        name="twitter"
-                        label="Twitter / X"
-                        placeholder="https://twitter.com/username"
-                      />
+            <SettingsSection
+              title="Basic Information"
+              description="Your personal details"
+            >
+              <div className="grid gap-6 md:grid-cols-2">
+                <FormInput
+                  control={profileForm.control}
+                  name="name"
+                  label="Full Name *"
+                  placeholder="John Doe"
+                />
 
-                      <FormInput
-                        control={profileForm.control}
-                        name="linkedin"
-                        label="LinkedIn"
-                        placeholder="https://linkedin.com/in/username"
-                      />
-                    </div>
+                <FormInput
+                  control={profileForm.control}
+                  name="jobTitle"
+                  label="Job Title"
+                  placeholder="Production Manager"
+                />
+              </div>
 
-                    <FormInput
-                      control={profileForm.control}
-                      name="github"
-                      label="GitHub"
-                      placeholder="https://github.com/username"
-                    />
-                  </div>
+              <div className="grid gap-6 md:grid-cols-2">
+                <FormInput
+                  control={profileForm.control}
+                  name="firstName"
+                  label="First Name"
+                  placeholder="John"
+                />
 
-                  <div className="flex items-center gap-4 pt-4">
-                    <Button
-                      type="submit"
-                      disabled={isLoading || !isEmailVerified}
-                      size="lg"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Saving Changes...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="mr-2 h-4 w-4" />
-                          Save Profile
-                        </>
-                      )}
-                    </Button>
-                    {!isEmailVerified && (
-                      <p className="text-sm text-muted-foreground">
-                        * Email verification required
-                      </p>
-                    )}
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+                <FormInput
+                  control={profileForm.control}
+                  name="lastName"
+                  label="Last Name"
+                  placeholder="Doe"
+                />
+              </div>
+
+              <FormInput
+                control={profileForm.control}
+                name="phone"
+                label="Phone Number"
+                placeholder="+90 555 123 4567"
+              />
+
+              <FormTextarea
+                control={profileForm.control}
+                name="bio"
+                label="Bio"
+                placeholder="Tell us about yourself..."
+                description="Brief description for your profile (max 500 characters)"
+                rows={4}
+                maxLength={500}
+              />
+            </SettingsSection>
+
+            <SettingsSection>
+              <ImageUploadWithSync
+                value={profileForm.watch("customAvatar")}
+                onChange={(url) => profileForm.setValue("customAvatar", url)}
+                onValueClear={() => profileForm.setValue("customAvatar", "")}
+                mutation={updateProfileMutation}
+                mutationField="customAvatar"
+                label="Profile Picture"
+                description="Upload a custom avatar (replaces OAuth photo)"
+                uploadType="avatar"
+                maxSize={3}
+                recommended="256x256px"
+                aspectRatio="square"
+                successMessage="Profil resmi kaldırıldı"
+                errorMessage="Profil resmi veritabanından silinemedi"
+              />
+            </SettingsSection>
+
+            <SettingsSection
+              title="Social Media"
+              description="Connect your social media accounts"
+            >
+              <div className="grid gap-6 md:grid-cols-2">
+                <FormInput
+                  control={profileForm.control}
+                  name="twitter"
+                  label="Twitter / X"
+                  placeholder="https://twitter.com/username"
+                />
+
+                <FormInput
+                  control={profileForm.control}
+                  name="linkedin"
+                  label="LinkedIn"
+                  placeholder="https://linkedin.com/in/username"
+                />
+              </div>
+
+              <FormInput
+                control={profileForm.control}
+                name="github"
+                label="GitHub"
+                placeholder="https://github.com/username"
+              />
+            </SettingsSection>
+
+            {!isEmailVerified && (
+              <p className="text-sm text-muted-foreground pt-4">
+                * Email verification required to save changes
+              </p>
+            )}
+          </SettingsCard>
         </TabsContent>
 
         {/* Account Tab */}
@@ -942,13 +885,13 @@ export default function SettingsPage() {
                             {companyForm.watch("coverImage") ? (
                               <img
                                 src={companyForm.watch("coverImage")}
-                                alt="Cover"
+                                alt=""
                                 className="h-full w-full object-cover"
                               />
                             ) : (
                               <div className="h-full w-full flex items-center justify-center">
                                 <p className="text-sm text-muted-foreground">
-                                  No cover image
+                                  Kapak görseli yok
                                 </p>
                               </div>
                             )}
@@ -967,7 +910,7 @@ export default function SettingsPage() {
                                     ?.scrollIntoView({ behavior: "smooth" });
                                 }}
                               >
-                                Edit Cover
+                                Kapak Düzenle
                               </Button>
                             </div>
                           </div>
@@ -981,7 +924,7 @@ export default function SettingsPage() {
                                   {companyForm.watch("logo") ? (
                                     <img
                                       src={companyForm.watch("logo")}
-                                      alt="Logo"
+                                      alt=""
                                       className="h-full w-full object-cover"
                                     />
                                   ) : (
@@ -1001,18 +944,18 @@ export default function SettingsPage() {
                                       ?.scrollIntoView({ behavior: "smooth" });
                                   }}
                                 >
-                                  Edit Logo
+                                  Logo Düzenle
                                 </Button>
                               </div>
 
                               {/* Company Info */}
                               <div className="flex-1 pt-2">
                                 <h3 className="text-2xl font-bold">
-                                  {companyForm.watch("name") || "Company Name"}
+                                  {companyForm.watch("name") || "Şirket Adı"}
                                 </h3>
                                 <p className="text-sm text-muted-foreground mt-1">
                                   {companyForm.watch("description") ||
-                                    "Add a description for your company"}
+                                    "Şirketiniz için bir açıklama ekleyin"}
                                 </p>
                                 {companyForm.watch("website") && (
                                   <a
@@ -1033,11 +976,11 @@ export default function SettingsPage() {
                         {/* Alert for Preview */}
                         <Alert>
                           <Building2 className="h-4 w-4" />
-                          <AlertTitle>Preview</AlertTitle>
+                          <AlertTitle>Önizleme</AlertTitle>
                           <AlertDescription>
-                            This is how your company profile will appear to
-                            others. Update your logo, cover image, and company
-                            information below.
+                            Şirket profiliniz başkalarına bu şekilde
+                            görünecektir. Logo, kapak görseli ve şirket
+                            bilgilerinizi aşağıdan güncelleyebilirsiniz.
                           </AlertDescription>
                         </Alert>
                       </div>
@@ -1055,7 +998,7 @@ export default function SettingsPage() {
                           </p>
                         </div>
 
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-6 md:grid-cols-2">
                           <FormInput
                             control={companyForm.control}
                             name="name"
@@ -1072,7 +1015,7 @@ export default function SettingsPage() {
                           />
                         </div>
 
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-6 md:grid-cols-2">
                           <FormInput
                             control={companyForm.control}
                             name="phone"
@@ -1117,7 +1060,7 @@ export default function SettingsPage() {
                           placeholder="123 Main Street"
                         />
 
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-6 md:grid-cols-2">
                           <FormInput
                             control={companyForm.control}
                             name="city"
@@ -1154,7 +1097,42 @@ export default function SettingsPage() {
                             onChange={(url) =>
                               companyForm.setValue("logo", url)
                             }
-                            onDelete={() => companyForm.setValue("logo", "")}
+                            onDelete={async () => {
+                              // Clear form state immediately (optimistic update)
+                              companyForm.setValue("logo", "");
+
+                              // Update backend to persist the change
+                              try {
+                                const companyId =
+                                  session?.user?.companyId ||
+                                  companyData?.myCompany?.id;
+                                if (!companyId) {
+                                  toast.error("Şirket ID bulunamadı");
+                                  return;
+                                }
+
+                                const result = await updateCompanyMutation({
+                                  id: Number(companyId),
+                                  logo: "",
+                                });
+
+                                if (result.error) {
+                                  console.error(
+                                    "❌ Backend update failed:",
+                                    result.error
+                                  );
+                                  toast.error("Logo veritabanından silinemedi");
+                                } else {
+                                  toast.success("Logo kaldırıldı");
+                                }
+                              } catch (error) {
+                                console.error(
+                                  "❌ Error updating backend:",
+                                  error
+                                );
+                                toast.error("Bir hata oluştu");
+                              }
+                            }}
                             label="Company Logo"
                             description="PNG, JPG or SVG - Square format recommended"
                             maxSize={5}
@@ -1171,9 +1149,44 @@ export default function SettingsPage() {
                             onChange={(url) =>
                               companyForm.setValue("coverImage", url)
                             }
-                            onDelete={() =>
-                              companyForm.setValue("coverImage", "")
-                            }
+                            onDelete={async () => {
+                              // Clear form state immediately (optimistic update)
+                              companyForm.setValue("coverImage", "");
+
+                              // Update backend to persist the change
+                              try {
+                                const companyId =
+                                  session?.user?.companyId ||
+                                  companyData?.myCompany?.id;
+                                if (!companyId) {
+                                  toast.error("Şirket ID bulunamadı");
+                                  return;
+                                }
+
+                                const result = await updateCompanyMutation({
+                                  id: Number(companyId),
+                                  coverImage: "",
+                                });
+
+                                if (result.error) {
+                                  console.error(
+                                    "❌ Backend update failed:",
+                                    result.error
+                                  );
+                                  toast.error(
+                                    "Kapak resmi veritabanından silinemedi"
+                                  );
+                                } else {
+                                  toast.success("Kapak resmi kaldırıldı");
+                                }
+                              } catch (error) {
+                                console.error(
+                                  "❌ Error updating backend:",
+                                  error
+                                );
+                                toast.error("Bir hata oluştu");
+                              }
+                            }}
                             label="Cover Image"
                             description="PNG or JPG - Wide format for banner background"
                             maxSize={10}
@@ -1193,7 +1206,7 @@ export default function SettingsPage() {
                               Define your brand's color palette
                             </p>
                           </div>
-                          <div className="grid gap-4 md:grid-cols-3">
+                          <div className="grid gap-6 md:grid-cols-3">
                             <FormField
                               control={companyForm.control}
                               name="primaryColor"
@@ -1295,7 +1308,7 @@ export default function SettingsPage() {
                           </p>
                         </div>
 
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-6 md:grid-cols-2">
                           <FormInput
                             control={companyForm.control}
                             name="instagram"

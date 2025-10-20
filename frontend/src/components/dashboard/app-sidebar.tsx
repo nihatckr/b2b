@@ -25,6 +25,9 @@ import * as React from "react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -288,27 +291,32 @@ const data = {
   adminNav: [
     {
       title: "User Management",
-      url: "/admin/users",
+      url: "/dashboard/admin/users",
       icon: IconUsers,
     },
     {
       title: "Company Management",
-      url: "/admin/companies",
+      url: "/dashboard/admin/companies",
       icon: IconBuilding,
     },
     {
       title: "Category Management",
-      url: "/admin/categories",
+      url: "/dashboard/admin/categories",
       icon: IconFolder,
     },
     {
       title: "Collection Management",
-      url: "/admin/collections",
+      url: "/dashboard/admin/collections",
       icon: IconDatabase,
     },
     {
+      title: "Reports",
+      url: "/dashboard/admin/reports",
+      icon: IconReport,
+    },
+    {
       title: "Admin Settings",
-      url: "/admin/settings",
+      url: "/dashboard/admin/settings",
       icon: IconSettings,
     },
   ],
@@ -363,7 +371,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={getNavMainByRole(userRole, companyType)} />
-        {userRole === "ADMIN" && <NavMain items={data.adminNav} />}
+        {userRole === "ADMIN" && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="px-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/70">
+              Admin Panel
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="flex flex-col gap-2">
+              <SidebarMenu>
+                {data.adminNav.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton tooltip={item.title} asChild>
+                      <Link href={item.url}>
+                        {item.icon && <item.icon />}
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         <NavBusiness items={getBusinessNavByRole(userRole, companyType)} />
         {userRole === "ADMIN" && <NavDocuments items={data.documents} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />

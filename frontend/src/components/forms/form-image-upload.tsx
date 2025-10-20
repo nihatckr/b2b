@@ -86,12 +86,6 @@ export function FormImageUpload({
   const uploadFile = async (file: File) => {
     setUploading(true);
     try {
-      console.log("🔑 Upload Debug:", {
-        hasSession: !!session,
-        hasBackendToken: !!session?.user?.backendToken,
-        tokenPreview: session?.user?.backendToken?.substring(0, 20) + "...",
-      });
-
       if (!session?.user?.backendToken) {
         toast.error("Oturum bilgisi bulunamadı. Lütfen yeniden giriş yapın.");
         return;
@@ -185,19 +179,28 @@ export function FormImageUpload({
 
   // Handle delete
   const handleDelete = async () => {
-    if (!value) return;
+    if (!value) {
+      toast.error("Silinecek resim bulunamadı");
+      return;
+    }
 
     if (!session?.user?.backendToken) {
       toast.error("Oturum bilgisi bulunamadı. Lütfen yeniden giriş yapın.");
       return;
     }
 
+    // Optimistically clear the value first (immediate UI feedback)
+    onDelete?.();
+
     try {
       // Extract filename from URL
       const filename = value.split("/").pop();
-      if (!filename) return;
+      if (!filename) {
+        toast.info("Resim referansı temizlendi");
+        return;
+      }
 
-      // Call backend to delete file
+      // Call backend to delete file (async, non-blocking)
       const response = await fetch(
         `http://localhost:4001/upload/${filename}?type=${uploadType}`,
         {
@@ -209,15 +212,29 @@ export function FormImageUpload({
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Delete failed");
+      // If file not found (404), just inform - already cleared UI
+      if (response.status === 404) {
+        console.warn("File not found on server, but UI already cleared");
+        toast.success("Resim kaldırıldı");
+        return;
       }
 
-      onDelete?.();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Delete failed:", errorData);
+        toast.success(
+          "Resim kaldırıldı (sunucu uyarısı: " +
+            (errorData.message || "dosya bulunamadı") +
+            ")"
+        );
+        return;
+      }
+
       toast.success("Resim başarıyla silindi");
     } catch (error) {
       console.error("Delete error:", error);
-      toast.error("Resim silinirken bir hata oluştu");
+      // Don't show error toast since we already cleared the UI
+      toast.success("Resim kaldırıldı");
     }
   };
 
@@ -225,117 +242,171 @@ export function FormImageUpload({
   const getPreviewClass = () => {
     switch (aspectRatio) {
       case "square":
-        return "w-32 h-32";
+        return "w-24 h-24";
       case "wide":
-        return "w-full h-48";
+        return "w-full h-32";
       default:
-        return "w-full h-40";
+        return "w-full h-28";
     }
   };
 
   return (
-    <div className={cn("space-y-4", className)}>
-      <Label>{label}</Label>
+    <div className={cn("space-y-3", className)}>
+      <Label className="text-sm font-medium">{label}</Label>
 
-      {/* Preview */}
-      {value && (
+      {value && value.trim() !== "" ? (
+        // Preview Mode - Show image with delete button
+        <div className="flex items-start gap-4">
+          <div
+            className={cn(
+              "relative border-2 border-dashed rounded-lg overflow-hidden flex-shrink-0",
+              getPreviewClass()
+            )}
+          >
+            <img src={value} alt="" className="w-full h-full object-cover" />
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              className="absolute top-1 right-1 h-6 w-6"
+              onClick={handleDelete}
+              disabled={disabled || uploading}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+
+          {/* Upload Area - Compact (next to preview) */}
+          <div
+            className={cn(
+              "flex-1 border-2 border-dashed rounded-lg p-4 transition-colors",
+              dragActive && "border-primary bg-primary/5",
+              disabled && "opacity-50 cursor-not-allowed"
+            )}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-muted flex-shrink-0">
+                {uploading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={disabled || uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        Yükleniyor...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-1 h-3 w-3" />
+                        Değiştir
+                      </>
+                    )}
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    veya sürükle bırak
+                  </span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={accept}
+                    className="hidden"
+                    onChange={handleFileChange}
+                    disabled={disabled || uploading}
+                  />
+                </div>
+
+                <div className="text-xs text-muted-foreground space-y-0.5">
+                  {description && <p>{description}</p>}
+                  <p>
+                    Önerilen: {recommended} • Maks {maxSize}MB
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Upload Mode - Full width upload area (no preview)
         <div
           className={cn(
-            "relative border-2 border-dashed rounded-lg overflow-hidden",
-            getPreviewClass()
+            "w-full border-2 border-dashed rounded-lg p-4 transition-colors",
+            dragActive && "border-primary bg-primary/5",
+            disabled && "opacity-50 cursor-not-allowed"
           )}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
         >
-          <img
-            src={value}
-            alt={label}
-            className={cn(
-              "w-full h-full",
-              aspectRatio === "square" ? "object-contain" : "object-cover"
-            )}
-          />
-          <Button
-            type="button"
-            variant="destructive"
-            size="icon"
-            className={cn(
-              "absolute",
-              aspectRatio === "square"
-                ? "top-1 right-1 h-6 w-6"
-                : "top-2 right-2 h-8 w-8"
-            )}
-            onClick={handleDelete}
-            disabled={disabled || uploading}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
-
-      {/* Upload Area */}
-      <div
-        className={cn(
-          "border-2 border-dashed rounded-lg p-6 transition-colors",
-          dragActive && "border-primary bg-primary/5",
-          disabled && "opacity-50 cursor-not-allowed"
-        )}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-      >
-        <div className="flex flex-col items-center justify-center gap-4">
-          <div className="p-4 rounded-full bg-muted">
-            {uploading ? (
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            ) : (
-              <ImageIcon className="h-8 w-8 text-muted-foreground" />
-            )}
-          </div>
-
-          <div className="text-center space-y-2">
-            <div className="flex items-center gap-2 justify-center">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={disabled || uploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Yükleniyor...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Dosya Seç
-                  </>
-                )}
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={accept}
-                className="hidden"
-                onChange={handleFileChange}
-                disabled={disabled || uploading}
-              />
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-muted flex-shrink-0">
+              {uploading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : (
+                <ImageIcon className="h-5 w-5 text-muted-foreground" />
+              )}
             </div>
 
-            <p className="text-sm text-muted-foreground">
-              veya sürükleyip bırakın
-            </p>
+            <div className="flex-1 min-w-0 space-y-1">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={disabled || uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                      Yükleniyor...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-1 h-3 w-3" />
+                      Dosya Seç
+                    </>
+                  )}
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  veya sürükle bırak
+                </span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={accept}
+                  className="hidden"
+                  onChange={handleFileChange}
+                  disabled={disabled || uploading}
+                />
+              </div>
 
-            {description && (
-              <p className="text-xs text-muted-foreground">{description}</p>
-            )}
-
-            <p className="text-xs text-muted-foreground">
-              {recommended} • Max {maxSize}MB
-            </p>
+              <div className="text-xs text-muted-foreground space-y-0.5">
+                {description && <p>{description}</p>}
+                <p>
+                  Önerilen: {recommended} • Maks {maxSize}MB
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

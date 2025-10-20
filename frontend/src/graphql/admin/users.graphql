@@ -1,0 +1,195 @@
+# Get all users with filters
+query Users($skip: Int, $take: Int, $role: String, $search: String) {
+  users(skip: $skip, take: $take, role: $role, search: $search) {
+    id
+    email
+    name
+    firstName
+    lastName
+    phone
+    role
+    department
+    jobTitle
+    isActive
+    isPendingApproval
+    createdAt
+    updatedAt
+    company {
+      id
+      name
+      type
+    }
+  }
+}
+
+# Get users count by role
+query UsersCountByRole {
+  usersCountByRole
+}
+
+# Get single user
+query User($id: Int!) {
+  user(id: $id) {
+    id
+    email
+    name
+    firstName
+    lastName
+    phone
+    role
+    department
+    jobTitle
+    isActive
+    isPendingApproval
+    avatar
+    customAvatar
+    bio
+    socialLinks
+    emailNotifications
+    pushNotifications
+    language
+    timezone
+    createdAt
+    updatedAt
+    company {
+      id
+      name
+      type
+      email
+    }
+  }
+}
+
+# Get user activity
+query UserActivity($userId: Int!) {
+  userActivity(userId: $userId)
+}
+
+# Get all companies (for dropdown)
+query Companies($take: Int, $search: String) {
+  companies(take: $take, search: $search) {
+    id
+    name
+    type
+    email
+  }
+}
+
+# Create user
+mutation CreateUser(
+  $email: String!
+  $password: String!
+  $name: String!
+  $role: String!
+  $companyId: Int
+) {
+  createUserByAdmin(
+    email: $email
+    password: $password
+    name: $name
+    role: $role
+    companyId: $companyId
+  ) {
+    id
+    email
+    name
+    role
+    createdAt
+    company {
+      id
+      name
+    }
+  }
+}
+
+# Update user (admin - can change everything including role and company)
+mutation UpdateUserForAdmin(
+  $id: Int!
+  $name: String
+  $email: String
+  $phone: String
+  $password: String
+  $role: String
+  $companyId: Int
+  $department: String
+  $jobTitle: String
+) {
+  updateUser(
+    id: $id
+    name: $name
+    email: $email
+    phone: $phone
+    password: $password
+    role: $role
+    companyId: $companyId
+    department: $department
+    jobTitle: $jobTitle
+  ) {
+    id
+    name
+    email
+    phone
+    role
+    companyId
+    department
+    jobTitle
+    updatedAt
+  }
+}
+
+# Delete user
+mutation DeleteUser($id: Int!) {
+  deleteUserByAdmin(id: $id)
+}
+
+# Reset user password
+mutation ResetUserPassword($userId: Int!, $newPassword: String!) {
+  resetUserPassword(userId: $userId, newPassword: $newPassword) {
+    id
+    email
+    name
+  }
+}
+
+# Update user role
+mutation UpdateUserRole($userId: Int!, $role: String!) {
+  updateUserRole(userId: $userId, role: $role) {
+    id
+    email
+    name
+    role
+  }
+}
+
+# Toggle user status
+mutation ToggleUserStatus($userId: Int!, $isActive: Boolean!) {
+  toggleUserStatusByAdmin(userId: $userId, isActive: $isActive) {
+    id
+    email
+    name
+    isActive
+  }
+}
+
+# Update user company
+mutation UpdateUserCompany($userId: Int!, $companyId: Int) {
+  updateUserCompanyByAdmin(userId: $userId, companyId: $companyId) {
+    id
+    email
+    name
+    company {
+      id
+      name
+    }
+  }
+}
+
+# Bulk toggle user status
+mutation BulkToggleUserStatus($userIds: [Int!]!, $isActive: Boolean!) {
+  bulkToggleUserStatus(userIds: $userIds, isActive: $isActive)
+}
+
+# Bulk delete users
+mutation BulkDeleteUsers($userIds: [Int!]!) {
+  bulkDeleteUsersByAdmin(userIds: $userIds)
+}

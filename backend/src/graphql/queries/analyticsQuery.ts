@@ -1,6 +1,182 @@
 import builder from "../builder";
 
-// Dashboard statistics - overall system stats
+// Company Dashboard Statistics - Comprehensive analytics for dashboard
+builder.queryField("companyDashboardStats", (t) =>
+  t.field({
+    type: "JSON",
+    args: {
+      startDate: t.arg.string(),
+      endDate: t.arg.string(),
+    },
+    authScopes: { user: true },
+    resolve: async (_root, args: any, context: any) => {
+      if (!context.user?.id) throw new Error("Not authenticated");
+
+      const companyId = context.user?.companyId;
+      if (!companyId) throw new Error("User is not associated with a company");
+
+      try {
+        // Date range setup
+        const now = new Date();
+        const startDate = args.startDate ? new Date(args.startDate) : new Date(now.getFullYear(), now.getMonth(), 1);
+        const endDate = args.endDate ? new Date(args.endDate) : now;
+
+        const dateFilter = {
+          gte: startDate,
+          lte: endDate,
+        };
+
+        const companyFilter = {
+          companyId,
+          createdAt: dateFilter,
+        };
+
+        // Order Statistics
+        const [
+          totalOrders,
+          pendingOrders,
+          confirmedOrders,
+          completedOrders,
+          cancelledOrders,
+        ] = await Promise.all([
+          context.prisma.order.count({ where: { companyId } }),
+          context.prisma.order.count({ where: { companyId, status: "PENDING" } }),
+          context.prisma.order.count({ where: { companyId, status: "CONFIRMED" } }),
+          context.prisma.order.count({ where: { companyId, status: "DELIVERED" } }),
+          context.prisma.order.count({ where: { companyId, status: "CANCELLED" } }),
+        ]);
+
+        // Sample Statistics
+        const [
+          totalSamples,
+          pendingSamples,
+          approvedSamples,
+          rejectedSamples,
+          inProductionSamples,
+        ] = await Promise.all([
+          context.prisma.sample.count({ where: { companyId } }),
+          context.prisma.sample.count({ where: { companyId, status: { in: ["PENDING", "REVIEWED"] } } }),
+          context.prisma.sample.count({ where: { companyId, status: "CONFIRMED" } }),
+          context.prisma.sample.count({ where: { companyId, status: { in: ["REJECTED", "REJECTED_BY_CUSTOMER", "REJECTED_BY_MANUFACTURER"] } } }),
+          context.prisma.sample.count({ where: { companyId, status: "IN_PRODUCTION" } }),
+        ]);
+
+        // Revenue Analytics
+        const revenueData = await context.prisma.order.aggregate({
+          where: { companyId, status: { in: ["DELIVERED", "CONFIRMED"] } },
+          _sum: { totalPrice: true },
+          _avg: { totalPrice: true },
+        });
+
+        const totalRevenue = revenueData._sum?.totalPrice || 0;
+        const averageOrderValue = revenueData._avg?.totalPrice || 0;
+
+        // Recent Activities (last 10)
+        const recentOrders = await context.prisma.order.findMany({
+          where: { companyId },
+          take: 10,
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            orderNumber: true,
+            status: true,
+            quantity: true,
+            totalPrice: true,
+            createdAt: true,
+            collection: { select: { name: true } },
+          },
+        });
+
+        const recentSamples = await context.prisma.sample.findMany({
+          where: { companyId },
+          take: 10,
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            sampleNumber: true,
+            name: true,
+            status: true,
+            createdAt: true,
+            collection: { select: { name: true } },
+          },
+        });
+
+        // Collections Count
+        const totalCollections = await context.prisma.collection.count({
+          where: { companyId, isActive: true },
+        });
+
+        // Task Statistics
+        const [totalTasks, pendingTasks, completedTasks, overdueTasks] = await Promise.all([
+          context.prisma.task.count({ where: { userId: context.user.id } }),
+          context.prisma.task.count({ where: { userId: context.user.id, status: "TODO" } }),
+          context.prisma.task.count({ where: { userId: context.user.id, status: "COMPLETED" } }),
+          context.prisma.task.count({
+            where: {
+              userId: context.user.id,
+              status: "TODO",
+              dueDate: { lt: now },
+            },
+          }),
+        ]);
+
+        return {
+          // Order Stats
+          orders: {
+            total: totalOrders,
+            pending: pendingOrders,
+            confirmed: confirmedOrders,
+            completed: completedOrders,
+            cancelled: cancelledOrders,
+            completionRate: totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0,
+          },
+          // Sample Stats
+          samples: {
+            total: totalSamples,
+            pending: pendingSamples,
+            approved: approvedSamples,
+            rejected: rejectedSamples,
+            inProduction: inProductionSamples,
+            approvalRate: totalSamples > 0 ? Math.round((approvedSamples / totalSamples) * 100) : 0,
+          },
+          // Revenue Stats
+          revenue: {
+            total: totalRevenue,
+            average: averageOrderValue,
+            currency: "USD",
+          },
+          // Collections
+          collections: {
+            total: totalCollections,
+          },
+          // Tasks
+          tasks: {
+            total: totalTasks,
+            pending: pendingTasks,
+            completed: completedTasks,
+            overdue: overdueTasks,
+            completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+          },
+          // Recent Activities
+          recentActivities: {
+            orders: recentOrders,
+            samples: recentSamples,
+          },
+          // Date Range
+          period: {
+            start: startDate.toISOString(),
+            end: endDate.toISOString(),
+          },
+        };
+      } catch (error) {
+        console.error("Error in companyDashboardStats:", error);
+        throw new Error("Failed to fetch company dashboard stats");
+      }
+    },
+  })
+);
+
+// Dashboard statistics - overall system stats (legacy - kept for backward compatibility)
 builder.queryField("dashboardStats", (t) =>
   t.field({
     type: "JSON",

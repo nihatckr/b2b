@@ -267,19 +267,6 @@ export function NotificationProvider({
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Debug: Log notifications state changes
-  React.useEffect(() => {
-    console.log("📊 Notifications state:", {
-      total: notifications.length,
-      unread: unreadCount,
-      notifications: notifications.map((n) => ({
-        id: n.id,
-        title: n.title,
-        read: n.read,
-      })),
-    });
-  }, [notifications, unreadCount]);
-
   return (
     <NotificationContext.Provider
       value={{
