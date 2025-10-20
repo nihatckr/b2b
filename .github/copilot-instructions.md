@@ -19,11 +19,65 @@ cd backend && npx prisma generate && npx prisma migrate dev
 cd ../frontend && npm run codegen
 ```
 
-### Adding Features
+### Adding Features (Step-by-Step)
 
-1. **Backend**: `prisma/schema.prisma` → `src/graphql/types/` → `src/graphql/mutations/` → Test in GraphQL Playground
-2. **Frontend**: `src/graphql/feature.graphql` → `npm run codegen` → Components → Pages
-3. **Always use generated types** - Never manual GraphQL types
+**Backend Development:**
+
+1. Update `prisma/schema.prisma` with new models/fields
+2. Run `npx prisma generate && npx prisma migrate dev`
+3. Create GraphQL types in `src/graphql/types/EntityName.ts`
+4. Add queries in `src/graphql/queries/entityName.ts`
+5. Add mutations in `src/graphql/mutations/entityName.ts`
+6. Test in GraphQL Playground at `http://localhost:4000/graphql`
+
+**Frontend Development:**
+
+1. Create `.graphql` file in `src/graphql/` with unique query/mutation names
+
+   - Use descriptive prefixes: `Admin`, `UserProfile`, `Dashboard`, etc.
+   - Example: `src/graphql/admin/users.graphql`
+
+   ```graphql
+   query AdminUsers($skip: Int, $take: Int) {
+     users(skip: $skip, take: $take) {
+       id
+       name
+       email
+     }
+   }
+
+   mutation AdminCreateUser($email: String!, $name: String!) {
+     createUser(email: $email, name: $name) {
+       id
+       name
+     }
+   }
+   ```
+
+2. Run GraphQL Codegen to generate TypeScript types
+
+   ```bash
+   cd frontend && npm run codegen
+   ```
+
+3. Import generated types in components
+
+   ```tsx
+   import {
+     AdminUsersDocument,
+     AdminCreateUserDocument,
+   } from "@/__generated__/graphql";
+   ```
+
+4. Build UI components in `src/components/feature-name/`
+5. Create pages in `src/app/(protected)/feature-name/page.tsx`
+6. Add custom hooks in `src/hooks/` if needed
+
+**Type Safety Guarantee:**
+
+- ✅ Backend schema → Frontend types (automatic)
+- ✅ TypeScript catches mismatches at compile time
+- ✅ No runtime type errors from GraphQL operations
 
 ### Testing with Roles
 
@@ -41,12 +95,107 @@ Use demo accounts post-seed:
 - Relay Global IDs: Use `useRelayIds()` hook to decode Base64 IDs to numeric for mutations
 - All resolvers MUST check permissions via context.user
 
+### GraphQL Codegen Workflow (CRITICAL)
+
+**Backend → Frontend Type-Safe Integration Process:**
+
+1. **Backend GraphQL Schema (Pothos)**
+
+   - Define types in `backend/src/graphql/types/EntityName.ts`
+   - Create queries/mutations in `backend/src/graphql/queries|mutations/`
+   - Test in GraphQL Playground at `http://localhost:4001/graphql`
+
+2. **Frontend GraphQL Operations**
+
+   - Create `.graphql` files in `frontend/src/graphql/`
+   - Name queries/mutations with descriptive prefixes (e.g., `AdminUsers`, `UserProfile`)
+   - **CRITICAL**: Query/mutation names MUST be unique across entire project
+
+   ```graphql
+   # ✅ GOOD: Unique, descriptive names
+   query AdminUsers($skip: Int, $take: Int) { ... }
+   mutation AdminCreateUser($email: String!) { ... }
+
+   # ❌ BAD: Generic names cause conflicts
+   query Users { ... }
+   mutation CreateUser { ... }
+   ```
+
+3. **Run GraphQL Codegen**
+
+   ```bash
+   cd frontend && npm run codegen
+   ```
+
+   - Generates TypeScript types in `frontend/src/__generated__/graphql.ts`
+   - Creates typed hooks: `useAdminUsersQuery`, `useAdminCreateUserMutation`
+   - Document suffixes: `AdminUsersDocument`, `AdminCreateUserDocument`
+
+4. **Import and Use Generated Types**
+
+   ```tsx
+   // ✅ Import generated documents and types
+   import {
+     AdminUsersDocument,
+     AdminCreateUserDocument,
+     AdminUsersQuery,
+     AdminCreateUserMutation,
+   } from "@/__generated__/graphql";
+
+   // Use with URQL
+   const [{ data }] = useQuery({ query: AdminUsersDocument });
+   const [, createUser] = useMutation(AdminCreateUserDocument);
+   ```
+
+**Naming Convention Rules:**
+
+| Context          | Prefix        | Example                                            |
+| ---------------- | ------------- | -------------------------------------------------- |
+| Admin operations | `Admin`       | `AdminUsersDocument`, `AdminCreateUserDocument`    |
+| User profile     | `UserProfile` | `UserProfileDocument`, `UpdateUserProfileDocument` |
+| Settings         | `Settings`    | `SettingsDocument`, `UpdateSettingsDocument`       |
+| Dashboard        | `Dashboard`   | `DashboardStatsDocument`                           |
+
+**Common Codegen Errors & Fixes:**
+
+```tsx
+// ❌ ERROR: Cannot find name 'UsersDocument'
+const [{ data }] = useQuery({ query: UsersDocument });
+
+// ✅ FIX: Use the correct prefixed name from .graphql file
+const [{ data }] = useQuery({ query: AdminUsersDocument });
+
+// ❌ ERROR: Duplicate query name
+// frontend/src/graphql/users.graphql: query Users { ... }
+// frontend/src/graphql/admin/users.graphql: query Users { ... }
+
+// ✅ FIX: Use unique names with context prefix
+// frontend/src/graphql/users.graphql: query UserProfile { ... }
+// frontend/src/graphql/admin/users.graphql: query AdminUsers { ... }
+```
+
+**After Every Backend Schema Change:**
+
+```bash
+# 1. Backend: Generate Prisma Client + Migrate
+cd backend
+npx prisma generate
+npx prisma migrate dev
+
+# 2. Frontend: Regenerate GraphQL Types
+cd ../frontend
+npm run codegen
+
+# 3. Verify no TypeScript errors
+# Check imports in components using the updated schema
+```
+
 ### Frontend Data Patterns
 
 ```tsx
 // ✅ Standard URQL pattern with reusable hooks
 const { decodeGlobalId } = useRelayIds();
-const deleteUserMutation = useMutation(DeleteUserDocument);
+const deleteUserMutation = useMutation(AdminDeleteUserDocument); // Note: Admin prefix
 
 const { execute: deleteUser } = useOptimisticMutation({
   mutation: deleteUserMutation,
@@ -70,9 +219,28 @@ await deleteUser({ id: decodeGlobalId(user.id) });
 
 ### File Organization
 
-- **Backend**: `src/graphql/types/EntityName.ts`, `src/graphql/mutations/entityName.ts`
-- **Frontend**: `src/graphql/entityName.graphql` → codegen → `src/components/entityName/`
-- **Hooks**: `src/hooks/useFeatureName.ts` with README.md documentation
+- **Backend**:
+
+  - `src/graphql/types/EntityName.ts` - GraphQL type definitions
+  - `src/graphql/queries/entityName.ts` - Query resolvers
+  - `src/graphql/mutations/entityName.ts` - Mutation resolvers
+  - Test endpoint: `http://localhost:4000/graphql` (GraphQL Playground)
+
+- **Frontend**:
+
+  - `src/graphql/feature.graphql` - GraphQL operations (queries/mutations)
+  - **Naming Rule**: Use unique, descriptive names with context prefix
+    - `src/graphql/admin/users.graphql` → `AdminUsers`, `AdminCreateUser`
+    - `src/graphql/settings.graphql` → `Settings`, `UpdateSettings`
+    - `src/graphql/dashboard.graphql` → `DashboardStats`
+  - `npm run codegen` → `src/__generated__/graphql.ts` (auto-generated types)
+  - `src/components/feature/` - React components
+  - `src/app/(protected)/feature/page.tsx` - Next.js pages
+
+- **Hooks**:
+  - `src/hooks/useFeatureName.ts` with README.md documentation
+  - `useRelayIds` - Global ID encode/decode utilities
+  - `useOptimisticMutation` - Mutation patterns with auto-refetch
 
 ### Database/GraphQL Patterns
 
@@ -179,4 +347,3 @@ Always test new features with:
 5. Mobile responsiveness (TailwindCSS breakpoints)
 
 Focus on the **Dynamic Task System** integration - any status changes should trigger appropriate task automation.
-
