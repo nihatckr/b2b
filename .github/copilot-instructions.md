@@ -249,6 +249,30 @@ await deleteUser({ id: decodeGlobalId(user.id) });
 - Use `t.prismaField()` for type-safe Prisma integration
 - Status enums drive the Dynamic Task System (28 Sample statuses → auto-task creation)
 
+**Important ID Type Differences:**
+
+| Model                             | ID Type                  | Usage                | Example            |
+| --------------------------------- | ------------------------ | -------------------- | ------------------ |
+| User, Company, Sample, Collection | Relay Global ID (Base64) | `decodeGlobalId(id)` | `"VXNlcjox"` → `1` |
+| StandardCategory, LibraryItem     | Numeric ID               | `Number(id)`         | `"1"` → `1`        |
+| CompanyCategory                   | Numeric ID               | `Number(id)`         | `"1"` → `1`        |
+
+**Why the difference?**
+
+- Models with `t.globalID()` or custom ID encoding → Relay Global IDs
+- Models with simple `t.exposeID("id")` → Numeric IDs (as string)
+
+**Common Error:**
+
+```typescript
+// ❌ WRONG: Decoding numeric ID
+const categoryId = decodeGlobalId(standardCategory.id);
+// Error: Failed to decode global ID: "1"
+
+// ✅ CORRECT: Direct conversion
+const categoryId = Number(standardCategory.id);
+```
+
 ### Real-time Features
 
 - WebSocket subscriptions via `subscriptionExchange` in URQL client
@@ -299,6 +323,31 @@ await deleteUser({ id: user.id }); // user.id is Base64!
 
 // ✅ Always decode first
 await deleteUser({ id: decodeGlobalId(user.id) });
+
+// ⚠️ CRITICAL: Check if model uses Relay Global IDs or numeric IDs
+// StandardCategory, LibraryItem → Numeric IDs (use Number(id))
+// User, Company, Sample → Relay Global IDs (use decodeGlobalId(id))
+```
+
+**ID Type Detection:**
+
+```typescript
+// ❌ WRONG: Trying to decode numeric ID
+const categoryId = decodeGlobalId(category.id); // Error: "1" is not Base64!
+
+// ✅ CORRECT: Use Number() for numeric IDs
+const categoryId = Number(category.id); // StandardCategory uses numeric IDs
+
+// ✅ CORRECT: Use decodeGlobalId() for Relay Global IDs
+const userId = decodeGlobalId(user.id); // User uses Relay Global IDs
+```
+
+**How to Check ID Type:**
+
+```typescript
+// Look at backend GraphQL type definition:
+// Numeric ID: t.exposeID("id") without globalID
+// Relay Global ID: t.globalID() or explicit encoding
 ```
 
 ### Permission Checks
@@ -315,6 +364,48 @@ if (!ctx.user || !hasPermission(ctx.user, "DELETE_USER")) {
   throw new Error("Unauthorized");
 }
 ```
+
+### JSON Field Validation (Prisma)
+
+**Problem:** Empty strings or invalid JSON in Prisma JSON fields cause errors.
+
+```typescript
+// ❌ WRONG: Sending empty string to JSON field
+keywords: formData.keywords || undefined; // "" → JSON parse error!
+
+// ✅ CORRECT: Frontend validation
+let cleanKeywords: string | undefined = undefined;
+if (formData.keywords && formData.keywords.trim() !== "") {
+  try {
+    JSON.parse(formData.keywords); // Validate JSON
+    cleanKeywords = formData.keywords;
+  } catch (e) {
+    cleanKeywords = undefined; // Skip invalid JSON
+  }
+}
+
+// ✅ CORRECT: Backend validation
+if (input.keywords !== undefined && input.keywords !== null) {
+  const trimmedKeywords = input.keywords.trim();
+  if (trimmedKeywords === "") {
+    updateData.keywords = null; // Empty string → null
+  } else {
+    try {
+      updateData.keywords = JSON.parse(trimmedKeywords);
+    } catch (e) {
+      throw new Error("Invalid JSON in keywords field");
+    }
+  }
+}
+```
+
+**Golden Rule for JSON Fields:**
+
+- ✅ Frontend: Validate JSON before sending, send `undefined` if invalid
+- ✅ Backend: Handle empty strings, convert to `null`
+- ✅ Always `trim()` strings before validation
+- ✅ Use try-catch for JSON.parse()
+- ❌ Never send empty strings to JSON fields
 
 ## 📱 Development Commands
 
@@ -347,3 +438,279 @@ Always test new features with:
 5. Mobile responsiveness (TailwindCSS breakpoints)
 
 Focus on the **Dynamic Task System** integration - any status changes should trigger appropriate task automation.
+
+## 🔥 Common Issues & Solutions
+
+### Issue 1: "Failed to decode global ID" Error
+
+**Symptom:**
+
+```
+InvalidCharacterError: Failed to execute 'atob' on 'Window':
+The string to be decoded is not correctly encoded.
+```
+
+**Root Cause:** Trying to decode a numeric ID as if it were a Relay Global ID (Base64).
+
+**Solution:**
+
+```typescript
+// ❌ WRONG
+const id = decodeGlobalId(category.id); // category.id is "1", not Base64
+
+// ✅ CORRECT - Check backend GraphQL type first
+// If using t.exposeID("id") → Use Number()
+const id = Number(category.id);
+
+// If using t.globalID() → Use decodeGlobalId()
+const id = decodeGlobalId(user.id);
+```
+
+**Quick Check:** Look at backend type definition:
+
+- `t.exposeID("id")` → Numeric ID → Use `Number(id)`
+- `t.globalID()` → Relay Global ID → Use `decodeGlobalId(id)`
+
+---
+
+### Issue 2: "Invalid JSON in keywords field"
+
+**Symptom:**
+
+```
+[GraphQL] Invalid JSON in keywords field
+```
+
+**Root Cause:** Empty string or whitespace being sent to Prisma JSON field.
+
+**Solution:**
+
+**Frontend (Always validate before sending):**
+
+```typescript
+let cleanKeywords: string | undefined = undefined;
+if (formData.keywords && formData.keywords.trim() !== "") {
+  try {
+    JSON.parse(formData.keywords); // Validate
+    cleanKeywords = formData.keywords;
+  } catch (e) {
+    cleanKeywords = undefined; // Skip invalid
+  }
+}
+// Send: cleanKeywords (not raw formData.keywords)
+```
+
+**Backend (Double validation):**
+
+```typescript
+if (input.keywords !== undefined && input.keywords !== null) {
+  const trimmed = input.keywords.trim();
+  if (trimmed === "") {
+    updateData.keywords = null; // Empty → null
+  } else {
+    try {
+      updateData.keywords = JSON.parse(trimmed);
+    } catch (e) {
+      throw new Error("Invalid JSON in keywords field");
+    }
+  }
+}
+```
+
+**Golden Rules:**
+
+1. ✅ Always `trim()` before validation
+2. ✅ Empty string → `undefined` (frontend) or `null` (backend)
+3. ✅ Use try-catch for JSON.parse()
+4. ❌ Never send `""` to JSON fields
+
+---
+
+### Issue 3: GraphQL Codegen Errors
+
+**Symptom:**
+
+```
+Cannot find name 'UsersDocument'
+```
+
+**Root Cause:** Query/mutation names not matching between .graphql file and import.
+
+**Solution:**
+
+```typescript
+// ❌ WRONG: Generic name
+// users.graphql
+query Users { ... }
+
+// Import
+import { UsersDocument } from "@/__generated__/graphql"; // ❌ Ambiguous
+
+// ✅ CORRECT: Prefixed name
+// admin/users.graphql
+query AdminUsers { ... }
+
+// Import
+import { AdminUsersDocument } from "@/__generated__/graphql"; // ✅ Clear
+```
+
+**Naming Convention:**
+
+- Admin operations: `Admin` prefix (AdminUsers, AdminCreateUser)
+- User profile: `UserProfile` prefix
+- Settings: `Settings` prefix
+- Dashboard: `Dashboard` prefix
+
+---
+
+### Issue 4: TypeScript Errors After Schema Changes
+
+**Symptom:**
+
+```
+Type 'X' is not assignable to type 'Y'
+```
+
+**Root Cause:** Frontend types out of sync with backend schema.
+
+**Solution (ALWAYS run in order):**
+
+```bash
+# 1. Backend: Regenerate Prisma Client
+cd backend
+npx prisma generate
+npx prisma migrate dev
+
+# 2. Frontend: Regenerate GraphQL types
+cd ../frontend
+npm run codegen
+
+# 3. Restart dev servers
+# Terminal 1: cd backend && npm run dev
+# Terminal 2: cd frontend && npm run dev
+```
+
+**Pro Tip:** Create VS Code task to run both commands sequentially.
+
+---
+
+### Issue 5: Cache Issues After Mutations
+
+**Symptom:** UI not updating after create/update/delete operations.
+
+**Root Cause:** URQL cache not invalidated.
+
+**Solution:**
+
+```typescript
+const { execute } = useOptimisticMutation({
+  mutation: deleteMutation,
+  successMessage: "Deleted successfully",
+  refetchQueries: [
+    // ✅ ALWAYS use network-only
+    { refetch: refetchItems, requestPolicy: "network-only" },
+    { refetch: refetchStats, requestPolicy: "network-only" },
+  ],
+});
+
+// ❌ WRONG: Without network-only (uses cache)
+{ refetch: refetchItems }
+
+// ✅ CORRECT: Forces fresh data from server
+{ refetch: refetchItems, requestPolicy: "network-only" }
+```
+
+---
+
+### Issue 6: Form Validation Not Working
+
+**Symptom:** Invalid data being sent to backend despite frontend validation.
+
+**Root Cause:** Form submission not prevented or validation bypassed.
+
+**Solution:**
+
+```typescript
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault(); // ✅ CRITICAL: Prevent default
+
+  const errors = validateForm(formData);
+  setErrors(errors);
+
+  // ✅ Check errors before proceeding
+  if (Object.keys(errors).length > 0) {
+    return; // Stop if validation fails
+  }
+
+  await submitData(formData);
+};
+```
+
+**Checklist:**
+
+- ✅ `e.preventDefault()` at start of handler
+- ✅ Validate before submit
+- ✅ Return early if errors exist
+- ✅ Show errors in UI
+- ✅ Clear errors on field change
+
+---
+
+### Issue 7: Infinite Re-render Loop
+
+**Symptom:** Browser freezes, memory usage spikes.
+
+**Root Cause:** State update causing re-render which triggers another state update.
+
+**Common Causes:**
+
+```typescript
+// ❌ WRONG: useEffect without deps
+useEffect(() => {
+  setData(newData);
+}); // Re-runs on every render
+
+// ✅ CORRECT: Specify dependencies
+useEffect(() => {
+  setData(newData);
+}, [dependency]);
+
+// ❌ WRONG: Object creation in dep array
+useEffect(() => {
+  fetchData(filters);
+}, [{ search, level }]); // New object each render
+
+// ✅ CORRECT: Primitive dependencies
+useEffect(() => {
+  fetchData({ search, level });
+}, [search, level]);
+```
+
+---
+
+## 📚 Quick Reference Checklist
+
+**Before Creating New Feature:**
+
+- [ ] Check if model uses Relay Global ID or numeric ID
+- [ ] Plan GraphQL operation names with proper prefix
+- [ ] Identify JSON fields that need validation
+- [ ] Plan refetch queries for cache invalidation
+
+**After Backend Changes:**
+
+- [ ] Run `npx prisma generate && npx prisma migrate dev`
+- [ ] Run `cd ../frontend && npm run codegen`
+- [ ] Check for TypeScript errors
+- [ ] Test with different user roles
+
+**Before Committing:**
+
+- [ ] No TypeScript errors
+- [ ] No console errors in browser
+- [ ] GraphQL operations tested in Playground
+- [ ] Form validation working
+- [ ] Cache invalidation working
+- [ ] UI updates after mutations
+
+---

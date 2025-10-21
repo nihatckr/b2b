@@ -21,6 +21,8 @@ const CreateLibraryItemInput = builder.inputType('CreateLibraryItemInput', {
     isPopular: t.boolean({ required: false }),
     companyId: t.int({ required: false }),
     standardItemId: t.int({ required: false }),
+    // 🔗 Certification IDs
+    certificationIds: t.intList({ required: false }),
   }),
 });
 
@@ -91,6 +93,12 @@ builder.mutationField("createLibraryItem", (t) =>
           companyId: input.companyId ?? context.user.companyId ?? null,
           standardItemId: input.standardItemId ?? null,
           createdById: context.user.id,
+          // 🔗 Connect certifications
+          ...(input.certificationIds && input.certificationIds.length > 0 && {
+            certifications: {
+              connect: input.certificationIds.map((id) => ({ id })),
+            },
+          }),
         },
       });
     },
@@ -242,12 +250,16 @@ builder.mutationField("createStandardCategory", (t) =>
     resolve: async (query, _root, args, context) => {
       const input = args.input;
 
+      // Handle keywords JSON field with validation
       let keywordsJson = null;
       if (input.keywords) {
-        try {
-          keywordsJson = JSON.parse(input.keywords);
-        } catch (e) {
-          throw new Error("Invalid JSON in keywords field");
+        const trimmedKeywords = input.keywords.trim();
+        if (trimmedKeywords !== "") {
+          try {
+            keywordsJson = JSON.parse(trimmedKeywords);
+          } catch (e) {
+            throw new Error("Invalid JSON in keywords field");
+          }
         }
       }
 

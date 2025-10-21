@@ -208,34 +208,38 @@ const getBusinessNavByRole = (userRole: string, companyType?: string) => {
   if (userRole === "ADMIN") {
     return [
       {
-        title: "Library",
+        title: "Library Management",
         icon: IconDatabase,
         isActive: true,
         url: "/dashboard/library",
         items: [
           {
-            title: "Color Management",
-            url: "/dashboard/library/colors",
-          },
-          {
-            title: "Fabric Management",
+            title: "Fabrics",
             url: "/dashboard/library/fabrics",
           },
           {
-            title: "Size Management",
-            url: "/dashboard/library/sizes",
+            title: "Colors",
+            url: "/dashboard/library/colors",
           },
           {
-            title: "Season Management",
-            url: "/dashboard/library/seasons",
+            title: "Size Groups",
+            url: "/dashboard/library/size-groups",
           },
           {
-            title: "Fit Management",
+            title: "Fits",
             url: "/dashboard/library/fits",
+          },
+          {
+            title: "Accessories",
+            url: "/dashboard/library/accessories",
           },
           {
             title: "Certifications",
             url: "/dashboard/library/certifications",
+          },
+          {
+            title: "Seasons",
+            url: "/dashboard/library/seasons",
           },
         ],
       },
@@ -249,34 +253,38 @@ const getBusinessNavByRole = (userRole: string, companyType?: string) => {
   ) {
     return [
       {
-        title: "Library",
+        title: "Library Management",
         icon: IconDatabase,
         isActive: true,
         url: "/dashboard/library",
         items: [
           {
-            title: "Color Management",
-            url: "/dashboard/library/colors",
-          },
-          {
-            title: "Fabric Management",
+            title: "Fabrics",
             url: "/dashboard/library/fabrics",
           },
           {
-            title: "Size Management",
-            url: "/dashboard/library/sizes",
+            title: "Colors",
+            url: "/dashboard/library/colors",
           },
           {
-            title: "Season Management",
-            url: "/dashboard/library/seasons",
+            title: "Size Groups",
+            url: "/dashboard/library/size-groups",
           },
           {
-            title: "Fit Management",
+            title: "Fits",
             url: "/dashboard/library/fits",
+          },
+          {
+            title: "Accessories",
+            url: "/dashboard/library/accessories",
           },
           {
             title: "Certifications",
             url: "/dashboard/library/certifications",
+          },
+          {
+            title: "Seasons",
+            url: "/dashboard/library/seasons",
           },
         ],
       },

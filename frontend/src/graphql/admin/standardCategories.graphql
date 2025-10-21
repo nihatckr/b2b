@@ -1,0 +1,199 @@
+# ========================================
+# ADMIN STANDARD CATEGORY QUERIES
+# ========================================
+
+query AdminStandardCategories(
+  $search: String
+  $level: String
+  $isActive: Boolean
+  $isPublic: Boolean
+  $skip: Int
+  $take: Int
+) {
+  adminStandardCategories(
+    search: $search
+    level: $level
+    isActive: $isActive
+    isPublic: $isPublic
+    skip: $skip
+    take: $take
+  ) {
+    id
+    code
+    name
+    description
+    level
+    order
+    icon
+    image
+    isActive
+    isPublic
+    keywords
+    tags
+    createdAt
+    updatedAt
+    createdBy {
+      id
+      name
+      email
+    }
+    parentCategory {
+      id
+      code
+      name
+    }
+    subCategories {
+      id
+      code
+      name
+      level
+    }
+  }
+}
+
+query AdminStandardCategoriesCount(
+  $search: String
+  $level: String
+  $isActive: Boolean
+  $isPublic: Boolean
+) {
+  adminStandardCategoriesCount(
+    search: $search
+    level: $level
+    isActive: $isActive
+    isPublic: $isPublic
+  )
+}
+
+query AdminStandardCategory($id: Int!) {
+  adminStandardCategory(id: $id) {
+    id
+    code
+    name
+    description
+    level
+    order
+    icon
+    image
+    isActive
+    isPublic
+    keywords
+    tags
+    createdAt
+    updatedAt
+    createdBy {
+      id
+      name
+      email
+    }
+    parentCategory {
+      id
+      code
+      name
+      level
+    }
+    subCategories {
+      id
+      code
+      name
+      description
+      level
+      order
+      isActive
+    }
+  }
+}
+
+query AdminRootStandardCategories {
+  adminRootStandardCategories {
+    id
+    code
+    name
+    description
+    level
+    order
+    icon
+    image
+    isActive
+    subCategories {
+      id
+      code
+      name
+      level
+      order
+    }
+  }
+}
+
+query AdminStandardCategoryTree {
+  adminStandardCategoryTree
+}
+
+query AdminStandardCategoryStats {
+  adminStandardCategoryStats
+}
+
+# ========================================
+# ADMIN STANDARD CATEGORY MUTATIONS
+# ========================================
+
+mutation AdminCreateStandardCategory($input: CreateStandardCategoryInput!) {
+  createStandardCategory(input: $input) {
+    id
+    code
+    name
+    description
+    level
+    order
+    icon
+    image
+    isActive
+    isPublic
+    createdAt
+    parentCategory {
+      id
+      code
+      name
+    }
+  }
+}
+
+mutation AdminUpdateStandardCategory(
+  $id: Int!
+  $input: UpdateStandardCategoryInput!
+) {
+  updateStandardCategory(id: $id, input: $input) {
+    id
+    code
+    name
+    description
+    level
+    order
+    icon
+    image
+    isActive
+    isPublic
+    updatedAt
+    parentCategory {
+      id
+      code
+      name
+    }
+  }
+}
+
+mutation AdminDeleteStandardCategory($id: Int!) {
+  deleteStandardCategory(id: $id)
+}
+
+mutation AdminToggleStandardCategoryStatus($id: Int!) {
+  toggleStandardCategoryStatus(id: $id) {
+    id
+    isActive
+    updatedAt
+  }
+}
+
+mutation AdminUpdateStandardCategoryOrder($updates: [CategoryOrderUpdate!]!) {
+  updateStandardCategoryOrder(updates: $updates)
+}

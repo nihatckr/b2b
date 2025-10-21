@@ -1165,6 +1165,12 @@ model LibraryItem {
   standardItemId Int?
   companyItems   LibraryItem[] @relation("StandardReference")
 
+  // 🔗 Certification Relations (Many-to-Many)
+  // Bu item'ın sahip olduğu sertifikalar (Fabric/Color/Material → Certifications)
+  certifications     LibraryItem[] @relation("ItemCertifications")
+  // Bu sertifikanın atandığı item'lar (Certification → Fabric/Color/Material)
+  certifiedItems     LibraryItem[] @relation("ItemCertifications")
+
   // Collections using certifications
   collections Collection[] @relation("CollectionCertifications")
 

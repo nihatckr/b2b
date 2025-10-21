@@ -34,6 +34,29 @@ builder.queryField("categories", (t) =>
   })
 );
 
+// Get total category count
+builder.queryField("categoriesCount", (t) =>
+  t.field({
+    type: "Int",
+    args: {
+      search: t.arg.string(),
+    },
+    authScopes: { public: true },
+    resolve: async (_root, args, context) => {
+      const where: any = {};
+
+      if (args.search) {
+        where.OR = [
+          { name: { contains: args.search, mode: "insensitive" } },
+          { description: { contains: args.search, mode: "insensitive" } },
+        ];
+      }
+
+      return context.prisma.category.count({ where });
+    },
+  })
+);
+
 // Get category by ID
 builder.queryField("category", (t) =>
   t.prismaField({

@@ -4574,11 +4574,15 @@ export namespace Prisma {
 
   export type LibraryItemCountOutputType = {
     companyItems: number
+    certifications: number
+    certifiedItems: number
     collections: number
   }
 
   export type LibraryItemCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     companyItems?: boolean | LibraryItemCountOutputTypeCountCompanyItemsArgs
+    certifications?: boolean | LibraryItemCountOutputTypeCountCertificationsArgs
+    certifiedItems?: boolean | LibraryItemCountOutputTypeCountCertifiedItemsArgs
     collections?: boolean | LibraryItemCountOutputTypeCountCollectionsArgs
   }
 
@@ -4597,6 +4601,20 @@ export namespace Prisma {
    * LibraryItemCountOutputType without action
    */
   export type LibraryItemCountOutputTypeCountCompanyItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LibraryItemWhereInput
+  }
+
+  /**
+   * LibraryItemCountOutputType without action
+   */
+  export type LibraryItemCountOutputTypeCountCertificationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LibraryItemWhereInput
+  }
+
+  /**
+   * LibraryItemCountOutputType without action
+   */
+  export type LibraryItemCountOutputTypeCountCertifiedItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: LibraryItemWhereInput
   }
 
@@ -31285,6 +31303,8 @@ export namespace Prisma {
     company?: boolean | LibraryItem$companyArgs<ExtArgs>
     standardItem?: boolean | LibraryItem$standardItemArgs<ExtArgs>
     companyItems?: boolean | LibraryItem$companyItemsArgs<ExtArgs>
+    certifications?: boolean | LibraryItem$certificationsArgs<ExtArgs>
+    certifiedItems?: boolean | LibraryItem$certifiedItemsArgs<ExtArgs>
     collections?: boolean | LibraryItem$collectionsArgs<ExtArgs>
     createdBy?: boolean | LibraryItem$createdByArgs<ExtArgs>
     _count?: boolean | LibraryItemCountOutputTypeDefaultArgs<ExtArgs>
@@ -31318,6 +31338,8 @@ export namespace Prisma {
     company?: boolean | LibraryItem$companyArgs<ExtArgs>
     standardItem?: boolean | LibraryItem$standardItemArgs<ExtArgs>
     companyItems?: boolean | LibraryItem$companyItemsArgs<ExtArgs>
+    certifications?: boolean | LibraryItem$certificationsArgs<ExtArgs>
+    certifiedItems?: boolean | LibraryItem$certifiedItemsArgs<ExtArgs>
     collections?: boolean | LibraryItem$collectionsArgs<ExtArgs>
     createdBy?: boolean | LibraryItem$createdByArgs<ExtArgs>
     _count?: boolean | LibraryItemCountOutputTypeDefaultArgs<ExtArgs>
@@ -31329,6 +31351,8 @@ export namespace Prisma {
       company: Prisma.$CompanyPayload<ExtArgs> | null
       standardItem: Prisma.$LibraryItemPayload<ExtArgs> | null
       companyItems: Prisma.$LibraryItemPayload<ExtArgs>[]
+      certifications: Prisma.$LibraryItemPayload<ExtArgs>[]
+      certifiedItems: Prisma.$LibraryItemPayload<ExtArgs>[]
       collections: Prisma.$CollectionPayload<ExtArgs>[]
       createdBy: Prisma.$UserPayload<ExtArgs> | null
     }
@@ -31694,6 +31718,8 @@ export namespace Prisma {
     company<T extends LibraryItem$companyArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$companyArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     standardItem<T extends LibraryItem$standardItemArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$standardItemArgs<ExtArgs>>): Prisma__LibraryItemClient<$Result.GetResult<Prisma.$LibraryItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     companyItems<T extends LibraryItem$companyItemsArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$companyItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LibraryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    certifications<T extends LibraryItem$certificationsArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$certificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LibraryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    certifiedItems<T extends LibraryItem$certifiedItemsArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$certifiedItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LibraryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     collections<T extends LibraryItem$collectionsArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$collectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CollectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     createdBy<T extends LibraryItem$createdByArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$createdByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
@@ -32127,6 +32153,54 @@ export namespace Prisma {
    * LibraryItem.companyItems
    */
   export type LibraryItem$companyItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LibraryItem
+     */
+    select?: LibraryItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LibraryItem
+     */
+    omit?: LibraryItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LibraryItemInclude<ExtArgs> | null
+    where?: LibraryItemWhereInput
+    orderBy?: LibraryItemOrderByWithRelationInput | LibraryItemOrderByWithRelationInput[]
+    cursor?: LibraryItemWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LibraryItemScalarFieldEnum | LibraryItemScalarFieldEnum[]
+  }
+
+  /**
+   * LibraryItem.certifications
+   */
+  export type LibraryItem$certificationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LibraryItem
+     */
+    select?: LibraryItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LibraryItem
+     */
+    omit?: LibraryItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LibraryItemInclude<ExtArgs> | null
+    where?: LibraryItemWhereInput
+    orderBy?: LibraryItemOrderByWithRelationInput | LibraryItemOrderByWithRelationInput[]
+    cursor?: LibraryItemWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LibraryItemScalarFieldEnum | LibraryItemScalarFieldEnum[]
+  }
+
+  /**
+   * LibraryItem.certifiedItems
+   */
+  export type LibraryItem$certifiedItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the LibraryItem
      */
@@ -44834,6 +44908,8 @@ export namespace Prisma {
     company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
     standardItem?: XOR<LibraryItemNullableScalarRelationFilter, LibraryItemWhereInput> | null
     companyItems?: LibraryItemListRelationFilter
+    certifications?: LibraryItemListRelationFilter
+    certifiedItems?: LibraryItemListRelationFilter
     collections?: CollectionListRelationFilter
     createdBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
@@ -44860,6 +44936,8 @@ export namespace Prisma {
     company?: CompanyOrderByWithRelationInput
     standardItem?: LibraryItemOrderByWithRelationInput
     companyItems?: LibraryItemOrderByRelationAggregateInput
+    certifications?: LibraryItemOrderByRelationAggregateInput
+    certifiedItems?: LibraryItemOrderByRelationAggregateInput
     collections?: CollectionOrderByRelationAggregateInput
     createdBy?: UserOrderByWithRelationInput
     _relevance?: LibraryItemOrderByRelevanceInput
@@ -44891,6 +44969,8 @@ export namespace Prisma {
     company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
     standardItem?: XOR<LibraryItemNullableScalarRelationFilter, LibraryItemWhereInput> | null
     companyItems?: LibraryItemListRelationFilter
+    certifications?: LibraryItemListRelationFilter
+    certifiedItems?: LibraryItemListRelationFilter
     collections?: CollectionListRelationFilter
     createdBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id" | "code" | "companyId_category_name">
@@ -49154,6 +49234,8 @@ export namespace Prisma {
     company?: CompanyCreateNestedOneWithoutLibraryItemsInput
     standardItem?: LibraryItemCreateNestedOneWithoutCompanyItemsInput
     companyItems?: LibraryItemCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
@@ -49178,6 +49260,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     companyItems?: LibraryItemUncheckedCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
   }
 
@@ -49199,6 +49283,8 @@ export namespace Prisma {
     company?: CompanyUpdateOneWithoutLibraryItemsNestedInput
     standardItem?: LibraryItemUpdateOneWithoutCompanyItemsNestedInput
     companyItems?: LibraryItemUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
@@ -49223,6 +49309,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     companyItems?: LibraryItemUncheckedUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
   }
 
@@ -58387,6 +58475,18 @@ export namespace Prisma {
     connect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
   }
 
+  export type LibraryItemCreateNestedManyWithoutCertifiedItemsInput = {
+    create?: XOR<LibraryItemCreateWithoutCertifiedItemsInput, LibraryItemUncheckedCreateWithoutCertifiedItemsInput> | LibraryItemCreateWithoutCertifiedItemsInput[] | LibraryItemUncheckedCreateWithoutCertifiedItemsInput[]
+    connectOrCreate?: LibraryItemCreateOrConnectWithoutCertifiedItemsInput | LibraryItemCreateOrConnectWithoutCertifiedItemsInput[]
+    connect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+  }
+
+  export type LibraryItemCreateNestedManyWithoutCertificationsInput = {
+    create?: XOR<LibraryItemCreateWithoutCertificationsInput, LibraryItemUncheckedCreateWithoutCertificationsInput> | LibraryItemCreateWithoutCertificationsInput[] | LibraryItemUncheckedCreateWithoutCertificationsInput[]
+    connectOrCreate?: LibraryItemCreateOrConnectWithoutCertificationsInput | LibraryItemCreateOrConnectWithoutCertificationsInput[]
+    connect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+  }
+
   export type CollectionCreateNestedManyWithoutCertificationsInput = {
     create?: XOR<CollectionCreateWithoutCertificationsInput, CollectionUncheckedCreateWithoutCertificationsInput> | CollectionCreateWithoutCertificationsInput[] | CollectionUncheckedCreateWithoutCertificationsInput[]
     connectOrCreate?: CollectionCreateOrConnectWithoutCertificationsInput | CollectionCreateOrConnectWithoutCertificationsInput[]
@@ -58403,6 +58503,18 @@ export namespace Prisma {
     create?: XOR<LibraryItemCreateWithoutStandardItemInput, LibraryItemUncheckedCreateWithoutStandardItemInput> | LibraryItemCreateWithoutStandardItemInput[] | LibraryItemUncheckedCreateWithoutStandardItemInput[]
     connectOrCreate?: LibraryItemCreateOrConnectWithoutStandardItemInput | LibraryItemCreateOrConnectWithoutStandardItemInput[]
     createMany?: LibraryItemCreateManyStandardItemInputEnvelope
+    connect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+  }
+
+  export type LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput = {
+    create?: XOR<LibraryItemCreateWithoutCertifiedItemsInput, LibraryItemUncheckedCreateWithoutCertifiedItemsInput> | LibraryItemCreateWithoutCertifiedItemsInput[] | LibraryItemUncheckedCreateWithoutCertifiedItemsInput[]
+    connectOrCreate?: LibraryItemCreateOrConnectWithoutCertifiedItemsInput | LibraryItemCreateOrConnectWithoutCertifiedItemsInput[]
+    connect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+  }
+
+  export type LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput = {
+    create?: XOR<LibraryItemCreateWithoutCertificationsInput, LibraryItemUncheckedCreateWithoutCertificationsInput> | LibraryItemCreateWithoutCertificationsInput[] | LibraryItemUncheckedCreateWithoutCertificationsInput[]
+    connectOrCreate?: LibraryItemCreateOrConnectWithoutCertificationsInput | LibraryItemCreateOrConnectWithoutCertificationsInput[]
     connect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
   }
 
@@ -58454,6 +58566,32 @@ export namespace Prisma {
     deleteMany?: LibraryItemScalarWhereInput | LibraryItemScalarWhereInput[]
   }
 
+  export type LibraryItemUpdateManyWithoutCertifiedItemsNestedInput = {
+    create?: XOR<LibraryItemCreateWithoutCertifiedItemsInput, LibraryItemUncheckedCreateWithoutCertifiedItemsInput> | LibraryItemCreateWithoutCertifiedItemsInput[] | LibraryItemUncheckedCreateWithoutCertifiedItemsInput[]
+    connectOrCreate?: LibraryItemCreateOrConnectWithoutCertifiedItemsInput | LibraryItemCreateOrConnectWithoutCertifiedItemsInput[]
+    upsert?: LibraryItemUpsertWithWhereUniqueWithoutCertifiedItemsInput | LibraryItemUpsertWithWhereUniqueWithoutCertifiedItemsInput[]
+    set?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    disconnect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    delete?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    connect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    update?: LibraryItemUpdateWithWhereUniqueWithoutCertifiedItemsInput | LibraryItemUpdateWithWhereUniqueWithoutCertifiedItemsInput[]
+    updateMany?: LibraryItemUpdateManyWithWhereWithoutCertifiedItemsInput | LibraryItemUpdateManyWithWhereWithoutCertifiedItemsInput[]
+    deleteMany?: LibraryItemScalarWhereInput | LibraryItemScalarWhereInput[]
+  }
+
+  export type LibraryItemUpdateManyWithoutCertificationsNestedInput = {
+    create?: XOR<LibraryItemCreateWithoutCertificationsInput, LibraryItemUncheckedCreateWithoutCertificationsInput> | LibraryItemCreateWithoutCertificationsInput[] | LibraryItemUncheckedCreateWithoutCertificationsInput[]
+    connectOrCreate?: LibraryItemCreateOrConnectWithoutCertificationsInput | LibraryItemCreateOrConnectWithoutCertificationsInput[]
+    upsert?: LibraryItemUpsertWithWhereUniqueWithoutCertificationsInput | LibraryItemUpsertWithWhereUniqueWithoutCertificationsInput[]
+    set?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    disconnect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    delete?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    connect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    update?: LibraryItemUpdateWithWhereUniqueWithoutCertificationsInput | LibraryItemUpdateWithWhereUniqueWithoutCertificationsInput[]
+    updateMany?: LibraryItemUpdateManyWithWhereWithoutCertificationsInput | LibraryItemUpdateManyWithWhereWithoutCertificationsInput[]
+    deleteMany?: LibraryItemScalarWhereInput | LibraryItemScalarWhereInput[]
+  }
+
   export type CollectionUpdateManyWithoutCertificationsNestedInput = {
     create?: XOR<CollectionCreateWithoutCertificationsInput, CollectionUncheckedCreateWithoutCertificationsInput> | CollectionCreateWithoutCertificationsInput[] | CollectionUncheckedCreateWithoutCertificationsInput[]
     connectOrCreate?: CollectionCreateOrConnectWithoutCertificationsInput | CollectionCreateOrConnectWithoutCertificationsInput[]
@@ -58488,6 +58626,32 @@ export namespace Prisma {
     connect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
     update?: LibraryItemUpdateWithWhereUniqueWithoutStandardItemInput | LibraryItemUpdateWithWhereUniqueWithoutStandardItemInput[]
     updateMany?: LibraryItemUpdateManyWithWhereWithoutStandardItemInput | LibraryItemUpdateManyWithWhereWithoutStandardItemInput[]
+    deleteMany?: LibraryItemScalarWhereInput | LibraryItemScalarWhereInput[]
+  }
+
+  export type LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput = {
+    create?: XOR<LibraryItemCreateWithoutCertifiedItemsInput, LibraryItemUncheckedCreateWithoutCertifiedItemsInput> | LibraryItemCreateWithoutCertifiedItemsInput[] | LibraryItemUncheckedCreateWithoutCertifiedItemsInput[]
+    connectOrCreate?: LibraryItemCreateOrConnectWithoutCertifiedItemsInput | LibraryItemCreateOrConnectWithoutCertifiedItemsInput[]
+    upsert?: LibraryItemUpsertWithWhereUniqueWithoutCertifiedItemsInput | LibraryItemUpsertWithWhereUniqueWithoutCertifiedItemsInput[]
+    set?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    disconnect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    delete?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    connect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    update?: LibraryItemUpdateWithWhereUniqueWithoutCertifiedItemsInput | LibraryItemUpdateWithWhereUniqueWithoutCertifiedItemsInput[]
+    updateMany?: LibraryItemUpdateManyWithWhereWithoutCertifiedItemsInput | LibraryItemUpdateManyWithWhereWithoutCertifiedItemsInput[]
+    deleteMany?: LibraryItemScalarWhereInput | LibraryItemScalarWhereInput[]
+  }
+
+  export type LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput = {
+    create?: XOR<LibraryItemCreateWithoutCertificationsInput, LibraryItemUncheckedCreateWithoutCertificationsInput> | LibraryItemCreateWithoutCertificationsInput[] | LibraryItemUncheckedCreateWithoutCertificationsInput[]
+    connectOrCreate?: LibraryItemCreateOrConnectWithoutCertificationsInput | LibraryItemCreateOrConnectWithoutCertificationsInput[]
+    upsert?: LibraryItemUpsertWithWhereUniqueWithoutCertificationsInput | LibraryItemUpsertWithWhereUniqueWithoutCertificationsInput[]
+    set?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    disconnect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    delete?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    connect?: LibraryItemWhereUniqueInput | LibraryItemWhereUniqueInput[]
+    update?: LibraryItemUpdateWithWhereUniqueWithoutCertificationsInput | LibraryItemUpdateWithWhereUniqueWithoutCertificationsInput[]
+    updateMany?: LibraryItemUpdateManyWithWhereWithoutCertificationsInput | LibraryItemUpdateManyWithWhereWithoutCertificationsInput[]
     deleteMany?: LibraryItemScalarWhereInput | LibraryItemScalarWhereInput[]
   }
 
@@ -60439,6 +60603,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     standardItem?: LibraryItemCreateNestedOneWithoutCompanyItemsInput
     companyItems?: LibraryItemCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
@@ -60462,6 +60628,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     companyItems?: LibraryItemUncheckedCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
   }
 
@@ -65878,6 +66046,8 @@ export namespace Prisma {
     company?: CompanyCreateNestedOneWithoutLibraryItemsInput
     standardItem?: LibraryItemCreateNestedOneWithoutCompanyItemsInput
     companyItems?: LibraryItemCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
   }
 
@@ -65900,6 +66070,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     companyItems?: LibraryItemUncheckedCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
   }
 
@@ -68966,6 +69138,8 @@ export namespace Prisma {
     company?: CompanyCreateNestedOneWithoutLibraryItemsInput
     standardItem?: LibraryItemCreateNestedOneWithoutCompanyItemsInput
     companyItems?: LibraryItemCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
 
@@ -68989,6 +69163,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     companyItems?: LibraryItemUncheckedCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
   }
 
   export type LibraryItemCreateOrConnectWithoutCollectionsInput = {
@@ -76942,6 +77118,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutLibraryItemsInput
     standardItem?: LibraryItemCreateNestedOneWithoutCompanyItemsInput
+    certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
@@ -76965,6 +77143,8 @@ export namespace Prisma {
     createdById?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
   }
 
@@ -76990,6 +77170,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     company?: CompanyCreateNestedOneWithoutLibraryItemsInput
     companyItems?: LibraryItemCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
@@ -77013,6 +77195,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     companyItems?: LibraryItemUncheckedCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
   }
 
@@ -77024,6 +77208,110 @@ export namespace Prisma {
   export type LibraryItemCreateManyStandardItemInputEnvelope = {
     data: LibraryItemCreateManyStandardItemInput | LibraryItemCreateManyStandardItemInput[]
     skipDuplicates?: boolean
+  }
+
+  export type LibraryItemCreateWithoutCertifiedItemsInput = {
+    scope?: $Enums.LibraryScope
+    category: $Enums.LibraryCategory
+    code?: string | null
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: string | null
+    notes?: string | null
+    isActive?: boolean
+    isPopular?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    company?: CompanyCreateNestedOneWithoutLibraryItemsInput
+    standardItem?: LibraryItemCreateNestedOneWithoutCompanyItemsInput
+    companyItems?: LibraryItemCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
+    collections?: CollectionCreateNestedManyWithoutCertificationsInput
+    createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
+  }
+
+  export type LibraryItemUncheckedCreateWithoutCertifiedItemsInput = {
+    id?: number
+    scope?: $Enums.LibraryScope
+    category: $Enums.LibraryCategory
+    code?: string | null
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: string | null
+    notes?: string | null
+    isActive?: boolean
+    isPopular?: boolean
+    companyId?: number | null
+    standardItemId?: number | null
+    createdById?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companyItems?: LibraryItemUncheckedCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
+    collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
+  }
+
+  export type LibraryItemCreateOrConnectWithoutCertifiedItemsInput = {
+    where: LibraryItemWhereUniqueInput
+    create: XOR<LibraryItemCreateWithoutCertifiedItemsInput, LibraryItemUncheckedCreateWithoutCertifiedItemsInput>
+  }
+
+  export type LibraryItemCreateWithoutCertificationsInput = {
+    scope?: $Enums.LibraryScope
+    category: $Enums.LibraryCategory
+    code?: string | null
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: string | null
+    notes?: string | null
+    isActive?: boolean
+    isPopular?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    company?: CompanyCreateNestedOneWithoutLibraryItemsInput
+    standardItem?: LibraryItemCreateNestedOneWithoutCompanyItemsInput
+    companyItems?: LibraryItemCreateNestedManyWithoutStandardItemInput
+    certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
+    collections?: CollectionCreateNestedManyWithoutCertificationsInput
+    createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
+  }
+
+  export type LibraryItemUncheckedCreateWithoutCertificationsInput = {
+    id?: number
+    scope?: $Enums.LibraryScope
+    category: $Enums.LibraryCategory
+    code?: string | null
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: string | null
+    notes?: string | null
+    isActive?: boolean
+    isPopular?: boolean
+    companyId?: number | null
+    standardItemId?: number | null
+    createdById?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companyItems?: LibraryItemUncheckedCreateNestedManyWithoutStandardItemInput
+    certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
+    collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
+  }
+
+  export type LibraryItemCreateOrConnectWithoutCertificationsInput = {
+    where: LibraryItemWhereUniqueInput
+    create: XOR<LibraryItemCreateWithoutCertificationsInput, LibraryItemUncheckedCreateWithoutCertificationsInput>
   }
 
   export type CollectionCreateWithoutCertificationsInput = {
@@ -77414,6 +77702,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutLibraryItemsNestedInput
     standardItem?: LibraryItemUpdateOneWithoutCompanyItemsNestedInput
+    certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
@@ -77437,6 +77727,8 @@ export namespace Prisma {
     createdById?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
   }
 
@@ -77454,6 +77746,38 @@ export namespace Prisma {
   export type LibraryItemUpdateManyWithWhereWithoutStandardItemInput = {
     where: LibraryItemScalarWhereInput
     data: XOR<LibraryItemUpdateManyMutationInput, LibraryItemUncheckedUpdateManyWithoutStandardItemInput>
+  }
+
+  export type LibraryItemUpsertWithWhereUniqueWithoutCertifiedItemsInput = {
+    where: LibraryItemWhereUniqueInput
+    update: XOR<LibraryItemUpdateWithoutCertifiedItemsInput, LibraryItemUncheckedUpdateWithoutCertifiedItemsInput>
+    create: XOR<LibraryItemCreateWithoutCertifiedItemsInput, LibraryItemUncheckedCreateWithoutCertifiedItemsInput>
+  }
+
+  export type LibraryItemUpdateWithWhereUniqueWithoutCertifiedItemsInput = {
+    where: LibraryItemWhereUniqueInput
+    data: XOR<LibraryItemUpdateWithoutCertifiedItemsInput, LibraryItemUncheckedUpdateWithoutCertifiedItemsInput>
+  }
+
+  export type LibraryItemUpdateManyWithWhereWithoutCertifiedItemsInput = {
+    where: LibraryItemScalarWhereInput
+    data: XOR<LibraryItemUpdateManyMutationInput, LibraryItemUncheckedUpdateManyWithoutCertifiedItemsInput>
+  }
+
+  export type LibraryItemUpsertWithWhereUniqueWithoutCertificationsInput = {
+    where: LibraryItemWhereUniqueInput
+    update: XOR<LibraryItemUpdateWithoutCertificationsInput, LibraryItemUncheckedUpdateWithoutCertificationsInput>
+    create: XOR<LibraryItemCreateWithoutCertificationsInput, LibraryItemUncheckedCreateWithoutCertificationsInput>
+  }
+
+  export type LibraryItemUpdateWithWhereUniqueWithoutCertificationsInput = {
+    where: LibraryItemWhereUniqueInput
+    data: XOR<LibraryItemUpdateWithoutCertificationsInput, LibraryItemUncheckedUpdateWithoutCertificationsInput>
+  }
+
+  export type LibraryItemUpdateManyWithWhereWithoutCertificationsInput = {
+    where: LibraryItemScalarWhereInput
+    data: XOR<LibraryItemUpdateManyMutationInput, LibraryItemUncheckedUpdateManyWithoutCertificationsInput>
   }
 
   export type CollectionUpsertWithWhereUniqueWithoutCertificationsInput = {
@@ -83676,6 +84000,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     standardItem?: LibraryItemUpdateOneWithoutCompanyItemsNestedInput
     companyItems?: LibraryItemUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
@@ -83699,6 +84025,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     companyItems?: LibraryItemUncheckedUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
   }
 
@@ -86816,6 +87144,8 @@ export namespace Prisma {
     company?: CompanyUpdateOneWithoutLibraryItemsNestedInput
     standardItem?: LibraryItemUpdateOneWithoutCompanyItemsNestedInput
     companyItems?: LibraryItemUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
   }
 
@@ -86838,6 +87168,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     companyItems?: LibraryItemUncheckedUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
   }
 
@@ -87788,6 +88120,8 @@ export namespace Prisma {
     company?: CompanyUpdateOneWithoutLibraryItemsNestedInput
     standardItem?: LibraryItemUpdateOneWithoutCompanyItemsNestedInput
     companyItems?: LibraryItemUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
 
@@ -87811,6 +88145,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     companyItems?: LibraryItemUncheckedUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
   }
 
   export type LibraryItemUncheckedUpdateManyWithoutCollectionsInput = {
@@ -89305,6 +89641,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneWithoutLibraryItemsNestedInput
     companyItems?: LibraryItemUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
@@ -89328,6 +89666,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     companyItems?: LibraryItemUncheckedUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
   }
 
@@ -89346,6 +89686,142 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isPopular?: BoolFieldUpdateOperationsInput | boolean
     companyId?: NullableIntFieldUpdateOperationsInput | number | null
+    createdById?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LibraryItemUpdateWithoutCertifiedItemsInput = {
+    scope?: EnumLibraryScopeFieldUpdateOperationsInput | $Enums.LibraryScope
+    category?: EnumLibraryCategoryFieldUpdateOperationsInput | $Enums.LibraryCategory
+    code?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPopular?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneWithoutLibraryItemsNestedInput
+    standardItem?: LibraryItemUpdateOneWithoutCompanyItemsNestedInput
+    companyItems?: LibraryItemUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
+    collections?: CollectionUpdateManyWithoutCertificationsNestedInput
+    createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
+  }
+
+  export type LibraryItemUncheckedUpdateWithoutCertifiedItemsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    scope?: EnumLibraryScopeFieldUpdateOperationsInput | $Enums.LibraryScope
+    category?: EnumLibraryCategoryFieldUpdateOperationsInput | $Enums.LibraryCategory
+    code?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPopular?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableIntFieldUpdateOperationsInput | number | null
+    standardItemId?: NullableIntFieldUpdateOperationsInput | number | null
+    createdById?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companyItems?: LibraryItemUncheckedUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
+    collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
+  }
+
+  export type LibraryItemUncheckedUpdateManyWithoutCertifiedItemsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    scope?: EnumLibraryScopeFieldUpdateOperationsInput | $Enums.LibraryScope
+    category?: EnumLibraryCategoryFieldUpdateOperationsInput | $Enums.LibraryCategory
+    code?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPopular?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableIntFieldUpdateOperationsInput | number | null
+    standardItemId?: NullableIntFieldUpdateOperationsInput | number | null
+    createdById?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LibraryItemUpdateWithoutCertificationsInput = {
+    scope?: EnumLibraryScopeFieldUpdateOperationsInput | $Enums.LibraryScope
+    category?: EnumLibraryCategoryFieldUpdateOperationsInput | $Enums.LibraryCategory
+    code?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPopular?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneWithoutLibraryItemsNestedInput
+    standardItem?: LibraryItemUpdateOneWithoutCompanyItemsNestedInput
+    companyItems?: LibraryItemUpdateManyWithoutStandardItemNestedInput
+    certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
+    collections?: CollectionUpdateManyWithoutCertificationsNestedInput
+    createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
+  }
+
+  export type LibraryItemUncheckedUpdateWithoutCertificationsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    scope?: EnumLibraryScopeFieldUpdateOperationsInput | $Enums.LibraryScope
+    category?: EnumLibraryCategoryFieldUpdateOperationsInput | $Enums.LibraryCategory
+    code?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPopular?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableIntFieldUpdateOperationsInput | number | null
+    standardItemId?: NullableIntFieldUpdateOperationsInput | number | null
+    createdById?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companyItems?: LibraryItemUncheckedUpdateManyWithoutStandardItemNestedInput
+    certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
+    collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
+  }
+
+  export type LibraryItemUncheckedUpdateManyWithoutCertificationsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    scope?: EnumLibraryScopeFieldUpdateOperationsInput | $Enums.LibraryScope
+    category?: EnumLibraryCategoryFieldUpdateOperationsInput | $Enums.LibraryCategory
+    code?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPopular?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableIntFieldUpdateOperationsInput | number | null
+    standardItemId?: NullableIntFieldUpdateOperationsInput | number | null
     createdById?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

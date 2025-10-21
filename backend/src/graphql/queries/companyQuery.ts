@@ -9,6 +9,7 @@ builder.queryField("companies", (t) =>
       take: t.arg.int(),
       search: t.arg.string(),
       type: t.arg.string(),
+      includeInactive: t.arg.boolean({ defaultValue: false }), // Admin can see inactive companies
     },
     authScopes: { public: true },
     resolve: async (query, _root, args, context) => {
@@ -17,9 +18,16 @@ builder.queryField("companies", (t) =>
         take: args.take,
         search: args.search,
         type: args.type,
+        includeInactive: args.includeInactive,
+        userRole: context.user?.role,
       });
 
-      const where: any = { isActive: true };
+      const where: any = {};
+
+      // Only admins can see inactive companies
+      if (!args.includeInactive || context.user?.role !== "ADMIN") {
+        where.isActive = true;
+      }
 
       if (args.search) {
         where.OR = [
@@ -44,7 +52,10 @@ builder.queryField("companies", (t) =>
         orderBy: { createdAt: "desc" },
       });
 
-      console.log(`✅ Found ${companies.length} active companies`);
+      console.log(`✅ Found ${companies.length} companies (includeInactive: ${args.includeInactive})`);
+      console.log("📋 Companies status breakdown:",
+        companies.map(c => ({ id: c.id, name: c.name, isActive: c.isActive }))
+      );
 
       return companies;
     },

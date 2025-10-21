@@ -204,3 +204,186 @@ builder.mutationField("updateCompany", (t) =>
     },
   })
 );
+
+// Toggle company active status (soft delete/restore) - Admin only
+builder.mutationField("toggleCompanyStatus", (t) =>
+  t.prismaField({
+    type: "Company",
+    args: {
+      id: t.arg.int({ required: true }),
+    },
+    authScopes: { admin: true },
+    resolve: async (query, _root, args, context) => {
+      console.log("🔄 toggleCompanyStatus called with:", {
+        companyId: args.id,
+        userId: context.user?.id,
+        userRole: context.user?.role,
+      });
+
+      // Get current status
+      const company = await context.prisma.company.findUnique({
+        where: { id: args.id },
+        select: { isActive: true, name: true },
+      });
+
+      if (!company) {
+        console.error("❌ Company not found:", args.id);
+        throw new Error("Company not found");
+      }
+
+      console.log("📊 Current company status:", {
+        companyName: company.name,
+        currentStatus: company.isActive,
+        willChangeTo: !company.isActive,
+      });
+
+      const newStatus = !company.isActive;
+
+      // Update status
+      const updatedCompany = await context.prisma.company.update({
+        ...query,
+        where: { id: args.id },
+        data: { isActive: newStatus },
+      });
+
+      console.log("✅ Company status updated:", {
+        companyName: company.name,
+        newStatus: updatedCompany.isActive,
+      });
+
+      // Notify all company members
+      try {
+        const companyMembers = await context.prisma.user.findMany({
+          where: { companyId: args.id },
+          select: { id: true },
+        });
+
+        for (const member of companyMembers) {
+          const notification = await context.prisma.notification.create({
+            data: {
+              type: "SYSTEM",
+              title: newStatus ? "✅ Şirket Hesabı Aktif" : "⚠️ Şirket Hesabı Devre Dışı",
+              message: newStatus
+                ? `${company.name} şirket hesabı yeniden aktif edildi.`
+                : `${company.name} şirket hesabı yönetici tarafından devre dışı bırakıldı.`,
+              userId: member.id,
+              link: "/settings/company",
+              isRead: false,
+            },
+          });
+          await publishNotification(notification);
+        }
+
+        console.log(`📢 Company status change notifications sent to ${companyMembers.length} members`);
+      } catch (notifError) {
+        console.error("⚠️  Notification failed (continuing anyway):", notifError instanceof Error ? notifError.message : notifError);
+      }
+
+      return updatedCompany;
+    },
+  })
+);
+
+// Delete company (admin only) - Soft delete by default, optional hard delete
+builder.mutationField("deleteCompany", (t) =>
+  t.field({
+    type: "JSON",
+    args: {
+      id: t.arg.int({ required: true }),
+      hardDelete: t.arg.boolean({ defaultValue: false }), // false = soft delete, true = hard delete
+    },
+    authScopes: { admin: true },
+    resolve: async (_root, args, context) => {
+      // Get company details
+      const company = await context.prisma.company.findUnique({
+        where: { id: args.id },
+        select: {
+          id: true,
+          name: true,
+          isActive: true,
+          _count: {
+            select: {
+              employees: true,
+              samples: true,
+              orders: true,
+              collections: true,
+            },
+          },
+        },
+      });
+
+      if (!company) throw new Error("Company not found");
+
+      if (args.hardDelete) {
+        // HARD DELETE - Cascade will delete all related data
+        await context.prisma.company.delete({
+          where: { id: args.id },
+        });
+
+        console.log(`🗑️  Company "${company.name}" (ID: ${args.id}) HARD DELETED by admin`);
+
+        return {
+          success: true,
+          message: `Company "${company.name}" and all related data permanently deleted`,
+          companyName: company.name,
+          deletedCounts: {
+            employees: company._count.employees,
+            samples: company._count.samples,
+            orders: company._count.orders,
+            collections: company._count.collections,
+          },
+        };
+      } else {
+        // SOFT DELETE - Just set isActive to false
+        console.log(`🔒 SOFT DELETE: Setting company "${company.name}" (ID: ${args.id}) to isActive: false`);
+
+        const updatedCompany = await context.prisma.company.update({
+          where: { id: args.id },
+          data: { isActive: false },
+        });
+
+        console.log(`✅ SOFT DELETE SUCCESS: Company "${company.name}" isActive is now: ${updatedCompany.isActive}`);
+
+        // Notify all company members
+        try {
+          const companyMembers = await context.prisma.user.findMany({
+            where: { companyId: args.id },
+            select: { id: true },
+          });
+
+          for (const member of companyMembers) {
+            const notification = await context.prisma.notification.create({
+              data: {
+                type: "SYSTEM",
+                title: "⚠️ Şirket Hesabı Devre Dışı",
+                message: `${company.name} şirket hesabı yönetici tarafından devre dışı bırakıldı.`,
+                userId: member.id,
+                link: "/settings/company",
+                isRead: false,
+              },
+            });
+            await publishNotification(notification);
+          }
+
+          console.log(`📢 Company deletion notifications sent to ${companyMembers.length} members`);
+        } catch (notifError) {
+          console.error("⚠️  Notification failed (continuing anyway):", notifError instanceof Error ? notifError.message : notifError);
+        }
+
+        console.log(`🔒 Company "${company.name}" (ID: ${args.id}) SOFT DELETED (deactivated) by admin`);
+
+        return {
+          success: true,
+          message: `Company "${company.name}" deactivated (can be restored)`,
+          companyName: company.name,
+          affectedCounts: {
+            employees: company._count.employees,
+            samples: company._count.samples,
+            orders: company._count.orders,
+            collections: company._count.collections,
+          },
+        };
+      }
+    },
+  })
+);

@@ -1,27 +1,26 @@
-turn off tips and other hints? https://pris.ly/tip-4-nohints
+## Error Type
 
-> @fullstack/backend-refactoring@1.0.0 prisma:seed
-> tsx prisma/seed.ts
+Runtime TypeError
 
-🌱 Starting complete seed with all user roles...
+## Error Message
 
-👤 Creating Admin User...
-❌ Seed failed: PrismaClientKnownRequestError:
-Invalid `prisma.user.upsert()` invocation in
-/Users/nihatcakir/Desktop/websites/fullstack/backend/prisma/seed.ts:23:35
+sizes.map is not a function
 
-20 console.log("\n👤 Creating Admin User...");
-21
-22 const adminPassword = await bcrypt.hash("Admin123!", 10);
-→ 23 const admin = await prisma.user.upsert(
-The table `users` does not exist in the current database.
-at ei.handleRequestError (/Users/nihatcakir/Desktop/websites/fullstack/backend/lib/generated/runtime/library.js:124:7268)
-at ei.handleAndLogRequestError (/Users/nihatcakir/Desktop/websites/fullstack/backend/lib/generated/runtime/library.js:124:6593)
-at ei.request (/Users/nihatcakir/Desktop/websites/fullstack/backend/lib/generated/runtime/library.js:124:6300)
-at async a (/Users/nihatcakir/Desktop/websites/fullstack/backend/lib/generated/runtime/library.js:133:9551)
-at async main (/Users/nihatcakir/Desktop/websites/fullstack/backend/prisma/seed.ts:23:17) {
-code: 'P2021',
-meta: { modelName: 'User', table: 'users' },
-clientVersion: '6.17.1'
-}
-nihatcakir@Nihat-MacBook-Pro backend %
+    at eval (src\app\(protected)\dashboard\library\size-groups\page.tsx:262:36)
+    at Array.map (<anonymous>:null:null)
+    at SizeGroupsPage (src\app\(protected)\dashboard\library\size-groups\page.tsx:232:31)
+
+## Code Frame
+
+260 | </p>
+261 | <div className="flex flex-wrap gap-1">
+
+> 262 | {sizes.map((size: string, idx: number) => (
+
+      |                                    ^
+
+263 | <span
+264 | key={idx}
+265 | className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded"
+
+Next.js version: 15.5.6 (Webpack)

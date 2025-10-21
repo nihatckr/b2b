@@ -553,6 +553,19 @@ builder.prismaObject("Category", {
     description: t.exposeString("description", { nullable: true }),
     createdAt: t.expose("createdAt", { type: "DateTime" }),
     updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+
+    // Relations
+    author: t.relation("author", { nullable: true }),
+    authorId: t.exposeInt("authorId", { nullable: true }),
+
+    company: t.relation("company", { nullable: true }),
+    companyId: t.exposeInt("companyId", { nullable: true }),
+
+    parentCategory: t.relation("parentCategory", { nullable: true }),
+    parentCategoryId: t.exposeInt("parentCategoryId", { nullable: true }),
+
+    subCategories: t.relation("subCategories"),
+    collections: t.relation("collections"),
   }),
 });
 
@@ -642,6 +655,20 @@ builder.prismaObject("LibraryItem", {
 
     standardItem: t.relation("standardItem", { nullable: true }),
     standardItemId: t.exposeInt("standardItemId", { nullable: true }),
+
+    // 🔗 Certification Relations
+    certifications: t.relation("certifications", {
+      nullable: false,
+      query: {
+        where: {
+          category: "CERTIFICATION",
+          isActive: true,
+        },
+      },
+    }),
+    certifiedItems: t.relation("certifiedItems", {
+      nullable: false,
+    }),
 
     createdBy: t.relation("createdBy"),
     createdById: t.exposeInt("createdById"),
@@ -863,6 +890,7 @@ import "../queries/orderQuery";
 import "../queries/questionQuery";
 import "../queries/reviewQuery";
 import "../queries/sampleQuery";
+import "../queries/standardCategoryQuery"; // ADMIN - Standard category management
 import "../queries/userQuery";
 
 // ========================================
@@ -880,4 +908,5 @@ import "../mutations/orderMutation";
 import "../mutations/questionMutation";
 import "../mutations/reviewMutation";
 import "../mutations/sampleMutation";
+import "../mutations/standardCategoryMutation"; // ADMIN - Standard category management
 import "../mutations/userMutation";
