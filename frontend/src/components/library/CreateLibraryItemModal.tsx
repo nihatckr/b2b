@@ -21,10 +21,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  CertificationSchema,
+  ColorSchema,
+  FabricSchema,
+  FitSchema,
+  MaterialSchema,
+  SeasonSchema,
+  SizeGroupSchema,
+} from "@/lib/zod-schema";
 import { GENDERS } from "@/utils/library-constants";
 import { ImagePlus, ShieldCheck, X } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "urql";
 
 interface CreateLibraryItemModalProps {
@@ -303,6 +312,140 @@ const autoGenerateFabricCode = (composition: string): string => {
   return `FAB-${code}`;
 };
 
+// Get schema based on category
+const getSchemaForCategory = (
+  category: CreateLibraryItemModalProps["category"]
+) => {
+  switch (category) {
+    case "FABRIC":
+      return FabricSchema;
+    case "COLOR":
+      return ColorSchema;
+    case "SIZE_GROUP":
+      return SizeGroupSchema;
+    case "FIT":
+      return FitSchema;
+    case "MATERIAL":
+      return MaterialSchema;
+    case "CERTIFICATION":
+      return CertificationSchema;
+    case "SEASON":
+      return SeasonSchema;
+    default:
+      return FabricSchema; // fallback
+  }
+};
+
+// Prepare form data for validation based on category
+const prepareValidationData = (
+  formData: LibraryItemFormData,
+  category: CreateLibraryItemModalProps["category"]
+) => {
+  const baseData = {
+    name: formData.name,
+    description: formData.description,
+    code: formData.code,
+  };
+
+  switch (category) {
+    case "FABRIC":
+      return {
+        ...baseData,
+        composition: String(formData.data.composition || ""),
+        weight: formData.data.weight ? Number(formData.data.weight) : undefined,
+        width: formData.data.width ? Number(formData.data.width) : undefined,
+        certificationIds: formData.certificationIds || [],
+      };
+    case "COLOR":
+      return {
+        ...baseData,
+        hex: String(formData.data.hex || "#000000"),
+        pantone: String(formData.data.pantone || ""),
+      };
+    case "SIZE_GROUP":
+      return {
+        ...baseData,
+        regionalStandard: String(formData.data.regionalStandard || ""),
+        targetGender: String(formData.data.targetGender || "") as
+          | "MEN"
+          | "WOMEN"
+          | "UNISEX",
+        sizeCategory: String(formData.data.sizeCategory || ""),
+        sizeSystemType: String(formData.data.sizeSystemType || ""),
+      };
+    case "FIT":
+      return {
+        ...baseData,
+        gender: String(formData.data.gender || "") as
+          | "MEN"
+          | "WOMEN"
+          | "UNISEX",
+        fitType: String(formData.data.fitType || ""),
+        fitCategory: String(formData.data.fitCategory || "") as
+          | "TOP"
+          | "BOTTOM"
+          | "DRESS"
+          | "OUTERWEAR",
+        sizeGroupId: Number(formData.data.sizeGroupId || 0),
+        selectedSizes: Array.isArray(formData.data.selectedSizes)
+          ? (formData.data.selectedSizes as string[])
+          : [],
+        easeNotes: String(formData.data.easeNotes || ""),
+      };
+    case "MATERIAL":
+      return {
+        ...baseData,
+        accessoryType: String(
+          formData.data.accessoryType || formData.data.type || ""
+        ),
+        material: String(formData.data.material || ""),
+        color: String(formData.data.color || ""),
+        size: String(formData.data.size || ""),
+        weight: formData.data.weight ? Number(formData.data.weight) : undefined,
+        dimensions: String(formData.data.dimensions || ""),
+        finish: String(formData.data.finish || ""),
+        packaging: String(formData.data.packaging || ""),
+        minimumOrderQuantity: formData.data.minimumOrderQuantity
+          ? Number(formData.data.minimumOrderQuantity)
+          : undefined,
+        leadTime: String(formData.data.leadTime || ""),
+        pricePerUnit: formData.data.pricePerUnit
+          ? Number(formData.data.pricePerUnit)
+          : undefined,
+        currency: String(formData.data.currency || ""),
+      };
+    case "CERTIFICATION":
+      return {
+        ...baseData,
+        issuer: String(formData.data.issuer || ""),
+        certificationNumber: String(formData.data.certificationNumber || ""),
+        issueDate: String(formData.data.issueDate || ""),
+        validityPeriod: String(formData.data.validityPeriod || "3-years") as
+          | "1-year"
+          | "2-years"
+          | "3-years"
+          | "5-years"
+          | "no-expiry",
+        applicableCategories: Array.isArray(formData.data.applicableCategories)
+          ? (formData.data.applicableCategories as (
+              | "FABRIC"
+              | "COLOR"
+              | "MATERIAL"
+              | "GENERAL"
+            )[])
+          : [],
+      };
+    case "SEASON":
+      return {
+        ...baseData,
+        type: String(formData.data.type || "SS") as "SS" | "FW",
+        year: Number(formData.data.year || new Date().getFullYear()),
+      };
+    default:
+      return baseData;
+  }
+};
+
 export default function CreateLibraryItemModal({
   open,
   onOpenChange,
@@ -312,6 +455,9 @@ export default function CreateLibraryItemModal({
 }: CreateLibraryItemModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedCertificationIds, setSelectedCertificationIds] = useState<
     number[]
@@ -323,6 +469,59 @@ export default function CreateLibraryItemModal({
     data: {},
     certificationIds: [],
   });
+
+  // Get the appropriate schema for the current category
+  const schema = getSchemaForCategory(category);
+
+  // Reset form when modal is closed
+  useEffect(() => {
+    if (!open) {
+      setFormData({
+        code: "",
+        name: "",
+        description: "",
+        data: {},
+        certificationIds: [],
+      });
+      setImagePreview(null);
+      setSelectedCertificationIds([]);
+      setValidationErrors({});
+      setError(null);
+    }
+  }, [open]);
+
+  // Validate form data on change
+  const validateField = (fieldPath: string) => {
+    try {
+      const validationData = prepareValidationData(formData, category);
+      schema.parse(validationData);
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldPath];
+        return newErrors;
+      });
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "issues" in error &&
+        Array.isArray((error as { issues: unknown[] }).issues)
+      ) {
+        const issues = (
+          error as { issues: Array<{ path: string[]; message: string }> }
+        ).issues;
+        const fieldError = issues.find(
+          (issue) => issue.path.join(".") === fieldPath
+        );
+        if (fieldError) {
+          setValidationErrors((prev) => ({
+            ...prev,
+            [fieldPath]: fieldError.message,
+          }));
+        }
+      }
+    }
+  };
 
   // 🔗 Query certifications for selector (for FABRIC, COLOR, and MATERIAL)
   const shouldLoadCertifications = ["FABRIC", "COLOR", "MATERIAL"].includes(
@@ -429,6 +628,10 @@ export default function CreateLibraryItemModal({
     setError(null); // Clear previous errors
 
     try {
+      // Validate form data using appropriate Zod schema
+      const validationData = prepareValidationData(formData, category);
+      schema.parse(validationData); // This will throw if validation fails
+
       const finalData = { ...formData };
 
       // Auto-generate code for FABRIC category
@@ -609,14 +812,26 @@ export default function CreateLibraryItemModal({
       });
       setImagePreview(null);
       setSelectedCertificationIds([]); // 🔄 Reset selected certifications
+      setValidationErrors({}); // Clear validation errors
       onOpenChange(false);
     } catch (error: unknown) {
       console.error("Failed to create item:", error);
 
-      // Extract GraphQL error message
       let errorMessage = "Bilinmeyen bir hata oluştu";
 
-      if (error instanceof Error) {
+      // Handle Zod validation errors
+      if (error && typeof error === "object" && "issues" in error) {
+        const zodError = error as {
+          issues: Array<{ path: string[]; message: string }>;
+        };
+        const firstIssue = zodError.issues[0];
+        if (firstIssue) {
+          const fieldName = firstIssue.path.join(".");
+          errorMessage = `${fieldName}: ${firstIssue.message}`;
+        }
+      }
+      // Handle other errors
+      else if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === "object" && error !== null) {
         const err = error as Record<string, unknown>;
@@ -690,14 +905,26 @@ export default function CreateLibraryItemModal({
                 id="composition"
                 placeholder="e.g., 100% Cotton, 65% Polyester 35% Cotton"
                 value={String(formData.data.composition || "")}
-                onChange={(e) =>
-                  setFormData({
+                onChange={(e) => {
+                  const newFormData = {
                     ...formData,
                     data: { ...formData.data, composition: e.target.value },
-                  })
-                }
+                  };
+                  setFormData(newFormData);
+
+                  // Validate the composition field
+                  if (e.target.value.trim()) {
+                    validateField("composition");
+                  }
+                }}
                 required
+                className={validationErrors.composition ? "border-red-500" : ""}
               />
+              {validationErrors.composition && (
+                <p className="text-sm text-red-600">
+                  {validationErrors.composition}
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -869,17 +1096,28 @@ export default function CreateLibraryItemModal({
                     const hex = e.target.value;
                     // Validate hex format
                     if (hex.match(/^#[0-9A-F]{6}$/i) || hex === "") {
-                      setFormData({
+                      const newFormData = {
                         ...formData,
                         data: { ...formData.data, hex },
-                      });
+                      };
+                      setFormData(newFormData);
+
+                      // Validate hex field
+                      if (hex.trim()) {
+                        validateField("hex");
+                      }
                     }
                   }}
-                  className="flex-1 font-mono uppercase"
+                  className={`flex-1 font-mono uppercase ${
+                    validationErrors.hex ? "border-red-500" : ""
+                  }`}
                   required
                   maxLength={7}
                 />
               </div>
+              {validationErrors.hex && (
+                <p className="text-sm text-red-600">{validationErrors.hex}</p>
+              )}
               <p className="text-xs text-muted-foreground">
                 Click the color box to pick a color
               </p>
@@ -2175,11 +2413,23 @@ export default function CreateLibraryItemModal({
                         : "Item Name"
                     }`}
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const newFormData = { ...formData, name: e.target.value };
+                      setFormData(newFormData);
+
+                      // Validate name field
+                      if (e.target.value.trim()) {
+                        validateField("name");
+                      }
+                    }}
+                    className={validationErrors.name ? "border-red-500" : ""}
                     required
                   />
+                  {validationErrors.name && (
+                    <p className="text-sm text-red-600">
+                      {validationErrors.name}
+                    </p>
+                  )}
                 </div>
               )}
 
