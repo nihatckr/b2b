@@ -1,0 +1,263 @@
+# Collection GraphQL Operations
+# These operations align with the backend Collection schema and support the Library Management integration
+
+# ========================================
+# QUERIES
+# ========================================
+
+# Get all collections with filtering and pagination (using existing backend query)
+query CollectionsList(
+  $skip: Int
+  $take: Int
+  $search: String
+  $featured: Boolean
+) {
+  collections(skip: $skip, take: $take, search: $search, featured: $featured) {
+    id
+    name
+    description
+    modelCode
+    season
+    gender
+    images
+    price
+    isFeatured
+    isActive
+    targetPrice
+    currency
+    moq
+    targetLeadTime
+    fit
+    colors
+    sizeRange
+    viewCount
+    likesCount
+    createdAt
+    updatedAt
+    author {
+      id
+      name
+    }
+    category {
+      id
+      name
+    }
+    company {
+      id
+      name
+    }
+  }
+}
+
+# Get collection details by ID (using existing backend query)
+query CollectionsDetail($id: Int!) {
+  collection(id: $id) {
+    id
+    name
+    description
+    modelCode
+    slug
+    season
+    gender
+    fit
+    trend
+    colors
+    sizeGroups
+    sizeRange
+    measurementChart
+    fabricComposition
+    accessories
+    images
+    techPack
+    moq
+    targetPrice
+    currency
+    targetLeadTime
+    notes
+    isActive
+    isFeatured
+    price
+    sku
+    stock
+    viewCount
+    shareCount
+    likesCount
+    lastViewedAt
+    createdAt
+    updatedAt
+    author {
+      id
+      name
+    }
+    category {
+      id
+      name
+    }
+    companyCategory {
+      id
+      name
+    }
+    company {
+      id
+      name
+      type
+    }
+    certifications {
+      id
+      name
+      category
+      description
+      imageUrl
+    }
+    samples {
+      id
+      sampleNumber
+      name
+      status
+      images
+    }
+    orders {
+      id
+      orderNumber
+      quantity
+      status
+    }
+  }
+}
+
+# Get featured collections
+query CollectionsFeatured($skip: Int, $take: Int) {
+  featuredCollections(skip: $skip, take: $take) {
+    id
+    name
+    modelCode
+    description
+    season
+    gender
+    images
+    company {
+      id
+      name
+    }
+    createdAt
+  }
+}
+
+# ========================================
+# MUTATIONS (using existing backend mutations)
+# ========================================
+
+# Create new collection (basic - matching backend mutation)
+mutation CollectionsCreate(
+  $name: String!
+  $description: String
+  $season: String
+  $gender: String
+  $fit: String
+  $images: String
+  $currency: String
+) {
+  createCollection(
+    name: $name
+    description: $description
+    season: $season
+    gender: $gender
+    fit: $fit
+    images: $images
+    currency: $currency
+  ) {
+    id
+    name
+    modelCode
+    description
+    season
+    gender
+    fit
+    images
+    createdAt
+    updatedAt
+  }
+}
+
+# Update existing collection (matching backend mutation)
+mutation CollectionsUpdate(
+  $id: Int!
+  $name: String
+  $description: String
+  $isFeatured: Boolean
+  $season: String
+  $gender: String
+  $fit: String
+  $trend: String
+  $colors: String
+  $sizeGroups: String
+  $sizeRange: String
+  $measurementChart: String
+  $fabricComposition: String
+  $accessories: String
+  $techPack: String
+  $moq: Int
+  $targetPrice: Float
+  $currency: String
+  $targetLeadTime: Int
+  $notes: String
+  $images: String
+  $productionSchedule: String
+) {
+  updateCollection(
+    id: $id
+    name: $name
+    description: $description
+    isFeatured: $isFeatured
+    season: $season
+    gender: $gender
+    fit: $fit
+    trend: $trend
+    colors: $colors
+    sizeGroups: $sizeGroups
+    sizeRange: $sizeRange
+    measurementChart: $measurementChart
+    fabricComposition: $fabricComposition
+    accessories: $accessories
+    techPack: $techPack
+    moq: $moq
+    targetPrice: $targetPrice
+    currency: $currency
+    targetLeadTime: $targetLeadTime
+    notes: $notes
+    images: $images
+    productionSchedule: $productionSchedule
+  ) {
+    id
+    name
+    description
+    modelCode
+    season
+    gender
+    fit
+    trend
+    colors
+    sizeGroups
+    sizeRange
+    fabricComposition
+    accessories
+    images
+    moq
+    targetPrice
+    currency
+    targetLeadTime
+    notes
+    isFeatured
+    updatedAt
+  }
+}
+
+# Delete collection
+mutation CollectionsDelete($id: Int!) {
+  deleteCollection(id: $id)
+}
+
+# Publish collection
+mutation CollectionsPublish($id: Int!) {
+  publishCollection(id: $id)
+}

@@ -68,16 +68,7 @@ enum BillingCycle {
   YEARLY   // Yıllık
 }
 
-// Tekstil Enums
-enum Season {
-  SS25 // Spring/Summer 2025
-  FW25 // Fall/Winter 2025
-  SS26 // Spring/Summer 2026
-  FW26 // Fall/Winter 2026
-  SS27
-  FW27
-}
-
+ 
 enum Gender {
   WOMEN // Kadın
   MEN // Erkek
@@ -561,7 +552,7 @@ model Collection {
 
   // ADIM 1: Temel Bilgiler
   modelCode String  @unique // THS-2024-00
-  season    Season? // SS25, FW25, SS26, FW26
+  season    String? // Library'den seçilen sezon adı: "İlkbahar/Yaz 2025", "Sonbahar/Kış 2025"
   // klasman -> category ile handle edilecek (Gömlek, Pantolon, Triko)
   gender    Gender? // Kadın, Erkek, Kız Çocuk, Erkek Çocuk
   fit       String? // Library'den seçilen fit adı: "Slim Fit", "Regular Fit", "Relaxed Fit"
@@ -581,7 +572,8 @@ model Collection {
 
   // ADIM 4: Ticari Bilgiler
   moq            Int? // Minimum Order Quantity
-  targetPrice    Float? // Hedef fiyat (USD)
+  targetPrice    Float? // Hedef fiyat
+  currency       String? @default("USD") // Para birimi: USD, EUR, TRY
   targetLeadTime Int? // Hedef termin (gün)
   notes          String? @db.Text // Açıklama/Notlar
 
