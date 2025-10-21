@@ -44,11 +44,13 @@ builder.prismaNode("User", {
     customAvatar: t.exposeString("customAvatar", { nullable: true }),
     bio: t.exposeString("bio", { nullable: true }),
     socialLinks: t.field({
-      type: 'String',
+      type: "String",
       nullable: true,
       resolve: (parent) => {
         if (!parent.socialLinks) return null;
-        return typeof parent.socialLinks === 'string' ? parent.socialLinks : JSON.stringify(parent.socialLinks);
+        return typeof parent.socialLinks === "string"
+          ? parent.socialLinks
+          : JSON.stringify(parent.socialLinks);
       },
     }),
 
@@ -109,11 +111,13 @@ builder.prismaNode("Company", {
 
     // Settings
     settings: t.field({
-      type: 'String',
+      type: "String",
       nullable: true,
       resolve: (parent) => {
         if (!parent.settings) return null;
-        return typeof parent.settings === 'string' ? parent.settings : JSON.stringify(parent.settings);
+        return typeof parent.settings === "string"
+          ? parent.settings
+          : JSON.stringify(parent.settings);
       },
     }),
 
@@ -192,11 +196,13 @@ builder.prismaNode("Company", {
     logo: t.exposeString("logo", { nullable: true }),
     coverImage: t.exposeString("coverImage", { nullable: true }),
     brandColors: t.field({
-      type: 'String',
+      type: "String",
       nullable: true,
       resolve: (parent) => {
         if (!parent.brandColors) return null;
-        return typeof parent.brandColors === 'string' ? parent.brandColors : JSON.stringify(parent.brandColors);
+        return typeof parent.brandColors === "string"
+          ? parent.brandColors
+          : JSON.stringify(parent.brandColors);
       },
     }),
 
@@ -204,22 +210,26 @@ builder.prismaNode("Company", {
     profileSlug: t.exposeString("profileSlug", { nullable: true }),
     isPublicProfile: t.exposeBoolean("isPublicProfile"),
     socialLinks: t.field({
-      type: 'String',
+      type: "String",
       nullable: true,
       resolve: (parent) => {
         if (!parent.socialLinks) return null;
-        return typeof parent.socialLinks === 'string' ? parent.socialLinks : JSON.stringify(parent.socialLinks);
+        return typeof parent.socialLinks === "string"
+          ? parent.socialLinks
+          : JSON.stringify(parent.socialLinks);
       },
     }),
 
     // Dashboard Preferences
     defaultView: t.exposeString("defaultView", { nullable: true }),
     enabledModules: t.field({
-      type: 'String',
+      type: "String",
       nullable: true,
       resolve: (parent) => {
         if (!parent.enabledModules) return null;
-        return typeof parent.enabledModules === 'string' ? parent.enabledModules : JSON.stringify(parent.enabledModules);
+        return typeof parent.enabledModules === "string"
+          ? parent.enabledModules
+          : JSON.stringify(parent.enabledModules);
       },
     }),
 
@@ -286,27 +296,42 @@ builder.prismaNode("Sample", {
 
     // Images
     images: t.exposeString("images", { nullable: true }),
-    customDesignImages: t.exposeString("customDesignImages", { nullable: true }),
+    customDesignImages: t.exposeString("customDesignImages", {
+      nullable: true,
+    }),
 
     // Pricing & Timeline
     unitPrice: t.exposeFloat("unitPrice", { nullable: true }),
     productionDays: t.exposeInt("productionDays", { nullable: true }),
-    estimatedProductionDate: t.expose("estimatedProductionDate", { type: "DateTime", nullable: true }),
-    actualProductionDate: t.expose("actualProductionDate", { type: "DateTime", nullable: true }),
+    estimatedProductionDate: t.expose("estimatedProductionDate", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    actualProductionDate: t.expose("actualProductionDate", {
+      type: "DateTime",
+      nullable: true,
+    }),
 
     // Customer Quote
-    customerQuotedPrice: t.exposeFloat("customerQuotedPrice", { nullable: true }),
+    customerQuotedPrice: t.exposeFloat("customerQuotedPrice", {
+      nullable: true,
+    }),
     customerQuoteDays: t.exposeInt("customerQuoteDays", { nullable: true }),
     customerQuoteNote: t.exposeString("customerQuoteNote", { nullable: true }),
 
     // Notes
     customerNote: t.exposeString("customerNote", { nullable: true }),
-    manufacturerResponse: t.exposeString("manufacturerResponse", { nullable: true }),
+    manufacturerResponse: t.exposeString("manufacturerResponse", {
+      nullable: true,
+    }),
 
     // Analytics
     viewCount: t.exposeInt("viewCount"),
     shareCount: t.exposeInt("shareCount"),
-    lastViewedAt: t.expose("lastViewedAt", { type: "DateTime", nullable: true }),
+    lastViewedAt: t.expose("lastViewedAt", {
+      type: "DateTime",
+      nullable: true,
+    }),
 
     // Relations
     customer: t.relation("customer"),
@@ -334,24 +359,42 @@ builder.prismaNode("Order", {
     status: t.expose("status", { type: "String" }),
 
     // Customer Quote
-    customerQuotedPrice: t.exposeFloat("customerQuotedPrice", { nullable: true }),
+    customerQuotedPrice: t.exposeFloat("customerQuotedPrice", {
+      nullable: true,
+    }),
     customerQuoteDays: t.exposeInt("customerQuoteDays", { nullable: true }),
     customerQuoteNote: t.exposeString("customerQuoteNote", { nullable: true }),
 
     // Production Timeline
     productionDays: t.exposeInt("productionDays", { nullable: true }),
-    estimatedProductionDate: t.expose("estimatedProductionDate", { type: "DateTime", nullable: true }),
-    actualProductionStart: t.expose("actualProductionStart", { type: "DateTime", nullable: true }),
-    actualProductionEnd: t.expose("actualProductionEnd", { type: "DateTime", nullable: true }),
+    estimatedProductionDate: t.expose("estimatedProductionDate", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    actualProductionStart: t.expose("actualProductionStart", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    actualProductionEnd: t.expose("actualProductionEnd", {
+      type: "DateTime",
+      nullable: true,
+    }),
 
     // Shipping
-    shippingDate: t.expose("shippingDate", { type: "DateTime", nullable: true }),
+    shippingDate: t.expose("shippingDate", {
+      type: "DateTime",
+      nullable: true,
+    }),
     deliveryAddress: t.exposeString("deliveryAddress", { nullable: true }),
-    cargoTrackingNumber: t.exposeString("cargoTrackingNumber", { nullable: true }),
+    cargoTrackingNumber: t.exposeString("cargoTrackingNumber", {
+      nullable: true,
+    }),
 
     // Notes
     customerNote: t.exposeString("customerNote", { nullable: true }),
-    manufacturerResponse: t.exposeString("manufacturerResponse", { nullable: true }),
+    manufacturerResponse: t.exposeString("manufacturerResponse", {
+      nullable: true,
+    }),
 
     // Relations
     collection: t.relation("collection"),
@@ -403,21 +446,25 @@ builder.prismaNode("Collection", {
 
     // Media (additional)
     mainImage: t.field({
-      type: 'String',
+      type: "String",
       nullable: true,
       resolve: (parent) => {
         if (!(parent as any).mainImage) return null;
-        return typeof (parent as any).mainImage === 'string' ? (parent as any).mainImage : JSON.stringify((parent as any).mainImage);
+        return typeof (parent as any).mainImage === "string"
+          ? (parent as any).mainImage
+          : JSON.stringify((parent as any).mainImage);
       },
     }),
 
     // Production Schedule
     productionSchedule: t.field({
-      type: 'String',
+      type: "String",
       nullable: true,
       resolve: (parent) => {
         if (!parent.productionSchedule) return null;
-        return typeof parent.productionSchedule === 'string' ? parent.productionSchedule : JSON.stringify(parent.productionSchedule);
+        return typeof parent.productionSchedule === "string"
+          ? parent.productionSchedule
+          : JSON.stringify(parent.productionSchedule);
       },
     }),
 
@@ -434,7 +481,10 @@ builder.prismaNode("Collection", {
     viewCount: t.exposeInt("viewCount"),
     shareCount: t.exposeInt("shareCount"),
     likesCount: t.exposeInt("likesCount"),
-    lastViewedAt: t.expose("lastViewedAt", { type: "DateTime", nullable: true }),
+    lastViewedAt: t.expose("lastViewedAt", {
+      type: "DateTime",
+      nullable: true,
+    }),
 
     // Relations
     author: t.relation("author", { nullable: true }),
@@ -481,11 +531,13 @@ builder.prismaObject("StandardCategory", {
 
     // Metadata
     keywords: t.field({
-      type: 'String',
+      type: "String",
       nullable: true,
       resolve: (parent) => {
         if (!parent.keywords) return null;
-        return typeof parent.keywords === 'string' ? parent.keywords : JSON.stringify(parent.keywords);
+        return typeof parent.keywords === "string"
+          ? parent.keywords
+          : JSON.stringify(parent.keywords);
       },
     }),
     tags: t.exposeString("tags", { nullable: true }),
@@ -529,11 +581,13 @@ builder.prismaObject("CompanyCategory", {
     lastUsedAt: t.expose("lastUsedAt", { type: "DateTime", nullable: true }),
 
     customFields: t.field({
-      type: 'String',
+      type: "String",
       nullable: true,
       resolve: (parent) => {
         if (!parent.customFields) return null;
-        return typeof parent.customFields === 'string' ? parent.customFields : JSON.stringify(parent.customFields);
+        return typeof parent.customFields === "string"
+          ? parent.customFields
+          : JSON.stringify(parent.customFields);
       },
     }),
 
@@ -627,20 +681,24 @@ builder.prismaObject("LibraryItem", {
 
     // JSON fields - will be parsed in resolvers
     data: t.field({
-      type: 'String',
+      type: "String",
       nullable: true,
       resolve: (parent) => {
         if (!parent.data) return null;
-        return typeof parent.data === 'string' ? parent.data : JSON.stringify(parent.data);
+        return typeof parent.data === "string"
+          ? parent.data
+          : JSON.stringify(parent.data);
       },
     }),
 
     tags: t.field({
-      type: 'String',
+      type: "String",
       nullable: true,
       resolve: (parent) => {
         if (!parent.tags) return null;
-        return typeof parent.tags === 'string' ? parent.tags : JSON.stringify(parent.tags);
+        return typeof parent.tags === "string"
+          ? parent.tags
+          : JSON.stringify(parent.tags);
       },
     }),
 
@@ -766,9 +824,15 @@ builder.prismaObject("AIAnalysis", {
     detectedFabric: t.exposeString("detectedFabric", { nullable: true }),
     detectedPattern: t.exposeString("detectedPattern", { nullable: true }),
     detectedGender: t.exposeString("detectedGender", { nullable: true }),
-    detectedClassification: t.exposeString("detectedClassification", { nullable: true }),
-    detectedAccessories: t.exposeString("detectedAccessories", { nullable: true }),
-    technicalDescription: t.exposeString("technicalDescription", { nullable: true }),
+    detectedClassification: t.exposeString("detectedClassification", {
+      nullable: true,
+    }),
+    detectedAccessories: t.exposeString("detectedAccessories", {
+      nullable: true,
+    }),
+    technicalDescription: t.exposeString("technicalDescription", {
+      nullable: true,
+    }),
 
     // Quality Analysis
     qualityAnalysis: t.exposeString("qualityAnalysis", { nullable: true }),
@@ -849,7 +913,9 @@ builder.prismaObject("Revision", {
     sample: t.relation("sample", { nullable: true }),
     sampleId: t.exposeInt("sampleId", { nullable: true }),
     productionTracking: t.relation("productionTracking", { nullable: true }),
-    productionTrackingId: t.exposeInt("productionTrackingId", { nullable: true }),
+    productionTrackingId: t.exposeInt("productionTrackingId", {
+      nullable: true,
+    }),
 
     createdAt: t.expose("createdAt", { type: "DateTime" }),
     updatedAt: t.expose("updatedAt", { type: "DateTime" }),

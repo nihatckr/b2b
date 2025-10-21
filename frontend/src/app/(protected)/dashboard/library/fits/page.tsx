@@ -58,15 +58,44 @@ export default function FitsPage() {
   // Mutation
   const [, createLibraryItem] = useMutation(DashboardCreateLibraryItemDocument);
 
-  // Helper: Get fit category
-  const getFitCategory = (data: any): string | null => {
+  // Helper: Get fit data
+  const getFitData = (data: unknown) => {
     if (!data) return null;
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      return parsed.fitCategory || null;
+      return {
+        fitCategory: (parsed as any)?.fitCategory || null,
+        gender: (parsed as any)?.gender || null,
+        fitType: (parsed as any)?.fitType || null,
+        bodyTypes: (parsed as any)?.bodyTypes || null,
+        characteristics: (parsed as any)?.characteristics || [],
+      };
     } catch {
       return null;
     }
+  };
+
+  // Group fits by gender and category
+  const groupFitsByGenderAndCategory = (fits: any[]) => {
+    const grouped: { [gender: string]: { [category: string]: any[] } } = {};
+
+    fits.forEach((fit: any) => {
+      const fitData = getFitData(fit.data);
+      if (!fitData) return;
+
+      const gender = fitData.gender || "UNSPECIFIED";
+      const category = fitData.fitCategory || "UNSPECIFIED";
+
+      if (!grouped[gender]) grouped[gender] = {};
+      if (!grouped[gender][category]) grouped[gender][category] = [];
+
+      grouped[gender][category].push({
+        ...fit,
+        fitData,
+      });
+    });
+
+    return grouped;
   };
 
   // Handlers
@@ -218,54 +247,163 @@ export default function FitsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {platformData.map((fit: any) => {
-                  const fitCategory = getFitCategory(fit.data);
+                {(() => {
+                  const groupedFits =
+                    groupFitsByGenderAndCategory(platformData);
 
-                  return (
-                    <div
-                      key={fit.id}
-                      className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-lg">{fit.name}</h4>
-                        {fit.isPopular && (
-                          <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded">
-                            Popular
-                          </span>
-                        )}
+                  return Object.keys(groupedFits).map((gender) => (
+                    <div key={gender} className="space-y-4">
+                      {/* Gender Header */}
+                      <div className="flex items-center gap-2 pb-2 border-b">
+                        <span className="text-2xl">
+                          {gender === "MEN"
+                            ? "👨"
+                            : gender === "WOMEN"
+                            ? "👩"
+                            : gender === "BOYS"
+                            ? "👦"
+                            : gender === "GIRLS"
+                            ? "👧"
+                            : gender === "UNISEX"
+                            ? "👤"
+                            : "❓"}
+                        </span>
+                        <h3 className="text-lg font-semibold">
+                          {gender === "MEN"
+                            ? "Men's Fits"
+                            : gender === "WOMEN"
+                            ? "Women's Fits"
+                            : gender === "BOYS"
+                            ? "Boys' Fits"
+                            : gender === "GIRLS"
+                            ? "Girls' Fits"
+                            : gender === "UNISEX"
+                            ? "Unisex Fits"
+                            : "Other Fits"}
+                        </h3>
+                        <span className="text-sm text-muted-foreground">
+                          ({Object.values(groupedFits[gender]).flat().length}{" "}
+                          fits)
+                        </span>
                       </div>
 
-                      {fitCategory && (
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Category: {fitCategory}
-                        </p>
-                      )}
+                      {/* Categories within Gender */}
+                      {Object.keys(groupedFits[gender]).map((category) => (
+                        <div
+                          key={`${gender}-${category}`}
+                          className="space-y-3"
+                        >
+                          <h4 className="text-md font-medium text-muted-foreground flex items-center gap-2">
+                            <span>
+                              {category === "UPPER"
+                                ? "👕"
+                                : category === "LOWER"
+                                ? "👖"
+                                : category === "DRESS"
+                                ? "👗"
+                                : category === "OUTERWEAR"
+                                ? "🧥"
+                                : "📦"}
+                            </span>
+                            {category === "UPPER"
+                              ? "Upper Body"
+                              : category === "LOWER"
+                              ? "Lower Body"
+                              : category === "DRESS"
+                              ? "Dresses"
+                              : category === "OUTERWEAR"
+                              ? "Outerwear"
+                              : category}
+                            <span className="text-xs">
+                              ({groupedFits[gender][category].length})
+                            </span>
+                          </h4>
 
-                      {fit.code && (
-                        <p className="text-xs text-muted-foreground mb-2">
-                          Code: {fit.code}
-                        </p>
-                      )}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pl-6">
+                            {groupedFits[gender][category].map(
+                              (fit: {
+                                id: string;
+                                name: string;
+                                isPopular: boolean;
+                                code: string;
+                                description: string;
+                                fitData: {
+                                  fitType: string;
+                                  characteristics: string[];
+                                };
+                              }) => (
+                                <div
+                                  key={fit.id}
+                                  className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                                >
+                                  <div className="flex items-start justify-between mb-2">
+                                    <h5 className="font-medium text-base">
+                                      {fit.name}
+                                    </h5>
+                                    {fit.isPopular && (
+                                      <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded">
+                                        Popular
+                                      </span>
+                                    )}
+                                  </div>
 
-                      {fit.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
-                          {fit.description}
-                        </p>
-                      )}
+                                  {fit.fitData?.fitType && (
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                      Type: {fit.fitData.fitType}
+                                    </p>
+                                  )}
 
-                      <div className="flex gap-2 mt-4">
-                        <Button variant="outline" size="sm" className="flex-1">
-                          Details
-                        </Button>
-                        {isAdmin && (
-                          <Button variant="outline" size="sm">
-                            Edit
-                          </Button>
-                        )}
-                      </div>
+                                  {fit.code && (
+                                    <p className="text-xs text-muted-foreground mb-2">
+                                      Code: {fit.code}
+                                    </p>
+                                  )}
+
+                                  {fit.fitData?.characteristics &&
+                                    fit.fitData.characteristics.length > 0 && (
+                                      <div className="flex flex-wrap gap-1 mb-3">
+                                        {fit.fitData.characteristics
+                                          .slice(0, 2)
+                                          .map((char: string, idx: number) => (
+                                            <span
+                                              key={idx}
+                                              className="text-xs bg-primary/10 text-primary px-2 py-1 rounded"
+                                            >
+                                              {char}
+                                            </span>
+                                          ))}
+                                      </div>
+                                    )}
+
+                                  {fit.description && (
+                                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                      {fit.description}
+                                    </p>
+                                  )}
+
+                                  <div className="flex gap-2 mt-4">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="flex-1"
+                                    >
+                                      Details
+                                    </Button>
+                                    {isAdmin && (
+                                      <Button variant="outline" size="sm">
+                                        Edit
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  );
-                })}
+                  ));
+                })()}
               </div>
             )}
           </div>
@@ -299,52 +437,158 @@ export default function FitsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {companyData.map((fit: any) => {
-                    const fitCategory = getFitCategory(fit.data);
+                  {(() => {
+                    const groupedFits =
+                      groupFitsByGenderAndCategory(companyData);
 
-                    return (
-                      <div
-                        key={fit.id}
-                        className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-medium text-lg">{fit.name}</h4>
-                          <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
-                            Custom
+                    return Object.keys(groupedFits).map((gender) => (
+                      <div key={gender} className="space-y-4">
+                        {/* Gender Header */}
+                        <div className="flex items-center gap-2 pb-2 border-b">
+                          <span className="text-2xl">
+                            {gender === "MEN"
+                              ? "👨"
+                              : gender === "WOMEN"
+                              ? "👩"
+                              : gender === "BOYS"
+                              ? "👦"
+                              : gender === "GIRLS"
+                              ? "👧"
+                              : gender === "UNISEX"
+                              ? "👤"
+                              : "❓"}
+                          </span>
+                          <h3 className="text-lg font-semibold">
+                            {gender === "MEN"
+                              ? "Men's Fits"
+                              : gender === "WOMEN"
+                              ? "Women's Fits"
+                              : gender === "BOYS"
+                              ? "Boys' Fits"
+                              : gender === "GIRLS"
+                              ? "Girls' Fits"
+                              : gender === "UNISEX"
+                              ? "Unisex Fits"
+                              : "Other Fits"}
+                          </h3>
+                          <span className="text-sm text-muted-foreground">
+                            ({Object.values(groupedFits[gender]).flat().length}{" "}
+                            custom fits)
                           </span>
                         </div>
 
-                        {fitCategory && (
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Category: {fitCategory}
-                          </p>
-                        )}
-
-                        {fit.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
-                            {fit.description}
-                          </p>
-                        )}
-
-                        <div className="flex gap-2 mt-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
+                        {/* Categories within Gender */}
+                        {Object.keys(groupedFits[gender]).map((category) => (
+                          <div
+                            key={`${gender}-${category}`}
+                            className="space-y-3"
                           >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600"
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                            <h4 className="text-md font-medium text-muted-foreground flex items-center gap-2">
+                              <span>
+                                {category === "UPPER"
+                                  ? "👕"
+                                  : category === "LOWER"
+                                  ? "👖"
+                                  : category === "DRESS"
+                                  ? "👗"
+                                  : category === "OUTERWEAR"
+                                  ? "🧥"
+                                  : "📦"}
+                              </span>
+                              {category === "UPPER"
+                                ? "Upper Body"
+                                : category === "LOWER"
+                                ? "Lower Body"
+                                : category === "DRESS"
+                                ? "Dresses"
+                                : category === "OUTERWEAR"
+                                ? "Outerwear"
+                                : category}
+                              <span className="text-xs">
+                                ({groupedFits[gender][category].length})
+                              </span>
+                            </h4>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pl-6">
+                              {groupedFits[gender][category].map(
+                                (fit: {
+                                  id: string;
+                                  name: string;
+                                  description: string;
+                                  fitData: {
+                                    fitType: string;
+                                    characteristics: string[];
+                                  };
+                                }) => (
+                                  <div
+                                    key={fit.id}
+                                    className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                                  >
+                                    <div className="flex items-start justify-between mb-2">
+                                      <h5 className="font-medium text-base">
+                                        {fit.name}
+                                      </h5>
+                                      <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                                        Custom
+                                      </span>
+                                    </div>
+
+                                    {fit.fitData?.fitType && (
+                                      <p className="text-sm text-muted-foreground mb-2">
+                                        Type: {fit.fitData.fitType}
+                                      </p>
+                                    )}
+
+                                    {fit.fitData?.characteristics &&
+                                      fit.fitData.characteristics.length >
+                                        0 && (
+                                        <div className="flex flex-wrap gap-1 mb-3">
+                                          {fit.fitData.characteristics
+                                            .slice(0, 2)
+                                            .map(
+                                              (char: string, idx: number) => (
+                                                <span
+                                                  key={idx}
+                                                  className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded"
+                                                >
+                                                  {char}
+                                                </span>
+                                              )
+                                            )}
+                                        </div>
+                                      )}
+
+                                    {fit.description && (
+                                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                        {fit.description}
+                                      </p>
+                                    )}
+
+                                    <div className="flex gap-2 mt-4">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1"
+                                      >
+                                        Edit
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-red-600"
+                                      >
+                                        Delete
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    );
-                  })}
+                    ));
+                  })()}
                 </div>
               )}
             </div>
@@ -357,7 +601,9 @@ export default function FitsPage() {
             <div className="rounded-lg border bg-card p-4">
               <div className="flex items-center gap-2 mb-4">
                 <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <h3 className="font-semibold">All Companies' Custom Fits</h3>
+                <h3 className="font-semibold">
+                  All Companies&apos; Custom Fits
+                </h3>
                 <span className="text-sm text-muted-foreground">
                   (Admin view only)
                 </span>
@@ -365,7 +611,7 @@ export default function FitsPage() {
 
               {allCompaniesResult.fetching ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  Loading all companies' fits...
+                  Loading all companies&apos; fits...
                 </div>
               ) : allCompaniesData.length === 0 ? (
                 <div className="text-center py-8">
@@ -374,36 +620,156 @@ export default function FitsPage() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {allCompaniesData.map((fit: any) => (
-                    <div
-                      key={fit.id}
-                      className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
-                    >
-                      {fit.company && (
-                        <p className="text-xs text-muted-foreground mb-2 font-medium">
-                          🏢 {fit.company.name}
-                        </p>
-                      )}
+                (() => {
+                  const groupedFits =
+                    groupFitsByGenderAndCategory(allCompaniesData);
 
-                      <h4 className="font-medium text-lg mb-2">{fit.name}</h4>
+                  return (
+                    <div className="space-y-6">
+                      {Object.keys(groupedFits).map((gender) => (
+                        <div key={gender} className="space-y-4">
+                          {/* Gender Header */}
+                          <div className="flex items-center gap-2 pb-2 border-b">
+                            <span className="text-2xl">
+                              {gender === "MEN"
+                                ? "👨"
+                                : gender === "WOMEN"
+                                ? "👩"
+                                : gender === "BOYS"
+                                ? "👦"
+                                : gender === "GIRLS"
+                                ? "👧"
+                                : gender === "UNISEX"
+                                ? "👤"
+                                : "❓"}
+                            </span>
+                            <h3 className="text-lg font-semibold">
+                              {gender === "MEN"
+                                ? "Men's Fits"
+                                : gender === "WOMEN"
+                                ? "Women's Fits"
+                                : gender === "BOYS"
+                                ? "Boys' Fits"
+                                : gender === "GIRLS"
+                                ? "Girls' Fits"
+                                : gender === "UNISEX"
+                                ? "Unisex Fits"
+                                : "Other Fits"}
+                            </h3>
+                            <span className="text-sm text-muted-foreground">
+                              (
+                              {Object.values(groupedFits[gender]).flat().length}{" "}
+                              from all companies)
+                            </span>
+                          </div>
 
-                      {fit.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
-                          {fit.description}
-                        </p>
-                      )}
+                          {/* Categories within Gender */}
+                          {Object.keys(groupedFits[gender]).map((category) => (
+                            <div
+                              key={`${gender}-${category}`}
+                              className="space-y-3"
+                            >
+                              <h4 className="text-md font-medium text-muted-foreground flex items-center gap-2">
+                                <span>
+                                  {category === "UPPER"
+                                    ? "👕"
+                                    : category === "LOWER"
+                                    ? "👖"
+                                    : category === "DRESS"
+                                    ? "👗"
+                                    : category === "OUTERWEAR"
+                                    ? "🧥"
+                                    : "📦"}
+                                </span>
+                                {category === "UPPER"
+                                  ? "Upper Body"
+                                  : category === "LOWER"
+                                  ? "Lower Body"
+                                  : category === "DRESS"
+                                  ? "Dresses"
+                                  : category === "OUTERWEAR"
+                                  ? "Outerwear"
+                                  : category}
+                                <span className="text-xs">
+                                  ({groupedFits[gender][category].length})
+                                </span>
+                              </h4>
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full mt-4"
-                      >
-                        View Details
-                      </Button>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pl-6">
+                                {groupedFits[gender][category].map(
+                                  (fit: {
+                                    id: string;
+                                    name: string;
+                                    description: string;
+                                    company: { name: string };
+                                    fitData: {
+                                      fitType: string;
+                                      characteristics: string[];
+                                    };
+                                  }) => (
+                                    <div
+                                      key={fit.id}
+                                      className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                                    >
+                                      {fit.company && (
+                                        <p className="text-xs text-muted-foreground mb-2 font-medium">
+                                          🏢 {fit.company.name}
+                                        </p>
+                                      )}
+
+                                      <h5 className="font-medium text-base mb-2">
+                                        {fit.name}
+                                      </h5>
+
+                                      {fit.fitData?.fitType && (
+                                        <p className="text-sm text-muted-foreground mb-2">
+                                          Type: {fit.fitData.fitType}
+                                        </p>
+                                      )}
+
+                                      {fit.fitData?.characteristics &&
+                                        fit.fitData.characteristics.length >
+                                          0 && (
+                                          <div className="flex flex-wrap gap-1 mb-3">
+                                            {fit.fitData.characteristics
+                                              .slice(0, 2)
+                                              .map(
+                                                (char: string, idx: number) => (
+                                                  <span
+                                                    key={idx}
+                                                    className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded"
+                                                  >
+                                                    {char}
+                                                  </span>
+                                                )
+                                              )}
+                                          </div>
+                                        )}
+
+                                      {fit.description && (
+                                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                          {fit.description}
+                                        </p>
+                                      )}
+
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full"
+                                      >
+                                        View Details
+                                      </Button>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()
               )}
             </div>
           </TabsContent>

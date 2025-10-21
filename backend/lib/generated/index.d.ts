@@ -124,6 +124,11 @@ export type Workshop = $Result.DefaultSelection<Prisma.$WorkshopPayload>
  */
 export type LibraryItem = $Result.DefaultSelection<Prisma.$LibraryItemPayload>
 /**
+ * Model BillOfMaterial
+ * 
+ */
+export type BillOfMaterial = $Result.DefaultSelection<Prisma.$BillOfMaterialPayload>
+/**
  * Model ProductionRevision
  * 
  */
@@ -360,6 +365,16 @@ export const LibraryScope: {
 export type LibraryScope = (typeof LibraryScope)[keyof typeof LibraryScope]
 
 
+export const BOMComponentType: {
+  FABRIC: 'FABRIC',
+  MATERIAL: 'MATERIAL',
+  LABOR: 'LABOR',
+  OTHER: 'OTHER'
+};
+
+export type BOMComponentType = (typeof BOMComponentType)[keyof typeof BOMComponentType]
+
+
 export const ProductionStage: {
   PLANNING: 'PLANNING',
   FABRIC: 'FABRIC',
@@ -581,6 +596,10 @@ export const LibraryCategory: typeof $Enums.LibraryCategory
 export type LibraryScope = $Enums.LibraryScope
 
 export const LibraryScope: typeof $Enums.LibraryScope
+
+export type BOMComponentType = $Enums.BOMComponentType
+
+export const BOMComponentType: typeof $Enums.BOMComponentType
 
 export type ProductionStage = $Enums.ProductionStage
 
@@ -971,6 +990,16 @@ export class PrismaClient<
     * ```
     */
   get libraryItem(): Prisma.LibraryItemDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.billOfMaterial`: Exposes CRUD operations for the **BillOfMaterial** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BillOfMaterials
+    * const billOfMaterials = await prisma.billOfMaterial.findMany()
+    * ```
+    */
+  get billOfMaterial(): Prisma.BillOfMaterialDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.productionRevision`: Exposes CRUD operations for the **ProductionRevision** model.
@@ -1503,6 +1532,7 @@ export namespace Prisma {
     QualityControl: 'QualityControl',
     Workshop: 'Workshop',
     LibraryItem: 'LibraryItem',
+    BillOfMaterial: 'BillOfMaterial',
     ProductionRevision: 'ProductionRevision',
     Notification: 'Notification',
     Task: 'Task',
@@ -1528,7 +1558,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "company" | "message" | "productionTracking" | "revision" | "user" | "standardCategory" | "companyCategory" | "category" | "collection" | "userFavoriteCollection" | "sample" | "aIAnalysis" | "sampleProduction" | "order" | "orderProduction" | "question" | "review" | "file" | "productionStageUpdate" | "qualityControl" | "workshop" | "libraryItem" | "productionRevision" | "notification" | "task" | "companyPartnership" | "sharedCategoryMapping" | "adminReport" | "companyMetrics"
+      modelProps: "company" | "message" | "productionTracking" | "revision" | "user" | "standardCategory" | "companyCategory" | "category" | "collection" | "userFavoriteCollection" | "sample" | "aIAnalysis" | "sampleProduction" | "order" | "orderProduction" | "question" | "review" | "file" | "productionStageUpdate" | "qualityControl" | "workshop" | "libraryItem" | "billOfMaterial" | "productionRevision" | "notification" | "task" | "companyPartnership" | "sharedCategoryMapping" | "adminReport" | "companyMetrics"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2984,6 +3014,72 @@ export namespace Prisma {
           }
         }
       }
+      BillOfMaterial: {
+        payload: Prisma.$BillOfMaterialPayload<ExtArgs>
+        fields: Prisma.BillOfMaterialFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BillOfMaterialFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillOfMaterialPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BillOfMaterialFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillOfMaterialPayload>
+          }
+          findFirst: {
+            args: Prisma.BillOfMaterialFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillOfMaterialPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BillOfMaterialFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillOfMaterialPayload>
+          }
+          findMany: {
+            args: Prisma.BillOfMaterialFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillOfMaterialPayload>[]
+          }
+          create: {
+            args: Prisma.BillOfMaterialCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillOfMaterialPayload>
+          }
+          createMany: {
+            args: Prisma.BillOfMaterialCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.BillOfMaterialDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillOfMaterialPayload>
+          }
+          update: {
+            args: Prisma.BillOfMaterialUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillOfMaterialPayload>
+          }
+          deleteMany: {
+            args: Prisma.BillOfMaterialDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BillOfMaterialUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.BillOfMaterialUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillOfMaterialPayload>
+          }
+          aggregate: {
+            args: Prisma.BillOfMaterialAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBillOfMaterial>
+          }
+          groupBy: {
+            args: Prisma.BillOfMaterialGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BillOfMaterialGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BillOfMaterialCountArgs<ExtArgs>
+            result: $Utils.Optional<BillOfMaterialCountAggregateOutputType> | number
+          }
+        }
+      }
       ProductionRevision: {
         payload: Prisma.$ProductionRevisionPayload<ExtArgs>
         fields: Prisma.ProductionRevisionFieldRefs
@@ -3564,6 +3660,7 @@ export namespace Prisma {
     qualityControl?: QualityControlOmit
     workshop?: WorkshopOmit
     libraryItem?: LibraryItemOmit
+    billOfMaterial?: BillOfMaterialOmit
     productionRevision?: ProductionRevisionOmit
     notification?: NotificationOmit
     task?: TaskOmit
@@ -4295,6 +4392,7 @@ export namespace Prisma {
     questions: number
     reviews: number
     tasks: number
+    billOfMaterials: number
   }
 
   export type CollectionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4306,6 +4404,7 @@ export namespace Prisma {
     questions?: boolean | CollectionCountOutputTypeCountQuestionsArgs
     reviews?: boolean | CollectionCountOutputTypeCountReviewsArgs
     tasks?: boolean | CollectionCountOutputTypeCountTasksArgs
+    billOfMaterials?: boolean | CollectionCountOutputTypeCountBillOfMaterialsArgs
   }
 
   // Custom InputTypes
@@ -4373,6 +4472,13 @@ export namespace Prisma {
    */
   export type CollectionCountOutputTypeCountTasksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TaskWhereInput
+  }
+
+  /**
+   * CollectionCountOutputType without action
+   */
+  export type CollectionCountOutputTypeCountBillOfMaterialsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BillOfMaterialWhereInput
   }
 
 
@@ -4577,6 +4683,7 @@ export namespace Prisma {
     certifications: number
     certifiedItems: number
     collections: number
+    bomUsages: number
   }
 
   export type LibraryItemCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4584,6 +4691,7 @@ export namespace Prisma {
     certifications?: boolean | LibraryItemCountOutputTypeCountCertificationsArgs
     certifiedItems?: boolean | LibraryItemCountOutputTypeCountCertifiedItemsArgs
     collections?: boolean | LibraryItemCountOutputTypeCountCollectionsArgs
+    bomUsages?: boolean | LibraryItemCountOutputTypeCountBomUsagesArgs
   }
 
   // Custom InputTypes
@@ -4623,6 +4731,13 @@ export namespace Prisma {
    */
   export type LibraryItemCountOutputTypeCountCollectionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CollectionWhereInput
+  }
+
+  /**
+   * LibraryItemCountOutputType without action
+   */
+  export type LibraryItemCountOutputTypeCountBomUsagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BillOfMaterialWhereInput
   }
 
 
@@ -16352,6 +16467,7 @@ export namespace Prisma {
     reviews?: boolean | Collection$reviewsArgs<ExtArgs>
     tasks?: boolean | Collection$tasksArgs<ExtArgs>
     company?: boolean | Collection$companyArgs<ExtArgs>
+    billOfMaterials?: boolean | Collection$billOfMaterialsArgs<ExtArgs>
     _count?: boolean | CollectionCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["collection"]>
 
@@ -16411,6 +16527,7 @@ export namespace Prisma {
     reviews?: boolean | Collection$reviewsArgs<ExtArgs>
     tasks?: boolean | Collection$tasksArgs<ExtArgs>
     company?: boolean | Collection$companyArgs<ExtArgs>
+    billOfMaterials?: boolean | Collection$billOfMaterialsArgs<ExtArgs>
     _count?: boolean | CollectionCountOutputTypeDefaultArgs<ExtArgs>
   }
 
@@ -16429,6 +16546,7 @@ export namespace Prisma {
       reviews: Prisma.$ReviewPayload<ExtArgs>[]
       tasks: Prisma.$TaskPayload<ExtArgs>[]
       company: Prisma.$CompanyPayload<ExtArgs> | null
+      billOfMaterials: Prisma.$BillOfMaterialPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -16820,6 +16938,7 @@ export namespace Prisma {
     reviews<T extends Collection$reviewsArgs<ExtArgs> = {}>(args?: Subset<T, Collection$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     tasks<T extends Collection$tasksArgs<ExtArgs> = {}>(args?: Subset<T, Collection$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     company<T extends Collection$companyArgs<ExtArgs> = {}>(args?: Subset<T, Collection$companyArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    billOfMaterials<T extends Collection$billOfMaterialsArgs<ExtArgs> = {}>(args?: Subset<T, Collection$billOfMaterialsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillOfMaterialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -17494,6 +17613,30 @@ export namespace Prisma {
      */
     include?: CompanyInclude<ExtArgs> | null
     where?: CompanyWhereInput
+  }
+
+  /**
+   * Collection.billOfMaterials
+   */
+  export type Collection$billOfMaterialsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
+    where?: BillOfMaterialWhereInput
+    orderBy?: BillOfMaterialOrderByWithRelationInput | BillOfMaterialOrderByWithRelationInput[]
+    cursor?: BillOfMaterialWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BillOfMaterialScalarFieldEnum | BillOfMaterialScalarFieldEnum[]
   }
 
   /**
@@ -31306,6 +31449,7 @@ export namespace Prisma {
     certifications?: boolean | LibraryItem$certificationsArgs<ExtArgs>
     certifiedItems?: boolean | LibraryItem$certifiedItemsArgs<ExtArgs>
     collections?: boolean | LibraryItem$collectionsArgs<ExtArgs>
+    bomUsages?: boolean | LibraryItem$bomUsagesArgs<ExtArgs>
     createdBy?: boolean | LibraryItem$createdByArgs<ExtArgs>
     _count?: boolean | LibraryItemCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["libraryItem"]>
@@ -31341,6 +31485,7 @@ export namespace Prisma {
     certifications?: boolean | LibraryItem$certificationsArgs<ExtArgs>
     certifiedItems?: boolean | LibraryItem$certifiedItemsArgs<ExtArgs>
     collections?: boolean | LibraryItem$collectionsArgs<ExtArgs>
+    bomUsages?: boolean | LibraryItem$bomUsagesArgs<ExtArgs>
     createdBy?: boolean | LibraryItem$createdByArgs<ExtArgs>
     _count?: boolean | LibraryItemCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -31354,6 +31499,7 @@ export namespace Prisma {
       certifications: Prisma.$LibraryItemPayload<ExtArgs>[]
       certifiedItems: Prisma.$LibraryItemPayload<ExtArgs>[]
       collections: Prisma.$CollectionPayload<ExtArgs>[]
+      bomUsages: Prisma.$BillOfMaterialPayload<ExtArgs>[]
       createdBy: Prisma.$UserPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -31721,6 +31867,7 @@ export namespace Prisma {
     certifications<T extends LibraryItem$certificationsArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$certificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LibraryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     certifiedItems<T extends LibraryItem$certifiedItemsArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$certifiedItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LibraryItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     collections<T extends LibraryItem$collectionsArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$collectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CollectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    bomUsages<T extends LibraryItem$bomUsagesArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$bomUsagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillOfMaterialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     createdBy<T extends LibraryItem$createdByArgs<ExtArgs> = {}>(args?: Subset<T, LibraryItem$createdByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -32246,6 +32393,30 @@ export namespace Prisma {
   }
 
   /**
+   * LibraryItem.bomUsages
+   */
+  export type LibraryItem$bomUsagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
+    where?: BillOfMaterialWhereInput
+    orderBy?: BillOfMaterialOrderByWithRelationInput | BillOfMaterialOrderByWithRelationInput[]
+    cursor?: BillOfMaterialWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BillOfMaterialScalarFieldEnum | BillOfMaterialScalarFieldEnum[]
+  }
+
+  /**
    * LibraryItem.createdBy
    */
   export type LibraryItem$createdByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -32280,6 +32451,1122 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: LibraryItemInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BillOfMaterial
+   */
+
+  export type AggregateBillOfMaterial = {
+    _count: BillOfMaterialCountAggregateOutputType | null
+    _avg: BillOfMaterialAvgAggregateOutputType | null
+    _sum: BillOfMaterialSumAggregateOutputType | null
+    _min: BillOfMaterialMinAggregateOutputType | null
+    _max: BillOfMaterialMaxAggregateOutputType | null
+  }
+
+  export type BillOfMaterialAvgAggregateOutputType = {
+    id: number | null
+    collectionId: number | null
+    libraryItemId: number | null
+    consumption: number | null
+    wastePercent: number | null
+    leadTime: number | null
+  }
+
+  export type BillOfMaterialSumAggregateOutputType = {
+    id: number | null
+    collectionId: number | null
+    libraryItemId: number | null
+    consumption: number | null
+    wastePercent: number | null
+    leadTime: number | null
+  }
+
+  export type BillOfMaterialMinAggregateOutputType = {
+    id: number | null
+    collectionId: number | null
+    componentType: $Enums.BOMComponentType | null
+    libraryItemId: number | null
+    componentName: string | null
+    consumption: number | null
+    unit: string | null
+    wastePercent: number | null
+    placement: string | null
+    supplier: string | null
+    supplierCode: string | null
+    leadTime: number | null
+    notes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BillOfMaterialMaxAggregateOutputType = {
+    id: number | null
+    collectionId: number | null
+    componentType: $Enums.BOMComponentType | null
+    libraryItemId: number | null
+    componentName: string | null
+    consumption: number | null
+    unit: string | null
+    wastePercent: number | null
+    placement: string | null
+    supplier: string | null
+    supplierCode: string | null
+    leadTime: number | null
+    notes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BillOfMaterialCountAggregateOutputType = {
+    id: number
+    collectionId: number
+    componentType: number
+    libraryItemId: number
+    componentName: number
+    consumption: number
+    unit: number
+    wastePercent: number
+    placement: number
+    supplier: number
+    supplierCode: number
+    leadTime: number
+    notes: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type BillOfMaterialAvgAggregateInputType = {
+    id?: true
+    collectionId?: true
+    libraryItemId?: true
+    consumption?: true
+    wastePercent?: true
+    leadTime?: true
+  }
+
+  export type BillOfMaterialSumAggregateInputType = {
+    id?: true
+    collectionId?: true
+    libraryItemId?: true
+    consumption?: true
+    wastePercent?: true
+    leadTime?: true
+  }
+
+  export type BillOfMaterialMinAggregateInputType = {
+    id?: true
+    collectionId?: true
+    componentType?: true
+    libraryItemId?: true
+    componentName?: true
+    consumption?: true
+    unit?: true
+    wastePercent?: true
+    placement?: true
+    supplier?: true
+    supplierCode?: true
+    leadTime?: true
+    notes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BillOfMaterialMaxAggregateInputType = {
+    id?: true
+    collectionId?: true
+    componentType?: true
+    libraryItemId?: true
+    componentName?: true
+    consumption?: true
+    unit?: true
+    wastePercent?: true
+    placement?: true
+    supplier?: true
+    supplierCode?: true
+    leadTime?: true
+    notes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BillOfMaterialCountAggregateInputType = {
+    id?: true
+    collectionId?: true
+    componentType?: true
+    libraryItemId?: true
+    componentName?: true
+    consumption?: true
+    unit?: true
+    wastePercent?: true
+    placement?: true
+    supplier?: true
+    supplierCode?: true
+    leadTime?: true
+    notes?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type BillOfMaterialAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BillOfMaterial to aggregate.
+     */
+    where?: BillOfMaterialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BillOfMaterials to fetch.
+     */
+    orderBy?: BillOfMaterialOrderByWithRelationInput | BillOfMaterialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BillOfMaterialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BillOfMaterials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BillOfMaterials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BillOfMaterials
+    **/
+    _count?: true | BillOfMaterialCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: BillOfMaterialAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: BillOfMaterialSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BillOfMaterialMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BillOfMaterialMaxAggregateInputType
+  }
+
+  export type GetBillOfMaterialAggregateType<T extends BillOfMaterialAggregateArgs> = {
+        [P in keyof T & keyof AggregateBillOfMaterial]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBillOfMaterial[P]>
+      : GetScalarType<T[P], AggregateBillOfMaterial[P]>
+  }
+
+
+
+
+  export type BillOfMaterialGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BillOfMaterialWhereInput
+    orderBy?: BillOfMaterialOrderByWithAggregationInput | BillOfMaterialOrderByWithAggregationInput[]
+    by: BillOfMaterialScalarFieldEnum[] | BillOfMaterialScalarFieldEnum
+    having?: BillOfMaterialScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BillOfMaterialCountAggregateInputType | true
+    _avg?: BillOfMaterialAvgAggregateInputType
+    _sum?: BillOfMaterialSumAggregateInputType
+    _min?: BillOfMaterialMinAggregateInputType
+    _max?: BillOfMaterialMaxAggregateInputType
+  }
+
+  export type BillOfMaterialGroupByOutputType = {
+    id: number
+    collectionId: number
+    componentType: $Enums.BOMComponentType
+    libraryItemId: number | null
+    componentName: string | null
+    consumption: number
+    unit: string
+    wastePercent: number
+    placement: string | null
+    supplier: string | null
+    supplierCode: string | null
+    leadTime: number | null
+    notes: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: BillOfMaterialCountAggregateOutputType | null
+    _avg: BillOfMaterialAvgAggregateOutputType | null
+    _sum: BillOfMaterialSumAggregateOutputType | null
+    _min: BillOfMaterialMinAggregateOutputType | null
+    _max: BillOfMaterialMaxAggregateOutputType | null
+  }
+
+  type GetBillOfMaterialGroupByPayload<T extends BillOfMaterialGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BillOfMaterialGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BillOfMaterialGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BillOfMaterialGroupByOutputType[P]>
+            : GetScalarType<T[P], BillOfMaterialGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BillOfMaterialSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    collectionId?: boolean
+    componentType?: boolean
+    libraryItemId?: boolean
+    componentName?: boolean
+    consumption?: boolean
+    unit?: boolean
+    wastePercent?: boolean
+    placement?: boolean
+    supplier?: boolean
+    supplierCode?: boolean
+    leadTime?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    collection?: boolean | CollectionDefaultArgs<ExtArgs>
+    libraryItem?: boolean | BillOfMaterial$libraryItemArgs<ExtArgs>
+  }, ExtArgs["result"]["billOfMaterial"]>
+
+
+
+  export type BillOfMaterialSelectScalar = {
+    id?: boolean
+    collectionId?: boolean
+    componentType?: boolean
+    libraryItemId?: boolean
+    componentName?: boolean
+    consumption?: boolean
+    unit?: boolean
+    wastePercent?: boolean
+    placement?: boolean
+    supplier?: boolean
+    supplierCode?: boolean
+    leadTime?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type BillOfMaterialOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "collectionId" | "componentType" | "libraryItemId" | "componentName" | "consumption" | "unit" | "wastePercent" | "placement" | "supplier" | "supplierCode" | "leadTime" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["billOfMaterial"]>
+  export type BillOfMaterialInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    collection?: boolean | CollectionDefaultArgs<ExtArgs>
+    libraryItem?: boolean | BillOfMaterial$libraryItemArgs<ExtArgs>
+  }
+
+  export type $BillOfMaterialPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BillOfMaterial"
+    objects: {
+      collection: Prisma.$CollectionPayload<ExtArgs>
+      libraryItem: Prisma.$LibraryItemPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      collectionId: number
+      componentType: $Enums.BOMComponentType
+      libraryItemId: number | null
+      componentName: string | null
+      consumption: number
+      unit: string
+      wastePercent: number
+      placement: string | null
+      supplier: string | null
+      supplierCode: string | null
+      leadTime: number | null
+      notes: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["billOfMaterial"]>
+    composites: {}
+  }
+
+  type BillOfMaterialGetPayload<S extends boolean | null | undefined | BillOfMaterialDefaultArgs> = $Result.GetResult<Prisma.$BillOfMaterialPayload, S>
+
+  type BillOfMaterialCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BillOfMaterialFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BillOfMaterialCountAggregateInputType | true
+    }
+
+  export interface BillOfMaterialDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BillOfMaterial'], meta: { name: 'BillOfMaterial' } }
+    /**
+     * Find zero or one BillOfMaterial that matches the filter.
+     * @param {BillOfMaterialFindUniqueArgs} args - Arguments to find a BillOfMaterial
+     * @example
+     * // Get one BillOfMaterial
+     * const billOfMaterial = await prisma.billOfMaterial.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BillOfMaterialFindUniqueArgs>(args: SelectSubset<T, BillOfMaterialFindUniqueArgs<ExtArgs>>): Prisma__BillOfMaterialClient<$Result.GetResult<Prisma.$BillOfMaterialPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BillOfMaterial that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BillOfMaterialFindUniqueOrThrowArgs} args - Arguments to find a BillOfMaterial
+     * @example
+     * // Get one BillOfMaterial
+     * const billOfMaterial = await prisma.billOfMaterial.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BillOfMaterialFindUniqueOrThrowArgs>(args: SelectSubset<T, BillOfMaterialFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BillOfMaterialClient<$Result.GetResult<Prisma.$BillOfMaterialPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BillOfMaterial that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillOfMaterialFindFirstArgs} args - Arguments to find a BillOfMaterial
+     * @example
+     * // Get one BillOfMaterial
+     * const billOfMaterial = await prisma.billOfMaterial.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BillOfMaterialFindFirstArgs>(args?: SelectSubset<T, BillOfMaterialFindFirstArgs<ExtArgs>>): Prisma__BillOfMaterialClient<$Result.GetResult<Prisma.$BillOfMaterialPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BillOfMaterial that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillOfMaterialFindFirstOrThrowArgs} args - Arguments to find a BillOfMaterial
+     * @example
+     * // Get one BillOfMaterial
+     * const billOfMaterial = await prisma.billOfMaterial.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BillOfMaterialFindFirstOrThrowArgs>(args?: SelectSubset<T, BillOfMaterialFindFirstOrThrowArgs<ExtArgs>>): Prisma__BillOfMaterialClient<$Result.GetResult<Prisma.$BillOfMaterialPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BillOfMaterials that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillOfMaterialFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BillOfMaterials
+     * const billOfMaterials = await prisma.billOfMaterial.findMany()
+     * 
+     * // Get first 10 BillOfMaterials
+     * const billOfMaterials = await prisma.billOfMaterial.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const billOfMaterialWithIdOnly = await prisma.billOfMaterial.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BillOfMaterialFindManyArgs>(args?: SelectSubset<T, BillOfMaterialFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillOfMaterialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BillOfMaterial.
+     * @param {BillOfMaterialCreateArgs} args - Arguments to create a BillOfMaterial.
+     * @example
+     * // Create one BillOfMaterial
+     * const BillOfMaterial = await prisma.billOfMaterial.create({
+     *   data: {
+     *     // ... data to create a BillOfMaterial
+     *   }
+     * })
+     * 
+     */
+    create<T extends BillOfMaterialCreateArgs>(args: SelectSubset<T, BillOfMaterialCreateArgs<ExtArgs>>): Prisma__BillOfMaterialClient<$Result.GetResult<Prisma.$BillOfMaterialPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BillOfMaterials.
+     * @param {BillOfMaterialCreateManyArgs} args - Arguments to create many BillOfMaterials.
+     * @example
+     * // Create many BillOfMaterials
+     * const billOfMaterial = await prisma.billOfMaterial.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BillOfMaterialCreateManyArgs>(args?: SelectSubset<T, BillOfMaterialCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a BillOfMaterial.
+     * @param {BillOfMaterialDeleteArgs} args - Arguments to delete one BillOfMaterial.
+     * @example
+     * // Delete one BillOfMaterial
+     * const BillOfMaterial = await prisma.billOfMaterial.delete({
+     *   where: {
+     *     // ... filter to delete one BillOfMaterial
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BillOfMaterialDeleteArgs>(args: SelectSubset<T, BillOfMaterialDeleteArgs<ExtArgs>>): Prisma__BillOfMaterialClient<$Result.GetResult<Prisma.$BillOfMaterialPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BillOfMaterial.
+     * @param {BillOfMaterialUpdateArgs} args - Arguments to update one BillOfMaterial.
+     * @example
+     * // Update one BillOfMaterial
+     * const billOfMaterial = await prisma.billOfMaterial.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BillOfMaterialUpdateArgs>(args: SelectSubset<T, BillOfMaterialUpdateArgs<ExtArgs>>): Prisma__BillOfMaterialClient<$Result.GetResult<Prisma.$BillOfMaterialPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BillOfMaterials.
+     * @param {BillOfMaterialDeleteManyArgs} args - Arguments to filter BillOfMaterials to delete.
+     * @example
+     * // Delete a few BillOfMaterials
+     * const { count } = await prisma.billOfMaterial.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BillOfMaterialDeleteManyArgs>(args?: SelectSubset<T, BillOfMaterialDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BillOfMaterials.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillOfMaterialUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BillOfMaterials
+     * const billOfMaterial = await prisma.billOfMaterial.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BillOfMaterialUpdateManyArgs>(args: SelectSubset<T, BillOfMaterialUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one BillOfMaterial.
+     * @param {BillOfMaterialUpsertArgs} args - Arguments to update or create a BillOfMaterial.
+     * @example
+     * // Update or create a BillOfMaterial
+     * const billOfMaterial = await prisma.billOfMaterial.upsert({
+     *   create: {
+     *     // ... data to create a BillOfMaterial
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BillOfMaterial we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BillOfMaterialUpsertArgs>(args: SelectSubset<T, BillOfMaterialUpsertArgs<ExtArgs>>): Prisma__BillOfMaterialClient<$Result.GetResult<Prisma.$BillOfMaterialPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BillOfMaterials.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillOfMaterialCountArgs} args - Arguments to filter BillOfMaterials to count.
+     * @example
+     * // Count the number of BillOfMaterials
+     * const count = await prisma.billOfMaterial.count({
+     *   where: {
+     *     // ... the filter for the BillOfMaterials we want to count
+     *   }
+     * })
+    **/
+    count<T extends BillOfMaterialCountArgs>(
+      args?: Subset<T, BillOfMaterialCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BillOfMaterialCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BillOfMaterial.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillOfMaterialAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BillOfMaterialAggregateArgs>(args: Subset<T, BillOfMaterialAggregateArgs>): Prisma.PrismaPromise<GetBillOfMaterialAggregateType<T>>
+
+    /**
+     * Group by BillOfMaterial.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillOfMaterialGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BillOfMaterialGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BillOfMaterialGroupByArgs['orderBy'] }
+        : { orderBy?: BillOfMaterialGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BillOfMaterialGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBillOfMaterialGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BillOfMaterial model
+   */
+  readonly fields: BillOfMaterialFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BillOfMaterial.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BillOfMaterialClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    collection<T extends CollectionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CollectionDefaultArgs<ExtArgs>>): Prisma__CollectionClient<$Result.GetResult<Prisma.$CollectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    libraryItem<T extends BillOfMaterial$libraryItemArgs<ExtArgs> = {}>(args?: Subset<T, BillOfMaterial$libraryItemArgs<ExtArgs>>): Prisma__LibraryItemClient<$Result.GetResult<Prisma.$LibraryItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BillOfMaterial model
+   */
+  interface BillOfMaterialFieldRefs {
+    readonly id: FieldRef<"BillOfMaterial", 'Int'>
+    readonly collectionId: FieldRef<"BillOfMaterial", 'Int'>
+    readonly componentType: FieldRef<"BillOfMaterial", 'BOMComponentType'>
+    readonly libraryItemId: FieldRef<"BillOfMaterial", 'Int'>
+    readonly componentName: FieldRef<"BillOfMaterial", 'String'>
+    readonly consumption: FieldRef<"BillOfMaterial", 'Float'>
+    readonly unit: FieldRef<"BillOfMaterial", 'String'>
+    readonly wastePercent: FieldRef<"BillOfMaterial", 'Float'>
+    readonly placement: FieldRef<"BillOfMaterial", 'String'>
+    readonly supplier: FieldRef<"BillOfMaterial", 'String'>
+    readonly supplierCode: FieldRef<"BillOfMaterial", 'String'>
+    readonly leadTime: FieldRef<"BillOfMaterial", 'Int'>
+    readonly notes: FieldRef<"BillOfMaterial", 'String'>
+    readonly createdAt: FieldRef<"BillOfMaterial", 'DateTime'>
+    readonly updatedAt: FieldRef<"BillOfMaterial", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BillOfMaterial findUnique
+   */
+  export type BillOfMaterialFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
+    /**
+     * Filter, which BillOfMaterial to fetch.
+     */
+    where: BillOfMaterialWhereUniqueInput
+  }
+
+  /**
+   * BillOfMaterial findUniqueOrThrow
+   */
+  export type BillOfMaterialFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
+    /**
+     * Filter, which BillOfMaterial to fetch.
+     */
+    where: BillOfMaterialWhereUniqueInput
+  }
+
+  /**
+   * BillOfMaterial findFirst
+   */
+  export type BillOfMaterialFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
+    /**
+     * Filter, which BillOfMaterial to fetch.
+     */
+    where?: BillOfMaterialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BillOfMaterials to fetch.
+     */
+    orderBy?: BillOfMaterialOrderByWithRelationInput | BillOfMaterialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BillOfMaterials.
+     */
+    cursor?: BillOfMaterialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BillOfMaterials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BillOfMaterials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BillOfMaterials.
+     */
+    distinct?: BillOfMaterialScalarFieldEnum | BillOfMaterialScalarFieldEnum[]
+  }
+
+  /**
+   * BillOfMaterial findFirstOrThrow
+   */
+  export type BillOfMaterialFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
+    /**
+     * Filter, which BillOfMaterial to fetch.
+     */
+    where?: BillOfMaterialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BillOfMaterials to fetch.
+     */
+    orderBy?: BillOfMaterialOrderByWithRelationInput | BillOfMaterialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BillOfMaterials.
+     */
+    cursor?: BillOfMaterialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BillOfMaterials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BillOfMaterials.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BillOfMaterials.
+     */
+    distinct?: BillOfMaterialScalarFieldEnum | BillOfMaterialScalarFieldEnum[]
+  }
+
+  /**
+   * BillOfMaterial findMany
+   */
+  export type BillOfMaterialFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
+    /**
+     * Filter, which BillOfMaterials to fetch.
+     */
+    where?: BillOfMaterialWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BillOfMaterials to fetch.
+     */
+    orderBy?: BillOfMaterialOrderByWithRelationInput | BillOfMaterialOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BillOfMaterials.
+     */
+    cursor?: BillOfMaterialWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BillOfMaterials from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BillOfMaterials.
+     */
+    skip?: number
+    distinct?: BillOfMaterialScalarFieldEnum | BillOfMaterialScalarFieldEnum[]
+  }
+
+  /**
+   * BillOfMaterial create
+   */
+  export type BillOfMaterialCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BillOfMaterial.
+     */
+    data: XOR<BillOfMaterialCreateInput, BillOfMaterialUncheckedCreateInput>
+  }
+
+  /**
+   * BillOfMaterial createMany
+   */
+  export type BillOfMaterialCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BillOfMaterials.
+     */
+    data: BillOfMaterialCreateManyInput | BillOfMaterialCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BillOfMaterial update
+   */
+  export type BillOfMaterialUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BillOfMaterial.
+     */
+    data: XOR<BillOfMaterialUpdateInput, BillOfMaterialUncheckedUpdateInput>
+    /**
+     * Choose, which BillOfMaterial to update.
+     */
+    where: BillOfMaterialWhereUniqueInput
+  }
+
+  /**
+   * BillOfMaterial updateMany
+   */
+  export type BillOfMaterialUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BillOfMaterials.
+     */
+    data: XOR<BillOfMaterialUpdateManyMutationInput, BillOfMaterialUncheckedUpdateManyInput>
+    /**
+     * Filter which BillOfMaterials to update
+     */
+    where?: BillOfMaterialWhereInput
+    /**
+     * Limit how many BillOfMaterials to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BillOfMaterial upsert
+   */
+  export type BillOfMaterialUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BillOfMaterial to update in case it exists.
+     */
+    where: BillOfMaterialWhereUniqueInput
+    /**
+     * In case the BillOfMaterial found by the `where` argument doesn't exist, create a new BillOfMaterial with this data.
+     */
+    create: XOR<BillOfMaterialCreateInput, BillOfMaterialUncheckedCreateInput>
+    /**
+     * In case the BillOfMaterial was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BillOfMaterialUpdateInput, BillOfMaterialUncheckedUpdateInput>
+  }
+
+  /**
+   * BillOfMaterial delete
+   */
+  export type BillOfMaterialDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
+    /**
+     * Filter which BillOfMaterial to delete.
+     */
+    where: BillOfMaterialWhereUniqueInput
+  }
+
+  /**
+   * BillOfMaterial deleteMany
+   */
+  export type BillOfMaterialDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BillOfMaterials to delete
+     */
+    where?: BillOfMaterialWhereInput
+    /**
+     * Limit how many BillOfMaterials to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BillOfMaterial.libraryItem
+   */
+  export type BillOfMaterial$libraryItemArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LibraryItem
+     */
+    select?: LibraryItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LibraryItem
+     */
+    omit?: LibraryItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LibraryItemInclude<ExtArgs> | null
+    where?: LibraryItemWhereInput
+  }
+
+  /**
+   * BillOfMaterial without action
+   */
+  export type BillOfMaterialDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillOfMaterial
+     */
+    select?: BillOfMaterialSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillOfMaterial
+     */
+    omit?: BillOfMaterialOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillOfMaterialInclude<ExtArgs> | null
   }
 
 
@@ -41234,6 +42521,27 @@ export namespace Prisma {
   export type LibraryItemScalarFieldEnum = (typeof LibraryItemScalarFieldEnum)[keyof typeof LibraryItemScalarFieldEnum]
 
 
+  export const BillOfMaterialScalarFieldEnum: {
+    id: 'id',
+    collectionId: 'collectionId',
+    componentType: 'componentType',
+    libraryItemId: 'libraryItemId',
+    componentName: 'componentName',
+    consumption: 'consumption',
+    unit: 'unit',
+    wastePercent: 'wastePercent',
+    placement: 'placement',
+    supplier: 'supplier',
+    supplierCode: 'supplierCode',
+    leadTime: 'leadTime',
+    notes: 'notes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type BillOfMaterialScalarFieldEnum = (typeof BillOfMaterialScalarFieldEnum)[keyof typeof BillOfMaterialScalarFieldEnum]
+
+
   export const ProductionRevisionScalarFieldEnum: {
     id: 'id',
     productionId: 'productionId',
@@ -41717,6 +43025,18 @@ export namespace Prisma {
   export type LibraryItemOrderByRelevanceFieldEnum = (typeof LibraryItemOrderByRelevanceFieldEnum)[keyof typeof LibraryItemOrderByRelevanceFieldEnum]
 
 
+  export const BillOfMaterialOrderByRelevanceFieldEnum: {
+    componentName: 'componentName',
+    unit: 'unit',
+    placement: 'placement',
+    supplier: 'supplier',
+    supplierCode: 'supplierCode',
+    notes: 'notes'
+  };
+
+  export type BillOfMaterialOrderByRelevanceFieldEnum = (typeof BillOfMaterialOrderByRelevanceFieldEnum)[keyof typeof BillOfMaterialOrderByRelevanceFieldEnum]
+
+
   export const ProductionRevisionOrderByRelevanceFieldEnum: {
     reason: 'reason',
     description: 'description'
@@ -41968,6 +43288,13 @@ export namespace Prisma {
    * Reference to a field of type 'LibraryCategory'
    */
   export type EnumLibraryCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibraryCategory'>
+    
+
+
+  /**
+   * Reference to a field of type 'BOMComponentType'
+   */
+  export type EnumBOMComponentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BOMComponentType'>
     
 
 
@@ -43350,6 +44677,7 @@ export namespace Prisma {
     reviews?: ReviewListRelationFilter
     tasks?: TaskListRelationFilter
     company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
+    billOfMaterials?: BillOfMaterialListRelationFilter
   }
 
   export type CollectionOrderByWithRelationInput = {
@@ -43402,6 +44730,7 @@ export namespace Prisma {
     reviews?: ReviewOrderByRelationAggregateInput
     tasks?: TaskOrderByRelationAggregateInput
     company?: CompanyOrderByWithRelationInput
+    billOfMaterials?: BillOfMaterialOrderByRelationAggregateInput
     _relevance?: CollectionOrderByRelevanceInput
   }
 
@@ -43458,6 +44787,7 @@ export namespace Prisma {
     reviews?: ReviewListRelationFilter
     tasks?: TaskListRelationFilter
     company?: XOR<CompanyNullableScalarRelationFilter, CompanyWhereInput> | null
+    billOfMaterials?: BillOfMaterialListRelationFilter
   }, "id" | "modelCode" | "sku" | "slug">
 
   export type CollectionOrderByWithAggregationInput = {
@@ -44911,6 +46241,7 @@ export namespace Prisma {
     certifications?: LibraryItemListRelationFilter
     certifiedItems?: LibraryItemListRelationFilter
     collections?: CollectionListRelationFilter
+    bomUsages?: BillOfMaterialListRelationFilter
     createdBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
 
@@ -44939,6 +46270,7 @@ export namespace Prisma {
     certifications?: LibraryItemOrderByRelationAggregateInput
     certifiedItems?: LibraryItemOrderByRelationAggregateInput
     collections?: CollectionOrderByRelationAggregateInput
+    bomUsages?: BillOfMaterialOrderByRelationAggregateInput
     createdBy?: UserOrderByWithRelationInput
     _relevance?: LibraryItemOrderByRelevanceInput
   }
@@ -44972,6 +46304,7 @@ export namespace Prisma {
     certifications?: LibraryItemListRelationFilter
     certifiedItems?: LibraryItemListRelationFilter
     collections?: CollectionListRelationFilter
+    bomUsages?: BillOfMaterialListRelationFilter
     createdBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id" | "code" | "companyId_category_name">
 
@@ -45023,6 +46356,117 @@ export namespace Prisma {
     createdById?: IntNullableWithAggregatesFilter<"LibraryItem"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"LibraryItem"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"LibraryItem"> | Date | string
+  }
+
+  export type BillOfMaterialWhereInput = {
+    AND?: BillOfMaterialWhereInput | BillOfMaterialWhereInput[]
+    OR?: BillOfMaterialWhereInput[]
+    NOT?: BillOfMaterialWhereInput | BillOfMaterialWhereInput[]
+    id?: IntFilter<"BillOfMaterial"> | number
+    collectionId?: IntFilter<"BillOfMaterial"> | number
+    componentType?: EnumBOMComponentTypeFilter<"BillOfMaterial"> | $Enums.BOMComponentType
+    libraryItemId?: IntNullableFilter<"BillOfMaterial"> | number | null
+    componentName?: StringNullableFilter<"BillOfMaterial"> | string | null
+    consumption?: FloatFilter<"BillOfMaterial"> | number
+    unit?: StringFilter<"BillOfMaterial"> | string
+    wastePercent?: FloatFilter<"BillOfMaterial"> | number
+    placement?: StringNullableFilter<"BillOfMaterial"> | string | null
+    supplier?: StringNullableFilter<"BillOfMaterial"> | string | null
+    supplierCode?: StringNullableFilter<"BillOfMaterial"> | string | null
+    leadTime?: IntNullableFilter<"BillOfMaterial"> | number | null
+    notes?: StringNullableFilter<"BillOfMaterial"> | string | null
+    createdAt?: DateTimeFilter<"BillOfMaterial"> | Date | string
+    updatedAt?: DateTimeFilter<"BillOfMaterial"> | Date | string
+    collection?: XOR<CollectionScalarRelationFilter, CollectionWhereInput>
+    libraryItem?: XOR<LibraryItemNullableScalarRelationFilter, LibraryItemWhereInput> | null
+  }
+
+  export type BillOfMaterialOrderByWithRelationInput = {
+    id?: SortOrder
+    collectionId?: SortOrder
+    componentType?: SortOrder
+    libraryItemId?: SortOrderInput | SortOrder
+    componentName?: SortOrderInput | SortOrder
+    consumption?: SortOrder
+    unit?: SortOrder
+    wastePercent?: SortOrder
+    placement?: SortOrderInput | SortOrder
+    supplier?: SortOrderInput | SortOrder
+    supplierCode?: SortOrderInput | SortOrder
+    leadTime?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    collection?: CollectionOrderByWithRelationInput
+    libraryItem?: LibraryItemOrderByWithRelationInput
+    _relevance?: BillOfMaterialOrderByRelevanceInput
+  }
+
+  export type BillOfMaterialWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: BillOfMaterialWhereInput | BillOfMaterialWhereInput[]
+    OR?: BillOfMaterialWhereInput[]
+    NOT?: BillOfMaterialWhereInput | BillOfMaterialWhereInput[]
+    collectionId?: IntFilter<"BillOfMaterial"> | number
+    componentType?: EnumBOMComponentTypeFilter<"BillOfMaterial"> | $Enums.BOMComponentType
+    libraryItemId?: IntNullableFilter<"BillOfMaterial"> | number | null
+    componentName?: StringNullableFilter<"BillOfMaterial"> | string | null
+    consumption?: FloatFilter<"BillOfMaterial"> | number
+    unit?: StringFilter<"BillOfMaterial"> | string
+    wastePercent?: FloatFilter<"BillOfMaterial"> | number
+    placement?: StringNullableFilter<"BillOfMaterial"> | string | null
+    supplier?: StringNullableFilter<"BillOfMaterial"> | string | null
+    supplierCode?: StringNullableFilter<"BillOfMaterial"> | string | null
+    leadTime?: IntNullableFilter<"BillOfMaterial"> | number | null
+    notes?: StringNullableFilter<"BillOfMaterial"> | string | null
+    createdAt?: DateTimeFilter<"BillOfMaterial"> | Date | string
+    updatedAt?: DateTimeFilter<"BillOfMaterial"> | Date | string
+    collection?: XOR<CollectionScalarRelationFilter, CollectionWhereInput>
+    libraryItem?: XOR<LibraryItemNullableScalarRelationFilter, LibraryItemWhereInput> | null
+  }, "id">
+
+  export type BillOfMaterialOrderByWithAggregationInput = {
+    id?: SortOrder
+    collectionId?: SortOrder
+    componentType?: SortOrder
+    libraryItemId?: SortOrderInput | SortOrder
+    componentName?: SortOrderInput | SortOrder
+    consumption?: SortOrder
+    unit?: SortOrder
+    wastePercent?: SortOrder
+    placement?: SortOrderInput | SortOrder
+    supplier?: SortOrderInput | SortOrder
+    supplierCode?: SortOrderInput | SortOrder
+    leadTime?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: BillOfMaterialCountOrderByAggregateInput
+    _avg?: BillOfMaterialAvgOrderByAggregateInput
+    _max?: BillOfMaterialMaxOrderByAggregateInput
+    _min?: BillOfMaterialMinOrderByAggregateInput
+    _sum?: BillOfMaterialSumOrderByAggregateInput
+  }
+
+  export type BillOfMaterialScalarWhereWithAggregatesInput = {
+    AND?: BillOfMaterialScalarWhereWithAggregatesInput | BillOfMaterialScalarWhereWithAggregatesInput[]
+    OR?: BillOfMaterialScalarWhereWithAggregatesInput[]
+    NOT?: BillOfMaterialScalarWhereWithAggregatesInput | BillOfMaterialScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"BillOfMaterial"> | number
+    collectionId?: IntWithAggregatesFilter<"BillOfMaterial"> | number
+    componentType?: EnumBOMComponentTypeWithAggregatesFilter<"BillOfMaterial"> | $Enums.BOMComponentType
+    libraryItemId?: IntNullableWithAggregatesFilter<"BillOfMaterial"> | number | null
+    componentName?: StringNullableWithAggregatesFilter<"BillOfMaterial"> | string | null
+    consumption?: FloatWithAggregatesFilter<"BillOfMaterial"> | number
+    unit?: StringWithAggregatesFilter<"BillOfMaterial"> | string
+    wastePercent?: FloatWithAggregatesFilter<"BillOfMaterial"> | number
+    placement?: StringNullableWithAggregatesFilter<"BillOfMaterial"> | string | null
+    supplier?: StringNullableWithAggregatesFilter<"BillOfMaterial"> | string | null
+    supplierCode?: StringNullableWithAggregatesFilter<"BillOfMaterial"> | string | null
+    leadTime?: IntNullableWithAggregatesFilter<"BillOfMaterial"> | number | null
+    notes?: StringNullableWithAggregatesFilter<"BillOfMaterial"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"BillOfMaterial"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"BillOfMaterial"> | Date | string
   }
 
   export type ProductionRevisionWhereInput = {
@@ -47505,6 +48949,7 @@ export namespace Prisma {
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateInput = {
@@ -47553,6 +48998,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUpdateInput = {
@@ -47600,6 +49046,7 @@ export namespace Prisma {
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateInput = {
@@ -47648,6 +49095,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionCreateManyInput = {
@@ -49237,6 +50685,7 @@ export namespace Prisma {
     certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialCreateNestedManyWithoutLibraryItemInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
 
@@ -49263,6 +50712,7 @@ export namespace Prisma {
     certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialUncheckedCreateNestedManyWithoutLibraryItemInput
   }
 
   export type LibraryItemUpdateInput = {
@@ -49286,6 +50736,7 @@ export namespace Prisma {
     certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUpdateManyWithoutLibraryItemNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
 
@@ -49312,6 +50763,7 @@ export namespace Prisma {
     certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUncheckedUpdateManyWithoutLibraryItemNestedInput
   }
 
   export type LibraryItemCreateManyInput = {
@@ -49369,6 +50821,127 @@ export namespace Prisma {
     companyId?: NullableIntFieldUpdateOperationsInput | number | null
     standardItemId?: NullableIntFieldUpdateOperationsInput | number | null
     createdById?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BillOfMaterialCreateInput = {
+    componentType?: $Enums.BOMComponentType
+    componentName?: string | null
+    consumption: number
+    unit: string
+    wastePercent?: number
+    placement?: string | null
+    supplier?: string | null
+    supplierCode?: string | null
+    leadTime?: number | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    collection: CollectionCreateNestedOneWithoutBillOfMaterialsInput
+    libraryItem?: LibraryItemCreateNestedOneWithoutBomUsagesInput
+  }
+
+  export type BillOfMaterialUncheckedCreateInput = {
+    id?: number
+    collectionId: number
+    componentType?: $Enums.BOMComponentType
+    libraryItemId?: number | null
+    componentName?: string | null
+    consumption: number
+    unit: string
+    wastePercent?: number
+    placement?: string | null
+    supplier?: string | null
+    supplierCode?: string | null
+    leadTime?: number | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BillOfMaterialUpdateInput = {
+    componentType?: EnumBOMComponentTypeFieldUpdateOperationsInput | $Enums.BOMComponentType
+    componentName?: NullableStringFieldUpdateOperationsInput | string | null
+    consumption?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    wastePercent?: FloatFieldUpdateOperationsInput | number
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
+    supplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierCode?: NullableStringFieldUpdateOperationsInput | string | null
+    leadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    collection?: CollectionUpdateOneRequiredWithoutBillOfMaterialsNestedInput
+    libraryItem?: LibraryItemUpdateOneWithoutBomUsagesNestedInput
+  }
+
+  export type BillOfMaterialUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    collectionId?: IntFieldUpdateOperationsInput | number
+    componentType?: EnumBOMComponentTypeFieldUpdateOperationsInput | $Enums.BOMComponentType
+    libraryItemId?: NullableIntFieldUpdateOperationsInput | number | null
+    componentName?: NullableStringFieldUpdateOperationsInput | string | null
+    consumption?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    wastePercent?: FloatFieldUpdateOperationsInput | number
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
+    supplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierCode?: NullableStringFieldUpdateOperationsInput | string | null
+    leadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BillOfMaterialCreateManyInput = {
+    id?: number
+    collectionId: number
+    componentType?: $Enums.BOMComponentType
+    libraryItemId?: number | null
+    componentName?: string | null
+    consumption: number
+    unit: string
+    wastePercent?: number
+    placement?: string | null
+    supplier?: string | null
+    supplierCode?: string | null
+    leadTime?: number | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BillOfMaterialUpdateManyMutationInput = {
+    componentType?: EnumBOMComponentTypeFieldUpdateOperationsInput | $Enums.BOMComponentType
+    componentName?: NullableStringFieldUpdateOperationsInput | string | null
+    consumption?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    wastePercent?: FloatFieldUpdateOperationsInput | number
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
+    supplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierCode?: NullableStringFieldUpdateOperationsInput | string | null
+    leadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BillOfMaterialUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    collectionId?: IntFieldUpdateOperationsInput | number
+    componentType?: EnumBOMComponentTypeFieldUpdateOperationsInput | $Enums.BOMComponentType
+    libraryItemId?: NullableIntFieldUpdateOperationsInput | number | null
+    componentName?: NullableStringFieldUpdateOperationsInput | string | null
+    consumption?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    wastePercent?: FloatFieldUpdateOperationsInput | number
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
+    supplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierCode?: NullableStringFieldUpdateOperationsInput | string | null
+    leadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -51981,6 +53554,16 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
+  export type BillOfMaterialListRelationFilter = {
+    every?: BillOfMaterialWhereInput
+    some?: BillOfMaterialWhereInput
+    none?: BillOfMaterialWhereInput
+  }
+
+  export type BillOfMaterialOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type CollectionOrderByRelevanceInput = {
     fields: CollectionOrderByRelevanceFieldEnum | CollectionOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -53326,6 +54909,101 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumLibraryCategoryFilter<$PrismaModel>
     _max?: NestedEnumLibraryCategoryFilter<$PrismaModel>
+  }
+
+  export type EnumBOMComponentTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.BOMComponentType | EnumBOMComponentTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BOMComponentType[]
+    notIn?: $Enums.BOMComponentType[]
+    not?: NestedEnumBOMComponentTypeFilter<$PrismaModel> | $Enums.BOMComponentType
+  }
+
+  export type BillOfMaterialOrderByRelevanceInput = {
+    fields: BillOfMaterialOrderByRelevanceFieldEnum | BillOfMaterialOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type BillOfMaterialCountOrderByAggregateInput = {
+    id?: SortOrder
+    collectionId?: SortOrder
+    componentType?: SortOrder
+    libraryItemId?: SortOrder
+    componentName?: SortOrder
+    consumption?: SortOrder
+    unit?: SortOrder
+    wastePercent?: SortOrder
+    placement?: SortOrder
+    supplier?: SortOrder
+    supplierCode?: SortOrder
+    leadTime?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BillOfMaterialAvgOrderByAggregateInput = {
+    id?: SortOrder
+    collectionId?: SortOrder
+    libraryItemId?: SortOrder
+    consumption?: SortOrder
+    wastePercent?: SortOrder
+    leadTime?: SortOrder
+  }
+
+  export type BillOfMaterialMaxOrderByAggregateInput = {
+    id?: SortOrder
+    collectionId?: SortOrder
+    componentType?: SortOrder
+    libraryItemId?: SortOrder
+    componentName?: SortOrder
+    consumption?: SortOrder
+    unit?: SortOrder
+    wastePercent?: SortOrder
+    placement?: SortOrder
+    supplier?: SortOrder
+    supplierCode?: SortOrder
+    leadTime?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BillOfMaterialMinOrderByAggregateInput = {
+    id?: SortOrder
+    collectionId?: SortOrder
+    componentType?: SortOrder
+    libraryItemId?: SortOrder
+    componentName?: SortOrder
+    consumption?: SortOrder
+    unit?: SortOrder
+    wastePercent?: SortOrder
+    placement?: SortOrder
+    supplier?: SortOrder
+    supplierCode?: SortOrder
+    leadTime?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BillOfMaterialSumOrderByAggregateInput = {
+    id?: SortOrder
+    collectionId?: SortOrder
+    libraryItemId?: SortOrder
+    consumption?: SortOrder
+    wastePercent?: SortOrder
+    leadTime?: SortOrder
+  }
+
+  export type EnumBOMComponentTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BOMComponentType | EnumBOMComponentTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BOMComponentType[]
+    notIn?: $Enums.BOMComponentType[]
+    not?: NestedEnumBOMComponentTypeWithAggregatesFilter<$PrismaModel> | $Enums.BOMComponentType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBOMComponentTypeFilter<$PrismaModel>
+    _max?: NestedEnumBOMComponentTypeFilter<$PrismaModel>
   }
 
   export type ProductionRevisionOrderByRelevanceInput = {
@@ -57117,6 +58795,13 @@ export namespace Prisma {
     connect?: CompanyWhereUniqueInput
   }
 
+  export type BillOfMaterialCreateNestedManyWithoutCollectionInput = {
+    create?: XOR<BillOfMaterialCreateWithoutCollectionInput, BillOfMaterialUncheckedCreateWithoutCollectionInput> | BillOfMaterialCreateWithoutCollectionInput[] | BillOfMaterialUncheckedCreateWithoutCollectionInput[]
+    connectOrCreate?: BillOfMaterialCreateOrConnectWithoutCollectionInput | BillOfMaterialCreateOrConnectWithoutCollectionInput[]
+    createMany?: BillOfMaterialCreateManyCollectionInputEnvelope
+    connect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+  }
+
   export type LibraryItemUncheckedCreateNestedManyWithoutCollectionsInput = {
     create?: XOR<LibraryItemCreateWithoutCollectionsInput, LibraryItemUncheckedCreateWithoutCollectionsInput> | LibraryItemCreateWithoutCollectionsInput[] | LibraryItemUncheckedCreateWithoutCollectionsInput[]
     connectOrCreate?: LibraryItemCreateOrConnectWithoutCollectionsInput | LibraryItemCreateOrConnectWithoutCollectionsInput[]
@@ -57170,6 +58855,13 @@ export namespace Prisma {
     connectOrCreate?: TaskCreateOrConnectWithoutCollectionInput | TaskCreateOrConnectWithoutCollectionInput[]
     createMany?: TaskCreateManyCollectionInputEnvelope
     connect?: TaskWhereUniqueInput | TaskWhereUniqueInput[]
+  }
+
+  export type BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput = {
+    create?: XOR<BillOfMaterialCreateWithoutCollectionInput, BillOfMaterialUncheckedCreateWithoutCollectionInput> | BillOfMaterialCreateWithoutCollectionInput[] | BillOfMaterialUncheckedCreateWithoutCollectionInput[]
+    connectOrCreate?: BillOfMaterialCreateOrConnectWithoutCollectionInput | BillOfMaterialCreateOrConnectWithoutCollectionInput[]
+    createMany?: BillOfMaterialCreateManyCollectionInputEnvelope
+    connect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
   }
 
   export type NullableEnumSeasonFieldUpdateOperationsInput = {
@@ -57339,6 +59031,20 @@ export namespace Prisma {
     update?: XOR<XOR<CompanyUpdateToOneWithWhereWithoutCollectionsInput, CompanyUpdateWithoutCollectionsInput>, CompanyUncheckedUpdateWithoutCollectionsInput>
   }
 
+  export type BillOfMaterialUpdateManyWithoutCollectionNestedInput = {
+    create?: XOR<BillOfMaterialCreateWithoutCollectionInput, BillOfMaterialUncheckedCreateWithoutCollectionInput> | BillOfMaterialCreateWithoutCollectionInput[] | BillOfMaterialUncheckedCreateWithoutCollectionInput[]
+    connectOrCreate?: BillOfMaterialCreateOrConnectWithoutCollectionInput | BillOfMaterialCreateOrConnectWithoutCollectionInput[]
+    upsert?: BillOfMaterialUpsertWithWhereUniqueWithoutCollectionInput | BillOfMaterialUpsertWithWhereUniqueWithoutCollectionInput[]
+    createMany?: BillOfMaterialCreateManyCollectionInputEnvelope
+    set?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    disconnect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    delete?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    connect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    update?: BillOfMaterialUpdateWithWhereUniqueWithoutCollectionInput | BillOfMaterialUpdateWithWhereUniqueWithoutCollectionInput[]
+    updateMany?: BillOfMaterialUpdateManyWithWhereWithoutCollectionInput | BillOfMaterialUpdateManyWithWhereWithoutCollectionInput[]
+    deleteMany?: BillOfMaterialScalarWhereInput | BillOfMaterialScalarWhereInput[]
+  }
+
   export type LibraryItemUncheckedUpdateManyWithoutCollectionsNestedInput = {
     create?: XOR<LibraryItemCreateWithoutCollectionsInput, LibraryItemUncheckedCreateWithoutCollectionsInput> | LibraryItemCreateWithoutCollectionsInput[] | LibraryItemUncheckedCreateWithoutCollectionsInput[]
     connectOrCreate?: LibraryItemCreateOrConnectWithoutCollectionsInput | LibraryItemCreateOrConnectWithoutCollectionsInput[]
@@ -57448,6 +59154,20 @@ export namespace Prisma {
     update?: TaskUpdateWithWhereUniqueWithoutCollectionInput | TaskUpdateWithWhereUniqueWithoutCollectionInput[]
     updateMany?: TaskUpdateManyWithWhereWithoutCollectionInput | TaskUpdateManyWithWhereWithoutCollectionInput[]
     deleteMany?: TaskScalarWhereInput | TaskScalarWhereInput[]
+  }
+
+  export type BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput = {
+    create?: XOR<BillOfMaterialCreateWithoutCollectionInput, BillOfMaterialUncheckedCreateWithoutCollectionInput> | BillOfMaterialCreateWithoutCollectionInput[] | BillOfMaterialUncheckedCreateWithoutCollectionInput[]
+    connectOrCreate?: BillOfMaterialCreateOrConnectWithoutCollectionInput | BillOfMaterialCreateOrConnectWithoutCollectionInput[]
+    upsert?: BillOfMaterialUpsertWithWhereUniqueWithoutCollectionInput | BillOfMaterialUpsertWithWhereUniqueWithoutCollectionInput[]
+    createMany?: BillOfMaterialCreateManyCollectionInputEnvelope
+    set?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    disconnect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    delete?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    connect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    update?: BillOfMaterialUpdateWithWhereUniqueWithoutCollectionInput | BillOfMaterialUpdateWithWhereUniqueWithoutCollectionInput[]
+    updateMany?: BillOfMaterialUpdateManyWithWhereWithoutCollectionInput | BillOfMaterialUpdateManyWithWhereWithoutCollectionInput[]
+    deleteMany?: BillOfMaterialScalarWhereInput | BillOfMaterialScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutFavoriteCollectionsInput = {
@@ -58493,6 +60213,13 @@ export namespace Prisma {
     connect?: CollectionWhereUniqueInput | CollectionWhereUniqueInput[]
   }
 
+  export type BillOfMaterialCreateNestedManyWithoutLibraryItemInput = {
+    create?: XOR<BillOfMaterialCreateWithoutLibraryItemInput, BillOfMaterialUncheckedCreateWithoutLibraryItemInput> | BillOfMaterialCreateWithoutLibraryItemInput[] | BillOfMaterialUncheckedCreateWithoutLibraryItemInput[]
+    connectOrCreate?: BillOfMaterialCreateOrConnectWithoutLibraryItemInput | BillOfMaterialCreateOrConnectWithoutLibraryItemInput[]
+    createMany?: BillOfMaterialCreateManyLibraryItemInputEnvelope
+    connect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+  }
+
   export type UserCreateNestedOneWithoutCreatedLibraryItemsInput = {
     create?: XOR<UserCreateWithoutCreatedLibraryItemsInput, UserUncheckedCreateWithoutCreatedLibraryItemsInput>
     connectOrCreate?: UserCreateOrConnectWithoutCreatedLibraryItemsInput
@@ -58522,6 +60249,13 @@ export namespace Prisma {
     create?: XOR<CollectionCreateWithoutCertificationsInput, CollectionUncheckedCreateWithoutCertificationsInput> | CollectionCreateWithoutCertificationsInput[] | CollectionUncheckedCreateWithoutCertificationsInput[]
     connectOrCreate?: CollectionCreateOrConnectWithoutCertificationsInput | CollectionCreateOrConnectWithoutCertificationsInput[]
     connect?: CollectionWhereUniqueInput | CollectionWhereUniqueInput[]
+  }
+
+  export type BillOfMaterialUncheckedCreateNestedManyWithoutLibraryItemInput = {
+    create?: XOR<BillOfMaterialCreateWithoutLibraryItemInput, BillOfMaterialUncheckedCreateWithoutLibraryItemInput> | BillOfMaterialCreateWithoutLibraryItemInput[] | BillOfMaterialUncheckedCreateWithoutLibraryItemInput[]
+    connectOrCreate?: BillOfMaterialCreateOrConnectWithoutLibraryItemInput | BillOfMaterialCreateOrConnectWithoutLibraryItemInput[]
+    createMany?: BillOfMaterialCreateManyLibraryItemInputEnvelope
+    connect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
   }
 
   export type EnumLibraryScopeFieldUpdateOperationsInput = {
@@ -58605,6 +60339,20 @@ export namespace Prisma {
     deleteMany?: CollectionScalarWhereInput | CollectionScalarWhereInput[]
   }
 
+  export type BillOfMaterialUpdateManyWithoutLibraryItemNestedInput = {
+    create?: XOR<BillOfMaterialCreateWithoutLibraryItemInput, BillOfMaterialUncheckedCreateWithoutLibraryItemInput> | BillOfMaterialCreateWithoutLibraryItemInput[] | BillOfMaterialUncheckedCreateWithoutLibraryItemInput[]
+    connectOrCreate?: BillOfMaterialCreateOrConnectWithoutLibraryItemInput | BillOfMaterialCreateOrConnectWithoutLibraryItemInput[]
+    upsert?: BillOfMaterialUpsertWithWhereUniqueWithoutLibraryItemInput | BillOfMaterialUpsertWithWhereUniqueWithoutLibraryItemInput[]
+    createMany?: BillOfMaterialCreateManyLibraryItemInputEnvelope
+    set?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    disconnect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    delete?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    connect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    update?: BillOfMaterialUpdateWithWhereUniqueWithoutLibraryItemInput | BillOfMaterialUpdateWithWhereUniqueWithoutLibraryItemInput[]
+    updateMany?: BillOfMaterialUpdateManyWithWhereWithoutLibraryItemInput | BillOfMaterialUpdateManyWithWhereWithoutLibraryItemInput[]
+    deleteMany?: BillOfMaterialScalarWhereInput | BillOfMaterialScalarWhereInput[]
+  }
+
   export type UserUpdateOneWithoutCreatedLibraryItemsNestedInput = {
     create?: XOR<UserCreateWithoutCreatedLibraryItemsInput, UserUncheckedCreateWithoutCreatedLibraryItemsInput>
     connectOrCreate?: UserCreateOrConnectWithoutCreatedLibraryItemsInput
@@ -58666,6 +60414,54 @@ export namespace Prisma {
     update?: CollectionUpdateWithWhereUniqueWithoutCertificationsInput | CollectionUpdateWithWhereUniqueWithoutCertificationsInput[]
     updateMany?: CollectionUpdateManyWithWhereWithoutCertificationsInput | CollectionUpdateManyWithWhereWithoutCertificationsInput[]
     deleteMany?: CollectionScalarWhereInput | CollectionScalarWhereInput[]
+  }
+
+  export type BillOfMaterialUncheckedUpdateManyWithoutLibraryItemNestedInput = {
+    create?: XOR<BillOfMaterialCreateWithoutLibraryItemInput, BillOfMaterialUncheckedCreateWithoutLibraryItemInput> | BillOfMaterialCreateWithoutLibraryItemInput[] | BillOfMaterialUncheckedCreateWithoutLibraryItemInput[]
+    connectOrCreate?: BillOfMaterialCreateOrConnectWithoutLibraryItemInput | BillOfMaterialCreateOrConnectWithoutLibraryItemInput[]
+    upsert?: BillOfMaterialUpsertWithWhereUniqueWithoutLibraryItemInput | BillOfMaterialUpsertWithWhereUniqueWithoutLibraryItemInput[]
+    createMany?: BillOfMaterialCreateManyLibraryItemInputEnvelope
+    set?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    disconnect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    delete?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    connect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
+    update?: BillOfMaterialUpdateWithWhereUniqueWithoutLibraryItemInput | BillOfMaterialUpdateWithWhereUniqueWithoutLibraryItemInput[]
+    updateMany?: BillOfMaterialUpdateManyWithWhereWithoutLibraryItemInput | BillOfMaterialUpdateManyWithWhereWithoutLibraryItemInput[]
+    deleteMany?: BillOfMaterialScalarWhereInput | BillOfMaterialScalarWhereInput[]
+  }
+
+  export type CollectionCreateNestedOneWithoutBillOfMaterialsInput = {
+    create?: XOR<CollectionCreateWithoutBillOfMaterialsInput, CollectionUncheckedCreateWithoutBillOfMaterialsInput>
+    connectOrCreate?: CollectionCreateOrConnectWithoutBillOfMaterialsInput
+    connect?: CollectionWhereUniqueInput
+  }
+
+  export type LibraryItemCreateNestedOneWithoutBomUsagesInput = {
+    create?: XOR<LibraryItemCreateWithoutBomUsagesInput, LibraryItemUncheckedCreateWithoutBomUsagesInput>
+    connectOrCreate?: LibraryItemCreateOrConnectWithoutBomUsagesInput
+    connect?: LibraryItemWhereUniqueInput
+  }
+
+  export type EnumBOMComponentTypeFieldUpdateOperationsInput = {
+    set?: $Enums.BOMComponentType
+  }
+
+  export type CollectionUpdateOneRequiredWithoutBillOfMaterialsNestedInput = {
+    create?: XOR<CollectionCreateWithoutBillOfMaterialsInput, CollectionUncheckedCreateWithoutBillOfMaterialsInput>
+    connectOrCreate?: CollectionCreateOrConnectWithoutBillOfMaterialsInput
+    upsert?: CollectionUpsertWithoutBillOfMaterialsInput
+    connect?: CollectionWhereUniqueInput
+    update?: XOR<XOR<CollectionUpdateToOneWithWhereWithoutBillOfMaterialsInput, CollectionUpdateWithoutBillOfMaterialsInput>, CollectionUncheckedUpdateWithoutBillOfMaterialsInput>
+  }
+
+  export type LibraryItemUpdateOneWithoutBomUsagesNestedInput = {
+    create?: XOR<LibraryItemCreateWithoutBomUsagesInput, LibraryItemUncheckedCreateWithoutBomUsagesInput>
+    connectOrCreate?: LibraryItemCreateOrConnectWithoutBomUsagesInput
+    upsert?: LibraryItemUpsertWithoutBomUsagesInput
+    disconnect?: LibraryItemWhereInput | boolean
+    delete?: LibraryItemWhereInput | boolean
+    connect?: LibraryItemWhereUniqueInput
+    update?: XOR<XOR<LibraryItemUpdateToOneWithWhereWithoutBomUsagesInput, LibraryItemUpdateWithoutBomUsagesInput>, LibraryItemUncheckedUpdateWithoutBomUsagesInput>
   }
 
   export type ProductionTrackingCreateNestedOneWithoutProductionRevisionsInput = {
@@ -59713,6 +61509,23 @@ export namespace Prisma {
     _max?: NestedEnumLibraryCategoryFilter<$PrismaModel>
   }
 
+  export type NestedEnumBOMComponentTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.BOMComponentType | EnumBOMComponentTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BOMComponentType[]
+    notIn?: $Enums.BOMComponentType[]
+    not?: NestedEnumBOMComponentTypeFilter<$PrismaModel> | $Enums.BOMComponentType
+  }
+
+  export type NestedEnumBOMComponentTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BOMComponentType | EnumBOMComponentTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BOMComponentType[]
+    notIn?: $Enums.BOMComponentType[]
+    not?: NestedEnumBOMComponentTypeWithAggregatesFilter<$PrismaModel> | $Enums.BOMComponentType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBOMComponentTypeFilter<$PrismaModel>
+    _max?: NestedEnumBOMComponentTypeFilter<$PrismaModel>
+  }
+
   export type NestedEnumNotificationTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.NotificationType | EnumNotificationTypeFieldRefInput<$PrismaModel>
     in?: $Enums.NotificationType[]
@@ -60259,6 +62072,7 @@ export namespace Prisma {
     questions?: QuestionCreateNestedManyWithoutCollectionInput
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutCompanyInput = {
@@ -60306,6 +62120,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutCompanyInput = {
@@ -60606,6 +62421,7 @@ export namespace Prisma {
     certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialCreateNestedManyWithoutLibraryItemInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
 
@@ -60631,6 +62447,7 @@ export namespace Prisma {
     certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialUncheckedCreateNestedManyWithoutLibraryItemInput
   }
 
   export type LibraryItemCreateOrConnectWithoutCompanyInput = {
@@ -64947,6 +66764,7 @@ export namespace Prisma {
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutAuthorInput = {
@@ -64994,6 +66812,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutAuthorInput = {
@@ -66049,6 +67868,7 @@ export namespace Prisma {
     certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialCreateNestedManyWithoutLibraryItemInput
   }
 
   export type LibraryItemUncheckedCreateWithoutCreatedByInput = {
@@ -66073,6 +67893,7 @@ export namespace Prisma {
     certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialUncheckedCreateNestedManyWithoutLibraryItemInput
   }
 
   export type LibraryItemCreateOrConnectWithoutCreatedByInput = {
@@ -67659,6 +69480,7 @@ export namespace Prisma {
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutCompanyCategoryInput = {
@@ -67706,6 +69528,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutCompanyCategoryInput = {
@@ -68536,6 +70359,7 @@ export namespace Prisma {
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutCategoryInput = {
@@ -68583,6 +70407,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutCategoryInput = {
@@ -69140,6 +70965,7 @@ export namespace Prisma {
     companyItems?: LibraryItemCreateNestedManyWithoutStandardItemInput
     certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialCreateNestedManyWithoutLibraryItemInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
 
@@ -69165,6 +70991,7 @@ export namespace Prisma {
     companyItems?: LibraryItemUncheckedCreateNestedManyWithoutStandardItemInput
     certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialUncheckedCreateNestedManyWithoutLibraryItemInput
   }
 
   export type LibraryItemCreateOrConnectWithoutCollectionsInput = {
@@ -69921,6 +71748,49 @@ export namespace Prisma {
     create: XOR<CompanyCreateWithoutCollectionsInput, CompanyUncheckedCreateWithoutCollectionsInput>
   }
 
+  export type BillOfMaterialCreateWithoutCollectionInput = {
+    componentType?: $Enums.BOMComponentType
+    componentName?: string | null
+    consumption: number
+    unit: string
+    wastePercent?: number
+    placement?: string | null
+    supplier?: string | null
+    supplierCode?: string | null
+    leadTime?: number | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    libraryItem?: LibraryItemCreateNestedOneWithoutBomUsagesInput
+  }
+
+  export type BillOfMaterialUncheckedCreateWithoutCollectionInput = {
+    id?: number
+    componentType?: $Enums.BOMComponentType
+    libraryItemId?: number | null
+    componentName?: string | null
+    consumption: number
+    unit: string
+    wastePercent?: number
+    placement?: string | null
+    supplier?: string | null
+    supplierCode?: string | null
+    leadTime?: number | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BillOfMaterialCreateOrConnectWithoutCollectionInput = {
+    where: BillOfMaterialWhereUniqueInput
+    create: XOR<BillOfMaterialCreateWithoutCollectionInput, BillOfMaterialUncheckedCreateWithoutCollectionInput>
+  }
+
+  export type BillOfMaterialCreateManyCollectionInputEnvelope = {
+    data: BillOfMaterialCreateManyCollectionInput | BillOfMaterialCreateManyCollectionInput[]
+    skipDuplicates?: boolean
+  }
+
   export type LibraryItemUpsertWithWhereUniqueWithoutCollectionsInput = {
     where: LibraryItemWhereUniqueInput
     update: XOR<LibraryItemUpdateWithoutCollectionsInput, LibraryItemUncheckedUpdateWithoutCollectionsInput>
@@ -70405,6 +72275,43 @@ export namespace Prisma {
     metrics?: CompanyMetricsUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
+  export type BillOfMaterialUpsertWithWhereUniqueWithoutCollectionInput = {
+    where: BillOfMaterialWhereUniqueInput
+    update: XOR<BillOfMaterialUpdateWithoutCollectionInput, BillOfMaterialUncheckedUpdateWithoutCollectionInput>
+    create: XOR<BillOfMaterialCreateWithoutCollectionInput, BillOfMaterialUncheckedCreateWithoutCollectionInput>
+  }
+
+  export type BillOfMaterialUpdateWithWhereUniqueWithoutCollectionInput = {
+    where: BillOfMaterialWhereUniqueInput
+    data: XOR<BillOfMaterialUpdateWithoutCollectionInput, BillOfMaterialUncheckedUpdateWithoutCollectionInput>
+  }
+
+  export type BillOfMaterialUpdateManyWithWhereWithoutCollectionInput = {
+    where: BillOfMaterialScalarWhereInput
+    data: XOR<BillOfMaterialUpdateManyMutationInput, BillOfMaterialUncheckedUpdateManyWithoutCollectionInput>
+  }
+
+  export type BillOfMaterialScalarWhereInput = {
+    AND?: BillOfMaterialScalarWhereInput | BillOfMaterialScalarWhereInput[]
+    OR?: BillOfMaterialScalarWhereInput[]
+    NOT?: BillOfMaterialScalarWhereInput | BillOfMaterialScalarWhereInput[]
+    id?: IntFilter<"BillOfMaterial"> | number
+    collectionId?: IntFilter<"BillOfMaterial"> | number
+    componentType?: EnumBOMComponentTypeFilter<"BillOfMaterial"> | $Enums.BOMComponentType
+    libraryItemId?: IntNullableFilter<"BillOfMaterial"> | number | null
+    componentName?: StringNullableFilter<"BillOfMaterial"> | string | null
+    consumption?: FloatFilter<"BillOfMaterial"> | number
+    unit?: StringFilter<"BillOfMaterial"> | string
+    wastePercent?: FloatFilter<"BillOfMaterial"> | number
+    placement?: StringNullableFilter<"BillOfMaterial"> | string | null
+    supplier?: StringNullableFilter<"BillOfMaterial"> | string | null
+    supplierCode?: StringNullableFilter<"BillOfMaterial"> | string | null
+    leadTime?: IntNullableFilter<"BillOfMaterial"> | number | null
+    notes?: StringNullableFilter<"BillOfMaterial"> | string | null
+    createdAt?: DateTimeFilter<"BillOfMaterial"> | Date | string
+    updatedAt?: DateTimeFilter<"BillOfMaterial"> | Date | string
+  }
+
   export type UserCreateWithoutFavoriteCollectionsInput = {
     email: string
     password: string
@@ -70575,6 +72482,7 @@ export namespace Prisma {
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutFavoritedByInput = {
@@ -70622,6 +72530,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutFavoritedByInput = {
@@ -70816,6 +72725,7 @@ export namespace Prisma {
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutFavoritedByInput = {
@@ -70863,6 +72773,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionCreateWithoutSamplesInput = {
@@ -70909,6 +72820,7 @@ export namespace Prisma {
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutSamplesInput = {
@@ -70956,6 +72868,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutSamplesInput = {
@@ -71007,6 +72920,7 @@ export namespace Prisma {
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutRevisedSamplesInput = {
@@ -71054,6 +72968,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutRevisedSamplesInput = {
@@ -71810,6 +73725,7 @@ export namespace Prisma {
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutSamplesInput = {
@@ -71857,6 +73773,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUpsertWithoutRevisedSamplesInput = {
@@ -71914,6 +73831,7 @@ export namespace Prisma {
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutRevisedSamplesInput = {
@@ -71961,6 +73879,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type UserUpsertWithoutCustomerSamplesInput = {
@@ -73213,6 +75132,7 @@ export namespace Prisma {
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutOrdersInput = {
@@ -73260,6 +75180,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutOrdersInput = {
@@ -73958,6 +75879,7 @@ export namespace Prisma {
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutOrdersInput = {
@@ -74005,6 +75927,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type UserUpsertWithoutCustomerOrdersInput = {
@@ -74955,6 +76878,7 @@ export namespace Prisma {
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutQuestionsInput = {
@@ -75002,6 +76926,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutQuestionsInput = {
@@ -75316,6 +77241,7 @@ export namespace Prisma {
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutQuestionsInput = {
@@ -75363,6 +77289,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type UserUpsertWithoutCustomerQuestionsInput = {
@@ -75673,6 +77600,7 @@ export namespace Prisma {
     questions?: QuestionCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutReviewsInput = {
@@ -75720,6 +77648,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutCollectionInput
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutReviewsInput = {
@@ -75908,6 +77837,7 @@ export namespace Prisma {
     questions?: QuestionUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutReviewsInput = {
@@ -75955,6 +77885,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutCollectionNestedInput
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type UserUpsertWithoutCustomerReviewsInput = {
@@ -77121,6 +79052,7 @@ export namespace Prisma {
     certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialCreateNestedManyWithoutLibraryItemInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
 
@@ -77146,6 +79078,7 @@ export namespace Prisma {
     certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialUncheckedCreateNestedManyWithoutLibraryItemInput
   }
 
   export type LibraryItemCreateOrConnectWithoutCompanyItemsInput = {
@@ -77173,6 +79106,7 @@ export namespace Prisma {
     certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialCreateNestedManyWithoutLibraryItemInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
 
@@ -77198,6 +79132,7 @@ export namespace Prisma {
     certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
     certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialUncheckedCreateNestedManyWithoutLibraryItemInput
   }
 
   export type LibraryItemCreateOrConnectWithoutStandardItemInput = {
@@ -77230,6 +79165,7 @@ export namespace Prisma {
     companyItems?: LibraryItemCreateNestedManyWithoutStandardItemInput
     certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialCreateNestedManyWithoutLibraryItemInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
 
@@ -77255,6 +79191,7 @@ export namespace Prisma {
     companyItems?: LibraryItemUncheckedCreateNestedManyWithoutStandardItemInput
     certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialUncheckedCreateNestedManyWithoutLibraryItemInput
   }
 
   export type LibraryItemCreateOrConnectWithoutCertifiedItemsInput = {
@@ -77282,6 +79219,7 @@ export namespace Prisma {
     companyItems?: LibraryItemCreateNestedManyWithoutStandardItemInput
     certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
     collections?: CollectionCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialCreateNestedManyWithoutLibraryItemInput
     createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
   }
 
@@ -77307,6 +79245,7 @@ export namespace Prisma {
     companyItems?: LibraryItemUncheckedCreateNestedManyWithoutStandardItemInput
     certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
     collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
+    bomUsages?: BillOfMaterialUncheckedCreateNestedManyWithoutLibraryItemInput
   }
 
   export type LibraryItemCreateOrConnectWithoutCertificationsInput = {
@@ -77358,6 +79297,7 @@ export namespace Prisma {
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     tasks?: TaskCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutCertificationsInput = {
@@ -77405,11 +79345,55 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
     tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutCertificationsInput = {
     where: CollectionWhereUniqueInput
     create: XOR<CollectionCreateWithoutCertificationsInput, CollectionUncheckedCreateWithoutCertificationsInput>
+  }
+
+  export type BillOfMaterialCreateWithoutLibraryItemInput = {
+    componentType?: $Enums.BOMComponentType
+    componentName?: string | null
+    consumption: number
+    unit: string
+    wastePercent?: number
+    placement?: string | null
+    supplier?: string | null
+    supplierCode?: string | null
+    leadTime?: number | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    collection: CollectionCreateNestedOneWithoutBillOfMaterialsInput
+  }
+
+  export type BillOfMaterialUncheckedCreateWithoutLibraryItemInput = {
+    id?: number
+    collectionId: number
+    componentType?: $Enums.BOMComponentType
+    componentName?: string | null
+    consumption: number
+    unit: string
+    wastePercent?: number
+    placement?: string | null
+    supplier?: string | null
+    supplierCode?: string | null
+    leadTime?: number | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BillOfMaterialCreateOrConnectWithoutLibraryItemInput = {
+    where: BillOfMaterialWhereUniqueInput
+    create: XOR<BillOfMaterialCreateWithoutLibraryItemInput, BillOfMaterialUncheckedCreateWithoutLibraryItemInput>
+  }
+
+  export type BillOfMaterialCreateManyLibraryItemInputEnvelope = {
+    data: BillOfMaterialCreateManyLibraryItemInput | BillOfMaterialCreateManyLibraryItemInput[]
+    skipDuplicates?: boolean
   }
 
   export type UserCreateWithoutCreatedLibraryItemsInput = {
@@ -77705,6 +79689,7 @@ export namespace Prisma {
     certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUpdateManyWithoutLibraryItemNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
 
@@ -77730,6 +79715,7 @@ export namespace Prisma {
     certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUncheckedUpdateManyWithoutLibraryItemNestedInput
   }
 
   export type LibraryItemUpsertWithWhereUniqueWithoutStandardItemInput = {
@@ -77794,6 +79780,22 @@ export namespace Prisma {
   export type CollectionUpdateManyWithWhereWithoutCertificationsInput = {
     where: CollectionScalarWhereInput
     data: XOR<CollectionUpdateManyMutationInput, CollectionUncheckedUpdateManyWithoutCertificationsInput>
+  }
+
+  export type BillOfMaterialUpsertWithWhereUniqueWithoutLibraryItemInput = {
+    where: BillOfMaterialWhereUniqueInput
+    update: XOR<BillOfMaterialUpdateWithoutLibraryItemInput, BillOfMaterialUncheckedUpdateWithoutLibraryItemInput>
+    create: XOR<BillOfMaterialCreateWithoutLibraryItemInput, BillOfMaterialUncheckedCreateWithoutLibraryItemInput>
+  }
+
+  export type BillOfMaterialUpdateWithWhereUniqueWithoutLibraryItemInput = {
+    where: BillOfMaterialWhereUniqueInput
+    data: XOR<BillOfMaterialUpdateWithoutLibraryItemInput, BillOfMaterialUncheckedUpdateWithoutLibraryItemInput>
+  }
+
+  export type BillOfMaterialUpdateManyWithWhereWithoutLibraryItemInput = {
+    where: BillOfMaterialScalarWhereInput
+    data: XOR<BillOfMaterialUpdateManyMutationInput, BillOfMaterialUncheckedUpdateManyWithoutLibraryItemInput>
   }
 
   export type UserUpsertWithoutCreatedLibraryItemsInput = {
@@ -77926,6 +79928,326 @@ export namespace Prisma {
     approvedPartnerships?: CompanyPartnershipUncheckedUpdateManyWithoutApprovedByNestedInput
     createdCategoryMappings?: SharedCategoryMappingUncheckedUpdateManyWithoutCreatedByNestedInput
     createdReports?: AdminReportUncheckedUpdateManyWithoutCreatedByNestedInput
+  }
+
+  export type CollectionCreateWithoutBillOfMaterialsInput = {
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    name: string
+    description?: string | null
+    modelCode: string
+    season?: $Enums.Season | null
+    gender?: $Enums.Gender | null
+    fit?: string | null
+    trend?: string | null
+    colors?: string | null
+    sizeGroups?: string | null
+    sizeRange?: string | null
+    measurementChart?: string | null
+    fabricComposition?: string | null
+    accessories?: string | null
+    images?: string | null
+    techPack?: string | null
+    moq?: number | null
+    targetPrice?: number | null
+    targetLeadTime?: number | null
+    notes?: string | null
+    likesCount?: number
+    viewCount?: number
+    shareCount?: number
+    lastViewedAt?: Date | string | null
+    price?: number
+    sku?: string | null
+    stock?: number
+    isActive?: boolean
+    isFeatured?: boolean
+    slug?: string | null
+    productionSchedule?: NullableJsonNullValueInput | InputJsonValue
+    certifications?: LibraryItemCreateNestedManyWithoutCollectionsInput
+    favoritedBy?: UserFavoriteCollectionCreateNestedManyWithoutCollectionInput
+    category?: CategoryCreateNestedOneWithoutCollectionsInput
+    companyCategory?: CompanyCategoryCreateNestedOneWithoutCollectionsInput
+    author?: UserCreateNestedOneWithoutCollectionsInput
+    samples?: SampleCreateNestedManyWithoutCollectionInput
+    revisedSamples?: SampleCreateNestedManyWithoutOriginalCollectionInput
+    orders?: OrderCreateNestedManyWithoutCollectionInput
+    questions?: QuestionCreateNestedManyWithoutCollectionInput
+    reviews?: ReviewCreateNestedManyWithoutCollectionInput
+    tasks?: TaskCreateNestedManyWithoutCollectionInput
+    company?: CompanyCreateNestedOneWithoutCollectionsInput
+  }
+
+  export type CollectionUncheckedCreateWithoutBillOfMaterialsInput = {
+    id?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    name: string
+    description?: string | null
+    modelCode: string
+    season?: $Enums.Season | null
+    gender?: $Enums.Gender | null
+    fit?: string | null
+    trend?: string | null
+    colors?: string | null
+    sizeGroups?: string | null
+    sizeRange?: string | null
+    measurementChart?: string | null
+    fabricComposition?: string | null
+    accessories?: string | null
+    images?: string | null
+    techPack?: string | null
+    moq?: number | null
+    targetPrice?: number | null
+    targetLeadTime?: number | null
+    notes?: string | null
+    likesCount?: number
+    viewCount?: number
+    shareCount?: number
+    lastViewedAt?: Date | string | null
+    price?: number
+    sku?: string | null
+    stock?: number
+    isActive?: boolean
+    isFeatured?: boolean
+    slug?: string | null
+    productionSchedule?: NullableJsonNullValueInput | InputJsonValue
+    categoryId?: number | null
+    companyCategoryId?: number | null
+    authorId?: number | null
+    companyId?: number | null
+    certifications?: LibraryItemUncheckedCreateNestedManyWithoutCollectionsInput
+    favoritedBy?: UserFavoriteCollectionUncheckedCreateNestedManyWithoutCollectionInput
+    samples?: SampleUncheckedCreateNestedManyWithoutCollectionInput
+    revisedSamples?: SampleUncheckedCreateNestedManyWithoutOriginalCollectionInput
+    orders?: OrderUncheckedCreateNestedManyWithoutCollectionInput
+    questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
+    reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
+    tasks?: TaskUncheckedCreateNestedManyWithoutCollectionInput
+  }
+
+  export type CollectionCreateOrConnectWithoutBillOfMaterialsInput = {
+    where: CollectionWhereUniqueInput
+    create: XOR<CollectionCreateWithoutBillOfMaterialsInput, CollectionUncheckedCreateWithoutBillOfMaterialsInput>
+  }
+
+  export type LibraryItemCreateWithoutBomUsagesInput = {
+    scope?: $Enums.LibraryScope
+    category: $Enums.LibraryCategory
+    code?: string | null
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: string | null
+    notes?: string | null
+    isActive?: boolean
+    isPopular?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    company?: CompanyCreateNestedOneWithoutLibraryItemsInput
+    standardItem?: LibraryItemCreateNestedOneWithoutCompanyItemsInput
+    companyItems?: LibraryItemCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemCreateNestedManyWithoutCertificationsInput
+    collections?: CollectionCreateNestedManyWithoutCertificationsInput
+    createdBy?: UserCreateNestedOneWithoutCreatedLibraryItemsInput
+  }
+
+  export type LibraryItemUncheckedCreateWithoutBomUsagesInput = {
+    id?: number
+    scope?: $Enums.LibraryScope
+    category: $Enums.LibraryCategory
+    code?: string | null
+    name: string
+    description?: string | null
+    imageUrl?: string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: string | null
+    notes?: string | null
+    isActive?: boolean
+    isPopular?: boolean
+    companyId?: number | null
+    standardItemId?: number | null
+    createdById?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companyItems?: LibraryItemUncheckedCreateNestedManyWithoutStandardItemInput
+    certifications?: LibraryItemUncheckedCreateNestedManyWithoutCertifiedItemsInput
+    certifiedItems?: LibraryItemUncheckedCreateNestedManyWithoutCertificationsInput
+    collections?: CollectionUncheckedCreateNestedManyWithoutCertificationsInput
+  }
+
+  export type LibraryItemCreateOrConnectWithoutBomUsagesInput = {
+    where: LibraryItemWhereUniqueInput
+    create: XOR<LibraryItemCreateWithoutBomUsagesInput, LibraryItemUncheckedCreateWithoutBomUsagesInput>
+  }
+
+  export type CollectionUpsertWithoutBillOfMaterialsInput = {
+    update: XOR<CollectionUpdateWithoutBillOfMaterialsInput, CollectionUncheckedUpdateWithoutBillOfMaterialsInput>
+    create: XOR<CollectionCreateWithoutBillOfMaterialsInput, CollectionUncheckedCreateWithoutBillOfMaterialsInput>
+    where?: CollectionWhereInput
+  }
+
+  export type CollectionUpdateToOneWithWhereWithoutBillOfMaterialsInput = {
+    where?: CollectionWhereInput
+    data: XOR<CollectionUpdateWithoutBillOfMaterialsInput, CollectionUncheckedUpdateWithoutBillOfMaterialsInput>
+  }
+
+  export type CollectionUpdateWithoutBillOfMaterialsInput = {
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    modelCode?: StringFieldUpdateOperationsInput | string
+    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+    fit?: NullableStringFieldUpdateOperationsInput | string | null
+    trend?: NullableStringFieldUpdateOperationsInput | string | null
+    colors?: NullableStringFieldUpdateOperationsInput | string | null
+    sizeGroups?: NullableStringFieldUpdateOperationsInput | string | null
+    sizeRange?: NullableStringFieldUpdateOperationsInput | string | null
+    measurementChart?: NullableStringFieldUpdateOperationsInput | string | null
+    fabricComposition?: NullableStringFieldUpdateOperationsInput | string | null
+    accessories?: NullableStringFieldUpdateOperationsInput | string | null
+    images?: NullableStringFieldUpdateOperationsInput | string | null
+    techPack?: NullableStringFieldUpdateOperationsInput | string | null
+    moq?: NullableIntFieldUpdateOperationsInput | number | null
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    likesCount?: IntFieldUpdateOperationsInput | number
+    viewCount?: IntFieldUpdateOperationsInput | number
+    shareCount?: IntFieldUpdateOperationsInput | number
+    lastViewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    price?: FloatFieldUpdateOperationsInput | number
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    stock?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isFeatured?: BoolFieldUpdateOperationsInput | boolean
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    productionSchedule?: NullableJsonNullValueInput | InputJsonValue
+    certifications?: LibraryItemUpdateManyWithoutCollectionsNestedInput
+    favoritedBy?: UserFavoriteCollectionUpdateManyWithoutCollectionNestedInput
+    category?: CategoryUpdateOneWithoutCollectionsNestedInput
+    companyCategory?: CompanyCategoryUpdateOneWithoutCollectionsNestedInput
+    author?: UserUpdateOneWithoutCollectionsNestedInput
+    samples?: SampleUpdateManyWithoutCollectionNestedInput
+    revisedSamples?: SampleUpdateManyWithoutOriginalCollectionNestedInput
+    orders?: OrderUpdateManyWithoutCollectionNestedInput
+    questions?: QuestionUpdateManyWithoutCollectionNestedInput
+    reviews?: ReviewUpdateManyWithoutCollectionNestedInput
+    tasks?: TaskUpdateManyWithoutCollectionNestedInput
+    company?: CompanyUpdateOneWithoutCollectionsNestedInput
+  }
+
+  export type CollectionUncheckedUpdateWithoutBillOfMaterialsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    modelCode?: StringFieldUpdateOperationsInput | string
+    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+    fit?: NullableStringFieldUpdateOperationsInput | string | null
+    trend?: NullableStringFieldUpdateOperationsInput | string | null
+    colors?: NullableStringFieldUpdateOperationsInput | string | null
+    sizeGroups?: NullableStringFieldUpdateOperationsInput | string | null
+    sizeRange?: NullableStringFieldUpdateOperationsInput | string | null
+    measurementChart?: NullableStringFieldUpdateOperationsInput | string | null
+    fabricComposition?: NullableStringFieldUpdateOperationsInput | string | null
+    accessories?: NullableStringFieldUpdateOperationsInput | string | null
+    images?: NullableStringFieldUpdateOperationsInput | string | null
+    techPack?: NullableStringFieldUpdateOperationsInput | string | null
+    moq?: NullableIntFieldUpdateOperationsInput | number | null
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    likesCount?: IntFieldUpdateOperationsInput | number
+    viewCount?: IntFieldUpdateOperationsInput | number
+    shareCount?: IntFieldUpdateOperationsInput | number
+    lastViewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    price?: FloatFieldUpdateOperationsInput | number
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    stock?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isFeatured?: BoolFieldUpdateOperationsInput | boolean
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    productionSchedule?: NullableJsonNullValueInput | InputJsonValue
+    categoryId?: NullableIntFieldUpdateOperationsInput | number | null
+    companyCategoryId?: NullableIntFieldUpdateOperationsInput | number | null
+    authorId?: NullableIntFieldUpdateOperationsInput | number | null
+    companyId?: NullableIntFieldUpdateOperationsInput | number | null
+    certifications?: LibraryItemUncheckedUpdateManyWithoutCollectionsNestedInput
+    favoritedBy?: UserFavoriteCollectionUncheckedUpdateManyWithoutCollectionNestedInput
+    samples?: SampleUncheckedUpdateManyWithoutCollectionNestedInput
+    revisedSamples?: SampleUncheckedUpdateManyWithoutOriginalCollectionNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutCollectionNestedInput
+    questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
+    reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
+    tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+  }
+
+  export type LibraryItemUpsertWithoutBomUsagesInput = {
+    update: XOR<LibraryItemUpdateWithoutBomUsagesInput, LibraryItemUncheckedUpdateWithoutBomUsagesInput>
+    create: XOR<LibraryItemCreateWithoutBomUsagesInput, LibraryItemUncheckedCreateWithoutBomUsagesInput>
+    where?: LibraryItemWhereInput
+  }
+
+  export type LibraryItemUpdateToOneWithWhereWithoutBomUsagesInput = {
+    where?: LibraryItemWhereInput
+    data: XOR<LibraryItemUpdateWithoutBomUsagesInput, LibraryItemUncheckedUpdateWithoutBomUsagesInput>
+  }
+
+  export type LibraryItemUpdateWithoutBomUsagesInput = {
+    scope?: EnumLibraryScopeFieldUpdateOperationsInput | $Enums.LibraryScope
+    category?: EnumLibraryCategoryFieldUpdateOperationsInput | $Enums.LibraryCategory
+    code?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPopular?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneWithoutLibraryItemsNestedInput
+    standardItem?: LibraryItemUpdateOneWithoutCompanyItemsNestedInput
+    companyItems?: LibraryItemUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
+    collections?: CollectionUpdateManyWithoutCertificationsNestedInput
+    createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
+  }
+
+  export type LibraryItemUncheckedUpdateWithoutBomUsagesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    scope?: EnumLibraryScopeFieldUpdateOperationsInput | $Enums.LibraryScope
+    category?: EnumLibraryCategoryFieldUpdateOperationsInput | $Enums.LibraryCategory
+    code?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    data?: NullableJsonNullValueInput | InputJsonValue
+    tags?: NullableJsonNullValueInput | InputJsonValue
+    internalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPopular?: BoolFieldUpdateOperationsInput | boolean
+    companyId?: NullableIntFieldUpdateOperationsInput | number | null
+    standardItemId?: NullableIntFieldUpdateOperationsInput | number | null
+    createdById?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companyItems?: LibraryItemUncheckedUpdateManyWithoutStandardItemNestedInput
+    certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
+    certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
+    collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
   }
 
   export type ProductionTrackingCreateWithoutProductionRevisionsInput = {
@@ -79304,6 +81626,7 @@ export namespace Prisma {
     questions?: QuestionCreateNestedManyWithoutCollectionInput
     reviews?: ReviewCreateNestedManyWithoutCollectionInput
     company?: CompanyCreateNestedOneWithoutCollectionsInput
+    billOfMaterials?: BillOfMaterialCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionUncheckedCreateWithoutTasksInput = {
@@ -79351,6 +81674,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutCollectionInput
     questions?: QuestionUncheckedCreateNestedManyWithoutCollectionInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCollectionInput
+    billOfMaterials?: BillOfMaterialUncheckedCreateNestedManyWithoutCollectionInput
   }
 
   export type CollectionCreateOrConnectWithoutTasksInput = {
@@ -79895,6 +82219,7 @@ export namespace Prisma {
     questions?: QuestionUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutTasksInput = {
@@ -79942,6 +82267,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutCollectionNestedInput
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type SampleUpsertWithoutTasksInput = {
@@ -83570,6 +85896,7 @@ export namespace Prisma {
     questions?: QuestionUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutCompanyInput = {
@@ -83617,6 +85944,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateManyWithoutCompanyInput = {
@@ -84003,6 +86331,7 @@ export namespace Prisma {
     certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUpdateManyWithoutLibraryItemNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
 
@@ -84028,6 +86357,7 @@ export namespace Prisma {
     certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUncheckedUpdateManyWithoutLibraryItemNestedInput
   }
 
   export type LibraryItemUncheckedUpdateManyWithoutCompanyInput = {
@@ -85825,6 +88155,7 @@ export namespace Prisma {
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutAuthorInput = {
@@ -85872,6 +88203,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateManyWithoutAuthorInput = {
@@ -87147,6 +89479,7 @@ export namespace Prisma {
     certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUpdateManyWithoutLibraryItemNestedInput
   }
 
   export type LibraryItemUncheckedUpdateWithoutCreatedByInput = {
@@ -87171,6 +89504,7 @@ export namespace Prisma {
     certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUncheckedUpdateManyWithoutLibraryItemNestedInput
   }
 
   export type LibraryItemUncheckedUpdateManyWithoutCreatedByInput = {
@@ -87543,6 +89877,7 @@ export namespace Prisma {
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutCompanyCategoryInput = {
@@ -87590,6 +89925,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateManyWithoutCompanyCategoryInput = {
@@ -87824,6 +90160,7 @@ export namespace Prisma {
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutCategoryInput = {
@@ -87871,6 +90208,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateManyWithoutCategoryInput = {
@@ -88102,6 +90440,23 @@ export namespace Prisma {
     actionData?: NullableJsonNullValueInput | InputJsonValue
   }
 
+  export type BillOfMaterialCreateManyCollectionInput = {
+    id?: number
+    componentType?: $Enums.BOMComponentType
+    libraryItemId?: number | null
+    componentName?: string | null
+    consumption: number
+    unit: string
+    wastePercent?: number
+    placement?: string | null
+    supplier?: string | null
+    supplierCode?: string | null
+    leadTime?: number | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type LibraryItemUpdateWithoutCollectionsInput = {
     scope?: EnumLibraryScopeFieldUpdateOperationsInput | $Enums.LibraryScope
     category?: EnumLibraryCategoryFieldUpdateOperationsInput | $Enums.LibraryCategory
@@ -88122,6 +90477,7 @@ export namespace Prisma {
     companyItems?: LibraryItemUpdateManyWithoutStandardItemNestedInput
     certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUpdateManyWithoutLibraryItemNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
 
@@ -88147,6 +90503,7 @@ export namespace Prisma {
     companyItems?: LibraryItemUncheckedUpdateManyWithoutStandardItemNestedInput
     certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUncheckedUpdateManyWithoutLibraryItemNestedInput
   }
 
   export type LibraryItemUncheckedUpdateManyWithoutCollectionsInput = {
@@ -88672,6 +91029,56 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     assignedBy?: NullableIntFieldUpdateOperationsInput | number | null
     actionData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type BillOfMaterialUpdateWithoutCollectionInput = {
+    componentType?: EnumBOMComponentTypeFieldUpdateOperationsInput | $Enums.BOMComponentType
+    componentName?: NullableStringFieldUpdateOperationsInput | string | null
+    consumption?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    wastePercent?: FloatFieldUpdateOperationsInput | number
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
+    supplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierCode?: NullableStringFieldUpdateOperationsInput | string | null
+    leadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    libraryItem?: LibraryItemUpdateOneWithoutBomUsagesNestedInput
+  }
+
+  export type BillOfMaterialUncheckedUpdateWithoutCollectionInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    componentType?: EnumBOMComponentTypeFieldUpdateOperationsInput | $Enums.BOMComponentType
+    libraryItemId?: NullableIntFieldUpdateOperationsInput | number | null
+    componentName?: NullableStringFieldUpdateOperationsInput | string | null
+    consumption?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    wastePercent?: FloatFieldUpdateOperationsInput | number
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
+    supplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierCode?: NullableStringFieldUpdateOperationsInput | string | null
+    leadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BillOfMaterialUncheckedUpdateManyWithoutCollectionInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    componentType?: EnumBOMComponentTypeFieldUpdateOperationsInput | $Enums.BOMComponentType
+    libraryItemId?: NullableIntFieldUpdateOperationsInput | number | null
+    componentName?: NullableStringFieldUpdateOperationsInput | string | null
+    consumption?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    wastePercent?: FloatFieldUpdateOperationsInput | number
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
+    supplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierCode?: NullableStringFieldUpdateOperationsInput | string | null
+    leadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type SampleProductionCreateManySampleInput = {
@@ -89624,6 +92031,23 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type BillOfMaterialCreateManyLibraryItemInput = {
+    id?: number
+    collectionId: number
+    componentType?: $Enums.BOMComponentType
+    componentName?: string | null
+    consumption: number
+    unit: string
+    wastePercent?: number
+    placement?: string | null
+    supplier?: string | null
+    supplierCode?: string | null
+    leadTime?: number | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type LibraryItemUpdateWithoutStandardItemInput = {
     scope?: EnumLibraryScopeFieldUpdateOperationsInput | $Enums.LibraryScope
     category?: EnumLibraryCategoryFieldUpdateOperationsInput | $Enums.LibraryCategory
@@ -89644,6 +92068,7 @@ export namespace Prisma {
     certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUpdateManyWithoutLibraryItemNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
 
@@ -89669,6 +92094,7 @@ export namespace Prisma {
     certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
     certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUncheckedUpdateManyWithoutLibraryItemNestedInput
   }
 
   export type LibraryItemUncheckedUpdateManyWithoutStandardItemInput = {
@@ -89711,6 +92137,7 @@ export namespace Prisma {
     companyItems?: LibraryItemUpdateManyWithoutStandardItemNestedInput
     certifications?: LibraryItemUpdateManyWithoutCertifiedItemsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUpdateManyWithoutLibraryItemNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
 
@@ -89736,6 +92163,7 @@ export namespace Prisma {
     companyItems?: LibraryItemUncheckedUpdateManyWithoutStandardItemNestedInput
     certifications?: LibraryItemUncheckedUpdateManyWithoutCertifiedItemsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUncheckedUpdateManyWithoutLibraryItemNestedInput
   }
 
   export type LibraryItemUncheckedUpdateManyWithoutCertifiedItemsInput = {
@@ -89779,6 +92207,7 @@ export namespace Prisma {
     companyItems?: LibraryItemUpdateManyWithoutStandardItemNestedInput
     certifiedItems?: LibraryItemUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUpdateManyWithoutLibraryItemNestedInput
     createdBy?: UserUpdateOneWithoutCreatedLibraryItemsNestedInput
   }
 
@@ -89804,6 +92233,7 @@ export namespace Prisma {
     companyItems?: LibraryItemUncheckedUpdateManyWithoutStandardItemNestedInput
     certifiedItems?: LibraryItemUncheckedUpdateManyWithoutCertificationsNestedInput
     collections?: CollectionUncheckedUpdateManyWithoutCertificationsNestedInput
+    bomUsages?: BillOfMaterialUncheckedUpdateManyWithoutLibraryItemNestedInput
   }
 
   export type LibraryItemUncheckedUpdateManyWithoutCertificationsInput = {
@@ -89871,6 +92301,7 @@ export namespace Prisma {
     reviews?: ReviewUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUpdateManyWithoutCollectionNestedInput
     company?: CompanyUpdateOneWithoutCollectionsNestedInput
+    billOfMaterials?: BillOfMaterialUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateWithoutCertificationsInput = {
@@ -89918,6 +92349,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutCollectionNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCollectionNestedInput
     tasks?: TaskUncheckedUpdateManyWithoutCollectionNestedInput
+    billOfMaterials?: BillOfMaterialUncheckedUpdateManyWithoutCollectionNestedInput
   }
 
   export type CollectionUncheckedUpdateManyWithoutCertificationsInput = {
@@ -89958,6 +92390,56 @@ export namespace Prisma {
     companyCategoryId?: NullableIntFieldUpdateOperationsInput | number | null
     authorId?: NullableIntFieldUpdateOperationsInput | number | null
     companyId?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type BillOfMaterialUpdateWithoutLibraryItemInput = {
+    componentType?: EnumBOMComponentTypeFieldUpdateOperationsInput | $Enums.BOMComponentType
+    componentName?: NullableStringFieldUpdateOperationsInput | string | null
+    consumption?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    wastePercent?: FloatFieldUpdateOperationsInput | number
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
+    supplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierCode?: NullableStringFieldUpdateOperationsInput | string | null
+    leadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    collection?: CollectionUpdateOneRequiredWithoutBillOfMaterialsNestedInput
+  }
+
+  export type BillOfMaterialUncheckedUpdateWithoutLibraryItemInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    collectionId?: IntFieldUpdateOperationsInput | number
+    componentType?: EnumBOMComponentTypeFieldUpdateOperationsInput | $Enums.BOMComponentType
+    componentName?: NullableStringFieldUpdateOperationsInput | string | null
+    consumption?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    wastePercent?: FloatFieldUpdateOperationsInput | number
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
+    supplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierCode?: NullableStringFieldUpdateOperationsInput | string | null
+    leadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BillOfMaterialUncheckedUpdateManyWithoutLibraryItemInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    collectionId?: IntFieldUpdateOperationsInput | number
+    componentType?: EnumBOMComponentTypeFieldUpdateOperationsInput | $Enums.BOMComponentType
+    componentName?: NullableStringFieldUpdateOperationsInput | string | null
+    consumption?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    wastePercent?: FloatFieldUpdateOperationsInput | number
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
+    supplier?: NullableStringFieldUpdateOperationsInput | string | null
+    supplierCode?: NullableStringFieldUpdateOperationsInput | string | null
+    leadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type SharedCategoryMappingCreateManyPartnershipInput = {

@@ -5,10 +5,10 @@ import builder from "../builder";
 // ========================================
 
 // Input for creating library items
-const CreateLibraryItemInput = builder.inputType('CreateLibraryItemInput', {
+const CreateLibraryItemInput = builder.inputType("CreateLibraryItemInput", {
   fields: (t) => ({
-    category: t.field({ type: 'String', required: true }),
-    scope: t.field({ type: 'String', required: true }),
+    category: t.field({ type: "String", required: true }),
+    scope: t.field({ type: "String", required: true }),
     code: t.string({ required: false }),
     name: t.string({ required: true }),
     description: t.string({ required: false }),
@@ -27,7 +27,7 @@ const CreateLibraryItemInput = builder.inputType('CreateLibraryItemInput', {
 });
 
 // Input for updating library items
-const UpdateLibraryItemInput = builder.inputType('UpdateLibraryItemInput', {
+const UpdateLibraryItemInput = builder.inputType("UpdateLibraryItemInput", {
   fields: (t) => ({
     name: t.string({ required: false }),
     description: t.string({ required: false }),
@@ -75,32 +75,165 @@ builder.mutationField("createLibraryItem", (t) =>
         }
       }
 
-      return context.prisma.libraryItem.create({
-        ...query,
-        data: {
-          category: input.category as any,
-          scope: input.scope as any,
-          code: input.code ?? null,
+      // Check if code already exists (skip for SEASON)
+      if (input.code && input.category !== "SEASON") {
+        const existingItem = await context.prisma.libraryItem.findUnique({
+          where: { code: input.code },
+        });
+
+        if (existingItem) {
+          throw new Error(
+            `Bu kod zaten mevcut: "${input.code}". ` +
+              `Mevcut item: "${existingItem.name}" (${existingItem.category}). ` +
+              `Lütfen farklı bir kod kullanın veya mevcut item'ı düzenleyin.`
+          );
+        }
+      }
+
+      // Check if similar item already exists (same name + category + company)
+      const companyId = input.companyId || context.user.companyId || null;
+
+      // Special check for SEASON category - check by type + year combination
+      if (input.category === "SEASON" && input.data) {
+        try {
+          const seasonData =
+            typeof input.data === "string"
+              ? JSON.parse(input.data)
+              : input.data;
+          if (seasonData.type && seasonData.year) {
+            // Get all seasons and check in JavaScript since JSON path queries are complex
+            const existingSeasons = await context.prisma.libraryItem.findMany({
+              where: {
+                category: "SEASON",
+                companyId: companyId,
+                isActive: true,
+              },
+            });
+
+            // Check if any existing season has the same type and year
+            for (const existingSeason of existingSeasons) {
+              const existingData = existingSeason.data as any;
+              if (
+                existingData &&
+                existingData.type === seasonData.type &&
+                existingData.year === seasonData.year
+              ) {
+                const seasonTypeName =
+                  seasonData.type === "SS" ? "Spring/Summer" : "Fall/Winter";
+                throw new Error(
+                  `${seasonTypeName} ${seasonData.year} sezonu zaten mevcut! ` +
+                    `Aynı yılın aynı sezonunu tekrar kaydedemezsiniz. ` +
+                    `Mevcut sezonu düzenlemek isterseniz library sayfasından düzenleyebilirsiniz.`
+                );
+              }
+            }
+          }
+        } catch (e) {
+          // If JSON parsing fails, continue with regular name check
+        }
+      }
+
+      const existingSimilar = await context.prisma.libraryItem.findFirst({
+        where: {
           name: input.name,
-          description: input.description ?? null,
-          imageUrl: input.imageUrl ?? null,
-          ...(dataJson !== null && { data: dataJson }),
-          ...(tagsJson !== null && { tags: tagsJson }),
-          internalCode: input.internalCode ?? null,
-          notes: input.notes ?? null,
-          isActive: input.isActive ?? true,
-          isPopular: input.isPopular ?? false,
-          companyId: input.companyId ?? context.user.companyId ?? null,
-          standardItemId: input.standardItemId ?? null,
-          createdById: context.user.id,
-          // 🔗 Connect certifications
-          ...(input.certificationIds && input.certificationIds.length > 0 && {
-            certifications: {
-              connect: input.certificationIds.map((id) => ({ id })),
-            },
-          }),
+          category: input.category as any,
+          companyId: companyId,
+          isActive: true,
         },
       });
+
+      if (existingSimilar) {
+        // Special message for SEASON category
+        if (input.category === "SEASON") {
+          throw new Error(
+            `Bu sezon zaten mevcut: "${input.name}". ` +
+              `Aynı sezonu tekrar kaydedemezsiniz. ` +
+              `Mevcut sezonu düzenlemek isterseniz library sayfasından düzenleyebilirsiniz.`
+          );
+        } else {
+          throw new Error(
+            `Bu isimde bir ${input.category.toLowerCase()} zaten mevcut: "${
+              input.name
+            }". ` +
+              `Kod: ${existingSimilar.code || "Yok"}. ` +
+              `Lütfen farklı bir isim kullanın veya mevcut item'ı düzenleyin.`
+          );
+        }
+      }
+      try {
+        return await context.prisma.libraryItem.create({
+          ...query,
+          data: {
+            category: input.category as any,
+            scope: input.scope as any,
+            code:
+              input.category === "SEASON"
+                ? `SEASON-${Date.now()}` // Always unique for SEASON
+                : input.code && input.code.trim() !== ""
+                ? input.code
+                : null,
+            name: input.name,
+            description: input.description ?? null,
+            imageUrl: input.imageUrl ?? null,
+            ...(dataJson !== null && { data: dataJson }),
+            ...(tagsJson !== null && { tags: tagsJson }),
+            internalCode: input.internalCode ?? null,
+            notes: input.notes ?? null,
+            isActive: input.isActive ?? true,
+            isPopular: input.isPopular ?? false,
+            companyId: input.companyId ?? context.user.companyId ?? null,
+            standardItemId: input.standardItemId ?? null,
+            createdById: context.user.id,
+            // 🔗 Connect certifications
+            ...(input.certificationIds &&
+              input.certificationIds.length > 0 && {
+                certifications: {
+                  connect: input.certificationIds.map((id) => ({ id })),
+                },
+              }),
+          },
+        });
+      } catch (error: any) {
+        // Handle unique constraint error for SEASON category
+        if (
+          input.category === "SEASON" &&
+          error.code === "P2002" &&
+          error.meta?.target?.includes("code")
+        ) {
+          // Generate a unique code with timestamp for SEASON
+          const timestamp = Date.now().toString();
+          return await context.prisma.libraryItem.create({
+            ...query,
+            data: {
+              category: input.category as any,
+              scope: input.scope as any,
+              code: `SEASON-${timestamp}`, // Unique code with timestamp
+              name: input.name,
+              description: input.description ?? null,
+              imageUrl: input.imageUrl ?? null,
+              ...(dataJson !== null && { data: dataJson }),
+              ...(tagsJson !== null && { tags: tagsJson }),
+              internalCode: input.internalCode ?? null,
+              notes: input.notes ?? null,
+              isActive: input.isActive ?? true,
+              isPopular: input.isPopular ?? false,
+              companyId: input.companyId ?? context.user.companyId ?? null,
+              standardItemId: input.standardItemId ?? null,
+              createdById: context.user.id,
+              // 🔗 Connect certifications
+              ...(input.certificationIds &&
+                input.certificationIds.length > 0 && {
+                  certifications: {
+                    connect: input.certificationIds.map((id) => ({ id })),
+                  },
+                }),
+            },
+          });
+        }
+
+        // Re-throw other errors
+        throw error;
+      }
     },
   })
 );
@@ -132,7 +265,7 @@ builder.mutationField("updateLibraryItem", (t) =>
           throw new Error("Not authorized to update this item");
         }
       } else if (existing.scope === "PLATFORM_STANDARD") {
-        if (context.user.role !== 'ADMIN') {
+        if (context.user.role !== "ADMIN") {
           throw new Error("Only admins can update platform standards");
         }
       }
@@ -162,15 +295,24 @@ builder.mutationField("updateLibraryItem", (t) =>
         ...query,
         where: { id: args.id },
         data: {
-          ...(input.name !== undefined && input.name !== null && { name: input.name }),
-          ...(input.description !== undefined && input.description !== null && { description: input.description }),
-          ...(input.imageUrl !== undefined && input.imageUrl !== null && { imageUrl: input.imageUrl }),
+          ...(input.name !== undefined &&
+            input.name !== null && { name: input.name }),
+          ...(input.description !== undefined &&
+            input.description !== null && { description: input.description }),
+          ...(input.imageUrl !== undefined &&
+            input.imageUrl !== null && { imageUrl: input.imageUrl }),
           ...(dataJson !== undefined && { data: dataJson }),
           ...(tagsJson !== undefined && { tags: tagsJson }),
-          ...(input.internalCode !== undefined && input.internalCode !== null && { internalCode: input.internalCode }),
-          ...(input.notes !== undefined && input.notes !== null && { notes: input.notes }),
-          ...(input.isActive !== undefined && input.isActive !== null && { isActive: input.isActive }),
-          ...(input.isPopular !== undefined && input.isPopular !== null && { isPopular: input.isPopular }),
+          ...(input.internalCode !== undefined &&
+            input.internalCode !== null && {
+              internalCode: input.internalCode,
+            }),
+          ...(input.notes !== undefined &&
+            input.notes !== null && { notes: input.notes }),
+          ...(input.isActive !== undefined &&
+            input.isActive !== null && { isActive: input.isActive }),
+          ...(input.isPopular !== undefined &&
+            input.isPopular !== null && { isPopular: input.isPopular }),
         },
       });
     },
@@ -203,7 +345,7 @@ builder.mutationField("deleteLibraryItem", (t) =>
           throw new Error("Not authorized to delete this item");
         }
       } else if (existing.scope === "PLATFORM_STANDARD") {
-        if (context.user.role !== 'ADMIN') {
+        if (context.user.role !== "ADMIN") {
           throw new Error("Only admins can delete platform standards");
         }
       }
@@ -223,22 +365,25 @@ builder.mutationField("deleteLibraryItem", (t) =>
 // ========================================
 
 // Create Standard Category (admin only)
-const CreateStandardCategoryInput = builder.inputType('CreateStandardCategoryInput', {
-  fields: (t) => ({
-    code: t.string({ required: true }),
-    name: t.string({ required: true }),
-    description: t.string({ required: false }),
-    level: t.string({ required: true }),
-    order: t.int({ required: false }),
-    icon: t.string({ required: false }),
-    image: t.string({ required: false }),
-    parentId: t.int({ required: false }),
-    keywords: t.string({ required: false }),
-    tags: t.string({ required: false }),
-    isActive: t.boolean({ required: false }),
-    isPublic: t.boolean({ required: false }),
-  }),
-});
+const CreateStandardCategoryInput = builder.inputType(
+  "CreateStandardCategoryInput",
+  {
+    fields: (t) => ({
+      code: t.string({ required: true }),
+      name: t.string({ required: true }),
+      description: t.string({ required: false }),
+      level: t.string({ required: true }),
+      order: t.int({ required: false }),
+      icon: t.string({ required: false }),
+      image: t.string({ required: false }),
+      parentId: t.int({ required: false }),
+      keywords: t.string({ required: false }),
+      tags: t.string({ required: false }),
+      isActive: t.boolean({ required: false }),
+      isPublic: t.boolean({ required: false }),
+    }),
+  }
+);
 
 builder.mutationField("createStandardCategory", (t) =>
   t.prismaField({
@@ -268,7 +413,9 @@ builder.mutationField("createStandardCategory", (t) =>
         data: {
           code: input.code,
           name: input.name,
-          ...(input.description !== undefined && { description: input.description }),
+          ...(input.description !== undefined && {
+            description: input.description,
+          }),
           level: input.level as any,
           order: input.order ?? 0,
           ...(input.icon !== undefined && { icon: input.icon }),
@@ -286,17 +433,20 @@ builder.mutationField("createStandardCategory", (t) =>
 );
 
 // Create Company Category
-const CreateCompanyCategoryInput = builder.inputType('CreateCompanyCategoryInput', {
-  fields: (t) => ({
-    name: t.string({ required: true }),
-    description: t.string({ required: false }),
-    type: t.string({ required: true }),
-    standardCategoryId: t.int({ required: false }),
-    internalCode: t.string({ required: false }),
-    order: t.int({ required: false }),
-    customFields: t.string({ required: false }),
-  }),
-});
+const CreateCompanyCategoryInput = builder.inputType(
+  "CreateCompanyCategoryInput",
+  {
+    fields: (t) => ({
+      name: t.string({ required: true }),
+      description: t.string({ required: false }),
+      type: t.string({ required: true }),
+      standardCategoryId: t.int({ required: false }),
+      internalCode: t.string({ required: false }),
+      order: t.int({ required: false }),
+      customFields: t.string({ required: false }),
+    }),
+  }
+);
 
 builder.mutationField("createCompanyCategory", (t) =>
   t.prismaField({

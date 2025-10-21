@@ -569,6 +569,24 @@ exports.Prisma.LibraryItemScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.BillOfMaterialScalarFieldEnum = {
+  id: 'id',
+  collectionId: 'collectionId',
+  componentType: 'componentType',
+  libraryItemId: 'libraryItemId',
+  componentName: 'componentName',
+  consumption: 'consumption',
+  unit: 'unit',
+  wastePercent: 'wastePercent',
+  placement: 'placement',
+  supplier: 'supplier',
+  supplierCode: 'supplierCode',
+  leadTime: 'leadTime',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ProductionRevisionScalarFieldEnum = {
   id: 'id',
   productionId: 'productionId',
@@ -950,6 +968,15 @@ exports.Prisma.LibraryItemOrderByRelevanceFieldEnum = {
   notes: 'notes'
 };
 
+exports.Prisma.BillOfMaterialOrderByRelevanceFieldEnum = {
+  componentName: 'componentName',
+  unit: 'unit',
+  placement: 'placement',
+  supplier: 'supplier',
+  supplierCode: 'supplierCode',
+  notes: 'notes'
+};
+
 exports.Prisma.ProductionRevisionOrderByRelevanceFieldEnum = {
   reason: 'reason',
   description: 'description'
@@ -1171,6 +1198,13 @@ exports.LibraryCategory = exports.$Enums.LibraryCategory = {
   CERTIFICATION: 'CERTIFICATION'
 };
 
+exports.BOMComponentType = exports.$Enums.BOMComponentType = {
+  FABRIC: 'FABRIC',
+  MATERIAL: 'MATERIAL',
+  LABOR: 'LABOR',
+  OTHER: 'OTHER'
+};
+
 exports.NotificationType = exports.$Enums.NotificationType = {
   ORDER: 'ORDER',
   SAMPLE: 'SAMPLE',
@@ -1272,6 +1306,7 @@ exports.Prisma.ModelName = {
   QualityControl: 'QualityControl',
   Workshop: 'Workshop',
   LibraryItem: 'LibraryItem',
+  BillOfMaterial: 'BillOfMaterial',
   ProductionRevision: 'ProductionRevision',
   Notification: 'Notification',
   Task: 'Task',
