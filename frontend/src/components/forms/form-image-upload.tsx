@@ -42,7 +42,7 @@ interface FormImageUploadProps {
   maxSize?: number; // in MB
   recommended?: string;
   aspectRatio?: "square" | "wide" | "custom";
-  uploadType?: "logo" | "cover" | "avatar"; // Type of upload for backend optimization
+  uploadType?: string; // Type of upload for backend optimization
   className?: string;
   disabled?: boolean;
 }

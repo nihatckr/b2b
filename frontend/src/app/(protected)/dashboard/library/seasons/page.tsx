@@ -1,20 +1,56 @@
 "use client";
 
 import {
+  CreateLibraryItemInput,
   DashboardCreateLibraryItemDocument,
+  DashboardDeleteLibraryItemDocument,
   DashboardLibraryItemsDocument,
   DashboardMyCompanyLibraryDocument,
   DashboardPlatformStandardsDocument,
+  DashboardPlatformStandardsQuery,
+  DashboardUpdateLibraryItemDocument,
+  UpdateLibraryItemInput,
 } from "@/__generated__/graphql";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, CalendarDays, Globe, Plus, Users } from "lucide-react";
+import {
+  Building,
+  CalendarDays,
+  Edit,
+  Eye,
+  Globe,
+  Plus,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
+
+// Type alias for library item from query responses
+type LibraryItemType = NonNullable<
+  DashboardPlatformStandardsQuery["platformStandards"]
+>[0];
 
 export default function SeasonsPage() {
   const { data: session } = useSession();
@@ -29,6 +65,15 @@ export default function SeasonsPage() {
   const [activeTab, setActiveTab] = useState<string>(
     isAdmin ? "platform" : "company"
   );
+
+  // Edit/Delete/Details modal states
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<LibraryItemType | null>(
+    null
+  );
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   // Queries
   const [platformResult, refetchPlatform] = useQuery({
@@ -57,12 +102,14 @@ export default function SeasonsPage() {
   const companyData = companyResult.data?.myCompanyLibrary || [];
   const allCompaniesData = allCompaniesResult.data?.libraryItems || [];
 
-  // Mutation
+  // Mutations
   const [, createLibraryItem] = useMutation(DashboardCreateLibraryItemDocument);
+  const [, updateLibraryItem] = useMutation(DashboardUpdateLibraryItemDocument);
+  const [, deleteLibraryItem] = useMutation(DashboardDeleteLibraryItemDocument);
 
   const handleCreateItem = async (data: LibraryItemFormData) => {
     try {
-      const input: any = {
+      const input: CreateLibraryItemInput = {
         category: "SEASON",
         scope: createScope,
         code: data.code,
@@ -71,14 +118,20 @@ export default function SeasonsPage() {
         data: JSON.stringify(data.data),
       };
 
+      if (data.certificationIds && data.certificationIds.length > 0) {
+        input.certificationIds = data.certificationIds;
+      }
+
       const result = await createLibraryItem({ input });
 
       if (result.error) {
-        alert(`Error: ${result.error.message}`);
+        console.error("Failed to create season:", result.error);
+        toast.error(`Failed to create season: ${result.error.message}`);
         throw result.error;
       }
 
-      alert("✅ Season created successfully!");
+      console.log("Season created successfully:", result.data);
+      toast.success("Season created successfully!");
 
       await Promise.all([
         refetchPlatform({ requestPolicy: "network-only" }),
@@ -92,6 +145,99 @@ export default function SeasonsPage() {
     }
   };
 
+  // Handler: Open edit modal
+  const handleEditItem = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setEditModalOpen(true);
+  };
+
+  // Handler: Open details modal
+  const handleViewDetails = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setDetailsModalOpen(true);
+  };
+
+  // Handler: Open delete confirmation
+  const handleDeleteItem = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setDeleteAlertOpen(true);
+  };
+
+  // Handler: Confirm delete
+  const handleConfirmDelete = async () => {
+    if (!selectedItem) return;
+
+    setLoadingDelete(true);
+    try {
+      const result = await deleteLibraryItem({
+        id: parseInt(selectedItem.id || "0"),
+      });
+
+      if (result.error) {
+        console.error("Failed to delete season:", result.error);
+        toast.error(`Failed to delete season: ${result.error.message}`);
+        return;
+      }
+
+      console.log("Season deleted successfully");
+      toast.success("Season deleted successfully!");
+
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      setDeleteAlertOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error deleting season:", error);
+      toast.error("Failed to delete season");
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
+
+  // Handler: Update library item
+  const handleUpdateItem = async (data: LibraryItemFormData) => {
+    if (!selectedItem) return;
+
+    try {
+      const input: UpdateLibraryItemInput = {
+        name: data.name,
+        description: data.description || "",
+        data:
+          typeof data.data === "object" ? JSON.stringify(data.data) : data.data,
+        isActive: true,
+      };
+
+      const result = await updateLibraryItem({
+        id: parseInt(selectedItem.id || "0"),
+        input,
+      });
+
+      if (result.error) {
+        console.error("Failed to update season:", result.error);
+        toast.error(`Failed to update season: ${result.error.message}`);
+        throw result.error;
+      }
+
+      console.log("Season updated successfully:", result.data);
+      toast.success("Season updated successfully!");
+
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      setEditModalOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error updating season:", error);
+    }
+  };
+
   const handleOpenCreateModal = (
     scope: "PLATFORM_STANDARD" | "COMPANY_CUSTOM"
   ) => {
@@ -100,22 +246,12 @@ export default function SeasonsPage() {
   };
 
   // Helper: Get season type
-  const getSeasonType = (data: any): string | null => {
+  const getSeasonType = (data: unknown): string | null => {
     if (!data) return null;
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      return parsed.type || null;
-    } catch {
-      return null;
-    }
-  };
-
-  // Helper: Get season year
-  const getSeasonYear = (data: any): string | null => {
-    if (!data) return null;
-    try {
-      const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      return parsed.year || null;
+      const parsedData = parsed as Record<string, unknown>;
+      return (parsedData.type as string) || null;
     } catch {
       return null;
     }
@@ -241,9 +377,8 @@ export default function SeasonsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {platformData.map((season: any) => {
+                {platformData.map((season: LibraryItemType) => {
                   const seasonType = getSeasonType(season.data);
-                  const seasonYear = getSeasonYear(season.data);
                   const emoji = getSeasonEmoji(seasonType);
 
                   return (
@@ -277,13 +412,34 @@ export default function SeasonsPage() {
                       )}
 
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleViewDetails(season)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
                           Details
                         </Button>
                         {isAdmin && (
-                          <Button variant="outline" size="sm">
-                            Edit
-                          </Button>
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditItem(season)}
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleDeleteItem(season)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -326,9 +482,8 @@ export default function SeasonsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {companyData.map((season: any) => {
+                  {companyData.map((season: LibraryItemType) => {
                     const seasonType = getSeasonType(season.data);
-                    const seasonYear = getSeasonYear(season.data);
                     const emoji = getSeasonEmoji(seasonType);
 
                     return (
@@ -364,15 +519,26 @@ export default function SeasonsPage() {
                             variant="outline"
                             size="sm"
                             className="flex-1"
+                            onClick={() => handleViewDetails(season)}
                           >
+                            <Eye className="h-3 w-3 mr-1" />
+                            Details
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditItem(season)}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
                             Edit
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-red-600"
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => handleDeleteItem(season)}
                           >
-                            Delete
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
@@ -390,7 +556,9 @@ export default function SeasonsPage() {
             <div className="rounded-lg border bg-card p-4">
               <div className="flex items-center gap-2 mb-4">
                 <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <h3 className="font-semibold">All Companies' Custom Seasons</h3>
+                <h3 className="font-semibold">
+                  All Companies&apos; Custom Seasons
+                </h3>
                 <span className="text-sm text-muted-foreground">
                   (Admin view only)
                 </span>
@@ -398,7 +566,7 @@ export default function SeasonsPage() {
 
               {allCompaniesResult.fetching ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  Loading all companies' seasons...
+                  Loading all companies&apos; seasons...
                 </div>
               ) : allCompaniesData.length === 0 ? (
                 <div className="text-center py-8">
@@ -408,9 +576,8 @@ export default function SeasonsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {allCompaniesData.map((season: any) => {
+                  {allCompaniesData.map((season: LibraryItemType) => {
                     const seasonType = getSeasonType(season.data);
-                    const seasonYear = getSeasonYear(season.data);
                     const emoji = getSeasonEmoji(seasonType);
 
                     return (
@@ -447,7 +614,13 @@ export default function SeasonsPage() {
                           </p>
                         )}
 
-                        <Button variant="outline" size="sm" className="w-full">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => handleViewDetails(season)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
                           View Details
                         </Button>
                       </div>
@@ -468,6 +641,139 @@ export default function SeasonsPage() {
         scope={createScope}
         onSubmit={handleCreateItem}
       />
+
+      {/* Edit Modal */}
+      <CreateLibraryItemModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        category="SEASON"
+        scope="COMPANY_CUSTOM"
+        onSubmit={handleUpdateItem}
+        isEditMode={true}
+        initialData={
+          selectedItem
+            ? {
+                name: selectedItem.name || "",
+                code: selectedItem.code || "",
+                description: selectedItem.description || "",
+                data: selectedItem.data
+                  ? typeof selectedItem.data === "string"
+                    ? JSON.parse(selectedItem.data)
+                    : selectedItem.data
+                  : {},
+              }
+            : undefined
+        }
+      />
+
+      {/* Details Modal */}
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedItem && (
+                <>
+                  <span className="text-2xl">
+                    {getSeasonEmoji(getSeasonType(selectedItem.data))}
+                  </span>
+                  {selectedItem.name}
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                    Name
+                  </h4>
+                  <p>{selectedItem.name}</p>
+                </div>
+                {selectedItem.code && (
+                  <div>
+                    <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                      Code
+                    </h4>
+                    <p className="font-mono text-sm">{selectedItem.code}</p>
+                  </div>
+                )}
+              </div>
+
+              {selectedItem.description && (
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                    Description
+                  </h4>
+                  <p className="text-sm">{selectedItem.description}</p>
+                </div>
+              )}
+
+              <div>
+                <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                  Season Type
+                </h4>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">
+                    {getSeasonEmoji(getSeasonType(selectedItem.data))}
+                  </span>
+                  <span>
+                    {getSeasonType(selectedItem.data) === "SS"
+                      ? "Spring/Summer"
+                      : getSeasonType(selectedItem.data) === "FW"
+                      ? "Fall/Winter"
+                      : "Unknown"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <h4 className="font-semibold text-muted-foreground mb-1">
+                      Created
+                    </h4>
+                    <p>
+                      {new Date(selectedItem.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-muted-foreground mb-1">
+                      Updated
+                    </h4>
+                    <p>
+                      {new Date(selectedItem.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Season</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{selectedItem?.name}&quot;?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              disabled={loadingDelete}
+            >
+              {loadingDelete ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

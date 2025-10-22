@@ -76,10 +76,26 @@ builder.addScalarType("JSON", JSONResolver);
 builder.addScalarType("DateTime", DateResolver);
 
 // File scalar for GraphQL Yoga v5 (WHATWG File API)
+// GraphQL Yoga automatically handles File type with multipart/form-data
 // Reference: https://the-guild.dev/graphql/yoga-server/docs/features/file-uploads
 builder.scalarType("File", {
-  serialize: () => {
-    throw new Error("File scalar cannot be serialized (output only)");
+  serialize: (value) => {
+    throw new Error("File scalar cannot be serialized (output-only type)");
+  },
+  parseValue: (value) => {
+    // GraphQL Yoga provides WHATWG File objects automatically
+    // Just pass through the value
+    if (value && typeof value === 'object') {
+      console.log("🔍 [File Scalar parseValue]:", {
+        hasValue: !!value,
+        type: typeof value,
+        constructor: (value as any)?.constructor?.name,
+        name: (value as any)?.name,
+        size: (value as any)?.size,
+        type_prop: (value as any)?.type,
+      });
+    }
+    return value as File;
   },
 });
 

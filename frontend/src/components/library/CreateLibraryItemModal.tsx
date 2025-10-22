@@ -31,10 +31,10 @@ import {
   SizeGroupSchema,
 } from "@/lib/zod-schema";
 import { GENDERS } from "@/utils/library-constants";
-import { ImagePlus, ShieldCheck, X } from "lucide-react";
-import Image from "next/image";
+import { ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "urql";
+import { FormFileUpload, FormImageUpload } from "../forms";
 
 interface CreateLibraryItemModalProps {
   open: boolean;
@@ -49,6 +49,8 @@ interface CreateLibraryItemModalProps {
     | "SEASON";
   scope: "PLATFORM_STANDARD" | "COMPANY_CUSTOM";
   onSubmit: (data: LibraryItemFormData) => Promise<void>;
+  initialData?: Partial<LibraryItemFormData>; // For edit mode
+  isEditMode?: boolean; // To distinguish between create and edit
 }
 
 export interface LibraryItemFormData {
@@ -57,6 +59,7 @@ export interface LibraryItemFormData {
   description: string;
   data: Record<string, unknown>;
   imageFile?: File;
+  imageUrl?: string; // 🖼️ Existing image URL (for edit mode)
   certificationIds?: number[]; // 🔗 Certification IDs
   tags?: string; // 🏷️ JSON stringified tags for certification categories
 }
@@ -452,6 +455,8 @@ export default function CreateLibraryItemModal({
   category,
   scope,
   onSubmit,
+  initialData,
+  isEditMode = false,
 }: CreateLibraryItemModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -489,6 +494,34 @@ export default function CreateLibraryItemModal({
       setError(null);
     }
   }, [open]);
+
+  // Initialize form with initial data when in edit mode
+  useEffect(() => {
+    if (open && initialData && isEditMode) {
+      setFormData({
+        code: initialData.code || "",
+        name: initialData.name || "",
+        description: initialData.description || "",
+        data: initialData.data || {},
+        imageUrl: initialData.imageUrl || "",
+        certificationIds: initialData.certificationIds || [],
+      });
+
+      // Set image preview if imageUrl exists
+      if (initialData.imageUrl) {
+        setImagePreview(initialData.imageUrl);
+      }
+
+      // Set selected certifications
+      if (initialData.certificationIds) {
+        setSelectedCertificationIds(initialData.certificationIds);
+      }
+
+      // Clear any previous errors
+      setValidationErrors({});
+      setError(null);
+    }
+  }, [open, initialData, isEditMode]);
 
   // Validate form data on change
   const validateField = (fieldPath: string) => {
@@ -628,11 +661,9 @@ export default function CreateLibraryItemModal({
     setError(null); // Clear previous errors
 
     try {
-      // Validate form data using appropriate Zod schema
-      const validationData = prepareValidationData(formData, category);
-      schema.parse(validationData); // This will throw if validation fails
-
       const finalData = { ...formData };
+
+      // ✅ AUTO-GENERATE CODE & NAME BEFORE VALIDATION
 
       // Auto-generate code for FABRIC category
       if (category === "FABRIC" && formData.data.composition) {
@@ -647,17 +678,6 @@ export default function CreateLibraryItemModal({
         finalData.name = `${
           formData.data.type === "SS" ? "Spring/Summer" : "Fall/Winter"
         } ${formData.data.year}`;
-      }
-
-      // Auto-generate fields for COLOR category
-      if (category === "COLOR" && formData.data.hex) {
-        const hex = String(formData.data.hex);
-        const pantone = formData.data.pantone
-          ? String(formData.data.pantone)
-          : undefined;
-
-        // Auto-generate CODE only (name is entered by user)
-        finalData.code = autoGenerateColorCode(hex, pantone);
       }
 
       // Auto-generate fields for SIZE_GROUP category
@@ -688,6 +708,17 @@ export default function CreateLibraryItemModal({
           sizeCategory,
           sizeSystemType
         );
+      }
+
+      // Auto-generate fields for COLOR category
+      if (category === "COLOR" && formData.data.hex) {
+        const hex = String(formData.data.hex);
+        const pantone = formData.data.pantone
+          ? String(formData.data.pantone)
+          : undefined;
+
+        // Auto-generate CODE only (name is entered by user)
+        finalData.code = autoGenerateColorCode(hex, pantone);
       }
 
       // Auto-generate fields for CERTIFICATION category
@@ -854,50 +885,28 @@ export default function CreateLibraryItemModal({
       case "FABRIC":
         return (
           <>
-            {/* Fabric Image Upload */}
-            <div className="space-y-2">
-              <Label>Fabric Image</Label>
-              <div className="flex items-start gap-4">
-                {imagePreview ? (
-                  <div className="relative">
-                    <Image
-                      src={imagePreview}
-                      alt="Fabric preview"
-                      width={120}
-                      height={120}
-                      className="rounded-lg border object-cover"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute -top-2 -right-2 h-6 w-6"
-                      onClick={handleRemoveImage}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <label className="cursor-pointer">
-                    <div className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
-                      <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
-                      <span className="text-xs text-muted-foreground">
-                        Upload
-                      </span>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageChange}
-                    />
-                  </label>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Upload a photo of the fabric (optional)
-              </p>
-            </div>
+            {/* Fabric Image Upload - Using FormImageUpload component */}
+            <FormImageUpload
+              value={imagePreview || formData.imageUrl}
+              onChange={(url) => {
+                setFormData({ ...formData, imageUrl: url });
+                setImagePreview(url);
+              }}
+              onDelete={() => {
+                setFormData({
+                  ...formData,
+                  imageUrl: "",
+                  imageFile: undefined,
+                });
+                setImagePreview("");
+              }}
+              label="Fabric Image"
+              description="Upload a photo of the fabric (optional)"
+              uploadType="fabrics"
+              maxSize={5}
+              recommended="800x600px"
+              aspectRatio="square"
+            />
 
             <div className="space-y-2">
               <Label htmlFor="composition">Composition *</Label>
@@ -1950,6 +1959,24 @@ export default function CreateLibraryItemModal({
               </div>
             </div>
 
+            {/* Certification Document Upload */}
+            <FormFileUpload
+              value={formData.imageUrl}
+              onChange={(url) => {
+                setFormData({ ...formData, imageUrl: url });
+              }}
+              onDelete={() => {
+                setFormData({ ...formData, imageUrl: "" });
+              }}
+              label="Certification Document"
+              description="Upload the official certification PDF"
+              accept=".pdf"
+              fileType="pdf"
+              uploadType="certifications"
+              maxSize={10}
+              recommended="PDF format recommended"
+            />
+
             {/* Calculated Expiry Date Display */}
             {formData.data.validUntil && (
               <div className="bg-muted/50 p-3 rounded-lg">
@@ -2017,73 +2044,35 @@ export default function CreateLibraryItemModal({
                 </div>
               </div>
             )}
-
-            {/* 📄 Certification Document Upload */}
-            <div className="space-y-2">
-              <Label>Certification Document</Label>
-              <div className="flex items-start gap-4">
-                {imagePreview ? (
-                  <div className="relative">
-                    {/* Check if it's an image or PDF */}
-                    {formData.imageFile?.type.startsWith("image/") ? (
-                      <Image
-                        src={imagePreview}
-                        alt="Certification preview"
-                        width={120}
-                        height={120}
-                        className="rounded-lg border object-cover"
-                      />
-                    ) : (
-                      <div className="w-32 h-32 rounded-lg border bg-muted flex flex-col items-center justify-center p-2">
-                        <svg
-                          className="h-12 w-12 text-red-600 mb-2"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z" />
-                        </svg>
-                        <span className="text-xs text-center font-medium truncate w-full">
-                          {formData.imageFile?.name}
-                        </span>
-                      </div>
-                    )}
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute -top-2 -right-2 h-6 w-6"
-                      onClick={handleRemoveImage}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <label className="cursor-pointer">
-                    <div className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
-                      <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
-                      <span className="text-xs text-muted-foreground">
-                        Upload
-                      </span>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      className="hidden"
-                      onChange={handleImageChange}
-                    />
-                  </label>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Upload certificate document (PDF or image) - Optional
-              </p>
-            </div>
           </>
         );
 
       case "MATERIAL":
         return (
           <div className="space-y-4">
+            {/* Material/Accessory Image Upload - Using FormImageUpload component */}
+            <FormImageUpload
+              value={imagePreview || formData.imageUrl}
+              onChange={(url) => {
+                setFormData({ ...formData, imageUrl: url });
+                setImagePreview(url);
+              }}
+              onDelete={() => {
+                setFormData({
+                  ...formData,
+                  imageUrl: "",
+                  imageFile: undefined,
+                });
+                setImagePreview("");
+              }}
+              label="Accessory Image"
+              description="Upload a photo of the accessory (optional)"
+              uploadType="accessories"
+              maxSize={5}
+              recommended="800x600px"
+              aspectRatio="square"
+            />
+
             {/* Accessory Type */}
             <div className="space-y-2">
               <Label htmlFor="accessoryType">Accessory Type *</Label>
@@ -2331,13 +2320,15 @@ export default function CreateLibraryItemModal({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Create {getCategoryLabel()}{" "}
+            {isEditMode ? "Edit" : "Create"} {getCategoryLabel()}{" "}
             {scope === "PLATFORM_STANDARD"
               ? "(Platform Standard)"
               : "(Company Custom)"}
           </DialogTitle>
           <DialogDescription>
-            {scope === "PLATFORM_STANDARD"
+            {isEditMode
+              ? "Update the information for this item."
+              : scope === "PLATFORM_STANDARD"
               ? "This will be visible to all users across the platform."
               : "This will only be visible to your company."}
           </DialogDescription>
@@ -2417,8 +2408,18 @@ export default function CreateLibraryItemModal({
                       const newFormData = { ...formData, name: e.target.value };
                       setFormData(newFormData);
 
-                      // Validate name field
-                      if (e.target.value.trim()) {
+                      // Clear validation error when user starts typing
+                      if (validationErrors.name && e.target.value.trim()) {
+                        setValidationErrors((prev) => {
+                          const newErrors = { ...prev };
+                          delete newErrors.name;
+                          return newErrors;
+                        });
+                      }
+                    }}
+                    onBlur={() => {
+                      // Validate on blur only if field has value
+                      if (formData.name.trim()) {
                         validateField("name");
                       }
                     }}
@@ -2466,7 +2467,13 @@ export default function CreateLibraryItemModal({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create"}
+              {loading
+                ? isEditMode
+                  ? "Updating..."
+                  : "Creating..."
+                : isEditMode
+                ? "Update"
+                : "Create"}
             </Button>
           </DialogFooter>
         </form>

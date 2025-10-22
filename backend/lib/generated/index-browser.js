@@ -322,6 +322,7 @@ exports.Prisma.CollectionScalarFieldEnum = {
   techPack: 'techPack',
   moq: 'moq',
   targetPrice: 'targetPrice',
+  currency: 'currency',
   targetLeadTime: 'targetLeadTime',
   notes: 'notes',
   likesCount: 'likesCount',
@@ -856,6 +857,7 @@ exports.Prisma.CollectionOrderByRelevanceFieldEnum = {
   name: 'name',
   description: 'description',
   modelCode: 'modelCode',
+  season: 'season',
   fit: 'fit',
   trend: 'trend',
   colors: 'colors',
@@ -866,6 +868,7 @@ exports.Prisma.CollectionOrderByRelevanceFieldEnum = {
   accessories: 'accessories',
   images: 'images',
   techPack: 'techPack',
+  currency: 'currency',
   notes: 'notes',
   sku: 'sku',
   slug: 'slug'
@@ -1091,15 +1094,6 @@ exports.CategoryLevel = exports.$Enums.CategoryLevel = {
 exports.CategoryType = exports.$Enums.CategoryType = {
   GLOBAL_STANDARD: 'GLOBAL_STANDARD',
   COMPANY_CUSTOM: 'COMPANY_CUSTOM'
-};
-
-exports.Season = exports.$Enums.Season = {
-  SS25: 'SS25',
-  FW25: 'FW25',
-  SS26: 'SS26',
-  FW26: 'FW26',
-  SS27: 'SS27',
-  FW27: 'FW27'
 };
 
 exports.Gender = exports.$Enums.Gender = {

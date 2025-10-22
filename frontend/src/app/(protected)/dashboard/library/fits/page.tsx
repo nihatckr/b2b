@@ -1,20 +1,69 @@
 "use client";
 
 import {
+  CreateLibraryItemInput,
   DashboardCreateLibraryItemDocument,
+  DashboardDeleteLibraryItemDocument,
   DashboardLibraryItemsDocument,
   DashboardMyCompanyLibraryDocument,
   DashboardPlatformStandardsDocument,
+  DashboardPlatformStandardsQuery,
+  DashboardUpdateLibraryItemDocument,
+  UpdateLibraryItemInput,
 } from "@/__generated__/graphql";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, Globe, Plus, Sparkles, Users } from "lucide-react";
+import {
+  Building,
+  Edit,
+  Eye,
+  Globe,
+  Plus,
+  Sparkles,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
+
+// Type alias for library item from query responses
+type LibraryItemType = NonNullable<
+  DashboardPlatformStandardsQuery["platformStandards"]
+>[0];
+
+// Extended type with fit data
+type FitWithData = LibraryItemType & {
+  fitData?: {
+    fitCategory: string | null;
+    gender: string | null;
+    fitType: string | null;
+    bodyTypes: string | null;
+    characteristics: string[];
+  };
+};
 
 export default function FitsPage() {
   const { data: session } = useSession();
@@ -27,6 +76,15 @@ export default function FitsPage() {
   const [createScope, setCreateScope] = useState<
     "PLATFORM_STANDARD" | "COMPANY_CUSTOM"
   >("PLATFORM_STANDARD");
+
+  // Edit/Delete/Details modal states
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<LibraryItemType | null>(
+    null
+  );
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   // Queries
   const [platformResult, refetchPlatform] = useQuery({
@@ -55,20 +113,25 @@ export default function FitsPage() {
   const companyData = companyResult.data?.myCompanyLibrary || [];
   const allCompaniesData = allCompaniesResult.data?.libraryItems || [];
 
-  // Mutation
+  // Mutations
   const [, createLibraryItem] = useMutation(DashboardCreateLibraryItemDocument);
+  const [, updateLibraryItem] = useMutation(DashboardUpdateLibraryItemDocument);
+  const [, deleteLibraryItem] = useMutation(DashboardDeleteLibraryItemDocument);
 
   // Helper: Get fit data
   const getFitData = (data: unknown) => {
     if (!data) return null;
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      const parsedData = parsed as Record<string, unknown>;
       return {
-        fitCategory: (parsed as any)?.fitCategory || null,
-        gender: (parsed as any)?.gender || null,
-        fitType: (parsed as any)?.fitType || null,
-        bodyTypes: (parsed as any)?.bodyTypes || null,
-        characteristics: (parsed as any)?.characteristics || [],
+        fitCategory: (parsedData?.fitCategory as string) || null,
+        gender: (parsedData?.gender as string) || null,
+        fitType: (parsedData?.fitType as string) || null,
+        bodyTypes: (parsedData?.bodyTypes as string) || null,
+        characteristics: Array.isArray(parsedData?.characteristics)
+          ? (parsedData.characteristics as string[])
+          : [],
       };
     } catch {
       return null;
@@ -76,15 +139,17 @@ export default function FitsPage() {
   };
 
   // Group fits by gender and category
-  const groupFitsByGenderAndCategory = (fits: any[]) => {
-    const grouped: { [gender: string]: { [category: string]: any[] } } = {};
+  const groupFitsByGenderAndCategory = (fits: LibraryItemType[]) => {
+    const grouped: {
+      [gender: string]: { [category: string]: FitWithData[] };
+    } = {};
 
-    fits.forEach((fit: any) => {
+    fits.forEach((fit: LibraryItemType) => {
       const fitData = getFitData(fit.data);
       if (!fitData) return;
 
-      const gender = fitData.gender || "UNSPECIFIED";
-      const category = fitData.fitCategory || "UNSPECIFIED";
+      const gender = (fitData.gender as string) || "UNSPECIFIED";
+      const category = (fitData.fitCategory as string) || "UNSPECIFIED";
 
       if (!grouped[gender]) grouped[gender] = {};
       if (!grouped[gender][category]) grouped[gender][category] = [];
@@ -92,7 +157,7 @@ export default function FitsPage() {
       grouped[gender][category].push({
         ...fit,
         fitData,
-      });
+      } as FitWithData);
     });
 
     return grouped;
@@ -108,7 +173,7 @@ export default function FitsPage() {
 
   const handleCreateItem = async (data: LibraryItemFormData) => {
     try {
-      const input: any = {
+      const input: CreateLibraryItemInput = {
         category: "FIT",
         scope: createScope,
         code: data.code,
@@ -117,14 +182,20 @@ export default function FitsPage() {
         data: JSON.stringify(data.data),
       };
 
+      if (data.certificationIds && data.certificationIds.length > 0) {
+        input.certificationIds = data.certificationIds;
+      }
+
       const result = await createLibraryItem({ input });
 
       if (result.error) {
-        alert(`Error: ${result.error.message}`);
+        console.error("Failed to create fit:", result.error);
+        toast.error(`Failed to create fit: ${result.error.message}`);
         throw result.error;
       }
 
-      alert("✅ Fit created successfully!");
+      console.log("Fit created successfully:", result.data);
+      toast.success("Fit created successfully!");
 
       await Promise.all([
         refetchPlatform({ requestPolicy: "network-only" }),
@@ -135,6 +206,99 @@ export default function FitsPage() {
       setCreateModalOpen(false);
     } catch (error) {
       console.error("Error creating fit:", error);
+    }
+  };
+
+  // Handler: Open edit modal
+  const handleEditItem = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setEditModalOpen(true);
+  };
+
+  // Handler: Open details modal
+  const handleViewDetails = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setDetailsModalOpen(true);
+  };
+
+  // Handler: Open delete confirmation
+  const handleDeleteItem = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setDeleteAlertOpen(true);
+  };
+
+  // Handler: Confirm delete
+  const handleConfirmDelete = async () => {
+    if (!selectedItem) return;
+
+    setLoadingDelete(true);
+    try {
+      const result = await deleteLibraryItem({
+        id: parseInt(selectedItem.id || "0"),
+      });
+
+      if (result.error) {
+        console.error("Failed to delete fit:", result.error);
+        toast.error(`Failed to delete fit: ${result.error.message}`);
+        return;
+      }
+
+      console.log("Fit deleted successfully");
+      toast.success("Fit deleted successfully!");
+
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      setDeleteAlertOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error deleting fit:", error);
+      toast.error("Failed to delete fit");
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
+
+  // Handler: Update library item
+  const handleUpdateItem = async (data: LibraryItemFormData) => {
+    if (!selectedItem) return;
+
+    try {
+      const input: UpdateLibraryItemInput = {
+        name: data.name,
+        description: data.description || "",
+        data:
+          typeof data.data === "object" ? JSON.stringify(data.data) : data.data,
+        isActive: true,
+      };
+
+      const result = await updateLibraryItem({
+        id: parseInt(selectedItem.id || "0"),
+        input,
+      });
+
+      if (result.error) {
+        console.error("Failed to update fit:", result.error);
+        toast.error(`Failed to update fit: ${result.error.message}`);
+        throw result.error;
+      }
+
+      console.log("Fit updated successfully:", result.data);
+      toast.success("Fit updated successfully!");
+
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      setEditModalOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error updating fit:", error);
     }
   };
 
@@ -246,7 +410,7 @@ export default function FitsPage() {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="space-y-6">
                 {(() => {
                   const groupedFits =
                     groupFitsByGenderAndCategory(platformData);
@@ -293,110 +457,117 @@ export default function FitsPage() {
                           key={`${gender}-${category}`}
                           className="space-y-3"
                         >
-                          <h4 className="text-md font-medium text-muted-foreground flex items-center gap-2">
+                          <h4 className="text-md font-medium text-muted-foreground flex items-center gap-2 pl-4">
                             <span>
-                              {category === "UPPER"
+                              {category === "Top"
                                 ? "👕"
-                                : category === "LOWER"
+                                : category === "Bottom"
                                 ? "👖"
-                                : category === "DRESS"
+                                : category === "Dress"
                                 ? "👗"
-                                : category === "OUTERWEAR"
+                                : category === "Outerwear"
                                 ? "🧥"
                                 : "📦"}
                             </span>
-                            {category === "UPPER"
-                              ? "Upper Body"
-                              : category === "LOWER"
-                              ? "Lower Body"
-                              : category === "DRESS"
-                              ? "Dresses"
-                              : category === "OUTERWEAR"
-                              ? "Outerwear"
-                              : category}
+                            {category}
                             <span className="text-xs">
                               ({groupedFits[gender][category].length})
                             </span>
                           </h4>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pl-6">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {groupedFits[gender][category].map(
-                              (fit: {
-                                id: string;
-                                name: string;
-                                isPopular: boolean;
-                                code: string;
-                                description: string;
-                                fitData: {
-                                  fitType: string;
-                                  characteristics: string[];
-                                };
-                              }) => (
-                                <div
-                                  key={fit.id}
-                                  className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
-                                >
-                                  <div className="flex items-start justify-between mb-2">
-                                    <h5 className="font-medium text-base">
-                                      {fit.name}
-                                    </h5>
-                                    {fit.isPopular && (
-                                      <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded">
-                                        Popular
-                                      </span>
-                                    )}
-                                  </div>
+                              (fitWithData: FitWithData) => {
+                                const fit = fitWithData; // Keep original fit object
+                                return (
+                                  <div
+                                    key={fit.id}
+                                    className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                                  >
+                                    <div className="flex items-start justify-between mb-2">
+                                      <h5 className="font-medium text-base">
+                                        {fit.name}
+                                      </h5>
+                                      {fit.isPopular && (
+                                        <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded">
+                                          Popular
+                                        </span>
+                                      )}
+                                    </div>
 
-                                  {fit.fitData?.fitType && (
-                                    <p className="text-sm text-muted-foreground mb-2">
-                                      Type: {fit.fitData.fitType}
-                                    </p>
-                                  )}
-
-                                  {fit.code && (
-                                    <p className="text-xs text-muted-foreground mb-2">
-                                      Code: {fit.code}
-                                    </p>
-                                  )}
-
-                                  {fit.fitData?.characteristics &&
-                                    fit.fitData.characteristics.length > 0 && (
-                                      <div className="flex flex-wrap gap-1 mb-3">
-                                        {fit.fitData.characteristics
-                                          .slice(0, 2)
-                                          .map((char: string, idx: number) => (
-                                            <span
-                                              key={idx}
-                                              className="text-xs bg-primary/10 text-primary px-2 py-1 rounded"
-                                            >
-                                              {char}
-                                            </span>
-                                          ))}
-                                      </div>
+                                    {fit.fitData?.fitType && (
+                                      <p className="text-sm text-muted-foreground mb-2">
+                                        Type: {fit.fitData.fitType}
+                                      </p>
                                     )}
 
-                                  {fit.description && (
-                                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                                      {fit.description}
-                                    </p>
-                                  )}
+                                    {fit.code && (
+                                      <p className="text-xs text-muted-foreground mb-2">
+                                        Code: {fit.code}
+                                      </p>
+                                    )}
 
-                                  <div className="flex gap-2 mt-4">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="flex-1"
-                                    >
-                                      Details
-                                    </Button>
-                                    {isAdmin && (
-                                      <Button variant="outline" size="sm">
-                                        Edit
+                                    {fit.fitData?.characteristics &&
+                                      fit.fitData.characteristics.length >
+                                        0 && (
+                                        <div className="flex flex-wrap gap-1 mb-3">
+                                          {fit.fitData.characteristics
+                                            .slice(0, 2)
+                                            .map(
+                                              (char: string, idx: number) => (
+                                                <span
+                                                  key={idx}
+                                                  className="text-xs bg-primary/10 text-primary px-2 py-1 rounded"
+                                                >
+                                                  {char}
+                                                </span>
+                                              )
+                                            )}
+                                        </div>
+                                      )}
+
+                                    {fit.description && (
+                                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                        {fit.description}
+                                      </p>
+                                    )}
+
+                                    <div className="flex gap-2 mt-4">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1"
+                                        onClick={() => handleViewDetails(fit)}
+                                      >
+                                        <Eye className="h-3 w-3 mr-1" />
+                                        Details
                                       </Button>
-                                    )}
+                                      {isAdmin && (
+                                        <>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleEditItem(fit)}
+                                          >
+                                            <Edit className="h-3 w-3 mr-1" />
+                                            Edit
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-red-600 hover:text-red-700"
+                                            onClick={() =>
+                                              handleDeleteItem(fit)
+                                            }
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              )
+                                );
+                              }
                             )}
                           </div>
                         </div>
@@ -436,7 +607,7 @@ export default function FitsPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="space-y-6">
                   {(() => {
                     const groupedFits =
                       groupFitsByGenderAndCategory(companyData);
@@ -483,105 +654,103 @@ export default function FitsPage() {
                             key={`${gender}-${category}`}
                             className="space-y-3"
                           >
-                            <h4 className="text-md font-medium text-muted-foreground flex items-center gap-2">
+                            <h4 className="text-md font-medium text-muted-foreground flex items-center gap-2 pl-4">
                               <span>
-                                {category === "UPPER"
+                                {category === "Top"
                                   ? "👕"
-                                  : category === "LOWER"
+                                  : category === "Bottom"
                                   ? "👖"
-                                  : category === "DRESS"
+                                  : category === "Dress"
                                   ? "👗"
-                                  : category === "OUTERWEAR"
+                                  : category === "Outerwear"
                                   ? "🧥"
                                   : "📦"}
                               </span>
-                              {category === "UPPER"
-                                ? "Upper Body"
-                                : category === "LOWER"
-                                ? "Lower Body"
-                                : category === "DRESS"
-                                ? "Dresses"
-                                : category === "OUTERWEAR"
-                                ? "Outerwear"
-                                : category}
+                              {category}
                               <span className="text-xs">
                                 ({groupedFits[gender][category].length})
                               </span>
                             </h4>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pl-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                               {groupedFits[gender][category].map(
-                                (fit: {
-                                  id: string;
-                                  name: string;
-                                  description: string;
-                                  fitData: {
-                                    fitType: string;
-                                    characteristics: string[];
-                                  };
-                                }) => (
-                                  <div
-                                    key={fit.id}
-                                    className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
-                                  >
-                                    <div className="flex items-start justify-between mb-2">
-                                      <h5 className="font-medium text-base">
-                                        {fit.name}
-                                      </h5>
-                                      <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
-                                        Custom
-                                      </span>
-                                    </div>
+                                (fitWithData: FitWithData) => {
+                                  const fit = fitWithData; // Keep original fit object
+                                  return (
+                                    <div
+                                      key={fit.id}
+                                      className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                                    >
+                                      <div className="flex items-start justify-between mb-2">
+                                        <h5 className="font-medium text-base">
+                                          {fit.name}
+                                        </h5>
+                                        <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                                          Custom
+                                        </span>
+                                      </div>
 
-                                    {fit.fitData?.fitType && (
-                                      <p className="text-sm text-muted-foreground mb-2">
-                                        Type: {fit.fitData.fitType}
-                                      </p>
-                                    )}
-
-                                    {fit.fitData?.characteristics &&
-                                      fit.fitData.characteristics.length >
-                                        0 && (
-                                        <div className="flex flex-wrap gap-1 mb-3">
-                                          {fit.fitData.characteristics
-                                            .slice(0, 2)
-                                            .map(
-                                              (char: string, idx: number) => (
-                                                <span
-                                                  key={idx}
-                                                  className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded"
-                                                >
-                                                  {char}
-                                                </span>
-                                              )
-                                            )}
-                                        </div>
+                                      {fit.fitData?.fitType && (
+                                        <p className="text-sm text-muted-foreground mb-2">
+                                          Type: {fit.fitData.fitType}
+                                        </p>
                                       )}
 
-                                    {fit.description && (
-                                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                                        {fit.description}
-                                      </p>
-                                    )}
+                                      {fit.fitData?.characteristics &&
+                                        fit.fitData.characteristics.length >
+                                          0 && (
+                                          <div className="flex flex-wrap gap-1 mb-3">
+                                            {fit.fitData.characteristics
+                                              .slice(0, 2)
+                                              .map(
+                                                (char: string, idx: number) => (
+                                                  <span
+                                                    key={idx}
+                                                    className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded"
+                                                  >
+                                                    {char}
+                                                  </span>
+                                                )
+                                              )}
+                                          </div>
+                                        )}
 
-                                    <div className="flex gap-2 mt-4">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex-1"
-                                      >
-                                        Edit
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="text-red-600"
-                                      >
-                                        Delete
-                                      </Button>
+                                      {fit.description && (
+                                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                          {fit.description}
+                                        </p>
+                                      )}
+
+                                      <div className="flex gap-2 mt-4">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="flex-1"
+                                          onClick={() => handleViewDetails(fit)}
+                                        >
+                                          <Eye className="h-3 w-3 mr-1" />
+                                          Details
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => handleEditItem(fit)}
+                                        >
+                                          <Edit className="h-3 w-3 mr-1" />
+                                          Edit
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="text-red-600 hover:text-red-700"
+                                          onClick={() => handleDeleteItem(fit)}
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
                                     </div>
-                                  </div>
-                                )
+                                  );
+                                }
                               )}
                             </div>
                           </div>
@@ -669,98 +838,88 @@ export default function FitsPage() {
                               key={`${gender}-${category}`}
                               className="space-y-3"
                             >
-                              <h4 className="text-md font-medium text-muted-foreground flex items-center gap-2">
+                              <h4 className="text-md font-medium text-muted-foreground flex items-center gap-2 pl-4">
                                 <span>
-                                  {category === "UPPER"
+                                  {category === "Top"
                                     ? "👕"
-                                    : category === "LOWER"
+                                    : category === "Bottom"
                                     ? "👖"
-                                    : category === "DRESS"
+                                    : category === "Dress"
                                     ? "👗"
-                                    : category === "OUTERWEAR"
+                                    : category === "Outerwear"
                                     ? "🧥"
                                     : "📦"}
                                 </span>
-                                {category === "UPPER"
-                                  ? "Upper Body"
-                                  : category === "LOWER"
-                                  ? "Lower Body"
-                                  : category === "DRESS"
-                                  ? "Dresses"
-                                  : category === "OUTERWEAR"
-                                  ? "Outerwear"
-                                  : category}
+                                {category}
                                 <span className="text-xs">
                                   ({groupedFits[gender][category].length})
                                 </span>
-                              </h4>
-
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pl-6">
+                              </h4>{" "}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {groupedFits[gender][category].map(
-                                  (fit: {
-                                    id: string;
-                                    name: string;
-                                    description: string;
-                                    company: { name: string };
-                                    fitData: {
-                                      fitType: string;
-                                      characteristics: string[];
-                                    };
-                                  }) => (
-                                    <div
-                                      key={fit.id}
-                                      className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
-                                    >
-                                      {fit.company && (
-                                        <p className="text-xs text-muted-foreground mb-2 font-medium">
-                                          🏢 {fit.company.name}
-                                        </p>
-                                      )}
-
-                                      <h5 className="font-medium text-base mb-2">
-                                        {fit.name}
-                                      </h5>
-
-                                      {fit.fitData?.fitType && (
-                                        <p className="text-sm text-muted-foreground mb-2">
-                                          Type: {fit.fitData.fitType}
-                                        </p>
-                                      )}
-
-                                      {fit.fitData?.characteristics &&
-                                        fit.fitData.characteristics.length >
-                                          0 && (
-                                          <div className="flex flex-wrap gap-1 mb-3">
-                                            {fit.fitData.characteristics
-                                              .slice(0, 2)
-                                              .map(
-                                                (char: string, idx: number) => (
-                                                  <span
-                                                    key={idx}
-                                                    className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded"
-                                                  >
-                                                    {char}
-                                                  </span>
-                                                )
-                                              )}
-                                          </div>
+                                  (fitWithData: FitWithData) => {
+                                    const fit = fitWithData; // Keep original fit object
+                                    return (
+                                      <div
+                                        key={fit.id}
+                                        className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                                      >
+                                        {fit.company && (
+                                          <p className="text-xs text-muted-foreground mb-2 font-medium">
+                                            🏢 {fit.company.name}
+                                          </p>
                                         )}
 
-                                      {fit.description && (
-                                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                                          {fit.description}
-                                        </p>
-                                      )}
+                                        <h5 className="font-medium text-base mb-2">
+                                          {fit.name}
+                                        </h5>
 
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full"
-                                      >
-                                        View Details
-                                      </Button>
-                                    </div>
-                                  )
+                                        {fit.fitData?.fitType && (
+                                          <p className="text-sm text-muted-foreground mb-2">
+                                            Type: {fit.fitData.fitType}
+                                          </p>
+                                        )}
+
+                                        {fit.fitData?.characteristics &&
+                                          fit.fitData.characteristics.length >
+                                            0 && (
+                                            <div className="flex flex-wrap gap-1 mb-3">
+                                              {fit.fitData.characteristics
+                                                .slice(0, 2)
+                                                .map(
+                                                  (
+                                                    char: string,
+                                                    idx: number
+                                                  ) => (
+                                                    <span
+                                                      key={idx}
+                                                      className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded"
+                                                    >
+                                                      {char}
+                                                    </span>
+                                                  )
+                                                )}
+                                            </div>
+                                          )}
+
+                                        {fit.description && (
+                                          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                            {fit.description}
+                                          </p>
+                                        )}
+
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="w-full"
+                                          onClick={() => handleViewDetails(fit)}
+                                        >
+                                          <Eye className="h-3 w-3 mr-1" />
+                                          View Details
+                                        </Button>
+                                      </div>
+                                    );
+                                  }
                                 )}
                               </div>
                             </div>
@@ -784,6 +943,237 @@ export default function FitsPage() {
         scope={createScope}
         onSubmit={handleCreateItem}
       />
+
+      {/* Edit Modal */}
+      {selectedItem && (
+        <CreateLibraryItemModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          category="FIT"
+          scope={selectedItem.scope as "PLATFORM_STANDARD" | "COMPANY_CUSTOM"}
+          onSubmit={handleUpdateItem}
+          initialData={{
+            code: selectedItem.code || "",
+            name: selectedItem.name || "",
+            description: selectedItem.description || "",
+            data: (() => {
+              try {
+                return typeof selectedItem.data === "string"
+                  ? JSON.parse(selectedItem.data)
+                  : selectedItem.data || {};
+              } catch (e) {
+                console.warn("Failed to parse selectedItem.data:", e);
+                return {};
+              }
+            })(),
+            certificationIds:
+              selectedItem.certifications
+                ?.map((cert) => cert.id)
+                .filter((id) => id != null)
+                .map((id) => parseInt(id!)) || [],
+            tags: selectedItem.tags || "",
+          }}
+          isEditMode={true}
+        />
+      )}
+
+      {/* Details Modal */}
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Fit Details
+            </DialogTitle>
+            <DialogDescription>
+              View detailed information about this fit
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedItem && (
+            <div className="space-y-4">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Code
+                  </label>
+                  <p className="font-mono">{selectedItem.code || "N/A"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Name
+                  </label>
+                  <p className="font-medium">{selectedItem.name}</p>
+                </div>
+              </div>
+
+              {selectedItem.description && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Description
+                  </label>
+                  <p className="text-sm">{selectedItem.description}</p>
+                </div>
+              )}
+
+              {/* Fit-specific data */}
+              {selectedItem.data &&
+                (() => {
+                  try {
+                    const fitData = JSON.parse(selectedItem.data);
+                    return (
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Fit Properties
+                        </label>
+                        <div className="mt-2 space-y-2 p-3 bg-muted/30 rounded-lg">
+                          {fitData.gender && (
+                            <div className="flex justify-between">
+                              <span className="text-sm text-muted-foreground">
+                                Gender:
+                              </span>
+                              <span className="text-sm font-medium">
+                                {fitData.gender}
+                              </span>
+                            </div>
+                          )}
+                          {fitData.fitCategory && (
+                            <div className="flex justify-between">
+                              <span className="text-sm text-muted-foreground">
+                                Category:
+                              </span>
+                              <span className="text-sm font-medium">
+                                {fitData.fitCategory}
+                              </span>
+                            </div>
+                          )}
+                          {fitData.fitType && (
+                            <div className="flex justify-between">
+                              <span className="text-sm text-muted-foreground">
+                                Type:
+                              </span>
+                              <span className="text-sm font-medium">
+                                {fitData.fitType}
+                              </span>
+                            </div>
+                          )}
+                          {fitData.characteristics &&
+                            fitData.characteristics.length > 0 && (
+                              <div>
+                                <span className="text-sm text-muted-foreground">
+                                  Characteristics:
+                                </span>
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {fitData.characteristics.map(
+                                    (char: string, idx: number) => (
+                                      <span
+                                        key={idx}
+                                        className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
+                                      >
+                                        {char}
+                                      </span>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                        </div>
+                      </div>
+                    );
+                  } catch {
+                    return null;
+                  }
+                })()}
+
+              {/* Certifications */}
+              {selectedItem.certifications &&
+                selectedItem.certifications.length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Certifications
+                    </label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {selectedItem.certifications.map(
+                        (cert) =>
+                          cert.id &&
+                          cert.name && (
+                            <span
+                              key={cert.id}
+                              className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                            >
+                              {cert.name}
+                            </span>
+                          )
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              {/* Meta info */}
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Scope
+                  </label>
+                  <p className="text-sm">
+                    {selectedItem.scope === "PLATFORM_STANDARD"
+                      ? "Platform Standard"
+                      : "Company Custom"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Created
+                  </label>
+                  <p className="text-sm">
+                    {selectedItem.createdAt &&
+                      new Date(selectedItem.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDetailsModalOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-600" />
+              Delete Fit
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{selectedItem?.name}&quot;?
+              This action cannot be undone and will remove the fit from the
+              library.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loadingDelete}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={loadingDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {loadingDelete ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

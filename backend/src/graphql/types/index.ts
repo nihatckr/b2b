@@ -441,6 +441,7 @@ builder.prismaNode("Collection", {
     // Commercial Info
     moq: t.exposeInt("moq", { nullable: true }),
     targetPrice: t.exposeFloat("targetPrice", { nullable: true }),
+    currency: t.exposeString("currency", { nullable: true }),
     targetLeadTime: t.exposeInt("targetLeadTime", { nullable: true }),
     notes: t.exposeString("notes", { nullable: true }),
 

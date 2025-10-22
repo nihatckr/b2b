@@ -1,17 +1,17 @@
 "use client";
-import { createClient as createWSClient } from 'graphql-ws';
+import { multipartFetchExchange } from "@urql/exchange-multipart-fetch";
+import { createClient as createWSClient } from "graphql-ws";
 import { type Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 import {
-    cacheExchange,
-    Client,
-    createClient,
-    errorExchange,
-    fetchExchange,
-    ssrExchange,
-    subscriptionExchange,
-    type SSRExchange
+  cacheExchange,
+  Client,
+  createClient,
+  errorExchange,
+  ssrExchange,
+  subscriptionExchange,
+  type SSRExchange,
 } from "urql";
 
 // ============================================
@@ -53,8 +53,11 @@ function getWSClient(token?: string) {
   }
 
   // WebSocket URL (HTTP → WS conversion)
-  const graphqlUrl = process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:4001/graphql";
-  const wsUrl = graphqlUrl.replace("http://", "ws://").replace("https://", "wss://");
+  const graphqlUrl =
+    process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:4001/graphql";
+  const wsUrl = graphqlUrl
+    .replace("http://", "ws://")
+    .replace("https://", "wss://");
 
   console.log("🔌 Creating WebSocket client...", {
     url: wsUrl,
@@ -81,16 +84,19 @@ function getWSClient(token?: string) {
     retryWait: async (retries) => {
       // Exponential backoff: 1s, 2s, 4s, 8s, 16s
       const waitTime = Math.min(1000 * Math.pow(2, retries), 30000);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
     },
     on: {
       connecting: () => console.log("🔄 WebSocket connecting..."),
       connected: (socket, payload) => {
         console.log("✅ WebSocket connected", { socket: !!socket, payload });
       },
-      opened: (socket) => console.log("🔓 WebSocket opened", { socket: !!socket }),
-      ping: (received, payload) => console.log("🏓 WebSocket ping", { received, payload }),
-      pong: (received, payload) => console.log("🏓 WebSocket pong", { received, payload }),
+      opened: (socket) =>
+        console.log("🔓 WebSocket opened", { socket: !!socket }),
+      ping: (received, payload) =>
+        console.log("🏓 WebSocket ping", { received, payload }),
+      pong: (received, payload) =>
+        console.log("🏓 WebSocket pong", { received, payload }),
       message: (message) => console.log("📨 WebSocket message", message),
       error: (err) => console.error("❌ WebSocket error:", err),
       closed: (event) => console.log("🔌 WebSocket closed", event),
@@ -160,8 +166,10 @@ export function createUrqlClient(
           });
 
           // Check for network errors with 401 status
-          const is401 = error.networkError && "statusCode" in error.networkError
-            && error.networkError.statusCode === 401;
+          const is401 =
+            error.networkError &&
+            "statusCode" in error.networkError &&
+            error.networkError.statusCode === 401;
 
           if (isAuthError || is401) {
             console.warn("🚨 Authentication error detected, logging out...");
@@ -170,7 +178,10 @@ export function createUrqlClient(
             cleanupWSClient();
 
             // Only redirect if NOT already on login page (prevent loop)
-            if (typeof window !== "undefined" && !window.location.pathname.startsWith("/auth")) {
+            if (
+              typeof window !== "undefined" &&
+              !window.location.pathname.startsWith("/auth")
+            ) {
               // Redirect to login and clear session
               // Use window.location to force full page reload and clear all client state
               window.location.href = "/auth/login?error=session-expired";
@@ -206,8 +217,11 @@ export function createUrqlClient(
     }
   }
 
-  // Fetch exchange (her zaman son sırada - fallback for queries/mutations)
-  exchanges.push(fetchExchange);  return createClient({
+  // Multipart fetch exchange (supports file uploads)
+  // This exchange automatically detects File/Blob objects and sends multipart/form-data
+  exchanges.push(multipartFetchExchange);
+
+  return createClient({
     url: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:4001/graphql",
 
     exchanges,
@@ -219,10 +233,9 @@ export function createUrqlClient(
     requestPolicy: "cache-first",
 
     // Fetch options
+    // Do not set Content-Type here; multipartFetchExchange will set it when needed.
     fetchOptions: () => {
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
+      const headers: Record<string, string> = {};
 
       // Auth token ekle
       if (token) {
@@ -263,7 +276,7 @@ export function useUrqlClient() {
     // Client-side hook: SSR kapalı, Subscriptions aktif
     return createUrqlClient(token, false, true);
   }, [session]);
-}// ============================================
+} // ============================================
 // Server-Side Helpers
 // ============================================
 

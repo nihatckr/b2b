@@ -1,5 +1,6 @@
 export { FormCheckboxGroup } from "./form-checkbox-group";
 export { FormColorPicker } from "./form-color-picker";
+export { FormFileUpload } from "./form-file-upload";
 export { FormImageUpload } from "./form-image-upload";
 export { FormInput } from "./form-input";
 export { FormNumberInput } from "./form-number-input";

@@ -2,19 +2,53 @@
 
 import {
   DashboardCreateLibraryItemDocument,
+  DashboardDeleteLibraryItemDocument,
   DashboardLibraryItemsDocument,
   DashboardMyCompanyLibraryDocument,
   DashboardPlatformStandardsDocument,
+  DashboardPlatformStandardsQuery,
+  DashboardUpdateLibraryItemDocument,
 } from "@/__generated__/graphql";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, Globe, Plus, Ruler, Users } from "lucide-react";
+import {
+  Building,
+  Edit,
+  Eye,
+  Globe,
+  Plus,
+  Ruler,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
+
+// Type alias for library item from query responses
+type LibraryItemType = NonNullable<
+  DashboardPlatformStandardsQuery["platformStandards"]
+>[0];
 
 export default function SizeGroupsPage() {
   const { data: session } = useSession();
@@ -27,6 +61,15 @@ export default function SizeGroupsPage() {
   const [createScope, setCreateScope] = useState<
     "PLATFORM_STANDARD" | "COMPANY_CUSTOM"
   >("PLATFORM_STANDARD");
+
+  // Edit/Delete/Details modal states
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<LibraryItemType | null>(
+    null
+  );
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   // Queries
   const [platformResult, refetchPlatform] = useQuery({
@@ -55,15 +98,17 @@ export default function SizeGroupsPage() {
   const companyData = companyResult.data?.myCompanyLibrary || [];
   const allCompaniesData = allCompaniesResult.data?.libraryItems || [];
 
-  // Mutation
+  // Mutations
   const [, createLibraryItem] = useMutation(DashboardCreateLibraryItemDocument);
+  const [, updateLibraryItem] = useMutation(DashboardUpdateLibraryItemDocument);
+  const [, deleteLibraryItem] = useMutation(DashboardDeleteLibraryItemDocument);
 
   // Helper: Get sizes array from data
-  const getSizes = (data: any): string[] => {
+  const getSizes = (data: unknown): string[] => {
     if (!data) return [];
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      const sizes = parsed.sizes || [];
+      const sizes = parsed.sizes || "";
       // If sizes is a string (comma-separated), split it
       if (typeof sizes === "string") {
         return sizes
@@ -82,11 +127,33 @@ export default function SizeGroupsPage() {
   };
 
   // Helper: Get size category
-  const getSizeCategory = (data: any): string | null => {
+  const getSizeCategory = (data: unknown): string | null => {
     if (!data) return null;
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
       return parsed.sizeCategory || null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Helper: Get regional standard
+  const getRegionalStandard = (data: unknown): string | null => {
+    if (!data) return null;
+    try {
+      const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      return parsed.regionalStandard || null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Helper: Get target gender
+  const getTargetGender = (data: unknown): string | null => {
+    if (!data) return null;
+    try {
+      const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      return parsed.targetGender || null;
     } catch {
       return null;
     }
@@ -102,8 +169,8 @@ export default function SizeGroupsPage() {
 
   const handleCreateItem = async (data: LibraryItemFormData) => {
     try {
-      const input: any = {
-        category: "SIZE_GROUP",
+      const input = {
+        category: "SIZE_GROUP" as const,
         scope: createScope,
         code: data.code,
         name: data.name,
@@ -114,11 +181,11 @@ export default function SizeGroupsPage() {
       const result = await createLibraryItem({ input });
 
       if (result.error) {
-        alert(`Error: ${result.error.message}`);
+        toast.error(result.error.message);
         throw result.error;
       }
 
-      alert("✅ Size Group created successfully!");
+      toast.success("Size Group created successfully!");
 
       await Promise.all([
         refetchPlatform({ requestPolicy: "network-only" }),
@@ -129,6 +196,103 @@ export default function SizeGroupsPage() {
       setCreateModalOpen(false);
     } catch (error) {
       console.error("Error creating size group:", error);
+    }
+  };
+
+  // Edit/Delete/Details handlers
+  const handleEditItem = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setEditModalOpen(true);
+  };
+
+  const handleViewDetails = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setDetailsModalOpen(true);
+  };
+
+  const handleDeleteItem = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setDeleteAlertOpen(true);
+  };
+
+  const handleUpdateItem = async (data: LibraryItemFormData) => {
+    if (!selectedItem?.id) return;
+
+    try {
+      // LibraryItem uses numeric ID, not Relay Global ID
+      const itemId = Number(selectedItem.id);
+      if (!itemId || isNaN(itemId)) {
+        toast.error("Invalid item ID");
+        return;
+      }
+
+      const input = {
+        code: data.code,
+        name: data.name,
+        description: data.description || "",
+        data: data.data ? JSON.stringify(data.data) : "",
+      };
+
+      const result = await updateLibraryItem({
+        id: itemId,
+        input,
+      });
+
+      if (result.error) {
+        toast.error(result.error.message);
+        throw result.error;
+      }
+
+      toast.success("Size Group updated successfully!");
+
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      setEditModalOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error updating size group:", error);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedItem?.id || loadingDelete) return;
+
+    try {
+      setLoadingDelete(true);
+      // LibraryItem uses numeric ID, not Relay Global ID
+      const itemId = Number(selectedItem.id);
+      if (!itemId || isNaN(itemId)) {
+        toast.error("Invalid item ID");
+        return;
+      }
+
+      const result = await deleteLibraryItem({
+        id: itemId,
+      });
+
+      if (result.error) {
+        toast.error(result.error.message);
+        throw result.error;
+      }
+
+      toast.success("Size Group deleted successfully!");
+
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      setDeleteAlertOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error deleting size group:", error);
+    } finally {
+      setLoadingDelete(false);
     }
   };
 
@@ -241,9 +405,11 @@ export default function SizeGroupsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {platformData.map((sizeGroup: any) => {
+                {platformData.map((sizeGroup) => {
                   const sizes = getSizes(sizeGroup.data);
                   const category = getSizeCategory(sizeGroup.data);
+                  const regional = getRegionalStandard(sizeGroup.data);
+                  const gender = getTargetGender(sizeGroup.data);
 
                   return (
                     <div
@@ -259,11 +425,11 @@ export default function SizeGroupsPage() {
                         )}
                       </div>
 
-                      {category && (
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Category: {category}
-                        </p>
-                      )}
+                      <div className="space-y-2 text-sm text-muted-foreground mb-3">
+                        {regional && <p>Region: {regional}</p>}
+                        {gender && <p>Gender: {gender}</p>}
+                        {category && <p>Category: {category}</p>}
+                      </div>
 
                       {sizes.length > 0 && (
                         <div className="mb-3">
@@ -290,13 +456,34 @@ export default function SizeGroupsPage() {
                       )}
 
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleViewDetails(sizeGroup)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
                           Details
                         </Button>
                         {isAdmin && (
-                          <Button variant="outline" size="sm">
-                            Edit
-                          </Button>
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditItem(sizeGroup)}
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleDeleteItem(sizeGroup)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -335,9 +522,11 @@ export default function SizeGroupsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {companyData.map((sizeGroup: any) => {
+                  {companyData.map((sizeGroup) => {
                     const sizes = getSizes(sizeGroup.data);
                     const category = getSizeCategory(sizeGroup.data);
+                    const regional = getRegionalStandard(sizeGroup.data);
+                    const gender = getTargetGender(sizeGroup.data);
 
                     return (
                       <div
@@ -351,11 +540,11 @@ export default function SizeGroupsPage() {
                           </span>
                         </div>
 
-                        {category && (
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Category: {category}
-                          </p>
-                        )}
+                        <div className="space-y-1 text-sm text-muted-foreground mb-3">
+                          {regional && <p>Region: {regional}</p>}
+                          {gender && <p>Gender: {gender}</p>}
+                          {category && <p>Category: {category}</p>}
+                        </div>
 
                         {sizes.length > 0 && (
                           <div className="mb-3">
@@ -380,15 +569,26 @@ export default function SizeGroupsPage() {
                             variant="outline"
                             size="sm"
                             className="flex-1"
+                            onClick={() => handleViewDetails(sizeGroup)}
                           >
+                            <Eye className="h-3 w-3 mr-1" />
+                            Details
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditItem(sizeGroup)}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
                             Edit
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-red-600"
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => handleDeleteItem(sizeGroup)}
                           >
-                            Delete
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
@@ -407,7 +607,7 @@ export default function SizeGroupsPage() {
               <div className="flex items-center gap-2 mb-4">
                 <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 <h3 className="font-semibold">
-                  All Companies' Custom Size Groups
+                  All Companies&apos; Custom Size Groups
                 </h3>
                 <span className="text-sm text-muted-foreground">
                   (Admin view only)
@@ -416,7 +616,7 @@ export default function SizeGroupsPage() {
 
               {allCompaniesResult.fetching ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  Loading all companies' size groups...
+                  Loading all companies&apos; size groups...
                 </div>
               ) : allCompaniesData.length === 0 ? (
                 <div className="text-center py-8">
@@ -426,8 +626,10 @@ export default function SizeGroupsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {allCompaniesData.map((sizeGroup: any) => {
+                  {allCompaniesData.map((sizeGroup) => {
                     const sizes = getSizes(sizeGroup.data);
+                    const regional = getRegionalStandard(sizeGroup.data);
+                    const gender = getTargetGender(sizeGroup.data);
 
                     return (
                       <div
@@ -441,6 +643,11 @@ export default function SizeGroupsPage() {
                         )}
 
                         <h4 className="font-medium mb-2">{sizeGroup.name}</h4>
+
+                        <div className="space-y-1 text-xs text-muted-foreground mb-3">
+                          {regional && <p>Region: {regional}</p>}
+                          {gender && <p>Gender: {gender}</p>}
+                        </div>
 
                         {sizes.length > 0 && (
                           <div className="mb-3">
@@ -457,7 +664,13 @@ export default function SizeGroupsPage() {
                           </div>
                         )}
 
-                        <Button variant="outline" size="sm" className="w-full">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => handleViewDetails(sizeGroup)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
                           View Details
                         </Button>
                       </div>
@@ -478,6 +691,175 @@ export default function SizeGroupsPage() {
         scope={createScope}
         onSubmit={handleCreateItem}
       />
+
+      {/* Edit Modal */}
+      {selectedItem && (
+        <CreateLibraryItemModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          category="SIZE_GROUP"
+          scope={selectedItem.scope as "PLATFORM_STANDARD" | "COMPANY_CUSTOM"}
+          onSubmit={handleUpdateItem}
+          isEditMode={true}
+          initialData={{
+            name: selectedItem.name || "",
+            code: selectedItem.code || "",
+            description: selectedItem.description || "",
+            data: selectedItem.data
+              ? typeof selectedItem.data === "string"
+                ? JSON.parse(selectedItem.data)
+                : selectedItem.data
+              : {},
+          }}
+        />
+      )}
+
+      {/* Details Modal */}
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Ruler className="h-5 w-5 text-purple-600" />
+              {selectedItem?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                    Name
+                  </h4>
+                  <p>{selectedItem.name}</p>
+                </div>
+                {selectedItem.code && (
+                  <div>
+                    <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                      Code
+                    </h4>
+                    <p className="font-mono text-sm">{selectedItem.code}</p>
+                  </div>
+                )}
+              </div>
+
+              {selectedItem.description && (
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                    Description
+                  </h4>
+                  <p className="text-sm">{selectedItem.description}</p>
+                </div>
+              )}
+
+              {(() => {
+                const sizes = getSizes(selectedItem.data);
+                const category = getSizeCategory(selectedItem.data);
+                const regional = getRegionalStandard(selectedItem.data);
+                const gender = getTargetGender(selectedItem.data);
+
+                return (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      {regional && (
+                        <div>
+                          <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                            Regional Standard
+                          </h4>
+                          <p>{regional}</p>
+                        </div>
+                      )}
+
+                      {gender && (
+                        <div>
+                          <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                            Target Gender
+                          </h4>
+                          <p>{gender}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {category && (
+                      <div>
+                        <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                          Category
+                        </h4>
+                        <p>{category}</p>
+                      </div>
+                    )}
+
+                    {sizes.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                          Sizes
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {sizes.map((size: string, idx: number) => (
+                            <span
+                              key={idx}
+                              className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-3 py-1 rounded-full"
+                            >
+                              {size}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+
+              <div className="border-t pt-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <h4 className="font-semibold text-muted-foreground mb-1">
+                      Created
+                    </h4>
+                    <p>
+                      {selectedItem.createdAt &&
+                        new Date(selectedItem.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-muted-foreground mb-1">
+                      Updated
+                    </h4>
+                    <p>
+                      {selectedItem.updatedAt &&
+                        new Date(selectedItem.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Size Group</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{selectedItem?.name}&quot;?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loadingDelete}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={loadingDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {loadingDelete ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

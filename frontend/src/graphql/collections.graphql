@@ -151,20 +151,38 @@ query CollectionsFeatured($skip: Int, $take: Int) {
 mutation CollectionsCreate(
   $name: String!
   $description: String
+  $modelCode: String
   $season: String
   $gender: String
   $fit: String
+  $trend: String
+  $colors: String
+  $sizeRange: String
+  $fabricComposition: String
+  $accessories: String
   $images: String
+  $moq: Int
+  $targetPrice: Float
   $currency: String
+  $notes: String
 ) {
   createCollection(
     name: $name
     description: $description
+    modelCode: $modelCode
     season: $season
     gender: $gender
     fit: $fit
+    trend: $trend
+    colors: $colors
+    sizeRange: $sizeRange
+    fabricComposition: $fabricComposition
+    accessories: $accessories
     images: $images
+    moq: $moq
+    targetPrice: $targetPrice
     currency: $currency
+    notes: $notes
   ) {
     id
     name
@@ -173,7 +191,16 @@ mutation CollectionsCreate(
     season
     gender
     fit
+    trend
+    colors
+    sizeRange
+    fabricComposition
+    accessories
     images
+    moq
+    targetPrice
+    currency
+    notes
     createdAt
     updatedAt
   }

@@ -51,6 +51,12 @@ const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 const COMPANY_LOGOS_DIR = path.join(UPLOAD_DIR, 'companies', 'logos');
 const COMPANY_COVERS_DIR = path.join(UPLOAD_DIR, 'companies', 'covers');
 const USER_AVATARS_DIR = path.join(UPLOAD_DIR, 'users', 'avatars');
+const LIBRARY_FABRICS_DIR = path.join(UPLOAD_DIR, 'library', 'fabrics');
+const LIBRARY_ACCESSORIES_DIR = path.join(UPLOAD_DIR, 'library', 'accessories');
+const LIBRARY_CERTIFICATIONS_DIR = path.join(UPLOAD_DIR, 'library', 'certifications');
+const LIBRARY_MATERIALS_DIR = path.join(UPLOAD_DIR, 'library', 'materials');
+const DOCUMENTS_DIR = path.join(UPLOAD_DIR, 'documents');
+const COLLECTIONS_DIR = path.join(UPLOAD_DIR, 'collections');
 const TEMP_DIR = path.join(UPLOAD_DIR, 'temp');
 
 // Ensure directories exist
@@ -58,6 +64,12 @@ async function ensureDirectories() {
   await fs.mkdir(COMPANY_LOGOS_DIR, { recursive: true });
   await fs.mkdir(COMPANY_COVERS_DIR, { recursive: true });
   await fs.mkdir(USER_AVATARS_DIR, { recursive: true });
+  await fs.mkdir(LIBRARY_FABRICS_DIR, { recursive: true });
+  await fs.mkdir(LIBRARY_ACCESSORIES_DIR, { recursive: true });
+  await fs.mkdir(LIBRARY_CERTIFICATIONS_DIR, { recursive: true });
+  await fs.mkdir(LIBRARY_MATERIALS_DIR, { recursive: true });
+  await fs.mkdir(DOCUMENTS_DIR, { recursive: true });
+  await fs.mkdir(COLLECTIONS_DIR, { recursive: true });
   await fs.mkdir(TEMP_DIR, { recursive: true });
 }
 
@@ -80,11 +92,25 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB max
   },
   fileFilter: (_req, file, cb) => {
-    // Accept images only
-    if (!file.mimetype.startsWith('image/')) {
-      return cb(new Error('Only image files are allowed'));
+    // Accept images, PDFs, and Office documents
+    const allowedMimeTypes = [
+      'image/',
+      'application/pdf',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/csv',
+    ];
+
+    const isAllowed = allowedMimeTypes.some(type =>
+      file.mimetype.startsWith(type) || file.mimetype === type
+    );
+
+    if (isAllowed) {
+      return cb(null, true);
     }
-    cb(null, true);
+    cb(new Error('Only images, PDFs, Excel, Word, and CSV files are allowed'));
   },
 });
 
@@ -176,51 +202,96 @@ router.post('/', authenticate, upload.single('file'), async (req: Request, res: 
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    const category = req.body.category || 'general'; // collections, documents, etc.
     const uploadType = (req.query.type as string) || 'logo'; // logo, cover, avatar
     const tempPath = req.file.path;
+    const isPdf = req.file.mimetype === 'application/pdf';
+    const isDocument =
+      req.file.mimetype === 'application/vnd.ms-excel' ||
+      req.file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      req.file.mimetype === 'application/msword' ||
+      req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      req.file.mimetype === 'text/csv';
+    const isImage = req.file.mimetype.startsWith('image/');
 
-    // Determine target directory and optimize
+    // Determine target directory
     let targetDir: string;
-    let optimizeType: 'logo' | 'cover' | 'avatar';
 
-    switch (uploadType) {
-      case 'cover':
-        targetDir = COMPANY_COVERS_DIR;
-        optimizeType = 'cover';
-        break;
-      case 'avatar':
-        targetDir = USER_AVATARS_DIR;
-        optimizeType = 'avatar';
-        break;
-      case 'logo':
-      default:
-        targetDir = COMPANY_LOGOS_DIR;
-        optimizeType = 'logo';
-        break;
+    // First check specific upload types (they have priority)
+    if (uploadType === 'fabrics') {
+      targetDir = LIBRARY_FABRICS_DIR;
+    } else if (uploadType === 'accessories') {
+      targetDir = LIBRARY_ACCESSORIES_DIR;
+    } else if (uploadType === 'certifications') {
+      targetDir = LIBRARY_CERTIFICATIONS_DIR;
+    } else if (uploadType === 'materials') {
+      targetDir = LIBRARY_MATERIALS_DIR;
+    } else if (uploadType === 'collections' || category === 'collections') {
+      // Collection images go to collections folder
+      targetDir = COLLECTIONS_DIR;
+    } else if (uploadType === 'documents' || category === 'documents' || isPdf || isDocument) {
+      // Generic documents go to documents folder
+      targetDir = DOCUMENTS_DIR;
+    } else {
+      // Default image handling (logos, covers, avatars)
+      switch (uploadType) {
+        case 'cover':
+          targetDir = COMPANY_COVERS_DIR;
+          break;
+        case 'avatar':
+          targetDir = USER_AVATARS_DIR;
+          break;
+        case 'logo':
+        default:
+          targetDir = COMPANY_LOGOS_DIR;
+          break;
+      }
     }
 
-    // Generate filename with proper extension
-    const ext = optimizeType === 'cover' ? '.jpg' : '.png';
+    // Generate filename
+    const ext = isPdf ? '.pdf' :
+                isDocument ? path.extname(req.file.originalname) :
+                path.extname(req.file.originalname);
     const filename = `${uuidv4()}${ext}`;
     const outputPath = path.join(targetDir, filename);
 
-    // Optimize and move file
-    await optimizeImage(tempPath, outputPath, optimizeType);
+    if (isPdf || isDocument) {
+      // Just move document files, no optimization
+      await fs.rename(tempPath, outputPath);
+    } else if (isImage) {
+      // Optimize images
+      const optimizeType: 'logo' | 'cover' | 'avatar' =
+        uploadType === 'cover' ? 'cover' :
+        uploadType === 'avatar' ? 'avatar' : 'logo';
 
-    // Delete temp file
-    await fs.unlink(tempPath);
+      await optimizeImage(tempPath, outputPath, optimizeType);
+      await fs.unlink(tempPath);
+    } else {
+      // Just move other file types
+      await fs.rename(tempPath, outputPath);
+    }
 
-    // Construct relative URL
-    const relativeDir = uploadType === 'cover' ? 'companies/covers' :
-                       uploadType === 'avatar' ? 'users/avatars' :
-                       'companies/logos';
+    // Construct relative URL (same priority order as target directory)
+    const relativeDir =
+      uploadType === 'fabrics' ? 'library/fabrics' :
+      uploadType === 'accessories' ? 'library/accessories' :
+      uploadType === 'certifications' ? 'library/certifications' :
+      uploadType === 'materials' ? 'library/materials' :
+      uploadType === 'collections' || category === 'collections' ? 'collections' :
+      uploadType === 'documents' || category === 'documents' || isPdf || isDocument ? 'documents' :
+      uploadType === 'cover' ? 'companies/covers' :
+      uploadType === 'avatar' ? 'users/avatars' :
+      'companies/logos';
+
     const url = `/uploads/${relativeDir}/${filename}`;
 
     res.json({
       success: true,
       url,
+      path: url,
       filename,
       type: uploadType,
+      category,
     });
   } catch (error) {
     console.error('Upload error:', error);

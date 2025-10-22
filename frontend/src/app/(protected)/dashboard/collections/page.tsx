@@ -1,12 +1,12 @@
 "use client";
 import { CollectionsListDocument } from "@/__generated__/graphql";
+import { CreateCollectionModal } from "@/components/collections/CreateCollectionModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Building2, Calendar, Eye, Plus, Search, Star } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "urql";
@@ -16,9 +16,10 @@ export default function CollectionsPage() {
   const [search, setSearch] = useState("");
   const [skip, setSkip] = useState(0);
   const [featured, setFeatured] = useState<boolean | undefined>(undefined);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const take = 12;
 
-  const [{ data, fetching, error }] = useQuery({
+  const [{ data, fetching, error }, refetchCollections] = useQuery({
     query: CollectionsListDocument,
     variables: {
       skip,
@@ -38,6 +39,15 @@ export default function CollectionsPage() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Create Collection Modal */}
+      <CreateCollectionModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        onSuccess={() => {
+          refetchCollections({ requestPolicy: "network-only" });
+        }}
+      />
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -46,11 +56,9 @@ export default function CollectionsPage() {
             Manage your product collections and catalogs
           </p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/collections/create">
-            <Plus className="mr-2 h-4 w-4" />
-            New Collection
-          </Link>
+        <Button onClick={() => setCreateModalOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Collection
         </Button>
       </div>
 
@@ -260,11 +268,9 @@ export default function CollectionsPage() {
                     ? `No collections match "${search}". Try adjusting your search.`
                     : "Get started by creating your first collection."}
                 </p>
-                <Button asChild>
-                  <Link href="/dashboard/collections/create">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Collection
-                  </Link>
+                <Button onClick={() => setCreateModalOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Collection
                 </Button>
               </div>
             </div>

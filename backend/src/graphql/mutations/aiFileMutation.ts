@@ -1,13 +1,13 @@
 import {
-  FileUploadError,
-  NotFoundError,
-  requireAuth
+    FileUploadError,
+    NotFoundError,
+    requireAuth
 } from "../../utils/errors";
 import {
-  deleteFile,
-  MIME_TYPES,
-  uploadFile,
-  validateFileType
+    deleteFile,
+    MIME_TYPES,
+    uploadFile,
+    validateFileType
 } from "../../utils/fileUpload";
 import builder from "../builder";
 
@@ -197,6 +197,26 @@ builder.mutationField("singleUpload", (t) =>
 
       try {
         const { file, category, description } = args;
+
+        // 🔍 Debug: Log received file object
+        console.log("📥 [singleUpload] Received file:", {
+          file: file ? "exists" : "undefined",
+          fileName: file?.name,
+          fileType: file?.type,
+          fileSize: file?.size,
+          category,
+          description,
+        });
+
+        // Validate file object
+        if (!file) {
+          throw new Error("File is required but received undefined");
+        }
+
+        if (!file.name) {
+          console.error("❌ [singleUpload] File object is missing 'name' property:", file);
+          throw new Error("Invalid file: file.name is undefined");
+        }
 
         // Validate file type (images, documents, xml)
         const allowedTypes = [

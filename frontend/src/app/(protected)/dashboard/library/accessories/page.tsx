@@ -2,35 +2,76 @@
 
 import {
   DashboardCreateLibraryItemDocument,
+  DashboardDeleteLibraryItemDocument,
   DashboardLibraryItemsDocument,
   DashboardMyCompanyLibraryDocument,
   DashboardPlatformStandardsDocument,
+  DashboardPlatformStandardsQuery,
+  DashboardUpdateLibraryItemDocument,
 } from "@/__generated__/graphql";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ACCESSORY_CATEGORIES } from "@/utils/library-constants";
-import { Building, Globe, Package, Plus, Users } from "lucide-react";
+import {
+  Building,
+  Edit,
+  Eye,
+  Globe,
+  Package,
+  Plus,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
+
+// Type alias for library item from query responses
+type LibraryItemType = NonNullable<
+  DashboardPlatformStandardsQuery["platformStandards"]
+>[0];
 
 export default function AccessoriesPage() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN";
 
-  // Modal state
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [createScope, setCreateScope] = useState<
-    "PLATFORM_STANDARD" | "COMPANY_CUSTOM"
-  >("COMPANY_CUSTOM");
-
   const [activeTab, setActiveTab] = useState<string>(
     isAdmin ? "platform" : "company"
   );
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createScope, setCreateScope] = useState<
+    "PLATFORM_STANDARD" | "COMPANY_CUSTOM"
+  >("PLATFORM_STANDARD");
+
+  // Edit/Delete/Details modal states
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<LibraryItemType | null>(
+    null
+  );
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   // Queries
   const [platformResult, refetchPlatform] = useQuery({
@@ -59,33 +100,32 @@ export default function AccessoriesPage() {
   const companyData = companyResult.data?.myCompanyLibrary || [];
   const allCompaniesData = allCompaniesResult.data?.libraryItems || [];
 
-  // Mutation: Create library item
+  // Mutations
   const [, createLibraryItem] = useMutation(DashboardCreateLibraryItemDocument);
+  const [, updateLibraryItem] = useMutation(DashboardUpdateLibraryItemDocument);
+  const [, deleteLibraryItem] = useMutation(DashboardDeleteLibraryItemDocument);
 
   const handleCreateItem = async (data: LibraryItemFormData) => {
     try {
-      const input: any = {
-        category: "MATERIAL",
+      const input = {
+        category: "MATERIAL" as const,
         scope: createScope,
         code: data.code,
         name: data.name,
         description: data.description || "",
         data: JSON.stringify(data.data),
+        certificationIds: data.certificationIds || [],
+        imageUrl: data.imageUrl || undefined, // 🖼️ Image URL from FormImageUpload
       };
-
-      if (data.certificationIds && data.certificationIds.length > 0) {
-        input.certificationIds = data.certificationIds;
-      }
 
       const result = await createLibraryItem({ input });
 
       if (result.error) {
-        console.error("Failed to create accessory:", result.error);
-        alert(`Error: ${result.error.message}`);
+        toast.error(result.error.message);
         throw result.error;
       }
 
-      alert("✅ Accessory created successfully!");
+      toast.success("Accessory created successfully!");
 
       await Promise.all([
         refetchPlatform({ requestPolicy: "network-only" }),
@@ -106,26 +146,129 @@ export default function AccessoriesPage() {
     setCreateModalOpen(true);
   };
 
+  // Edit/Delete/Details handlers
+  const handleEditItem = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setEditModalOpen(true);
+  };
+
+  const handleViewDetails = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setDetailsModalOpen(true);
+  };
+
+  const handleDeleteItem = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setDeleteAlertOpen(true);
+  };
+
+  const handleUpdateItem = async (data: LibraryItemFormData) => {
+    if (!selectedItem?.id) return;
+
+    try {
+      // LibraryItem uses numeric ID, not Relay Global ID
+      const itemId = Number(selectedItem.id);
+      if (!itemId || isNaN(itemId)) {
+        toast.error("Invalid item ID");
+        return;
+      }
+
+      const input = {
+        code: data.code,
+        name: data.name,
+        description: data.description || "",
+        data: data.data ? JSON.stringify(data.data) : "",
+        imageUrl: data.imageUrl || undefined, // 🖼️ Image URL from FormImageUpload
+      };
+
+      const result = await updateLibraryItem({
+        id: itemId,
+        input,
+      });
+
+      if (result.error) {
+        toast.error(result.error.message);
+        throw result.error;
+      }
+
+      toast.success("Accessory updated successfully!");
+
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      setEditModalOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error updating accessory:", error);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedItem?.id || loadingDelete) return;
+
+    try {
+      setLoadingDelete(true);
+      // LibraryItem uses numeric ID, not Relay Global ID
+      const itemId = Number(selectedItem.id);
+      if (!itemId || isNaN(itemId)) {
+        toast.error("Invalid item ID");
+        return;
+      }
+
+      const result = await deleteLibraryItem({
+        id: itemId,
+      });
+
+      if (result.error) {
+        toast.error(result.error.message);
+        throw result.error;
+      }
+
+      toast.success("Accessory deleted successfully!");
+
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      setDeleteAlertOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error deleting accessory:", error);
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
+
   // Helper: Get accessory type from data
-  const getAccessoryType = (data: any): string => {
+  const getAccessoryType = (data: unknown): string => {
     if (!data) return "other";
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      return parsed.accessoryType || "other";
+      return (parsed as { accessoryType?: string }).accessoryType || "other";
     } catch {
       return "other";
     }
   };
 
   // Helper: Get material info from data
-  const getMaterialInfo = (data: any) => {
+  const getMaterialInfo = (data: unknown) => {
     if (!data) return { material: "", color: "", size: "" };
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      const typedParsed = parsed as {
+        material?: string;
+        color?: string;
+        size?: string;
+      };
       return {
-        material: parsed.material || "",
-        color: parsed.color || "",
-        size: parsed.size || "",
+        material: typedParsed.material || "",
+        color: typedParsed.color || "",
+        size: typedParsed.size || "",
       };
     } catch {
       return { material: "", color: "", size: "" };
@@ -133,8 +276,8 @@ export default function AccessoriesPage() {
   };
 
   // Group accessories by type
-  const groupAccessoriesByType = (accessories: any[]) => {
-    const grouped: { [key: string]: any[] } = {};
+  const groupAccessoriesByType = (accessories: LibraryItemType[]) => {
+    const grouped: { [key: string]: LibraryItemType[] } = {};
 
     ACCESSORY_CATEGORIES.forEach((cat) => {
       grouped[cat.key] = [];
@@ -153,7 +296,7 @@ export default function AccessoriesPage() {
   };
 
   const renderAccessoryCard = (
-    accessory: any,
+    accessory: LibraryItemType,
     isCompanyCustom = false,
     showCompanyName = false
   ) => {
@@ -173,7 +316,7 @@ export default function AccessoriesPage() {
           {accessory.imageUrl ? (
             <Image
               src={accessory.imageUrl}
-              alt={accessory.name}
+              alt={accessory.name || "Accessory"}
               fill
               className="object-cover"
             />
@@ -230,14 +373,36 @@ export default function AccessoriesPage() {
           </div>
 
           <div className="mt-3 flex gap-2">
-            <Button variant="outline" size="sm" className="flex-1 text-xs h-7">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs h-7"
+              onClick={() => handleViewDetails(accessory)}
+            >
+              <Eye className="h-3 w-3 mr-1" />
               Details
             </Button>
             {((!isAdmin && isCompanyCustom) ||
               (isAdmin && !showCompanyName)) && (
-              <Button variant="outline" size="sm" className="h-7 px-2">
-                <span className="text-xs">Edit</span>
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2"
+                  onClick={() => handleEditItem(accessory)}
+                >
+                  <Edit className="h-3 w-3 mr-1" />
+                  <span className="text-xs">Edit</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-red-600 hover:text-red-700"
+                  onClick={() => handleDeleteItem(accessory)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -246,7 +411,7 @@ export default function AccessoriesPage() {
   };
 
   const renderAccessoryGrid = (
-    accessories: any[],
+    accessories: LibraryItemType[],
     isCompanyCustom = false,
     showCompanyName = false
   ) => {
@@ -445,7 +610,7 @@ export default function AccessoriesPage() {
               <div className="flex items-center gap-2 mb-4">
                 <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 <h3 className="font-semibold">
-                  All Companies' Custom Accessories
+                  All Companies&apos; Custom Accessories
                 </h3>
                 <span className="text-sm text-muted-foreground">
                   (Admin view only)
@@ -454,7 +619,7 @@ export default function AccessoriesPage() {
 
               {allCompaniesResult.fetching ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  Loading all companies' accessories...
+                  Loading all companies&apos; accessories...
                 </div>
               ) : allCompaniesData.length === 0 ? (
                 <div className="text-center py-8">
@@ -478,6 +643,176 @@ export default function AccessoriesPage() {
         scope={createScope}
         onSubmit={handleCreateItem}
       />
+
+      {/* Edit Modal */}
+      {selectedItem && (
+        <CreateLibraryItemModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          category="MATERIAL"
+          scope={selectedItem.scope as "PLATFORM_STANDARD" | "COMPANY_CUSTOM"}
+          onSubmit={handleUpdateItem}
+          isEditMode={true}
+          initialData={{
+            name: selectedItem.name || "",
+            code: selectedItem.code || "",
+            description: selectedItem.description || "",
+            imageUrl: selectedItem.imageUrl || "", // 🖼️ Pass existing image URL
+            data: selectedItem.data
+              ? typeof selectedItem.data === "string"
+                ? JSON.parse(selectedItem.data)
+                : selectedItem.data
+              : {},
+          }}
+        />
+      )}
+
+      {/* Details Modal */}
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-amber-600" />
+              {selectedItem?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="space-y-4">
+              {/* Image Preview */}
+              {selectedItem.imageUrl && (
+                <div className="relative w-full h-48 bg-muted rounded-lg overflow-hidden">
+                  <Image
+                    src={selectedItem.imageUrl}
+                    alt={selectedItem.name || "Accessory"}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                    Name
+                  </h4>
+                  <p>{selectedItem.name}</p>
+                </div>
+                {selectedItem.code && (
+                  <div>
+                    <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                      Code
+                    </h4>
+                    <p className="font-mono text-sm">{selectedItem.code}</p>
+                  </div>
+                )}
+              </div>
+
+              {selectedItem.description && (
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                    Description
+                  </h4>
+                  <p className="text-sm">{selectedItem.description}</p>
+                </div>
+              )}
+
+              {(() => {
+                const materialInfo = getMaterialInfo(selectedItem.data);
+                const accessoryType = getAccessoryType(selectedItem.data);
+                const categoryInfo = ACCESSORY_CATEGORIES.find(
+                  (cat) => cat.key === accessoryType
+                );
+
+                return (
+                  <>
+                    <div>
+                      <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                        Type
+                      </h4>
+                      <p>{categoryInfo?.label || "Other"}</p>
+                    </div>
+
+                    {materialInfo.material && (
+                      <div>
+                        <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                          Material
+                        </h4>
+                        <p>{materialInfo.material}</p>
+                      </div>
+                    )}
+
+                    {materialInfo.color && (
+                      <div>
+                        <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                          Color
+                        </h4>
+                        <p>{materialInfo.color}</p>
+                      </div>
+                    )}
+
+                    {materialInfo.size && (
+                      <div>
+                        <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                          Size
+                        </h4>
+                        <p>{materialInfo.size}</p>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+
+              <div className="border-t pt-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <h4 className="font-semibold text-muted-foreground mb-1">
+                      Created
+                    </h4>
+                    <p>
+                      {selectedItem.createdAt &&
+                        new Date(selectedItem.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-muted-foreground mb-1">
+                      Updated
+                    </h4>
+                    <p>
+                      {selectedItem.updatedAt &&
+                        new Date(selectedItem.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Accessory</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{selectedItem?.name}&quot;?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loadingDelete}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={loadingDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {loadingDelete ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

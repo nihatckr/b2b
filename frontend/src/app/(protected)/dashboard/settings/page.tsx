@@ -599,6 +599,8 @@ export default function SettingsPage() {
                 <div className="h-20 w-20 rounded-full border-2 border-background shadow-md overflow-hidden bg-primary/10">
                   {profileForm.watch("customAvatar") || session?.user?.image ? (
                     <NextImage
+                      width={100}
+                      height={100}
                       src={
                         profileForm.watch("customAvatar") ||
                         session?.user?.image ||
@@ -890,6 +892,8 @@ export default function SettingsPage() {
                             <div className="relative h-48 w-full bg-gradient-to-br from-primary/20 to-primary/5">
                               {coverImage ? (
                                 <NextImage
+                                  width={100}
+                                  height={100}
                                   src={coverImage}
                                   alt=""
                                   className="h-full w-full object-cover"
@@ -930,6 +934,8 @@ export default function SettingsPage() {
                                 <div className="h-32 w-32 rounded-lg border-4 border-background bg-background shadow-xl overflow-hidden">
                                   {companyForm.watch("logo") ? (
                                     <NextImage
+                                      width={100}
+                                      height={100}
                                       src={companyForm.watch("logo")!}
                                       alt=""
                                       className="h-full w-full object-cover"

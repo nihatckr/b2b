@@ -2,26 +2,54 @@
 
 import {
   DashboardCreateLibraryItemDocument,
+  DashboardDeleteLibraryItemDocument,
   DashboardLibraryItemsDocument,
   DashboardMyCompanyLibraryDocument,
   DashboardPlatformStandardsDocument,
+  DashboardPlatformStandardsQuery,
+  DashboardUpdateLibraryItemDocument,
 } from "@/__generated__/graphql";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building,
+  Edit,
+  Eye,
   FileCheck,
   Globe,
   Plus,
   ShieldCheck,
+  Trash2,
   Users,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
+
+// Type alias for library item from query responses
+type LibraryItemType = NonNullable<
+  DashboardPlatformStandardsQuery["platformStandards"]
+>[0];
 
 export default function CertificationsPage() {
   const { data: session } = useSession();
@@ -29,9 +57,18 @@ export default function CertificationsPage() {
 
   // Modal state
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const [createScope, setCreateScope] = useState<
     "PLATFORM_STANDARD" | "COMPANY_CUSTOM"
   >("COMPANY_CUSTOM");
+
+  // Selected item for edit/view/delete
+  const [selectedItem, setSelectedItem] = useState<LibraryItemType | null>(
+    null
+  );
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   const [activeTab, setActiveTab] = useState<string>(
     isAdmin ? "platform" : "company"
@@ -64,33 +101,31 @@ export default function CertificationsPage() {
   const companyData = companyResult.data?.myCompanyLibrary || [];
   const allCompaniesData = allCompaniesResult.data?.libraryItems || [];
 
-  // Mutation
+  // Mutations
   const [, createLibraryItem] = useMutation(DashboardCreateLibraryItemDocument);
+  const [, updateLibraryItem] = useMutation(DashboardUpdateLibraryItemDocument);
+  const [, deleteLibraryItem] = useMutation(DashboardDeleteLibraryItemDocument);
 
   const handleCreateItem = async (data: LibraryItemFormData) => {
     try {
-      const input: any = {
-        category: "CERTIFICATION",
+      const input = {
+        category: "CERTIFICATION" as const,
         scope: createScope,
         code: data.code,
         name: data.name,
         description: data.description || "",
         data: JSON.stringify(data.data),
+        imageUrl: data.imageUrl || undefined,
       };
-
-      // TODO: Handle image/PDF upload for certification documents
-      if (data.imageFile) {
-        console.log("Document upload will be implemented:", data.imageFile);
-      }
 
       const result = await createLibraryItem({ input });
 
       if (result.error) {
-        alert(`Error: ${result.error.message}`);
+        toast.error(result.error.message);
         throw result.error;
       }
 
-      alert("✅ Certification created successfully!");
+      toast.success("Certification created successfully!");
 
       await Promise.all([
         refetchPlatform({ requestPolicy: "network-only" }),
@@ -111,34 +146,154 @@ export default function CertificationsPage() {
     setCreateModalOpen(true);
   };
 
+  // Handler: Update library item
+  const handleUpdateItem = async (data: LibraryItemFormData) => {
+    if (!selectedItem?.id) return;
+
+    try {
+      // LibraryItem uses numeric ID, not Relay Global ID
+      const itemId = Number(selectedItem.id);
+      if (!itemId || isNaN(itemId)) {
+        toast.error("Invalid item ID");
+        return;
+      }
+
+      // Prepare update data (excluding code field for update)
+      const input = {
+        name: data.name,
+        description: data.description || "",
+        data:
+          typeof data.data === "object" ? JSON.stringify(data.data) : data.data,
+        imageUrl: data.imageUrl || undefined,
+        isActive: true,
+      };
+
+      const result = await updateLibraryItem({
+        id: itemId,
+        input,
+      });
+
+      if (result.error) {
+        console.error("Failed to update certification:", result.error);
+        toast.error(result.error.message);
+        return;
+      }
+
+      console.log("Certification updated successfully");
+      toast.success("Certification updated successfully!");
+
+      // Refetch queries
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      // Close modal and reset state
+      setEditModalOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error updating certification:", error);
+      alert("❌ Failed to update certification");
+    }
+  };
+
+  // Handler: Open edit modal
+  const handleEditItem = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setEditModalOpen(true);
+  };
+
+  // Handler: Open details modal
+  const handleViewDetails = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setDetailsModalOpen(true);
+  };
+
+  // Handler: Open delete confirmation
+  const handleDeleteItem = (item: LibraryItemType) => {
+    setSelectedItem(item);
+    setDeleteAlertOpen(true);
+  };
+
+  // Handler: Confirm delete
+  const handleConfirmDelete = async () => {
+    if (!selectedItem?.id || loadingDelete) return;
+
+    setLoadingDelete(true);
+    try {
+      // LibraryItem uses numeric ID, not Relay Global ID
+      const itemId = Number(selectedItem.id);
+      if (!itemId || isNaN(itemId)) {
+        toast.error("Invalid item ID");
+        return;
+      }
+
+      const result = await deleteLibraryItem({ id: itemId });
+
+      if (result.error) {
+        console.error("Failed to delete certification:", result.error);
+        alert(`Error: ${result.error.message}`);
+        return;
+      }
+
+      console.log("Certification deleted successfully");
+      alert("✅ Certification deleted successfully!");
+
+      // Refetch queries
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      // Close modal and reset state
+      setDeleteAlertOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error deleting certification:", error);
+      alert("❌ Failed to delete certification");
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
+
+  // Type for certification data structure
+  interface CertificationData {
+    issuer?: string;
+    validUntil?: string;
+    certificationNumber?: string;
+    [key: string]: string | undefined;
+  }
+
   // Helper: Get issuer
-  const getIssuer = (data: any): string | null => {
+  const getIssuer = (data: unknown): string | null => {
     if (!data) return null;
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      return parsed.issuer || null;
+      return (parsed as CertificationData).issuer || null;
     } catch {
       return null;
     }
   };
 
   // Helper: Get valid until date
-  const getValidUntil = (data: any): string | null => {
+  const getValidUntil = (data: unknown): string | null => {
     if (!data) return null;
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      return parsed.validUntil || null;
+      return (parsed as CertificationData).validUntil || null;
     } catch {
       return null;
     }
   };
 
   // Helper: Get certification number
-  const getCertNumber = (data: any): string | null => {
+  const getCertNumber = (data: unknown): string | null => {
     if (!data) return null;
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      return parsed.certificationNumber || null;
+      return (parsed as CertificationData).certificationNumber || null;
     } catch {
       return null;
     }
@@ -274,7 +429,7 @@ export default function CertificationsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {platformData.map((cert: any) => {
+                {platformData.map((cert) => {
                   const issuer = getIssuer(cert.data);
                   const validUntil = getValidUntil(cert.data);
                   const certNumber = getCertNumber(cert.data);
@@ -358,13 +513,34 @@ export default function CertificationsPage() {
                       )}
 
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleViewDetails(cert)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
                           Details
                         </Button>
                         {isAdmin && (
-                          <Button variant="outline" size="sm">
-                            Edit
-                          </Button>
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditItem(cert)}
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleDeleteItem(cert)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -407,7 +583,7 @@ export default function CertificationsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {companyData.map((cert: any) => {
+                  {companyData.map((cert) => {
                     const issuer = getIssuer(cert.data);
                     const validUntil = getValidUntil(cert.data);
                     const certNumber = getCertNumber(cert.data);
@@ -493,15 +669,26 @@ export default function CertificationsPage() {
                             variant="outline"
                             size="sm"
                             className="flex-1"
+                            onClick={() => handleViewDetails(cert)}
                           >
+                            <Eye className="h-3 w-3 mr-1" />
+                            Details
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditItem(cert)}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
                             Edit
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-red-600"
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => handleDeleteItem(cert)}
                           >
-                            Delete
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
@@ -520,7 +707,7 @@ export default function CertificationsPage() {
               <div className="flex items-center gap-2 mb-4">
                 <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 <h3 className="font-semibold">
-                  All Companies' Custom Certifications
+                  All Companies&apos; Custom Certifications
                 </h3>
                 <span className="text-sm text-muted-foreground">
                   (Admin view only)
@@ -529,7 +716,7 @@ export default function CertificationsPage() {
 
               {allCompaniesResult.fetching ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  Loading all companies' certifications...
+                  Loading all companies&apos; certifications...
                 </div>
               ) : allCompaniesData.length === 0 ? (
                 <div className="text-center py-8">
@@ -539,10 +726,9 @@ export default function CertificationsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {allCompaniesData.map((cert: any) => {
+                  {allCompaniesData.map((cert) => {
                     const issuer = getIssuer(cert.data);
                     const validUntil = getValidUntil(cert.data);
-                    const certNumber = getCertNumber(cert.data);
                     const expired = isExpired(validUntil);
 
                     return (
@@ -619,7 +805,13 @@ export default function CertificationsPage() {
                           </p>
                         )}
 
-                        <Button variant="outline" size="sm" className="w-full">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => handleViewDetails(cert)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
                           View Details
                         </Button>
                       </div>
@@ -640,6 +832,169 @@ export default function CertificationsPage() {
         scope={createScope}
         onSubmit={handleCreateItem}
       />
+
+      {/* Edit Modal */}
+      {selectedItem && (
+        <CreateLibraryItemModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          category="CERTIFICATION"
+          scope={selectedItem.scope as "PLATFORM_STANDARD" | "COMPANY_CUSTOM"}
+          onSubmit={handleUpdateItem}
+          isEditMode={true}
+          initialData={{
+            name: selectedItem.name || "",
+            code: selectedItem.code || "",
+            description: selectedItem.description || "",
+            imageUrl: selectedItem.imageUrl || "",
+            data: selectedItem.data
+              ? typeof selectedItem.data === "string"
+                ? JSON.parse(selectedItem.data)
+                : selectedItem.data
+              : {},
+          }}
+        />
+      )}
+
+      {/* Details Modal */}
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-green-600" />
+              {selectedItem?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                    Name
+                  </h4>
+                  <p>{selectedItem.name}</p>
+                </div>
+                {selectedItem.code && (
+                  <div>
+                    <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                      Code
+                    </h4>
+                    <p className="font-mono text-sm">{selectedItem.code}</p>
+                  </div>
+                )}
+              </div>
+
+              {selectedItem.description && (
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                    Description
+                  </h4>
+                  <p className="text-sm">{selectedItem.description}</p>
+                </div>
+              )}
+
+              {(() => {
+                const issuer = getIssuer(selectedItem.data);
+                const validUntil = getValidUntil(selectedItem.data);
+                const certNumber = getCertNumber(selectedItem.data);
+                const expired = isExpired(validUntil);
+
+                return (
+                  <div className="space-y-3">
+                    {issuer && (
+                      <div>
+                        <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                          Issuer
+                        </h4>
+                        <p>{issuer}</p>
+                      </div>
+                    )}
+
+                    {certNumber && (
+                      <div>
+                        <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                          Certification Number
+                        </h4>
+                        <p className="font-mono text-sm">{certNumber}</p>
+                      </div>
+                    )}
+
+                    {validUntil && (
+                      <div>
+                        <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                          Valid Until
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`font-medium ${
+                              expired ? "text-red-600" : "text-green-600"
+                            }`}
+                          >
+                            {formatDate(validUntil)}
+                          </span>
+                          {expired && (
+                            <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                              Expired
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              <div className="border-t pt-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <h4 className="font-semibold text-muted-foreground mb-1">
+                      Created
+                    </h4>
+                    <p>
+                      {selectedItem.createdAt &&
+                        new Date(selectedItem.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-muted-foreground mb-1">
+                      Updated
+                    </h4>
+                    <p>
+                      {selectedItem.updatedAt &&
+                        new Date(selectedItem.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Certification</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{selectedItem?.name}&quot;?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loadingDelete}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={loadingDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {loadingDelete ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

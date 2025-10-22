@@ -10,6 +10,15 @@ const CATEGORIES = {
   documents: 'documents',
   production: 'production',
   temp: 'temp',
+  // Library item categories
+  fabrics: 'library/fabrics',
+  colors: 'library/colors',
+  materials: 'library/materials',
+  accessories: 'library/accessories',
+  certifications: 'library/certifications',
+  sizeGroups: 'library/size-groups',
+  fits: 'library/fits',
+  seasons: 'library/seasons',
 };
 
 // Dizinleri oluştur
@@ -47,6 +56,30 @@ export async function uploadFile(
   category: keyof typeof CATEGORIES = 'temp',
   signal?: AbortSignal
 ): Promise<UploadedFile> {
+  // Debug: Log file object structure
+  console.log('🔍 [uploadFile] Received file object:', {
+    hasFile: !!file,
+    fileName: file?.name,
+    fileType: file?.type,
+    fileSize: file?.size,
+    category,
+    fileKeys: file ? Object.keys(file) : 'no file',
+  });
+
+  // Validate file object
+  if (!file) {
+    throw new Error('Invalid file: file is undefined or null');
+  }
+
+  if (!file.name) {
+    console.error('❌ [uploadFile] File object structure:', {
+      file: JSON.stringify(file, null, 2),
+      type: typeof file,
+      constructor: file?.constructor?.name,
+    });
+    throw new Error(`Invalid file: file.name is undefined. Received: ${typeof file}`);
+  }
+
   // Check if already aborted
   if (signal?.aborted) {
     throw new Error('Upload cancelled');

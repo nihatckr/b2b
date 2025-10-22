@@ -231,18 +231,6 @@ export const BillingCycle: {
 export type BillingCycle = (typeof BillingCycle)[keyof typeof BillingCycle]
 
 
-export const Season: {
-  SS25: 'SS25',
-  FW25: 'FW25',
-  SS26: 'SS26',
-  FW26: 'FW26',
-  SS27: 'SS27',
-  FW27: 'FW27'
-};
-
-export type Season = (typeof Season)[keyof typeof Season]
-
-
 export const Gender: {
   WOMEN: 'WOMEN',
   MEN: 'MEN',
@@ -556,10 +544,6 @@ export const SubscriptionStatus: typeof $Enums.SubscriptionStatus
 export type BillingCycle = $Enums.BillingCycle
 
 export const BillingCycle: typeof $Enums.BillingCycle
-
-export type Season = $Enums.Season
-
-export const Season: typeof $Enums.Season
 
 export type Gender = $Enums.Gender
 
@@ -16008,7 +15992,7 @@ export namespace Prisma {
     name: string | null
     description: string | null
     modelCode: string | null
-    season: $Enums.Season | null
+    season: string | null
     gender: $Enums.Gender | null
     fit: string | null
     trend: string | null
@@ -16022,6 +16006,7 @@ export namespace Prisma {
     techPack: string | null
     moq: number | null
     targetPrice: number | null
+    currency: string | null
     targetLeadTime: number | null
     notes: string | null
     likesCount: number | null
@@ -16047,7 +16032,7 @@ export namespace Prisma {
     name: string | null
     description: string | null
     modelCode: string | null
-    season: $Enums.Season | null
+    season: string | null
     gender: $Enums.Gender | null
     fit: string | null
     trend: string | null
@@ -16061,6 +16046,7 @@ export namespace Prisma {
     techPack: string | null
     moq: number | null
     targetPrice: number | null
+    currency: string | null
     targetLeadTime: number | null
     notes: string | null
     likesCount: number | null
@@ -16100,6 +16086,7 @@ export namespace Prisma {
     techPack: number
     moq: number
     targetPrice: number
+    currency: number
     targetLeadTime: number
     notes: number
     likesCount: number
@@ -16174,6 +16161,7 @@ export namespace Prisma {
     techPack?: true
     moq?: true
     targetPrice?: true
+    currency?: true
     targetLeadTime?: true
     notes?: true
     likesCount?: true
@@ -16213,6 +16201,7 @@ export namespace Prisma {
     techPack?: true
     moq?: true
     targetPrice?: true
+    currency?: true
     targetLeadTime?: true
     notes?: true
     likesCount?: true
@@ -16252,6 +16241,7 @@ export namespace Prisma {
     techPack?: true
     moq?: true
     targetPrice?: true
+    currency?: true
     targetLeadTime?: true
     notes?: true
     likesCount?: true
@@ -16365,7 +16355,7 @@ export namespace Prisma {
     name: string
     description: string | null
     modelCode: string
-    season: $Enums.Season | null
+    season: string | null
     gender: $Enums.Gender | null
     fit: string | null
     trend: string | null
@@ -16379,6 +16369,7 @@ export namespace Prisma {
     techPack: string | null
     moq: number | null
     targetPrice: number | null
+    currency: string | null
     targetLeadTime: number | null
     notes: string | null
     likesCount: number
@@ -16438,6 +16429,7 @@ export namespace Prisma {
     techPack?: boolean
     moq?: boolean
     targetPrice?: boolean
+    currency?: boolean
     targetLeadTime?: boolean
     notes?: boolean
     likesCount?: boolean
@@ -16494,6 +16486,7 @@ export namespace Prisma {
     techPack?: boolean
     moq?: boolean
     targetPrice?: boolean
+    currency?: boolean
     targetLeadTime?: boolean
     notes?: boolean
     likesCount?: boolean
@@ -16513,7 +16506,7 @@ export namespace Prisma {
     companyId?: boolean
   }
 
-  export type CollectionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "description" | "modelCode" | "season" | "gender" | "fit" | "trend" | "colors" | "sizeGroups" | "sizeRange" | "measurementChart" | "fabricComposition" | "accessories" | "images" | "techPack" | "moq" | "targetPrice" | "targetLeadTime" | "notes" | "likesCount" | "viewCount" | "shareCount" | "lastViewedAt" | "price" | "sku" | "stock" | "isActive" | "isFeatured" | "slug" | "productionSchedule" | "categoryId" | "companyCategoryId" | "authorId" | "companyId", ExtArgs["result"]["collection"]>
+  export type CollectionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "description" | "modelCode" | "season" | "gender" | "fit" | "trend" | "colors" | "sizeGroups" | "sizeRange" | "measurementChart" | "fabricComposition" | "accessories" | "images" | "techPack" | "moq" | "targetPrice" | "currency" | "targetLeadTime" | "notes" | "likesCount" | "viewCount" | "shareCount" | "lastViewedAt" | "price" | "sku" | "stock" | "isActive" | "isFeatured" | "slug" | "productionSchedule" | "categoryId" | "companyCategoryId" | "authorId" | "companyId", ExtArgs["result"]["collection"]>
   export type CollectionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     certifications?: boolean | Collection$certificationsArgs<ExtArgs>
     favoritedBy?: boolean | Collection$favoritedByArgs<ExtArgs>
@@ -16555,7 +16548,7 @@ export namespace Prisma {
       name: string
       description: string | null
       modelCode: string
-      season: $Enums.Season | null
+      season: string | null
       gender: $Enums.Gender | null
       fit: string | null
       trend: string | null
@@ -16569,6 +16562,7 @@ export namespace Prisma {
       techPack: string | null
       moq: number | null
       targetPrice: number | null
+      currency: string | null
       targetLeadTime: number | null
       notes: string | null
       likesCount: number
@@ -16974,7 +16968,7 @@ export namespace Prisma {
     readonly name: FieldRef<"Collection", 'String'>
     readonly description: FieldRef<"Collection", 'String'>
     readonly modelCode: FieldRef<"Collection", 'String'>
-    readonly season: FieldRef<"Collection", 'Season'>
+    readonly season: FieldRef<"Collection", 'String'>
     readonly gender: FieldRef<"Collection", 'Gender'>
     readonly fit: FieldRef<"Collection", 'String'>
     readonly trend: FieldRef<"Collection", 'String'>
@@ -16988,6 +16982,7 @@ export namespace Prisma {
     readonly techPack: FieldRef<"Collection", 'String'>
     readonly moq: FieldRef<"Collection", 'Int'>
     readonly targetPrice: FieldRef<"Collection", 'Float'>
+    readonly currency: FieldRef<"Collection", 'String'>
     readonly targetLeadTime: FieldRef<"Collection", 'Int'>
     readonly notes: FieldRef<"Collection", 'String'>
     readonly likesCount: FieldRef<"Collection", 'Int'>
@@ -42232,6 +42227,7 @@ export namespace Prisma {
     techPack: 'techPack',
     moq: 'moq',
     targetPrice: 'targetPrice',
+    currency: 'currency',
     targetLeadTime: 'targetLeadTime',
     notes: 'notes',
     likesCount: 'likesCount',
@@ -42874,6 +42870,7 @@ export namespace Prisma {
     name: 'name',
     description: 'description',
     modelCode: 'modelCode',
+    season: 'season',
     fit: 'fit',
     trend: 'trend',
     colors: 'colors',
@@ -42884,6 +42881,7 @@ export namespace Prisma {
     accessories: 'accessories',
     images: 'images',
     techPack: 'techPack',
+    currency: 'currency',
     notes: 'notes',
     sku: 'sku',
     slug: 'slug'
@@ -43218,13 +43216,6 @@ export namespace Prisma {
    * Reference to a field of type 'CategoryType'
    */
   export type EnumCategoryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CategoryType'>
-    
-
-
-  /**
-   * Reference to a field of type 'Season'
-   */
-  export type EnumSeasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Season'>
     
 
 
@@ -44634,7 +44625,7 @@ export namespace Prisma {
     name?: StringFilter<"Collection"> | string
     description?: StringNullableFilter<"Collection"> | string | null
     modelCode?: StringFilter<"Collection"> | string
-    season?: EnumSeasonNullableFilter<"Collection"> | $Enums.Season | null
+    season?: StringNullableFilter<"Collection"> | string | null
     gender?: EnumGenderNullableFilter<"Collection"> | $Enums.Gender | null
     fit?: StringNullableFilter<"Collection"> | string | null
     trend?: StringNullableFilter<"Collection"> | string | null
@@ -44648,6 +44639,7 @@ export namespace Prisma {
     techPack?: StringNullableFilter<"Collection"> | string | null
     moq?: IntNullableFilter<"Collection"> | number | null
     targetPrice?: FloatNullableFilter<"Collection"> | number | null
+    currency?: StringNullableFilter<"Collection"> | string | null
     targetLeadTime?: IntNullableFilter<"Collection"> | number | null
     notes?: StringNullableFilter<"Collection"> | string | null
     likesCount?: IntFilter<"Collection"> | number
@@ -44701,6 +44693,7 @@ export namespace Prisma {
     techPack?: SortOrderInput | SortOrder
     moq?: SortOrderInput | SortOrder
     targetPrice?: SortOrderInput | SortOrder
+    currency?: SortOrderInput | SortOrder
     targetLeadTime?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     likesCount?: SortOrder
@@ -44746,7 +44739,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Collection"> | Date | string
     name?: StringFilter<"Collection"> | string
     description?: StringNullableFilter<"Collection"> | string | null
-    season?: EnumSeasonNullableFilter<"Collection"> | $Enums.Season | null
+    season?: StringNullableFilter<"Collection"> | string | null
     gender?: EnumGenderNullableFilter<"Collection"> | $Enums.Gender | null
     fit?: StringNullableFilter<"Collection"> | string | null
     trend?: StringNullableFilter<"Collection"> | string | null
@@ -44760,6 +44753,7 @@ export namespace Prisma {
     techPack?: StringNullableFilter<"Collection"> | string | null
     moq?: IntNullableFilter<"Collection"> | number | null
     targetPrice?: FloatNullableFilter<"Collection"> | number | null
+    currency?: StringNullableFilter<"Collection"> | string | null
     targetLeadTime?: IntNullableFilter<"Collection"> | number | null
     notes?: StringNullableFilter<"Collection"> | string | null
     likesCount?: IntFilter<"Collection"> | number
@@ -44811,6 +44805,7 @@ export namespace Prisma {
     techPack?: SortOrderInput | SortOrder
     moq?: SortOrderInput | SortOrder
     targetPrice?: SortOrderInput | SortOrder
+    currency?: SortOrderInput | SortOrder
     targetLeadTime?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     likesCount?: SortOrder
@@ -44845,7 +44840,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Collection"> | string
     description?: StringNullableWithAggregatesFilter<"Collection"> | string | null
     modelCode?: StringWithAggregatesFilter<"Collection"> | string
-    season?: EnumSeasonNullableWithAggregatesFilter<"Collection"> | $Enums.Season | null
+    season?: StringNullableWithAggregatesFilter<"Collection"> | string | null
     gender?: EnumGenderNullableWithAggregatesFilter<"Collection"> | $Enums.Gender | null
     fit?: StringNullableWithAggregatesFilter<"Collection"> | string | null
     trend?: StringNullableWithAggregatesFilter<"Collection"> | string | null
@@ -44859,6 +44854,7 @@ export namespace Prisma {
     techPack?: StringNullableWithAggregatesFilter<"Collection"> | string | null
     moq?: IntNullableWithAggregatesFilter<"Collection"> | number | null
     targetPrice?: FloatNullableWithAggregatesFilter<"Collection"> | number | null
+    currency?: StringNullableWithAggregatesFilter<"Collection"> | string | null
     targetLeadTime?: IntNullableWithAggregatesFilter<"Collection"> | number | null
     notes?: StringNullableWithAggregatesFilter<"Collection"> | string | null
     likesCount?: IntWithAggregatesFilter<"Collection"> | number
@@ -48910,7 +48906,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -48924,6 +48920,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -48959,7 +48956,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -48973,6 +48970,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -49007,7 +49005,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49021,6 +49019,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -49056,7 +49055,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49070,6 +49069,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -49105,7 +49105,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -49119,6 +49119,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -49144,7 +49145,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49158,6 +49159,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -49180,7 +49182,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49194,6 +49196,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -53529,13 +53532,6 @@ export namespace Prisma {
     companyId?: SortOrder
   }
 
-  export type EnumSeasonNullableFilter<$PrismaModel = never> = {
-    equals?: $Enums.Season | EnumSeasonFieldRefInput<$PrismaModel> | null
-    in?: $Enums.Season[] | null
-    notIn?: $Enums.Season[] | null
-    not?: NestedEnumSeasonNullableFilter<$PrismaModel> | $Enums.Season | null
-  }
-
   export type EnumGenderNullableFilter<$PrismaModel = never> = {
     equals?: $Enums.Gender | EnumGenderFieldRefInput<$PrismaModel> | null
     in?: $Enums.Gender[] | null
@@ -53591,6 +53587,7 @@ export namespace Prisma {
     techPack?: SortOrder
     moq?: SortOrder
     targetPrice?: SortOrder
+    currency?: SortOrder
     targetLeadTime?: SortOrder
     notes?: SortOrder
     likesCount?: SortOrder
@@ -53647,6 +53644,7 @@ export namespace Prisma {
     techPack?: SortOrder
     moq?: SortOrder
     targetPrice?: SortOrder
+    currency?: SortOrder
     targetLeadTime?: SortOrder
     notes?: SortOrder
     likesCount?: SortOrder
@@ -53686,6 +53684,7 @@ export namespace Prisma {
     techPack?: SortOrder
     moq?: SortOrder
     targetPrice?: SortOrder
+    currency?: SortOrder
     targetLeadTime?: SortOrder
     notes?: SortOrder
     likesCount?: SortOrder
@@ -53718,16 +53717,6 @@ export namespace Prisma {
     companyCategoryId?: SortOrder
     authorId?: SortOrder
     companyId?: SortOrder
-  }
-
-  export type EnumSeasonNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.Season | EnumSeasonFieldRefInput<$PrismaModel> | null
-    in?: $Enums.Season[] | null
-    notIn?: $Enums.Season[] | null
-    not?: NestedEnumSeasonNullableWithAggregatesFilter<$PrismaModel> | $Enums.Season | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedEnumSeasonNullableFilter<$PrismaModel>
-    _max?: NestedEnumSeasonNullableFilter<$PrismaModel>
   }
 
   export type EnumGenderNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -58864,10 +58853,6 @@ export namespace Prisma {
     connect?: BillOfMaterialWhereUniqueInput | BillOfMaterialWhereUniqueInput[]
   }
 
-  export type NullableEnumSeasonFieldUpdateOperationsInput = {
-    set?: $Enums.Season | null
-  }
-
   export type NullableEnumGenderFieldUpdateOperationsInput = {
     set?: $Enums.Gender | null
   }
@@ -61310,28 +61295,11 @@ export namespace Prisma {
     _max?: NestedEnumCategoryTypeFilter<$PrismaModel>
   }
 
-  export type NestedEnumSeasonNullableFilter<$PrismaModel = never> = {
-    equals?: $Enums.Season | EnumSeasonFieldRefInput<$PrismaModel> | null
-    in?: $Enums.Season[] | null
-    notIn?: $Enums.Season[] | null
-    not?: NestedEnumSeasonNullableFilter<$PrismaModel> | $Enums.Season | null
-  }
-
   export type NestedEnumGenderNullableFilter<$PrismaModel = never> = {
     equals?: $Enums.Gender | EnumGenderFieldRefInput<$PrismaModel> | null
     in?: $Enums.Gender[] | null
     notIn?: $Enums.Gender[] | null
     not?: NestedEnumGenderNullableFilter<$PrismaModel> | $Enums.Gender | null
-  }
-
-  export type NestedEnumSeasonNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.Season | EnumSeasonFieldRefInput<$PrismaModel> | null
-    in?: $Enums.Season[] | null
-    notIn?: $Enums.Season[] | null
-    not?: NestedEnumSeasonNullableWithAggregatesFilter<$PrismaModel> | $Enums.Season | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedEnumSeasonNullableFilter<$PrismaModel>
-    _max?: NestedEnumSeasonNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumGenderNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -62034,7 +62002,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -62048,6 +62016,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -62082,7 +62051,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -62096,6 +62065,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -63040,7 +63010,7 @@ export namespace Prisma {
     name?: StringFilter<"Collection"> | string
     description?: StringNullableFilter<"Collection"> | string | null
     modelCode?: StringFilter<"Collection"> | string
-    season?: EnumSeasonNullableFilter<"Collection"> | $Enums.Season | null
+    season?: StringNullableFilter<"Collection"> | string | null
     gender?: EnumGenderNullableFilter<"Collection"> | $Enums.Gender | null
     fit?: StringNullableFilter<"Collection"> | string | null
     trend?: StringNullableFilter<"Collection"> | string | null
@@ -63054,6 +63024,7 @@ export namespace Prisma {
     techPack?: StringNullableFilter<"Collection"> | string | null
     moq?: IntNullableFilter<"Collection"> | number | null
     targetPrice?: FloatNullableFilter<"Collection"> | number | null
+    currency?: StringNullableFilter<"Collection"> | string | null
     targetLeadTime?: IntNullableFilter<"Collection"> | number | null
     notes?: StringNullableFilter<"Collection"> | string | null
     likesCount?: IntFilter<"Collection"> | number
@@ -66726,7 +66697,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -66740,6 +66711,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -66774,7 +66746,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -66788,6 +66760,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -69442,7 +69415,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -69456,6 +69429,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -69490,7 +69464,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -69504,6 +69478,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -70321,7 +70296,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -70335,6 +70310,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -70369,7 +70345,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -70383,6 +70359,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -72444,7 +72421,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -72458,6 +72435,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -72492,7 +72470,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -72506,6 +72484,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -72687,7 +72666,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72701,6 +72680,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -72735,7 +72715,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72749,6 +72729,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -72782,7 +72763,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -72796,6 +72777,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -72830,7 +72812,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -72844,6 +72826,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -72882,7 +72865,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -72896,6 +72879,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -72930,7 +72914,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -72944,6 +72928,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -73687,7 +73672,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73701,6 +73686,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -73735,7 +73721,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73749,6 +73735,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -73793,7 +73780,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73807,6 +73794,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -73841,7 +73829,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73855,6 +73843,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -75094,7 +75083,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -75108,6 +75097,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -75142,7 +75132,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -75156,6 +75146,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -75841,7 +75832,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -75855,6 +75846,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -75889,7 +75881,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -75903,6 +75895,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -76840,7 +76833,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -76854,6 +76847,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -76888,7 +76882,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -76902,6 +76896,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -77203,7 +77198,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -77217,6 +77212,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -77251,7 +77247,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -77265,6 +77261,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -77562,7 +77559,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -77576,6 +77573,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -77610,7 +77608,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -77624,6 +77622,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -77799,7 +77798,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -77813,6 +77812,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -77847,7 +77847,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -77861,6 +77861,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -79259,7 +79260,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -79273,6 +79274,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -79307,7 +79309,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -79321,6 +79323,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -79936,7 +79939,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -79950,6 +79953,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -79984,7 +79988,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -79998,6 +80002,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -80101,7 +80106,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -80115,6 +80120,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -80149,7 +80155,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -80163,6 +80169,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -81588,7 +81595,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -81602,6 +81609,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -81636,7 +81644,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -81650,6 +81658,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -82181,7 +82190,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -82195,6 +82204,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -82229,7 +82239,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -82243,6 +82253,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -85329,7 +85340,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -85343,6 +85354,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -85858,7 +85870,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -85872,6 +85884,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -85906,7 +85919,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -85920,6 +85933,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -85954,7 +85968,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -85968,6 +85982,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -87267,7 +87282,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -87281,6 +87296,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -88117,7 +88133,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -88131,6 +88147,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -88165,7 +88182,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -88179,6 +88196,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -88213,7 +88231,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -88227,6 +88245,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -89706,7 +89725,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -89720,6 +89739,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -89839,7 +89859,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -89853,6 +89873,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -89887,7 +89908,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -89901,6 +89922,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -89935,7 +89957,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -89949,6 +89971,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -90074,7 +90097,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     modelCode: string
-    season?: $Enums.Season | null
+    season?: string | null
     gender?: $Enums.Gender | null
     fit?: string | null
     trend?: string | null
@@ -90088,6 +90111,7 @@ export namespace Prisma {
     techPack?: string | null
     moq?: number | null
     targetPrice?: number | null
+    currency?: string | null
     targetLeadTime?: number | null
     notes?: string | null
     likesCount?: number
@@ -90122,7 +90146,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -90136,6 +90160,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -90170,7 +90195,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -90184,6 +90209,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -90218,7 +90244,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -90232,6 +90258,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -92263,7 +92290,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92277,6 +92304,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -92311,7 +92339,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92325,6 +92353,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
@@ -92359,7 +92388,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     modelCode?: StringFieldUpdateOperationsInput | string
-    season?: NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+    season?: NullableStringFieldUpdateOperationsInput | string | null
     gender?: NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
     fit?: NullableStringFieldUpdateOperationsInput | string | null
     trend?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92373,6 +92402,7 @@ export namespace Prisma {
     techPack?: NullableStringFieldUpdateOperationsInput | string | null
     moq?: NullableIntFieldUpdateOperationsInput | number | null
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number

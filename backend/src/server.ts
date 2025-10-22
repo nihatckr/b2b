@@ -4,7 +4,6 @@ import {
   extractFromHeader,
   useJWT,
 } from "@graphql-yoga/plugin-jwt";
-import { useResponseCache } from "@graphql-yoga/plugin-response-cache";
 import { createFetch } from "@whatwg-node/fetch";
 import express from "express";
 import { GraphQLError } from "graphql";
@@ -111,71 +110,6 @@ async function main() {
         },
         // Context injection - JWT payload will be available in context.jwt
         extendContext: true,
-      }),
-      // Response caching for performance optimization
-      useResponseCache({
-        // Session-based caching using JWT user ID
-        // Extract user ID from JWT token in Authorization header
-        session: (request) => {
-          // Extract token from Authorization header
-          const authHeader = request.headers.get("authorization");
-          if (!authHeader) return null;
-
-          // Use the token itself as session identifier
-          // JWT plugin will verify and decode it separately
-          return authHeader;
-        },
-        // Global default TTL: 2 seconds for most queries
-        ttl: 2_000,
-        // Auto-invalidate cache when mutations occur (default: true)
-        // When updateUser mutation runs, all cached queries with User type will be invalidated
-        invalidateViaMutation: true,
-        // Include cache metadata in response extensions (useful for debugging)
-        includeExtensionMetadata: isDev,
-        // TTL per type (in milliseconds)
-        ttlPerType: {
-          // Static/rarely changing data - cache longer
-          User: 30_000, // 30 seconds (user list changes infrequently)
-          Company: 60_000, // 60 seconds (company data rarely changes)
-          Workshop: 60_000, // 60 seconds (workshop list is relatively static)
-          Category: 60_000, // 60 seconds (categories are static)
-
-          // Frequently changing data - shorter cache
-          Order: 5_000, // 5 seconds (orders update frequently)
-          Sample: 5_000, // 5 seconds (samples change often)
-          Production: 2_000, // 2 seconds (production tracking is real-time)
-          Task: 5_000, // 5 seconds (task status updates frequently)
-          Message: 2_000, // 2 seconds (messages need to be fresh)
-          Notification: 2_000, // 2 seconds (notifications should be real-time)
-        },
-        // TTL per specific query field (overrides type-level TTL)
-        ttlPerSchemaCoordinate: {
-          // User-specific queries - cache per session
-          "Query.me": 5_000, // 5 seconds (current user data)
-          "Query.myTasks": 5_000, // 5 seconds (user's tasks)
-          "Query.myWorkshops": 10_000, // 10 seconds (user's workshops)
-
-          // Static data queries - cache longer
-          "Query.allManufacturers": 30_000, // 30 seconds (manufacturer list)
-          "Query.categories": 60_000, // 60 seconds (category list)
-          "Query.workshops": 60_000, // 60 seconds (workshop list)
-
-          // Dashboard/analytics - moderate caching
-          "Query.userStats": 10_000, // 10 seconds (user statistics)
-
-          // Frequently updated queries - short cache
-          "Query.orders": 5_000, // 5 seconds (order list)
-          "Query.samples": 5_000, // 5 seconds (sample list)
-          "Query.pendingTasks": 3_000, // 3 seconds (pending tasks)
-          "Query.notifications": 2_000, // 2 seconds (notifications)
-          "Query.messages": 2_000, // 2 seconds (messages)
-        },
-        // Scope per schema coordinate (PRIVATE = only cache if session exists)
-        scopePerSchemaCoordinate: {
-          "Query.me": "PRIVATE", // Only cache for authenticated users
-          "Query.myTasks": "PRIVATE", // Only cache for authenticated users
-          "Query.myWorkshops": "PRIVATE", // Only cache for authenticated users
-        },
       }),
       // Readiness check for production health monitoring
       // Checks database connectivity and system readiness

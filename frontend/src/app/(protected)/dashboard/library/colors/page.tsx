@@ -2,19 +2,52 @@
 
 import {
   DashboardCreateLibraryItemDocument,
+  DashboardDeleteLibraryItemDocument,
   DashboardLibraryItemsDocument,
   DashboardMyCompanyLibraryDocument,
   DashboardPlatformStandardsDocument,
+  DashboardPlatformStandardsQuery,
+  DashboardUpdateLibraryItemDocument,
 } from "@/__generated__/graphql";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, Globe, Palette, Plus, Users } from "lucide-react";
+import {
+  Building,
+  Edit,
+  Eye,
+  Globe,
+  Palette,
+  Plus,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
+type LibraryColor = Exclude<
+  DashboardPlatformStandardsQuery["platformStandards"],
+  null | undefined
+>[0];
 
 export default function ColorsPage() {
   const { data: session } = useSession();
@@ -22,9 +55,14 @@ export default function ColorsPage() {
 
   // Modal state
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const [createScope, setCreateScope] = useState<
     "PLATFORM_STANDARD" | "COMPANY_CUSTOM"
   >("COMPANY_CUSTOM");
+  const [selectedItem, setSelectedItem] = useState<LibraryColor | null>(null);
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   const [activeTab, setActiveTab] = useState<string>(
     isAdmin ? "platform" : "company"
@@ -55,16 +93,26 @@ export default function ColorsPage() {
     pause: !isAdmin,
   });
 
+  // Mutations
+  const [, createLibraryItem] = useMutation(DashboardCreateLibraryItemDocument);
+  const [, updateLibraryItem] = useMutation(DashboardUpdateLibraryItemDocument);
+  const [, deleteLibraryItem] = useMutation(DashboardDeleteLibraryItemDocument);
+
   const platformData = platformResult.data?.platformStandards || [];
   const companyData = companyResult.data?.myCompanyLibrary || [];
   const allCompaniesData = allCompaniesResult.data?.libraryItems || [];
 
-  // Mutation: Create library item
-  const [, createLibraryItem] = useMutation(DashboardCreateLibraryItemDocument);
-
   const handleCreateItem = async (data: LibraryItemFormData) => {
     try {
-      const input: any = {
+      const input: {
+        category: string;
+        scope: "PLATFORM_STANDARD" | "COMPANY_CUSTOM";
+        code: string;
+        name: string;
+        description: string;
+        data: string;
+        certificationIds?: number[];
+      } = {
         category: "COLOR",
         scope: createScope,
         code: data.code,
@@ -81,11 +129,11 @@ export default function ColorsPage() {
 
       if (result.error) {
         console.error("Failed to create color:", result.error);
-        alert(`Error: ${result.error.message}`);
+        toast.error(`Failed to create color: ${result.error.message}`);
         throw result.error;
       }
 
-      alert("✅ Color created successfully!");
+      toast.success("Color created successfully!");
 
       await Promise.all([
         refetchPlatform({ requestPolicy: "network-only" }),
@@ -98,6 +146,65 @@ export default function ColorsPage() {
       console.error("Error creating color:", error);
     }
   };
+  const handleUpdateItem = async (data: LibraryItemFormData) => {
+    if (!selectedItem) return;
+
+    try {
+      // Prepare update data (excluding code field for update)
+      const input: {
+        name: string;
+        description: string;
+        data: string;
+        isActive: boolean;
+        certificationIds?: number[];
+      } = {
+        name: data.name,
+        description: data.description || "",
+        data:
+          typeof data.data === "object" ? JSON.stringify(data.data) : data.data,
+        isActive: true,
+      };
+
+      // Add certification IDs if any
+      if (data.certificationIds && data.certificationIds.length > 0) {
+        input.certificationIds = data.certificationIds;
+      }
+
+      // TODO: Handle image upload if imageFile exists
+      if (data.imageFile) {
+        console.log("Image upload will be implemented next:", data.imageFile);
+        // input.imageUrl = uploadedUrl;
+      }
+
+      const result = await updateLibraryItem({
+        id: Number(selectedItem.id),
+        input,
+      });
+
+      if (result.error) {
+        console.error("Failed to update color:", result.error);
+        toast.error(`Failed to update color: ${result.error.message}`);
+        return;
+      }
+
+      console.log("Color updated successfully");
+      toast.success("Color updated successfully!");
+
+      // Refetch queries
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      // Close modal and reset state
+      setEditModalOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error updating color:", error);
+      toast.error("Failed to update color");
+    }
+  };
 
   const handleOpenCreateModal = (
     scope: "PLATFORM_STANDARD" | "COMPANY_CUSTOM"
@@ -106,8 +213,63 @@ export default function ColorsPage() {
     setCreateModalOpen(true);
   };
 
+  // Handler: Open edit modal
+  const handleEditItem = (item: LibraryColor) => {
+    setSelectedItem(item);
+    setEditModalOpen(true);
+  };
+
+  // Handler: Open details modal
+  const handleViewDetails = (item: LibraryColor) => {
+    setSelectedItem(item);
+    setDetailsModalOpen(true);
+  };
+
+  // Handler: Open delete confirmation
+  const handleDeleteItem = (item: LibraryColor) => {
+    setSelectedItem(item);
+    setDeleteAlertOpen(true);
+  };
+
+  // Handler: Confirm delete
+  const handleConfirmDelete = async () => {
+    if (!selectedItem) return;
+
+    setLoadingDelete(true);
+    try {
+      const result = await deleteLibraryItem({
+        id: Number(selectedItem.id),
+      });
+
+      if (result.error) {
+        console.error("Failed to delete color:", result.error);
+        toast.error(`Failed to delete color: ${result.error.message}`);
+        return;
+      }
+
+      console.log("Color deleted successfully");
+      toast.success("Color deleted successfully!");
+
+      // Refetch queries
+      await Promise.all([
+        refetchPlatform({ requestPolicy: "network-only" }),
+        !isAdmin && refetchCompany({ requestPolicy: "network-only" }),
+        isAdmin && refetchAllCompanies({ requestPolicy: "network-only" }),
+      ]);
+
+      // Close modal and reset state
+      setDeleteAlertOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error deleting color:", error);
+      toast.error("Failed to delete color");
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
+
   // Helper: Get color from data JSON
-  const getColorHex = (data: any): string => {
+  const getColorHex = (data: string | object | null | undefined): string => {
     if (!data) return "#CCCCCC";
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
@@ -118,7 +280,9 @@ export default function ColorsPage() {
   };
 
   // Helper: Get Pantone code
-  const getPantone = (data: any): string | null => {
+  const getPantone = (
+    data: string | object | null | undefined
+  ): string | null => {
     if (!data) return null;
     try {
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
@@ -237,7 +401,7 @@ export default function ColorsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-                {platformData.map((color: any) => {
+                {platformData.map((color: LibraryColor) => {
                   const hexColor = getColorHex(color.data);
                   const pantone = getPantone(color.data);
 
@@ -279,22 +443,35 @@ export default function ColorsPage() {
                           )}
                         </div>
 
-                        <div className="mt-3 flex gap-2">
+                        <div className="mt-3 flex gap-1">
                           <Button
                             variant="outline"
                             size="sm"
                             className="flex-1 text-xs h-7"
+                            onClick={() => handleViewDetails(color)}
                           >
+                            <Eye className="h-3 w-3 mr-1" />
                             Details
                           </Button>
                           {isAdmin && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 px-2"
-                            >
-                              <span className="text-xs">Edit</span>
-                            </Button>
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-2"
+                                onClick={() => handleEditItem(color)}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-2 text-red-600 hover:text-red-700"
+                                onClick={() => handleDeleteItem(color)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </>
                           )}
                         </div>
                       </div>
@@ -334,7 +511,7 @@ export default function ColorsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-                  {companyData.map((color: any) => {
+                  {companyData.map((color: LibraryColor) => {
                     const hexColor = getColorHex(color.data);
                     const pantone = getPantone(color.data);
 
@@ -374,20 +551,30 @@ export default function ColorsPage() {
                             )}
                           </div>
 
-                          <div className="mt-3 flex gap-2">
+                          <div className="mt-3 flex gap-1">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="flex-1 text-xs h-7"
+                              className="text-xs h-7 px-2"
+                              onClick={() => handleViewDetails(color)}
                             >
-                              Edit
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs h-7 px-2"
+                              onClick={() => handleEditItem(color)}
+                            >
+                              <Edit className="h-3 w-3" />
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               className="h-7 px-2 text-red-600 hover:text-red-700"
+                              onClick={() => handleDeleteItem(color)}
                             >
-                              <span className="text-xs">Del</span>
+                              <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
                         </div>
@@ -406,7 +593,9 @@ export default function ColorsPage() {
             <div className="rounded-lg border bg-card p-4">
               <div className="flex items-center gap-2 mb-4">
                 <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <h3 className="font-semibold">All Companies' Custom Colors</h3>
+                <h3 className="font-semibold">
+                  All Companies&apos; Custom Colors
+                </h3>
                 <span className="text-sm text-muted-foreground">
                   (Admin view only)
                 </span>
@@ -414,7 +603,7 @@ export default function ColorsPage() {
 
               {allCompaniesResult.fetching ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  Loading all companies' colors...
+                  Loading all companies&apos; colors...
                 </div>
               ) : allCompaniesData.length === 0 ? (
                 <div className="text-center py-8">
@@ -424,7 +613,7 @@ export default function ColorsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-                  {allCompaniesData.map((color: any) => {
+                  {allCompaniesData.map((color: LibraryColor) => {
                     const hexColor = getColorHex(color.data);
                     const pantone = getPantone(color.data);
 
@@ -464,7 +653,9 @@ export default function ColorsPage() {
                             variant="outline"
                             size="sm"
                             className="w-full mt-3 text-xs h-7"
+                            onClick={() => handleViewDetails(color)}
                           >
+                            <Eye className="h-3 w-3 mr-1" />
                             View Details
                           </Button>
                         </div>
@@ -486,6 +677,128 @@ export default function ColorsPage() {
         scope={createScope}
         onSubmit={handleCreateItem}
       />
+
+      {/* Edit Modal */}
+      {selectedItem && (
+        <CreateLibraryItemModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          category="COLOR"
+          scope={
+            (selectedItem.scope as "PLATFORM_STANDARD" | "COMPANY_CUSTOM") ||
+            "COMPANY_CUSTOM"
+          }
+          onSubmit={handleUpdateItem}
+          initialData={{
+            code: selectedItem.code || "",
+            name: selectedItem.name || "",
+            description: selectedItem.description || "",
+            imageUrl: selectedItem.imageUrl || "", // 🖼️ Pass existing image URL
+            data: (() => {
+              try {
+                return typeof selectedItem.data === "string"
+                  ? JSON.parse(selectedItem.data)
+                  : selectedItem.data || {};
+              } catch (e) {
+                console.warn("Failed to parse selectedItem.data:", e);
+                return {};
+              }
+            })(),
+            certificationIds:
+              selectedItem.certifications
+                ?.map((c) => Number(c.id))
+                .filter((id): id is number => !isNaN(id)) || [],
+            tags: selectedItem.tags || "",
+          }}
+          isEditMode={true}
+        />
+      )}
+
+      {/* Details Modal */}
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Color Details
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedItem && (
+            <div className="space-y-4">
+              {/* Color Swatch */}
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-20 h-20 rounded-lg border-2 border-gray-200"
+                  style={{ backgroundColor: getColorHex(selectedItem.data) }}
+                />
+                <div>
+                  <h3 className="text-xl font-semibold">{selectedItem.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedItem.code && `Code: ${selectedItem.code}`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Color Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Hex Color</label>
+                  <p className="font-mono text-lg">
+                    {getColorHex(selectedItem.data)}
+                  </p>
+                </div>
+                {getPantone(selectedItem.data) && (
+                  <div>
+                    <label className="text-sm font-medium">Pantone</label>
+                    <p className="text-lg">{getPantone(selectedItem.data)}</p>
+                  </div>
+                )}
+              </div>
+
+              {selectedItem.description && (
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedItem.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Company info for admin view */}
+              {selectedItem.company && (
+                <div>
+                  <label className="text-sm font-medium">Company</label>
+                  <p className="text-sm">{selectedItem.company.name}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Color</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{selectedItem?.name}&quot;?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={loadingDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {loadingDelete ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
