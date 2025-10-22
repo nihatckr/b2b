@@ -11,8 +11,19 @@ query CollectionsList(
   $take: Int
   $search: String
   $featured: Boolean
+  $categoryId: Int
+  $season: String
+  $gender: String
 ) {
-  collections(skip: $skip, take: $take, search: $search, featured: $featured) {
+  collections(
+    skip: $skip
+    take: $take
+    search: $search
+    featured: $featured
+    categoryId: $categoryId
+    season: $season
+    gender: $gender
+  ) {
     id
     name
     description
@@ -27,9 +38,36 @@ query CollectionsList(
     currency
     moq
     targetLeadTime
+    deadline
+    deadlineDays
     fit
+    trend
     colors
     sizeRange
+    fabricComposition
+    accessories
+    fabricDetails {
+      id
+      name
+      iconValue
+      certifications {
+        id
+        name
+        iconValue
+        data
+      }
+    }
+    accessoryDetails {
+      id
+      name
+      iconValue
+      certifications {
+        id
+        name
+        iconValue
+        data
+      }
+    }
     viewCount
     likesCount
     createdAt
@@ -69,10 +107,46 @@ query CollectionsDetail($id: Int!) {
     accessories
     images
     techPack
+    fabricDetails {
+      id
+      name
+      description
+      imageUrl
+      iconValue
+      data
+      tags
+      certifications {
+        id
+        name
+        category
+        description
+        imageUrl
+        iconValue
+      }
+    }
+    accessoryDetails {
+      id
+      name
+      description
+      imageUrl
+      iconValue
+      data
+      tags
+      certifications {
+        id
+        name
+        category
+        description
+        imageUrl
+        iconValue
+      }
+    }
     moq
     targetPrice
     currency
     targetLeadTime
+    deadline
+    deadlineDays
     notes
     isActive
     isFeatured
@@ -108,6 +182,7 @@ query CollectionsDetail($id: Int!) {
       category
       description
       imageUrl
+      iconValue
     }
     samples {
       id
@@ -164,6 +239,7 @@ mutation CollectionsCreate(
   $moq: Int
   $targetPrice: Float
   $currency: String
+  $deadlineDays: Int
   $notes: String
 ) {
   createCollection(
@@ -182,6 +258,7 @@ mutation CollectionsCreate(
     moq: $moq
     targetPrice: $targetPrice
     currency: $currency
+    deadlineDays: $deadlineDays
     notes: $notes
   ) {
     id
@@ -200,6 +277,8 @@ mutation CollectionsCreate(
     moq
     targetPrice
     currency
+    deadline
+    deadlineDays
     notes
     createdAt
     updatedAt
@@ -227,6 +306,8 @@ mutation CollectionsUpdate(
   $targetPrice: Float
   $currency: String
   $targetLeadTime: Int
+  $deadline: DateTime
+  $deadlineDays: Int
   $notes: String
   $images: String
   $productionSchedule: String
@@ -251,6 +332,8 @@ mutation CollectionsUpdate(
     targetPrice: $targetPrice
     currency: $currency
     targetLeadTime: $targetLeadTime
+    deadline: $deadline
+    deadlineDays: $deadlineDays
     notes: $notes
     images: $images
     productionSchedule: $productionSchedule
@@ -273,6 +356,8 @@ mutation CollectionsUpdate(
     targetPrice
     currency
     targetLeadTime
+    deadline
+    deadlineDays
     notes
     isFeatured
     updatedAt
@@ -287,4 +372,21 @@ mutation CollectionsDelete($id: Int!) {
 # Publish collection
 mutation CollectionsPublish($id: Int!) {
   publishCollection(id: $id)
+}
+
+# Like/Unlike collection
+mutation CollectionsToggleLike($id: Int!) {
+  toggleCollectionLike(id: $id) {
+    id
+    likesCount
+  }
+}
+
+# Increment view count
+mutation CollectionsIncrementView($id: Int!) {
+  incrementCollectionView(id: $id) {
+    id
+    viewCount
+    lastViewedAt
+  }
 }

@@ -324,6 +324,8 @@ exports.Prisma.CollectionScalarFieldEnum = {
   targetPrice: 'targetPrice',
   currency: 'currency',
   targetLeadTime: 'targetLeadTime',
+  deadline: 'deadline',
+  deadlineDays: 'deadlineDays',
   notes: 'notes',
   likesCount: 'likesCount',
   viewCount: 'viewCount',
@@ -435,6 +437,10 @@ exports.Prisma.OrderScalarFieldEnum = {
   quantity: 'quantity',
   unitPrice: 'unitPrice',
   totalPrice: 'totalPrice',
+  targetPrice: 'targetPrice',
+  currency: 'currency',
+  deadline: 'deadline',
+  notes: 'notes',
   status: 'status',
   customerNote: 'customerNote',
   manufacturerResponse: 'manufacturerResponse',
@@ -557,6 +563,7 @@ exports.Prisma.LibraryItemScalarFieldEnum = {
   name: 'name',
   description: 'description',
   imageUrl: 'imageUrl',
+  iconValue: 'iconValue',
   data: 'data',
   tags: 'tags',
   internalCode: 'internalCode',
@@ -916,6 +923,8 @@ exports.Prisma.SampleProductionOrderByRelevanceFieldEnum = {
 
 exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   orderNumber: 'orderNumber',
+  currency: 'currency',
+  notes: 'notes',
   customerNote: 'customerNote',
   manufacturerResponse: 'manufacturerResponse',
   customerQuoteNote: 'customerQuoteNote',
@@ -967,6 +976,7 @@ exports.Prisma.LibraryItemOrderByRelevanceFieldEnum = {
   name: 'name',
   description: 'description',
   imageUrl: 'imageUrl',
+  iconValue: 'iconValue',
   internalCode: 'internalCode',
   notes: 'notes'
 };

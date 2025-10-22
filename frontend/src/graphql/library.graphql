@@ -37,6 +37,7 @@ query DashboardPlatformStandards($category: String) {
       name
       data
       tags
+      iconValue
       isActive
       createdAt
     }
@@ -76,6 +77,7 @@ query DashboardMyCompanyLibrary($category: String) {
       name
       data
       tags
+      iconValue
       isActive
       createdAt
     }
@@ -123,6 +125,7 @@ query DashboardLibraryItems(
       name
       data
       tags
+      iconValue
       isActive
       createdAt
     }
@@ -222,6 +225,7 @@ mutation DashboardCreateLibraryItem($input: CreateLibraryItemInput!) {
       name
       data
       tags
+      iconValue
       isActive
       createdAt
     }

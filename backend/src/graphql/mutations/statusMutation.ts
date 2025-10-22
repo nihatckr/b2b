@@ -255,6 +255,149 @@ builder.mutationField("updateOrderStatus", (t) =>
   })
 );
 
+// Send Quote (Manufacturer) - SIMPLE VERSION
+builder.mutationField("sendQuote", (t) =>
+  t.prismaField({
+    type: "Order",
+    args: {
+      id: t.arg.int({ required: true }),
+      unitPrice: t.arg.float({ required: true }),
+      productionDays: t.arg.int({ required: true }),
+      note: t.arg.string(),
+    },
+    authScopes: { user: true },
+    resolve: async (query, _root: any, args: any, context: any) => {
+      if (!context.user?.id) throw new Error("Not authenticated");
+
+      const order = await context.prisma.order.findUnique({
+        where: { id: args.id },
+      });
+
+      if (!order) throw new Error("Order not found");
+      if (order.manufactureId !== context.user.id) {
+        throw new Error("Only manufacturer can send quotes");
+      }
+
+      const updatedOrder = await context.prisma.order.update({
+        ...query,
+        where: { id: args.id },
+        data: {
+          status: "QUOTE_SENT" as any,
+          unitPrice: args.unitPrice,
+          totalPrice: args.unitPrice * order.quantity,
+          productionDays: args.productionDays,
+          manufacturerResponse: args.note,
+        },
+      });
+
+      // Simple notification
+      await context.prisma.notification.create({
+        data: {
+          userId: order.customerId,
+          type: "ORDER",
+          title: "Teklif Alındı",
+          message: `${order.orderNumber} siparişiniz için teklif: ${args.unitPrice}₺/adet, ${args.productionDays} gün`,
+          orderId: order.id,
+        },
+      });
+
+      return updatedOrder;
+    },
+  })
+);
+
+// Accept Quote (Customer) - SIMPLE VERSION
+builder.mutationField("acceptQuote", (t) =>
+  t.prismaField({
+    type: "Order",
+    args: {
+      id: t.arg.int({ required: true }),
+      note: t.arg.string(),
+    },
+    authScopes: { user: true },
+    resolve: async (query, _root: any, args: any, context: any) => {
+      if (!context.user?.id) throw new Error("Not authenticated");
+
+      const order = await context.prisma.order.findUnique({
+        where: { id: args.id },
+      });
+
+      if (!order) throw new Error("Order not found");
+      if (order.customerId !== context.user.id) {
+        throw new Error("Only customer can accept quotes");
+      }
+
+      const updatedOrder = await context.prisma.order.update({
+        ...query,
+        where: { id: args.id },
+        data: {
+          status: "CONFIRMED" as any,
+          customerNote: args.note,
+        },
+      });
+
+      // Simple notification
+      await context.prisma.notification.create({
+        data: {
+          userId: order.manufactureId,
+          type: "ORDER",
+          title: "Teklif Kabul Edildi",
+          message: `${order.orderNumber} siparişi onaylandı. Üretime başlayabilirsiniz.`,
+          orderId: order.id,
+        },
+      });
+
+      return updatedOrder;
+    },
+  })
+);
+
+// Reject Quote (Customer) - SIMPLE VERSION  
+builder.mutationField("rejectQuote", (t) =>
+  t.prismaField({
+    type: "Order",
+    args: {
+      id: t.arg.int({ required: true }),
+      reason: t.arg.string({ required: true }),
+    },
+    authScopes: { user: true },
+    resolve: async (query, _root: any, args: any, context: any) => {
+      if (!context.user?.id) throw new Error("Not authenticated");
+
+      const order = await context.prisma.order.findUnique({
+        where: { id: args.id },
+      });
+
+      if (!order) throw new Error("Order not found");
+      if (order.customerId !== context.user.id) {
+        throw new Error("Only customer can reject quotes");
+      }
+
+      const updatedOrder = await context.prisma.order.update({
+        ...query,
+        where: { id: args.id },
+        data: {
+          status: "REJECTED_BY_CUSTOMER" as any,
+          customerNote: args.reason,
+        },
+      });
+
+      // Simple notification
+      await context.prisma.notification.create({
+        data: {
+          userId: order.manufactureId,
+          type: "ORDER",
+          title: "Teklif Reddedildi",
+          message: `${order.orderNumber} siparişi reddedildi: ${args.reason}`,
+          orderId: order.id,
+        },
+      });
+
+      return updatedOrder;
+    },
+  })
+);
+
 // Update Customer Order (customer quote)
 builder.mutationField("updateCustomerOrder", (t) =>
   t.prismaField({

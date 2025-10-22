@@ -45,6 +45,8 @@ builder.mutationField("createCollection", (t) =>
       targetPrice: t.arg.float(),
       currency: t.arg.string(),
       targetLeadTime: t.arg.int(),
+      deadline: t.arg({ type: "DateTime" }),
+      deadlineDays: t.arg.int(),
       notes: t.arg.string(),
 
       // Media
@@ -149,12 +151,18 @@ builder.mutationField("createCollection", (t) =>
 
       // Commercial Info
       if (args.moq !== null && args.moq !== undefined) data.moq = args.moq;
-      if (args.targetPrice !== null && args.targetPrice !== undefined)
+      if (args.targetPrice !== null && args.targetPrice !== undefined) {
         data.targetPrice = args.targetPrice;
+        data.price = args.targetPrice; // Kartlarda gösterilmek için price field'ına da kaydet
+      }
       if (args.currency !== null && args.currency !== undefined)
         data.currency = args.currency;
       if (args.targetLeadTime !== null && args.targetLeadTime !== undefined)
         data.targetLeadTime = args.targetLeadTime;
+      if (args.deadline !== null && args.deadline !== undefined)
+        data.deadline = args.deadline;
+      if (args.deadlineDays !== null && args.deadlineDays !== undefined)
+        data.deadlineDays = args.deadlineDays;
       if (args.notes !== null && args.notes !== undefined)
         data.notes = args.notes;
 
@@ -236,6 +244,8 @@ builder.mutationField("updateCollection", (t) =>
       targetPrice: t.arg.float(),
       currency: t.arg.string(),
       targetLeadTime: t.arg.int(),
+      deadline: t.arg({ type: "DateTime" }),
+      deadlineDays: t.arg.int(),
       notes: t.arg.string(),
 
       // Media
@@ -320,12 +330,18 @@ builder.mutationField("updateCollection", (t) =>
       // Commercial Info
       if (args.moq !== null && args.moq !== undefined)
         updateData.moq = args.moq;
-      if (args.targetPrice !== null && args.targetPrice !== undefined)
+      if (args.targetPrice !== null && args.targetPrice !== undefined) {
         updateData.targetPrice = args.targetPrice;
+        updateData.price = args.targetPrice; // Kartlarda gösterilmek için price field'ına da kaydet
+      }
       if (args.currency !== null && args.currency !== undefined)
         updateData.currency = args.currency;
       if (args.targetLeadTime !== null && args.targetLeadTime !== undefined)
         updateData.targetLeadTime = args.targetLeadTime;
+      if (args.deadline !== null && args.deadline !== undefined)
+        updateData.deadline = args.deadline;
+      if (args.deadlineDays !== null && args.deadlineDays !== undefined)
+        updateData.deadlineDays = args.deadlineDays;
       if (args.notes !== null && args.notes !== undefined)
         updateData.notes = args.notes;
 
@@ -453,6 +469,106 @@ builder.mutationField("deleteCollection", (t) =>
         where: { id: args.id },
       });
       return true;
+    },
+  })
+);
+
+// Toggle like for collection (logged-in users)
+builder.mutationField("toggleCollectionLike", (t) =>
+  t.prismaField({
+    type: "Collection",
+    args: {
+      id: t.arg.int({ required: true }),
+    },
+    authScopes: { user: true },
+    resolve: async (query, _root, args, context) => {
+      if (!context.user) throw new Error("Authentication required");
+
+      const collection = await context.prisma.collection.findUnique({
+        where: { id: args.id },
+      });
+
+      if (!collection) throw new Error("Collection not found");
+
+      // Check if user already liked this collection
+      const existingLike = await context.prisma.userFavoriteCollection.findUnique({
+        where: {
+          userId_collectionId: {
+            userId: context.user.id,
+            collectionId: args.id,
+          },
+        },
+      });
+
+      if (existingLike) {
+        // Unlike - remove favorite record and decrement count
+        await context.prisma.userFavoriteCollection.delete({
+          where: {
+            userId_collectionId: {
+              userId: context.user.id,
+              collectionId: args.id,
+            },
+          },
+        });
+        
+        await context.prisma.collection.update({
+          where: { id: args.id },
+          data: {
+            likesCount: Math.max(0, collection.likesCount - 1),
+          },
+        });
+      } else {
+        // Like - create favorite record and increment count
+        await context.prisma.userFavoriteCollection.create({
+          data: {
+            userId: context.user.id,
+            collectionId: args.id,
+          },
+        });
+        
+        await context.prisma.collection.update({
+          where: { id: args.id },
+          data: {
+            likesCount: collection.likesCount + 1,
+          },
+        });
+      }
+
+      // Return updated collection
+      return context.prisma.collection.findUnique({
+        ...query,
+        where: { id: args.id },
+      });
+    },
+  })
+);
+
+// Increment view count for collection (logged-in users)
+builder.mutationField("incrementCollectionView", (t) =>
+  t.prismaField({
+    type: "Collection",
+    args: {
+      id: t.arg.int({ required: true }),
+    },
+    authScopes: { user: true },
+    resolve: async (query, _root, args, context) => {
+      if (!context.user) throw new Error("Authentication required");
+
+      const collection = await context.prisma.collection.findUnique({
+        where: { id: args.id },
+      });
+
+      if (!collection) throw new Error("Collection not found");
+
+      // Update view count and lastViewedAt
+      return context.prisma.collection.update({
+        ...query,
+        where: { id: args.id },
+        data: {
+          viewCount: collection.viewCount + 1,
+          lastViewedAt: new Date(),
+        },
+      });
     },
   })
 );

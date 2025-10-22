@@ -23,9 +23,17 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import NextImage from "next/image";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
+
+// Size Group tipi (LibraryItem'dan geliyor)
+interface SizeGroup {
+  id?: string | null;
+  name?: string | null;
+  data?: string | object | null;
+}
 
 // 4 Adımlı Collection Form Data
 interface CollectionFormData {
@@ -35,6 +43,10 @@ interface CollectionFormData {
   modelCode: string;
   trend: string;
   categoryPath: string; // "WOMEN-ÜSTGIYIM-GÖMLEK" formatında
+  // Adım adım kategori seçimi
+  selectedGender: string; // "WOMEN", "MEN", "KIDS", etc.
+  selectedMainCategory: string; // "ÜSTGIYIM", "ALTGIYIM", etc.
+  selectedSubCategory: string; // "GÖMLEK", "PANTOLON", etc.
   season: string;
   fit: string;
 
@@ -44,16 +56,37 @@ interface CollectionFormData {
   measurementChart: string;
 
   // ADIM 3: Teknik Detaylar
-  fabrics: string[]; // Library'den seçilen kumaşlar
-  accessories: string[]; // Library'den seçilen aksesuarlar
+  fabrics: (
+    | string
+    | {
+        name: string;
+        composition?: string;
+        certifications?: Array<{
+          id?: string | null;
+          name?: string | null;
+          issuer?: string;
+        }>;
+      }
+  )[]; // Library'den seçilen kumaşlar
+  accessories: (
+    | string
+    | {
+        name: string;
+        certifications?: Array<{
+          id?: string | null;
+          name?: string | null;
+          issuer?: string;
+        }>;
+      }
+  )[]; // Library'den seçilen aksesuarlar
   images: string[];
   techPack: string;
 
   // ADIM 4: Ticari Bilgiler
   moq: number;
-  targetPrice: number;
+  price: number;
   currency: string;
-  leadTime: number; // Termin süresi (gün olarak)
+  deadlineDays: number; // Üretim süresi (gün olarak)
   notes: string;
 }
 
@@ -80,12 +113,36 @@ interface CreateCollectionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  isEditMode?: boolean;
+  initialData?: {
+    name: string;
+    description: string;
+    modelCode: string;
+    season: string;
+    gender: string;
+    fit: string;
+    trend: string;
+    colors: string;
+    sizeRange: string;
+    fabricComposition: string;
+    accessories: string;
+    images: string;
+    moq: number;
+    targetPrice: number;
+    currency: string;
+    deadlineDays: number;
+    notes: string;
+  };
+  onSubmit?: (data: Record<string, unknown>) => Promise<void>;
 }
 
 export function CreateCollectionModal({
   open,
   onOpenChange,
   onSuccess,
+  isEditMode = false,
+  initialData,
+  onSubmit,
 }: CreateCollectionModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [, createCollection] = useMutation(CollectionsCreateDocument);
@@ -129,6 +186,9 @@ export function CreateCollectionModal({
     modelCode: "",
     trend: "",
     categoryPath: "",
+    selectedGender: "",
+    selectedMainCategory: "",
+    selectedSubCategory: "",
     season: "",
     fit: "",
     colors: [],
@@ -139,17 +199,189 @@ export function CreateCollectionModal({
     images: [],
     techPack: "",
     moq: 100,
-    targetPrice: 0,
+    price: 0,
     currency: "USD",
-    leadTime: 30,
+    deadlineDays: 30,
     notes: "",
   });
 
-  const handleInputChange = (field: keyof CollectionFormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  // Update form data when initialData changes (for edit mode)
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      console.log("🔄 Updating form with initialData:", initialData);
+
+      // Parse JSON fields safely
+      const parseJsonSafely = (
+        jsonString: string | null | undefined,
+        fallback: unknown[] = []
+      ) => {
+        if (!jsonString) return fallback;
+        try {
+          const parsed = JSON.parse(jsonString);
+          return Array.isArray(parsed) ? parsed : fallback;
+        } catch {
+          return fallback;
+        }
+      };
+
+      setFormData({
+        name: initialData.name || "",
+        description: initialData.description || "",
+        modelCode: initialData.modelCode || "",
+        trend: initialData.trend || "",
+        categoryPath: "", // Will be derived from gender/category if needed
+        selectedGender: initialData.gender || "",
+        selectedMainCategory: "",
+        selectedSubCategory: "",
+        season: initialData.season || "",
+        fit: initialData.fit || "",
+        colors: parseJsonSafely(initialData.colors),
+        sizeRange: initialData.sizeRange || "",
+        measurementChart: "",
+        fabrics: parseJsonSafely(initialData.fabricComposition),
+        accessories: parseJsonSafely(initialData.accessories),
+        images: parseJsonSafely(initialData.images),
+        techPack: "",
+        moq: initialData.moq || 100,
+        price: initialData.targetPrice || 0,
+        currency: initialData.currency || "USD",
+        deadlineDays: initialData.deadlineDays || 30,
+        notes: initialData.notes || "",
+      });
+    }
+  }, [isEditMode, initialData]);
+
+  const handleInputChange = useCallback(
+    (
+      field: keyof CollectionFormData,
+      value: string | number | string[] | boolean
+    ) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
+
+  // Helper function to extract sizes from size group data
+  const getSizesFromSizeGroup = (sizeGroup: SizeGroup): string => {
+    if (!sizeGroup.data) return sizeGroup.name || "";
+
+    try {
+      const data = (() => {
+        return typeof sizeGroup.data === "string"
+          ? JSON.parse(sizeGroup.data)
+          : sizeGroup.data;
+      })();
+
+      // sizes array'i varsa
+      if (
+        data &&
+        typeof data === "object" &&
+        "sizes" in data &&
+        Array.isArray(data.sizes)
+      ) {
+        const sizeValues = data.sizes
+          .map(
+            (sizeItem: { value?: string; name?: string }) =>
+              sizeItem.value || sizeItem.name
+          )
+          .filter(Boolean)
+          .join(", ");
+        return sizeValues || sizeGroup.name || "";
+      }
+
+      // sizes array'i yoksa name'i döndür
+      return sizeGroup.name || "";
+    } catch {
+      return sizeGroup.name || "";
+    }
   };
 
-  // Color Management
+  // Kategori verileri - Seed'den gelen yapıya uygun
+  const categoryData = {
+    WOMEN: {
+      name: "Kadın",
+      categories: {
+        "ÜST GİYİM": ["Bluz", "Gömlek", "Tişört", "Kazak", "Hırka"],
+        "ALT GİYİM": ["Pantolon", "Etek", "Şort", "Tayt"],
+        "DIŞ GİYİM": ["Mont", "Ceket", "Palto", "Yelek"],
+        ELBİSE: ["Günlük Elbise", "Kokteyl Elbise", "Gece Elbisesi"],
+        "İÇ GİYİM": ["Sütyem", "Külot", "Pijama", "Gecelik"],
+      },
+    },
+    MEN: {
+      name: "Erkek",
+      categories: {
+        "ÜST GİYİM": ["Gömlek", "Tişört", "Polo", "Kazak", "Sweatshirt"],
+        "ALT GİYİM": ["Pantolon", "Kot Pantolon", "Şort", "Eşofman Altı"],
+        "DIŞ GİYİM": ["Mont", "Ceket", "Palto", "Blazer"],
+        TAKIMI: ["Takım Elbise", "Smokin"],
+        "İÇ GİYİM": ["Atlet", "Boxer", "Pijama"],
+      },
+    },
+    KIDS: {
+      name: "Çocuk",
+      categories: {
+        "ÜST GİYİM": ["Tişört", "Gömlek", "Kazak", "Hırka"],
+        "ALT GİYİM": ["Pantolon", "Etek", "Şort", "Tayt"],
+        "DIŞ GİYİM": ["Mont", "Ceket", "Yelek"],
+        ELBİSE: ["Günlük Elbise", "Parti Elbisesi"],
+        TAKIMI: ["Eşofman Takımı", "Pijama Takımı"],
+      },
+    },
+  };
+
+  // Helper: Kategori yolu oluştur
+  const updateCategoryPath = () => {
+    if (
+      formData.selectedGender &&
+      formData.selectedMainCategory &&
+      formData.selectedSubCategory
+    ) {
+      const path = `${formData.selectedGender}-${formData.selectedMainCategory}-${formData.selectedSubCategory}`;
+      handleInputChange("categoryPath", path);
+    }
+  };
+
+  // Kategori seçimi değiştiğinde path'i güncelle
+  const handleGenderChange = (gender: string) => {
+    handleInputChange("selectedGender", gender);
+    handleInputChange("selectedMainCategory", "");
+    handleInputChange("selectedSubCategory", "");
+    handleInputChange("categoryPath", "");
+  };
+
+  const handleMainCategoryChange = (mainCategory: string) => {
+    handleInputChange("selectedMainCategory", mainCategory);
+    handleInputChange("selectedSubCategory", "");
+    setTimeout(updateCategoryPath, 0);
+  };
+
+  const handleSubCategoryChange = (subCategory: string) => {
+    handleInputChange("selectedSubCategory", subCategory);
+    setTimeout(updateCategoryPath, 0);
+  };
+
+  // Kategori seçimi değiştiğinde categoryPath'i otomatik güncelle
+  useEffect(() => {
+    if (
+      formData.selectedGender &&
+      formData.selectedMainCategory &&
+      formData.selectedSubCategory
+    ) {
+      const path = `${formData.selectedGender}-${formData.selectedMainCategory}-${formData.selectedSubCategory}`;
+      if (path !== formData.categoryPath) {
+        handleInputChange("categoryPath", path);
+      }
+    }
+  }, [
+    formData.selectedGender,
+    formData.selectedMainCategory,
+    formData.selectedSubCategory,
+    formData.categoryPath,
+    handleInputChange,
+  ]);
+
+  // Color Management // Color Management
   const toggleColor = (color: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -160,28 +392,127 @@ export function CreateCollectionModal({
   };
 
   // Fabric Management
-  const toggleFabric = (fabric: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      fabrics: prev.fabrics.includes(fabric)
-        ? prev.fabrics.filter((f) => f !== fabric)
-        : [...prev.fabrics, fabric],
-    }));
+  const toggleFabric = (
+    fabricName: string,
+    fabricObj?: {
+      name: string;
+      composition?: string;
+      certifications?: Array<{
+        id?: string | null;
+        name?: string | null;
+        issuer?: string;
+      }>;
+    }
+  ) => {
+    setFormData((prev) => {
+      // Check if fabric already exists by name
+      const existingIndex = prev.fabrics.findIndex((f) => {
+        if (typeof f === "string") {
+          return f === fabricName;
+        }
+        return (f as { name: string }).name === fabricName;
+      });
+
+      if (existingIndex !== -1) {
+        // Remove existing fabric
+        return {
+          ...prev,
+          fabrics: prev.fabrics.filter((_, index) => index !== existingIndex),
+        };
+      } else {
+        // Add new fabric with full object including composition
+        const newFabric = fabricObj || fabricName;
+        return {
+          ...prev,
+          fabrics: [...prev.fabrics, newFabric],
+        };
+      }
+    });
   };
 
   // Accessory Management
-  const toggleAccessory = (accessory: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      accessories: prev.accessories.includes(accessory)
-        ? prev.accessories.filter((a) => a !== accessory)
-        : [...prev.accessories, accessory],
-    }));
+  const toggleAccessory = (
+    accessoryName: string,
+    accessoryObj?: {
+      name: string;
+      certifications?: Array<{
+        id?: string | null;
+        name?: string | null;
+        issuer?: string;
+      }>;
+    }
+  ) => {
+    setFormData((prev) => {
+      // Check if accessory already exists by name
+      const existingIndex = prev.accessories.findIndex((a) =>
+        typeof a === "string" ? a === accessoryName : a.name === accessoryName
+      );
+
+      if (existingIndex !== -1) {
+        // Remove existing accessory
+        return {
+          ...prev,
+          accessories: prev.accessories.filter(
+            (_, index) => index !== existingIndex
+          ),
+        };
+      } else {
+        // Add new accessory with full object including certifications
+        const newAccessory = accessoryObj || accessoryName;
+        return {
+          ...prev,
+          accessories: [...prev.accessories, newAccessory],
+        };
+      }
+    });
   };
 
   const handleSubmit = async () => {
     try {
-      // Model code otomatik oluştur eğer yoksa
+      // Edit mode - use onSubmit callback
+      if (isEditMode && onSubmit) {
+        const finalModelCode = formData.modelCode || `MODEL-${Date.now()}`;
+
+        const submitData = {
+          name: formData.name,
+          description: formData.description || undefined,
+          modelCode: finalModelCode,
+          season: formData.season || undefined,
+          gender: formData.categoryPath
+            ? formData.categoryPath.split("-")[0]
+            : undefined,
+          fit: formData.fit || undefined,
+          trend: formData.trend || undefined,
+          colors:
+            formData.colors.length > 0
+              ? JSON.stringify(formData.colors)
+              : undefined,
+          sizeRange: formData.sizeRange || undefined,
+          fabricComposition:
+            formData.fabrics.length > 0
+              ? JSON.stringify(formData.fabrics)
+              : undefined,
+          accessories:
+            formData.accessories.length > 0
+              ? JSON.stringify(formData.accessories)
+              : undefined,
+          images:
+            formData.images.length > 0
+              ? JSON.stringify(formData.images)
+              : undefined,
+          moq: formData.moq || undefined,
+          targetPrice: formData.price || undefined,
+          currency: formData.currency || undefined,
+          deadlineDays: formData.deadlineDays || undefined,
+          notes: formData.notes || undefined,
+        };
+
+        await onSubmit(submitData);
+        onOpenChange(false);
+        return;
+      }
+
+      // Create mode - use createCollection mutation
       const finalModelCode = formData.modelCode || `MODEL-${Date.now()}`;
 
       const result = await createCollection({
@@ -211,8 +542,9 @@ export function CreateCollectionModal({
         images:
           formData.images.length > 0 ? JSON.stringify(formData.images) : null,
         moq: formData.moq || null,
-        targetPrice: formData.targetPrice || null,
+        targetPrice: formData.price || null,
         currency: formData.currency || null,
+        deadlineDays: formData.deadlineDays || null,
         notes: formData.notes || null,
       });
 
@@ -232,6 +564,9 @@ export function CreateCollectionModal({
         modelCode: "",
         trend: "",
         categoryPath: "",
+        selectedGender: "",
+        selectedMainCategory: "",
+        selectedSubCategory: "",
         season: "",
         fit: "",
         colors: [],
@@ -242,9 +577,9 @@ export function CreateCollectionModal({
         images: [],
         techPack: "",
         moq: 100,
-        targetPrice: 0,
+        price: 0,
         currency: "USD",
-        leadTime: 30,
+        deadlineDays: 30,
         notes: "",
       });
       setCurrentStep(1);
@@ -285,7 +620,9 @@ export function CreateCollectionModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Collection</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? "Edit Collection" : "Create New Collection"}
+          </DialogTitle>
         </DialogHeader>
 
         {/* Progress Bar */}
@@ -313,6 +650,32 @@ export function CreateCollectionModal({
         {/* Step 1: Temel Bilgiler */}
         {currentStep === 1 && (
           <div className="space-y-4">
+            {/* Koleksiyon Görseli - En Üstte */}
+            <div className="space-y-2">
+              <FormImageUpload
+                value={formData.images[0] || ""}
+                onChange={(url) => {
+                  if (url) {
+                    handleInputChange("images", [...formData.images, url]);
+                  }
+                }}
+                onDelete={() => {
+                  const newImages = [...formData.images];
+                  newImages.shift();
+                  handleInputChange("images", newImages);
+                }}
+                label="Koleksiyon Ana Görseli"
+                description="Koleksiyonu temsil eden ana görseli yükleyin"
+                uploadType="collections"
+                recommended="En az 800x800px, maksimum 5MB"
+              />
+              {formData.images.length > 1 && (
+                <div className="text-sm text-gray-600">
+                  +{formData.images.length - 1} görsel daha yüklendi
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="name">
                 Koleksiyon Adı <span className="text-red-500">*</span>
@@ -351,32 +714,96 @@ export function CreateCollectionModal({
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-4">
               <Label>Klasman Seçimi</Label>
-              <Select
-                value={formData.categoryPath}
-                onValueChange={(value) =>
-                  handleInputChange("categoryPath", value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Kategori seçiniz (Örn: Kadın > Üst Giyim > Gömlek)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="WOMEN-ÜSTGIYIM-GÖMLEK">
-                    Kadın {`>`} Üst Giyim {`>`} Gömlek
-                  </SelectItem>
-                  <SelectItem value="WOMEN-ALTGIYIM-PANTOLON">
-                    Kadın {`>`} Alt Giyim {`>`} Pantolon
-                  </SelectItem>
-                  <SelectItem value="MEN-ÜSTGIYIM-GÖMLEK">
-                    Erkek {`>`} Üst Giyim {`>`} Gömlek
-                  </SelectItem>
-                  <SelectItem value="MEN-ALTGIYIM-PANTOLON">
-                    Erkek {`>`} Alt Giyim {`>`} Pantolon
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-wrap gap-3">
+                {/* 1. Cinsiyet Seçimi - Her zaman görünür */}
+                <div className="min-w-[200px]">
+                  <Select
+                    value={formData.selectedGender}
+                    onValueChange={handleGenderChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Cinsiyet seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(categoryData).map(([key, value]) => (
+                        <SelectItem key={key} value={key}>
+                          {value.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 2. Ana Kategori Seçimi - Sadece cinsiyet seçilince görünür */}
+                {formData.selectedGender && (
+                  <div className="min-w-[200px]">
+                    <Select
+                      value={formData.selectedMainCategory}
+                      onValueChange={handleMainCategoryChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Ana kategori seçin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.keys(
+                          categoryData[
+                            formData.selectedGender as keyof typeof categoryData
+                          ]?.categories || {}
+                        ).map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* 3. Alt Kategori Seçimi - Sadece ana kategori seçilince görünür */}
+                {formData.selectedGender && formData.selectedMainCategory && (
+                  <div className="min-w-[200px]">
+                    <Select
+                      value={formData.selectedSubCategory}
+                      onValueChange={handleSubCategoryChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Alt kategori seçin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(() => {
+                          const genderData =
+                            categoryData[
+                              formData.selectedGender as keyof typeof categoryData
+                            ];
+                          const mainCategoryData =
+                            genderData?.categories[
+                              formData.selectedMainCategory as keyof typeof genderData.categories
+                            ];
+                          return mainCategoryData?.map(
+                            (subCategory: string) => (
+                              <SelectItem key={subCategory} value={subCategory}>
+                                {subCategory}
+                              </SelectItem>
+                            )
+                          );
+                        })()}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              {/* Seçilen Kategori Yolu Gösterimi */}
+              {formData.categoryPath && (
+                <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <span className="font-medium">Seçilen Klasman:</span>{" "}
+                    {formData.categoryPath.replace(/-/g, " > ")}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -500,11 +927,26 @@ export function CreateCollectionModal({
                   <SelectValue placeholder="Beden aralığı seçiniz" />
                 </SelectTrigger>
                 <SelectContent>
-                  {sizeGroupsData?.libraryItems?.map((sizeGroup) => (
-                    <SelectItem key={sizeGroup.id} value={sizeGroup.name || ""}>
-                      {sizeGroup.name}
-                    </SelectItem>
-                  ))}
+                  {sizeGroupsData?.libraryItems?.map((sizeGroup) => {
+                    const sizesText = getSizesFromSizeGroup(sizeGroup);
+                    return (
+                      <SelectItem
+                        key={sizeGroup.id}
+                        value={sizeGroup.name || ""}
+                      >
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium text-sm">
+                            {sizeGroup.name}
+                          </span>
+                          {sizesText && sizesText !== sizeGroup.name && (
+                            <span className="text-xs text-muted-foreground">
+                              {sizesText}
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -558,7 +1000,7 @@ export function CreateCollectionModal({
                 }).length === 0 ? (
                   <div className="col-span-2 text-center py-8 text-muted-foreground">
                     <p className="text-sm">
-                      "{fabricSearch}" için sonuç bulunamadı
+                      &quot;{fabricSearch}&quot; için sonuç bulunamadı
                     </p>
                   </div>
                 ) : (
@@ -579,14 +1021,22 @@ export function CreateCollectionModal({
                       const fabricData = fabric.data
                         ? JSON.parse(fabric.data as string)
                         : {};
-                      const isSelected = formData.fabrics.includes(
-                        fabric.name || ""
+                      const isSelected = formData.fabrics.some((f) =>
+                        typeof f === "string"
+                          ? f === fabric.name
+                          : f.name === fabric.name
                       );
 
                       return (
                         <div
                           key={fabric.id}
-                          onClick={() => toggleFabric(fabric.name || "")}
+                          onClick={() =>
+                            toggleFabric(fabric.name || "", {
+                              name: fabric.name || "",
+                              composition: fabricData.composition,
+                              certifications: fabric.certifications || [],
+                            })
+                          }
                           className={`
                         relative cursor-pointer rounded-lg border-2 p-3 transition-all
                         ${
@@ -598,7 +1048,9 @@ export function CreateCollectionModal({
                         >
                           <div className="flex items-start gap-3">
                             {fabric.imageUrl && (
-                              <img
+                              <NextImage
+                                width={48}
+                                height={48}
                                 src={fabric.imageUrl}
                                 alt={fabric.name || ""}
                                 className="w-12 h-12 rounded object-cover flex-shrink-0"
@@ -676,7 +1128,7 @@ export function CreateCollectionModal({
                 }).length === 0 ? (
                   <div className="col-span-2 text-center py-8 text-muted-foreground">
                     <p className="text-sm">
-                      "{accessorySearch}" için sonuç bulunamadı
+                      &quot;{accessorySearch}&quot; için sonuç bulunamadı
                     </p>
                   </div>
                 ) : (
@@ -697,14 +1149,21 @@ export function CreateCollectionModal({
                       const accessoryData = accessory.data
                         ? JSON.parse(accessory.data as string)
                         : {};
-                      const isSelected = formData.accessories.includes(
-                        accessory.name || ""
+                      const isSelected = formData.accessories.some((a) =>
+                        typeof a === "string"
+                          ? a === accessory.name
+                          : a.name === accessory.name
                       );
 
                       return (
                         <div
                           key={accessory.id}
-                          onClick={() => toggleAccessory(accessory.name || "")}
+                          onClick={() =>
+                            toggleAccessory(accessory.name || "", {
+                              name: accessory.name || "",
+                              certifications: accessory.certifications || [],
+                            })
+                          }
                           className={`
                         relative cursor-pointer rounded-lg border-2 p-3 transition-all
                         ${
@@ -716,7 +1175,9 @@ export function CreateCollectionModal({
                         >
                           <div className="flex items-start gap-3">
                             {accessory.imageUrl && (
-                              <img
+                              <NextImage
+                                width={48}
+                                height={48}
                                 src={accessory.imageUrl}
                                 alt={accessory.name || ""}
                                 className="w-12 h-12 rounded object-cover flex-shrink-0"
@@ -765,27 +1226,41 @@ export function CreateCollectionModal({
               )}
             </div>
 
+            {/* Ek Görseller (İsteğe Bağlı) */}
             <div className="space-y-2">
+              <Label>Ek Görseller (İsteğe Bağlı)</Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Ana görsel 1. adımda yüklendi. Buradan ek görseller
+                ekleyebilirsiniz.
+              </p>
               <FormImageUpload
-                value={formData.images[0] || ""}
+                value={formData.images[1] || ""}
                 onChange={(url) => {
                   if (url) {
-                    handleInputChange("images", [...formData.images, url]);
+                    const newImages = [...formData.images];
+                    if (newImages.length < 2) {
+                      newImages.push(url);
+                    } else {
+                      newImages[1] = url;
+                    }
+                    handleInputChange("images", newImages);
                   }
                 }}
                 onDelete={() => {
                   const newImages = [...formData.images];
-                  newImages.shift();
-                  handleInputChange("images", newImages);
+                  if (newImages.length > 1) {
+                    newImages.splice(1, 1);
+                    handleInputChange("images", newImages);
+                  }
                 }}
-                label="Koleksiyon Görselleri"
-                description="Koleksiyon görsellerini yükleyin"
+                label="2. Görsel"
+                description="İkinci koleksiyon görseli"
                 uploadType="collections"
                 recommended="En az 800x800px, maksimum 5MB"
               />
-              {formData.images.length > 1 && (
+              {formData.images.length > 2 && (
                 <div className="text-sm text-gray-600">
-                  +{formData.images.length - 1} görsel daha yüklendi
+                  +{formData.images.length - 2} görsel daha var
                 </div>
               )}
             </div>
@@ -829,14 +1304,14 @@ export function CreateCollectionModal({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="leadTime">Termin Süresi (Gün)</Label>
+                  <Label htmlFor="deadlineDays">Üretim Süresi (Gün)</Label>
                   <Input
-                    id="leadTime"
+                    id="deadlineDays"
                     type="number"
-                    value={formData.leadTime || ""}
+                    value={formData.deadlineDays || ""}
                     onChange={(e) =>
                       handleInputChange(
-                        "leadTime",
+                        "deadlineDays",
                         parseInt(e.target.value) || 0
                       )
                     }
@@ -850,15 +1325,15 @@ export function CreateCollectionModal({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="targetPrice">Hedef Fiyat</Label>
+                  <Label htmlFor="price">Fiyat</Label>
                   <Input
-                    id="targetPrice"
+                    id="price"
                     type="number"
                     step="0.01"
-                    value={formData.targetPrice || ""}
+                    value={formData.price || ""}
                     onChange={(e) =>
                       handleInputChange(
-                        "targetPrice",
+                        "price",
                         parseFloat(e.target.value) || 0
                       )
                     }
@@ -952,7 +1427,16 @@ export function CreateCollectionModal({
                   <span className="font-semibold text-gray-600">Kumaşlar</span>
                   <span className="text-gray-900">
                     {formData.fabrics.length > 0
-                      ? formData.fabrics.join(", ")
+                      ? formData.fabrics
+                          .map((f) => {
+                            if (typeof f === "string") {
+                              return f;
+                            }
+                            return f.composition
+                              ? `${f.name} (${f.composition})`
+                              : f.name;
+                          })
+                          .join(", ")
                       : "-"}
                   </span>
                 </div>
@@ -962,7 +1446,14 @@ export function CreateCollectionModal({
                   </span>
                   <span className="text-gray-900">
                     {formData.accessories.length > 0
-                      ? formData.accessories.join(", ")
+                      ? formData.accessories
+                          .map((a) => {
+                            if (typeof a === "string") {
+                              return a;
+                            }
+                            return a.name;
+                          })
+                          .join(", ")
                       : "-"}
                   </span>
                 </div>
@@ -984,19 +1475,19 @@ export function CreateCollectionModal({
                 </div>
                 <div className="flex flex-col">
                   <span className="font-semibold text-gray-600">
-                    Termin Süresi
+                    Üretim Süresi
                   </span>
                   <span className="text-gray-900">
-                    {formData.leadTime > 0 ? `${formData.leadTime} gün` : "-"}
+                    {formData.deadlineDays > 0
+                      ? `${formData.deadlineDays} gün`
+                      : "-"}
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600">
-                    Hedef Fiyat
-                  </span>
+                  <span className="font-semibold text-gray-600">Fiyat</span>
                   <span className="text-gray-900">
-                    {formData.targetPrice > 0
-                      ? `${formData.targetPrice} ${formData.currency}`
+                    {formData.price > 0
+                      ? `${formData.price} ${formData.currency}`
                       : "-"}
                   </span>
                 </div>
@@ -1040,7 +1531,7 @@ export function CreateCollectionModal({
             </Button>
           ) : (
             <Button onClick={handleSubmit} disabled={!canGoNext()}>
-              Koleksiyon Oluştur
+              {isEditMode ? "Update Collection" : "Koleksiyon Oluştur"}
             </Button>
           )}
         </div>

@@ -9,6 +9,8 @@
  */
 
 import bcrypt from "bcryptjs";
+import * as fs from "fs";
+import * as path from "path";
 import {
   LibraryCategory,
   LibraryScope,
@@ -21,7 +23,9 @@ const prisma = new PrismaClient();
 async function getUnsplashImage(query: string): Promise<string | null> {
   try {
     const response = await fetch(
-      `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape`,
+      `https://api.unsplash.com/photos/random?query=${encodeURIComponent(
+        query
+      )}&orientation=landscape`,
       {
         headers: {
           Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`,
@@ -39,6 +43,34 @@ async function getUnsplashImage(query: string): Promise<string | null> {
   } catch (error) {
     console.warn(`⚠️ Failed to fetch Unsplash image for "${query}":`, error);
     return null;
+  }
+}
+
+// Collection image download and save helper
+async function downloadAndSaveCollectionImage(
+  imageUrl: string,
+  fileName: string
+): Promise<string> {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const uploadsDir = path.join(__dirname, "../uploads/collections");
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const filePath = path.join(uploadsDir, fileName);
+    fs.writeFileSync(filePath, buffer);
+
+    console.log(`✅ Image saved: ${fileName}`);
+    return `/uploads/collections/${fileName}`;
+  } catch (error) {
+    console.warn(`⚠️ Failed to download image ${fileName}:`, error);
+    return `/uploads/collections/placeholder.jpg`;
   }
 }
 
@@ -115,6 +147,13 @@ async function main() {
     },
   });
   console.log("✅ Manufacturer owner created:", manufacturerOwner.email);
+
+  // Update manufacturer company with owner
+  await prisma.company.update({
+    where: { id: manufacturer.id },
+    data: { ownerId: manufacturerOwner.id },
+  });
+  console.log("✅ Manufacturer company owner set");
 
   // Production Manager
   const productionManagerPassword = await bcrypt.hash("Manager123!", 10);
@@ -231,6 +270,13 @@ async function main() {
     },
   });
   console.log("✅ Customer owner created:", customerOwner.email);
+
+  // Update customer company with owner
+  await prisma.company.update({
+    where: { id: customer.id },
+    data: { ownerId: customerOwner.id },
+  });
+  console.log("✅ Customer company owner set");
 
   // Sales Manager
   const salesManagerPassword = await bcrypt.hash("Sales123!", 10);
@@ -2583,6 +2629,242 @@ async function main() {
 
   // ==========================================
   // SUMMARY
+  // ==========================================
+  // 7. COLLECTIONS
+  // ==========================================
+  console.log("\n👗 Creating Collections...");
+
+  // Collection image definitions
+  const collectionImageQueries = [
+    {
+      query: "business woman office outfit",
+      fileNames: [
+        "business-women-1.jpg",
+        "business-women-2.jpg",
+        "business-women-3.jpg",
+      ],
+    },
+    {
+      query: "men casual streetwear urban",
+      fileNames: ["urban-men-1.jpg", "urban-men-2.jpg"],
+    },
+    { query: "school uniform children", fileNames: ["school-kids-1.jpg"] },
+    {
+      query: "woman athletic sportswear",
+      fileNames: ["active-women-1.jpg", "active-women-2.jpg"],
+    },
+    {
+      query: "denim jeans fashion",
+      fileNames: ["denim-1.jpg", "denim-2.jpg", "denim-3.jpg"],
+    },
+  ];
+
+  // Download collection images from Unsplash
+  console.log("🖼️  Fetching collection images from Unsplash...");
+  const collectionImages: Record<string, string[]> = {};
+
+  for (let i = 0; i < collectionImageQueries.length; i++) {
+    const { query, fileNames } = collectionImageQueries[i];
+    collectionImages[`collection-${i + 1}`] = [];
+
+    for (const fileName of fileNames) {
+      const imageUrl = await getUnsplashImage(query);
+      if (imageUrl) {
+        const savedPath = await downloadAndSaveCollectionImage(
+          imageUrl,
+          fileName
+        );
+        collectionImages[`collection-${i + 1}`].push(savedPath);
+        console.log(`✅ Image fetched for collection ${i + 1}: ${fileName}`);
+      } else {
+        collectionImages[`collection-${i + 1}`].push(
+          `/uploads/collections/${fileName}`
+        );
+        console.log(`⚠️ Using placeholder for: ${fileName}`);
+      }
+
+      // Add delay to respect Unsplash rate limits
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+
+  // Manufacturer Collections (TextilePro Manufacturing)
+  const manufacturerCollections = await Promise.all([
+    // Collection 1: Kadın İş Giyim
+    prisma.collection.create({
+      data: {
+        name: "Business Essentials Women",
+        description:
+          "Kadın iş giyim koleksiyonu - şık ve rahat ofis kıyafetleri",
+        modelCode: "BEW-2024-001",
+        season: "Spring/Summer 2024",
+        gender: "WOMEN",
+        fit: "Regular",
+        trend: "Minimalist",
+        colors: JSON.stringify([
+          "Navy Blue",
+          "Charcoal Gray",
+          "Ivory White",
+          "Burgundy",
+        ]),
+        sizeRange: "Women EU Standard (34-48)",
+        fabricComposition:
+          "98% Cotton 2% Elastane, 70% Wool 28% Polyester 2% Elastane",
+        accessories: "Horn Buttons, Metallic Zippers",
+        images: JSON.stringify(collectionImages["collection-1"]),
+        moq: 500,
+        targetPrice: 45.5,
+        currency: "USD",
+        deadlineDays: 45,
+        notes:
+          "Professional iş giyim koleksiyonu. Yüksek kalite kumaş ve işçilik. Özel logo ve etiket opsiyonları mevcut.",
+        companyId: manufacturer.id,
+        isActive: true,
+        isFeatured: true,
+        viewCount: 24,
+        likesCount: 8,
+      },
+    }),
+
+    // Collection 2: Erkek Casual
+    prisma.collection.create({
+      data: {
+        name: "Urban Comfort Men",
+        description:
+          "Erkek günlük giyim koleksiyonu - rahat ve şık casual wear",
+        modelCode: "UCM-2024-002",
+        season: "Fall/Winter 2024",
+        gender: "MEN",
+        fit: "Slim",
+        trend: "Urban Streetwear",
+        colors: JSON.stringify([
+          "Black",
+          "Olive Green",
+          "Denim Blue",
+          "Heather Gray",
+        ]),
+        sizeRange: "Men EU Standard (S-XXL)",
+        fabricComposition:
+          "100% Organic Cotton, 85% Recycled Polyester 15% Cotton",
+        accessories: "Recycled Plastic Buttons, Cotton Drawstrings",
+        images: JSON.stringify(collectionImages["collection-2"]),
+        moq: 300,
+        targetPrice: 28.75,
+        currency: "USD",
+        deadlineDays: 35,
+        notes:
+          "Sürdürülebilir malzemeler ile üretilen casual koleksiyon. Genç erkek hedef kitle.",
+        companyId: manufacturer.id,
+        isActive: true,
+        isFeatured: false,
+        viewCount: 18,
+        likesCount: 5,
+      },
+    }),
+
+    // Collection 3: Çocuk Okul Üniformaları
+    prisma.collection.create({
+      data: {
+        name: "Smart School Kids",
+        description: "Çocuk okul üniformaları - dayanıklı ve konforlu",
+        modelCode: "SSK-2024-003",
+        season: "All Season",
+        gender: "UNISEX",
+        fit: "Regular",
+        trend: "Classic School",
+        colors: JSON.stringify(["Navy Blue", "White", "Gray", "Burgundy"]),
+        sizeRange: "Kids EU Standard (4-16 yaş)",
+        fabricComposition: "65% Cotton 35% Polyester",
+        accessories: "School Badge Embroidery, Reinforced Knee Patches",
+        images: JSON.stringify(collectionImages["collection-3"]),
+        moq: 1000,
+        targetPrice: 18.9,
+        currency: "USD",
+        deadlineDays: 60,
+        notes:
+          "Okul üniformaları için özel tasarım. Logo ve amblem uygulaması dahil. Dayanıklı dikişler.",
+        companyId: manufacturer.id,
+        isActive: true,
+        isFeatured: true,
+        viewCount: 31,
+        likesCount: 12,
+      },
+    }),
+
+    // Collection 4: Kadın Spor Giyim
+    prisma.collection.create({
+      data: {
+        name: "Active Life Women",
+        description: "Kadın spor giyim koleksiyonu - performans ve konfor",
+        modelCode: "ALW-2024-004",
+        season: "Spring/Summer 2025",
+        gender: "WOMEN",
+        fit: "Fitted",
+        trend: "Athleisure",
+        colors: JSON.stringify([
+          "Black",
+          "Pink Coral",
+          "Electric Blue",
+          "Mint Green",
+        ]),
+        sizeRange: "Women Sports (XS-XL)",
+        fabricComposition: "88% Polyester 12% Elastane, 92% Nylon 8% Spandex",
+        accessories: "Reflective Strips, Mesh Panels",
+        images: JSON.stringify(collectionImages["collection-4"]),
+        moq: 250,
+        targetPrice: 32.4,
+        currency: "USD",
+        deadlineDays: 40,
+        notes:
+          "Yüksek performans spor giyim. Anti-bakteriyel ve nem emici özellikler.",
+        companyId: manufacturer.id,
+        isActive: true,
+        isFeatured: false,
+        viewCount: 15,
+        likesCount: 6,
+      },
+    }),
+
+    // Collection 5: Premium Denim
+    prisma.collection.create({
+      data: {
+        name: "Premium Denim Classic",
+        description: "Unisex premium denim koleksiyonu - kaliteli kot giyim",
+        modelCode: "PDC-2024-005",
+        season: "All Season",
+        gender: "UNISEX",
+        fit: "Relaxed",
+        trend: "Vintage Classic",
+        colors: JSON.stringify([
+          "Indigo Blue",
+          "Black Wash",
+          "Light Blue",
+          "Raw Denim",
+        ]),
+        sizeRange: "Unisex Denim (26-42)",
+        fabricComposition: "98% Cotton 2% Elastane",
+        accessories:
+          "Vintage Metal Buttons, Leather Patch Label, Contrast Stitching Thread",
+        images: JSON.stringify(collectionImages["collection-5"]),
+        moq: 200,
+        targetPrice: 52.8,
+        currency: "USD",
+        deadlineDays: 50,
+        notes:
+          "Premium kalite denim. Özel yıkama ve vintage efektler uygulanabilir. Custom fit opsiyonları.",
+        companyId: manufacturer.id,
+        isActive: true,
+        isFeatured: true,
+        viewCount: 42,
+        likesCount: 18,
+      },
+    }),
+  ]);
+
+  console.log(
+    `✅ Created ${manufacturerCollections.length} manufacturer collections`
+  );
+
   // ==========================================
   console.log("\n✅ Seed completed successfully!");
   console.log("\n📊 Summary:");

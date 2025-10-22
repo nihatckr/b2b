@@ -7,6 +7,7 @@ import "./companyMutation";
 // import "./fitSeasonMutation"; // DEPRECATED - Use LibraryItem system instead
 import "./libraryMutation";
 import "./likeMutation";
+// import "./manufacturerOrderMutation"; // TODO: Fix duplicate field issue
 import "./messageMutation";
 import "./notificationMutation";
 import "./orderMutation";

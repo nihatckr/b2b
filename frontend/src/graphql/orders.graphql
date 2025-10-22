@@ -1,0 +1,111 @@
+query BuyerOrders($skip: Int, $take: Int, $status: String, $search: String) {
+  orders(skip: $skip, take: $take, status: $status, search: $search) {
+    id
+    orderNumber
+    quantity
+    targetPrice
+    currency
+    deadline
+    status
+    notes
+    createdAt
+    updatedAt
+    collection {
+      id
+      name
+      modelCode
+      images
+      targetPrice
+      currency
+      company {
+        id
+        name
+      }
+    }
+    customer {
+      id
+      name
+      email
+    }
+    manufacturer {
+      id
+      name
+      email
+    }
+  }
+}
+
+query BuyerOrderDetail($id: Int!) {
+  order(id: $id) {
+    id
+    orderNumber
+    quantity
+    targetPrice
+    currency
+    deadline
+    status
+    notes
+    createdAt
+    updatedAt
+    collection {
+      id
+      name
+      description
+      modelCode
+      season
+      gender
+      fit
+      trend
+      colors
+      sizeRange
+      fabricComposition
+      accessories
+      images
+      moq
+      targetPrice
+      currency
+      deadlineDays
+      notes
+      company {
+        id
+        name
+        email
+        phone
+        address
+        city
+        country
+        website
+      }
+    }
+    customer {
+      id
+      name
+      email
+      phone
+      company {
+        id
+        name
+        email
+        phone
+        address
+        city
+        country
+      }
+    }
+    manufacturer {
+      id
+      name
+      email
+      phone
+      company {
+        id
+        name
+        email
+        phone
+        address
+        city
+        country
+      }
+    }
+  }
+}

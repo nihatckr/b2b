@@ -15958,6 +15958,7 @@ export namespace Prisma {
     moq: number | null
     targetPrice: number | null
     targetLeadTime: number | null
+    deadlineDays: number | null
     likesCount: number | null
     viewCount: number | null
     shareCount: number | null
@@ -15974,6 +15975,7 @@ export namespace Prisma {
     moq: number | null
     targetPrice: number | null
     targetLeadTime: number | null
+    deadlineDays: number | null
     likesCount: number | null
     viewCount: number | null
     shareCount: number | null
@@ -16008,6 +16010,8 @@ export namespace Prisma {
     targetPrice: number | null
     currency: string | null
     targetLeadTime: number | null
+    deadline: Date | null
+    deadlineDays: number | null
     notes: string | null
     likesCount: number | null
     viewCount: number | null
@@ -16048,6 +16052,8 @@ export namespace Prisma {
     targetPrice: number | null
     currency: string | null
     targetLeadTime: number | null
+    deadline: Date | null
+    deadlineDays: number | null
     notes: string | null
     likesCount: number | null
     viewCount: number | null
@@ -16088,6 +16094,8 @@ export namespace Prisma {
     targetPrice: number
     currency: number
     targetLeadTime: number
+    deadline: number
+    deadlineDays: number
     notes: number
     likesCount: number
     viewCount: number
@@ -16113,6 +16121,7 @@ export namespace Prisma {
     moq?: true
     targetPrice?: true
     targetLeadTime?: true
+    deadlineDays?: true
     likesCount?: true
     viewCount?: true
     shareCount?: true
@@ -16129,6 +16138,7 @@ export namespace Prisma {
     moq?: true
     targetPrice?: true
     targetLeadTime?: true
+    deadlineDays?: true
     likesCount?: true
     viewCount?: true
     shareCount?: true
@@ -16163,6 +16173,8 @@ export namespace Prisma {
     targetPrice?: true
     currency?: true
     targetLeadTime?: true
+    deadline?: true
+    deadlineDays?: true
     notes?: true
     likesCount?: true
     viewCount?: true
@@ -16203,6 +16215,8 @@ export namespace Prisma {
     targetPrice?: true
     currency?: true
     targetLeadTime?: true
+    deadline?: true
+    deadlineDays?: true
     notes?: true
     likesCount?: true
     viewCount?: true
@@ -16243,6 +16257,8 @@ export namespace Prisma {
     targetPrice?: true
     currency?: true
     targetLeadTime?: true
+    deadline?: true
+    deadlineDays?: true
     notes?: true
     likesCount?: true
     viewCount?: true
@@ -16371,6 +16387,8 @@ export namespace Prisma {
     targetPrice: number | null
     currency: string | null
     targetLeadTime: number | null
+    deadline: Date | null
+    deadlineDays: number | null
     notes: string | null
     likesCount: number
     viewCount: number
@@ -16431,6 +16449,8 @@ export namespace Prisma {
     targetPrice?: boolean
     currency?: boolean
     targetLeadTime?: boolean
+    deadline?: boolean
+    deadlineDays?: boolean
     notes?: boolean
     likesCount?: boolean
     viewCount?: boolean
@@ -16488,6 +16508,8 @@ export namespace Prisma {
     targetPrice?: boolean
     currency?: boolean
     targetLeadTime?: boolean
+    deadline?: boolean
+    deadlineDays?: boolean
     notes?: boolean
     likesCount?: boolean
     viewCount?: boolean
@@ -16506,7 +16528,7 @@ export namespace Prisma {
     companyId?: boolean
   }
 
-  export type CollectionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "description" | "modelCode" | "season" | "gender" | "fit" | "trend" | "colors" | "sizeGroups" | "sizeRange" | "measurementChart" | "fabricComposition" | "accessories" | "images" | "techPack" | "moq" | "targetPrice" | "currency" | "targetLeadTime" | "notes" | "likesCount" | "viewCount" | "shareCount" | "lastViewedAt" | "price" | "sku" | "stock" | "isActive" | "isFeatured" | "slug" | "productionSchedule" | "categoryId" | "companyCategoryId" | "authorId" | "companyId", ExtArgs["result"]["collection"]>
+  export type CollectionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "description" | "modelCode" | "season" | "gender" | "fit" | "trend" | "colors" | "sizeGroups" | "sizeRange" | "measurementChart" | "fabricComposition" | "accessories" | "images" | "techPack" | "moq" | "targetPrice" | "currency" | "targetLeadTime" | "deadline" | "deadlineDays" | "notes" | "likesCount" | "viewCount" | "shareCount" | "lastViewedAt" | "price" | "sku" | "stock" | "isActive" | "isFeatured" | "slug" | "productionSchedule" | "categoryId" | "companyCategoryId" | "authorId" | "companyId", ExtArgs["result"]["collection"]>
   export type CollectionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     certifications?: boolean | Collection$certificationsArgs<ExtArgs>
     favoritedBy?: boolean | Collection$favoritedByArgs<ExtArgs>
@@ -16564,6 +16586,8 @@ export namespace Prisma {
       targetPrice: number | null
       currency: string | null
       targetLeadTime: number | null
+      deadline: Date | null
+      deadlineDays: number | null
       notes: string | null
       likesCount: number
       viewCount: number
@@ -16984,6 +17008,8 @@ export namespace Prisma {
     readonly targetPrice: FieldRef<"Collection", 'Float'>
     readonly currency: FieldRef<"Collection", 'String'>
     readonly targetLeadTime: FieldRef<"Collection", 'Int'>
+    readonly deadline: FieldRef<"Collection", 'DateTime'>
+    readonly deadlineDays: FieldRef<"Collection", 'Int'>
     readonly notes: FieldRef<"Collection", 'String'>
     readonly likesCount: FieldRef<"Collection", 'Int'>
     readonly viewCount: FieldRef<"Collection", 'Int'>
@@ -22467,6 +22493,7 @@ export namespace Prisma {
     quantity: number | null
     unitPrice: number | null
     totalPrice: number | null
+    targetPrice: number | null
     customerQuotedPrice: number | null
     customerQuoteDays: number | null
     productionDays: number | null
@@ -22481,6 +22508,7 @@ export namespace Prisma {
     quantity: number | null
     unitPrice: number | null
     totalPrice: number | null
+    targetPrice: number | null
     customerQuotedPrice: number | null
     customerQuoteDays: number | null
     productionDays: number | null
@@ -22498,6 +22526,10 @@ export namespace Prisma {
     quantity: number | null
     unitPrice: number | null
     totalPrice: number | null
+    targetPrice: number | null
+    currency: string | null
+    deadline: Date | null
+    notes: string | null
     status: $Enums.OrderStatus | null
     customerNote: string | null
     manufacturerResponse: string | null
@@ -22527,6 +22559,10 @@ export namespace Prisma {
     quantity: number | null
     unitPrice: number | null
     totalPrice: number | null
+    targetPrice: number | null
+    currency: string | null
+    deadline: Date | null
+    notes: string | null
     status: $Enums.OrderStatus | null
     customerNote: string | null
     manufacturerResponse: string | null
@@ -22556,6 +22592,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice: number
+    currency: number
+    deadline: number
+    notes: number
     status: number
     customerNote: number
     manufacturerResponse: number
@@ -22584,6 +22624,7 @@ export namespace Prisma {
     quantity?: true
     unitPrice?: true
     totalPrice?: true
+    targetPrice?: true
     customerQuotedPrice?: true
     customerQuoteDays?: true
     productionDays?: true
@@ -22598,6 +22639,7 @@ export namespace Prisma {
     quantity?: true
     unitPrice?: true
     totalPrice?: true
+    targetPrice?: true
     customerQuotedPrice?: true
     customerQuoteDays?: true
     productionDays?: true
@@ -22615,6 +22657,10 @@ export namespace Prisma {
     quantity?: true
     unitPrice?: true
     totalPrice?: true
+    targetPrice?: true
+    currency?: true
+    deadline?: true
+    notes?: true
     status?: true
     customerNote?: true
     manufacturerResponse?: true
@@ -22644,6 +22690,10 @@ export namespace Prisma {
     quantity?: true
     unitPrice?: true
     totalPrice?: true
+    targetPrice?: true
+    currency?: true
+    deadline?: true
+    notes?: true
     status?: true
     customerNote?: true
     manufacturerResponse?: true
@@ -22673,6 +22723,10 @@ export namespace Prisma {
     quantity?: true
     unitPrice?: true
     totalPrice?: true
+    targetPrice?: true
+    currency?: true
+    deadline?: true
+    notes?: true
     status?: true
     customerNote?: true
     manufacturerResponse?: true
@@ -22789,6 +22843,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice: number | null
+    currency: string | null
+    deadline: Date | null
+    notes: string | null
     status: $Enums.OrderStatus
     customerNote: string | null
     manufacturerResponse: string | null
@@ -22837,6 +22895,10 @@ export namespace Prisma {
     quantity?: boolean
     unitPrice?: boolean
     totalPrice?: boolean
+    targetPrice?: boolean
+    currency?: boolean
+    deadline?: boolean
+    notes?: boolean
     status?: boolean
     customerNote?: boolean
     manufacturerResponse?: boolean
@@ -22879,6 +22941,10 @@ export namespace Prisma {
     quantity?: boolean
     unitPrice?: boolean
     totalPrice?: boolean
+    targetPrice?: boolean
+    currency?: boolean
+    deadline?: boolean
+    notes?: boolean
     status?: boolean
     customerNote?: boolean
     manufacturerResponse?: boolean
@@ -22900,7 +22966,7 @@ export namespace Prisma {
     companyId?: boolean
   }
 
-  export type OrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "orderNumber" | "quantity" | "unitPrice" | "totalPrice" | "status" | "customerNote" | "manufacturerResponse" | "customerQuotedPrice" | "customerQuoteDays" | "customerQuoteNote" | "customerQuoteType" | "customerQuoteSentAt" | "productionDays" | "estimatedProductionDate" | "actualProductionStart" | "actualProductionEnd" | "shippingDate" | "deliveryAddress" | "cargoTrackingNumber" | "collectionId" | "customerId" | "manufactureId" | "companyId", ExtArgs["result"]["order"]>
+  export type OrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "orderNumber" | "quantity" | "unitPrice" | "totalPrice" | "targetPrice" | "currency" | "deadline" | "notes" | "status" | "customerNote" | "manufacturerResponse" | "customerQuotedPrice" | "customerQuoteDays" | "customerQuoteNote" | "customerQuoteType" | "customerQuoteSentAt" | "productionDays" | "estimatedProductionDate" | "actualProductionStart" | "actualProductionEnd" | "shippingDate" | "deliveryAddress" | "cargoTrackingNumber" | "collectionId" | "customerId" | "manufactureId" | "companyId", ExtArgs["result"]["order"]>
   export type OrderInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     collection?: boolean | CollectionDefaultArgs<ExtArgs>
     customer?: boolean | UserDefaultArgs<ExtArgs>
@@ -22937,6 +23003,10 @@ export namespace Prisma {
       quantity: number
       unitPrice: number
       totalPrice: number
+      targetPrice: number | null
+      currency: string | null
+      deadline: Date | null
+      notes: string | null
       status: $Enums.OrderStatus
       customerNote: string | null
       manufacturerResponse: string | null
@@ -23342,6 +23412,10 @@ export namespace Prisma {
     readonly quantity: FieldRef<"Order", 'Int'>
     readonly unitPrice: FieldRef<"Order", 'Float'>
     readonly totalPrice: FieldRef<"Order", 'Float'>
+    readonly targetPrice: FieldRef<"Order", 'Float'>
+    readonly currency: FieldRef<"Order", 'String'>
+    readonly deadline: FieldRef<"Order", 'DateTime'>
+    readonly notes: FieldRef<"Order", 'String'>
     readonly status: FieldRef<"Order", 'OrderStatus'>
     readonly customerNote: FieldRef<"Order", 'String'>
     readonly manufacturerResponse: FieldRef<"Order", 'String'>
@@ -31166,6 +31240,7 @@ export namespace Prisma {
     name: string | null
     description: string | null
     imageUrl: string | null
+    iconValue: string | null
     internalCode: string | null
     notes: string | null
     isActive: boolean | null
@@ -31185,6 +31260,7 @@ export namespace Prisma {
     name: string | null
     description: string | null
     imageUrl: string | null
+    iconValue: string | null
     internalCode: string | null
     notes: string | null
     isActive: boolean | null
@@ -31204,6 +31280,7 @@ export namespace Prisma {
     name: number
     description: number
     imageUrl: number
+    iconValue: number
     data: number
     tags: number
     internalCode: number
@@ -31241,6 +31318,7 @@ export namespace Prisma {
     name?: true
     description?: true
     imageUrl?: true
+    iconValue?: true
     internalCode?: true
     notes?: true
     isActive?: true
@@ -31260,6 +31338,7 @@ export namespace Prisma {
     name?: true
     description?: true
     imageUrl?: true
+    iconValue?: true
     internalCode?: true
     notes?: true
     isActive?: true
@@ -31279,6 +31358,7 @@ export namespace Prisma {
     name?: true
     description?: true
     imageUrl?: true
+    iconValue?: true
     data?: true
     tags?: true
     internalCode?: true
@@ -31387,6 +31467,7 @@ export namespace Prisma {
     name: string
     description: string | null
     imageUrl: string | null
+    iconValue: string | null
     data: JsonValue | null
     tags: JsonValue | null
     internalCode: string | null
@@ -31427,6 +31508,7 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     imageUrl?: boolean
+    iconValue?: boolean
     data?: boolean
     tags?: boolean
     internalCode?: boolean
@@ -31459,6 +31541,7 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     imageUrl?: boolean
+    iconValue?: boolean
     data?: boolean
     tags?: boolean
     internalCode?: boolean
@@ -31472,7 +31555,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type LibraryItemOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "scope" | "category" | "code" | "name" | "description" | "imageUrl" | "data" | "tags" | "internalCode" | "notes" | "isActive" | "isPopular" | "companyId" | "standardItemId" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["libraryItem"]>
+  export type LibraryItemOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "scope" | "category" | "code" | "name" | "description" | "imageUrl" | "iconValue" | "data" | "tags" | "internalCode" | "notes" | "isActive" | "isPopular" | "companyId" | "standardItemId" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["libraryItem"]>
   export type LibraryItemInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     company?: boolean | LibraryItem$companyArgs<ExtArgs>
     standardItem?: boolean | LibraryItem$standardItemArgs<ExtArgs>
@@ -31505,6 +31588,7 @@ export namespace Prisma {
       name: string
       description: string | null
       imageUrl: string | null
+      iconValue: string | null
       data: Prisma.JsonValue | null
       tags: Prisma.JsonValue | null
       internalCode: string | null
@@ -31900,6 +31984,7 @@ export namespace Prisma {
     readonly name: FieldRef<"LibraryItem", 'String'>
     readonly description: FieldRef<"LibraryItem", 'String'>
     readonly imageUrl: FieldRef<"LibraryItem", 'String'>
+    readonly iconValue: FieldRef<"LibraryItem", 'String'>
     readonly data: FieldRef<"LibraryItem", 'Json'>
     readonly tags: FieldRef<"LibraryItem", 'Json'>
     readonly internalCode: FieldRef<"LibraryItem", 'String'>
@@ -42229,6 +42314,8 @@ export namespace Prisma {
     targetPrice: 'targetPrice',
     currency: 'currency',
     targetLeadTime: 'targetLeadTime',
+    deadline: 'deadline',
+    deadlineDays: 'deadlineDays',
     notes: 'notes',
     likesCount: 'likesCount',
     viewCount: 'viewCount',
@@ -42355,6 +42442,10 @@ export namespace Prisma {
     quantity: 'quantity',
     unitPrice: 'unitPrice',
     totalPrice: 'totalPrice',
+    targetPrice: 'targetPrice',
+    currency: 'currency',
+    deadline: 'deadline',
+    notes: 'notes',
     status: 'status',
     customerNote: 'customerNote',
     manufacturerResponse: 'manufacturerResponse',
@@ -42501,6 +42592,7 @@ export namespace Prisma {
     name: 'name',
     description: 'description',
     imageUrl: 'imageUrl',
+    iconValue: 'iconValue',
     data: 'data',
     tags: 'tags',
     internalCode: 'internalCode',
@@ -42941,6 +43033,8 @@ export namespace Prisma {
 
   export const OrderOrderByRelevanceFieldEnum: {
     orderNumber: 'orderNumber',
+    currency: 'currency',
+    notes: 'notes',
     customerNote: 'customerNote',
     manufacturerResponse: 'manufacturerResponse',
     customerQuoteNote: 'customerQuoteNote',
@@ -43016,6 +43110,7 @@ export namespace Prisma {
     name: 'name',
     description: 'description',
     imageUrl: 'imageUrl',
+    iconValue: 'iconValue',
     internalCode: 'internalCode',
     notes: 'notes'
   };
@@ -44641,6 +44736,8 @@ export namespace Prisma {
     targetPrice?: FloatNullableFilter<"Collection"> | number | null
     currency?: StringNullableFilter<"Collection"> | string | null
     targetLeadTime?: IntNullableFilter<"Collection"> | number | null
+    deadline?: DateTimeNullableFilter<"Collection"> | Date | string | null
+    deadlineDays?: IntNullableFilter<"Collection"> | number | null
     notes?: StringNullableFilter<"Collection"> | string | null
     likesCount?: IntFilter<"Collection"> | number
     viewCount?: IntFilter<"Collection"> | number
@@ -44695,6 +44792,8 @@ export namespace Prisma {
     targetPrice?: SortOrderInput | SortOrder
     currency?: SortOrderInput | SortOrder
     targetLeadTime?: SortOrderInput | SortOrder
+    deadline?: SortOrderInput | SortOrder
+    deadlineDays?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     likesCount?: SortOrder
     viewCount?: SortOrder
@@ -44755,6 +44854,8 @@ export namespace Prisma {
     targetPrice?: FloatNullableFilter<"Collection"> | number | null
     currency?: StringNullableFilter<"Collection"> | string | null
     targetLeadTime?: IntNullableFilter<"Collection"> | number | null
+    deadline?: DateTimeNullableFilter<"Collection"> | Date | string | null
+    deadlineDays?: IntNullableFilter<"Collection"> | number | null
     notes?: StringNullableFilter<"Collection"> | string | null
     likesCount?: IntFilter<"Collection"> | number
     viewCount?: IntFilter<"Collection"> | number
@@ -44807,6 +44908,8 @@ export namespace Prisma {
     targetPrice?: SortOrderInput | SortOrder
     currency?: SortOrderInput | SortOrder
     targetLeadTime?: SortOrderInput | SortOrder
+    deadline?: SortOrderInput | SortOrder
+    deadlineDays?: SortOrderInput | SortOrder
     notes?: SortOrderInput | SortOrder
     likesCount?: SortOrder
     viewCount?: SortOrder
@@ -44856,6 +44959,8 @@ export namespace Prisma {
     targetPrice?: FloatNullableWithAggregatesFilter<"Collection"> | number | null
     currency?: StringNullableWithAggregatesFilter<"Collection"> | string | null
     targetLeadTime?: IntNullableWithAggregatesFilter<"Collection"> | number | null
+    deadline?: DateTimeNullableWithAggregatesFilter<"Collection"> | Date | string | null
+    deadlineDays?: IntNullableWithAggregatesFilter<"Collection"> | number | null
     notes?: StringNullableWithAggregatesFilter<"Collection"> | string | null
     likesCount?: IntWithAggregatesFilter<"Collection"> | number
     viewCount?: IntWithAggregatesFilter<"Collection"> | number
@@ -45421,6 +45526,10 @@ export namespace Prisma {
     quantity?: IntFilter<"Order"> | number
     unitPrice?: FloatFilter<"Order"> | number
     totalPrice?: FloatFilter<"Order"> | number
+    targetPrice?: FloatNullableFilter<"Order"> | number | null
+    currency?: StringNullableFilter<"Order"> | string | null
+    deadline?: DateTimeNullableFilter<"Order"> | Date | string | null
+    notes?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     customerNote?: StringNullableFilter<"Order"> | string | null
     manufacturerResponse?: StringNullableFilter<"Order"> | string | null
@@ -45460,6 +45569,10 @@ export namespace Prisma {
     quantity?: SortOrder
     unitPrice?: SortOrder
     totalPrice?: SortOrder
+    targetPrice?: SortOrderInput | SortOrder
+    currency?: SortOrderInput | SortOrder
+    deadline?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
     status?: SortOrder
     customerNote?: SortOrderInput | SortOrder
     manufacturerResponse?: SortOrderInput | SortOrder
@@ -45503,6 +45616,10 @@ export namespace Prisma {
     quantity?: IntFilter<"Order"> | number
     unitPrice?: FloatFilter<"Order"> | number
     totalPrice?: FloatFilter<"Order"> | number
+    targetPrice?: FloatNullableFilter<"Order"> | number | null
+    currency?: StringNullableFilter<"Order"> | string | null
+    deadline?: DateTimeNullableFilter<"Order"> | Date | string | null
+    notes?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     customerNote?: StringNullableFilter<"Order"> | string | null
     manufacturerResponse?: StringNullableFilter<"Order"> | string | null
@@ -45542,6 +45659,10 @@ export namespace Prisma {
     quantity?: SortOrder
     unitPrice?: SortOrder
     totalPrice?: SortOrder
+    targetPrice?: SortOrderInput | SortOrder
+    currency?: SortOrderInput | SortOrder
+    deadline?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
     status?: SortOrder
     customerNote?: SortOrderInput | SortOrder
     manufacturerResponse?: SortOrderInput | SortOrder
@@ -45579,6 +45700,10 @@ export namespace Prisma {
     quantity?: IntWithAggregatesFilter<"Order"> | number
     unitPrice?: FloatWithAggregatesFilter<"Order"> | number
     totalPrice?: FloatWithAggregatesFilter<"Order"> | number
+    targetPrice?: FloatNullableWithAggregatesFilter<"Order"> | number | null
+    currency?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    deadline?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+    notes?: StringNullableWithAggregatesFilter<"Order"> | string | null
     status?: EnumOrderStatusWithAggregatesFilter<"Order"> | $Enums.OrderStatus
     customerNote?: StringNullableWithAggregatesFilter<"Order"> | string | null
     manufacturerResponse?: StringNullableWithAggregatesFilter<"Order"> | string | null
@@ -46220,6 +46345,7 @@ export namespace Prisma {
     name?: StringFilter<"LibraryItem"> | string
     description?: StringNullableFilter<"LibraryItem"> | string | null
     imageUrl?: StringNullableFilter<"LibraryItem"> | string | null
+    iconValue?: StringNullableFilter<"LibraryItem"> | string | null
     data?: JsonNullableFilter<"LibraryItem">
     tags?: JsonNullableFilter<"LibraryItem">
     internalCode?: StringNullableFilter<"LibraryItem"> | string | null
@@ -46249,6 +46375,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     imageUrl?: SortOrderInput | SortOrder
+    iconValue?: SortOrderInput | SortOrder
     data?: SortOrderInput | SortOrder
     tags?: SortOrderInput | SortOrder
     internalCode?: SortOrderInput | SortOrder
@@ -46283,6 +46410,7 @@ export namespace Prisma {
     name?: StringFilter<"LibraryItem"> | string
     description?: StringNullableFilter<"LibraryItem"> | string | null
     imageUrl?: StringNullableFilter<"LibraryItem"> | string | null
+    iconValue?: StringNullableFilter<"LibraryItem"> | string | null
     data?: JsonNullableFilter<"LibraryItem">
     tags?: JsonNullableFilter<"LibraryItem">
     internalCode?: StringNullableFilter<"LibraryItem"> | string | null
@@ -46312,6 +46440,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     imageUrl?: SortOrderInput | SortOrder
+    iconValue?: SortOrderInput | SortOrder
     data?: SortOrderInput | SortOrder
     tags?: SortOrderInput | SortOrder
     internalCode?: SortOrderInput | SortOrder
@@ -46341,6 +46470,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"LibraryItem"> | string
     description?: StringNullableWithAggregatesFilter<"LibraryItem"> | string | null
     imageUrl?: StringNullableWithAggregatesFilter<"LibraryItem"> | string | null
+    iconValue?: StringNullableWithAggregatesFilter<"LibraryItem"> | string | null
     data?: JsonNullableWithAggregatesFilter<"LibraryItem">
     tags?: JsonNullableWithAggregatesFilter<"LibraryItem">
     internalCode?: StringNullableWithAggregatesFilter<"LibraryItem"> | string | null
@@ -48922,6 +49052,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -48972,6 +49104,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -49021,6 +49155,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -49071,6 +49207,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -49121,6 +49259,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -49161,6 +49301,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -49198,6 +49340,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -49824,6 +49968,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -49859,6 +50007,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -49893,6 +50045,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49928,6 +50084,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49963,6 +50123,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -49991,6 +50155,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50016,6 +50184,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50674,6 +50846,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -50700,6 +50873,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -50725,6 +50899,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50751,6 +50926,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50777,6 +50953,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -50797,6 +50974,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50815,6 +50993,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -53589,6 +53768,8 @@ export namespace Prisma {
     targetPrice?: SortOrder
     currency?: SortOrder
     targetLeadTime?: SortOrder
+    deadline?: SortOrder
+    deadlineDays?: SortOrder
     notes?: SortOrder
     likesCount?: SortOrder
     viewCount?: SortOrder
@@ -53612,6 +53793,7 @@ export namespace Prisma {
     moq?: SortOrder
     targetPrice?: SortOrder
     targetLeadTime?: SortOrder
+    deadlineDays?: SortOrder
     likesCount?: SortOrder
     viewCount?: SortOrder
     shareCount?: SortOrder
@@ -53646,6 +53828,8 @@ export namespace Prisma {
     targetPrice?: SortOrder
     currency?: SortOrder
     targetLeadTime?: SortOrder
+    deadline?: SortOrder
+    deadlineDays?: SortOrder
     notes?: SortOrder
     likesCount?: SortOrder
     viewCount?: SortOrder
@@ -53686,6 +53870,8 @@ export namespace Prisma {
     targetPrice?: SortOrder
     currency?: SortOrder
     targetLeadTime?: SortOrder
+    deadline?: SortOrder
+    deadlineDays?: SortOrder
     notes?: SortOrder
     likesCount?: SortOrder
     viewCount?: SortOrder
@@ -53708,6 +53894,7 @@ export namespace Prisma {
     moq?: SortOrder
     targetPrice?: SortOrder
     targetLeadTime?: SortOrder
+    deadlineDays?: SortOrder
     likesCount?: SortOrder
     viewCount?: SortOrder
     shareCount?: SortOrder
@@ -54187,6 +54374,10 @@ export namespace Prisma {
     quantity?: SortOrder
     unitPrice?: SortOrder
     totalPrice?: SortOrder
+    targetPrice?: SortOrder
+    currency?: SortOrder
+    deadline?: SortOrder
+    notes?: SortOrder
     status?: SortOrder
     customerNote?: SortOrder
     manufacturerResponse?: SortOrder
@@ -54213,6 +54404,7 @@ export namespace Prisma {
     quantity?: SortOrder
     unitPrice?: SortOrder
     totalPrice?: SortOrder
+    targetPrice?: SortOrder
     customerQuotedPrice?: SortOrder
     customerQuoteDays?: SortOrder
     productionDays?: SortOrder
@@ -54230,6 +54422,10 @@ export namespace Prisma {
     quantity?: SortOrder
     unitPrice?: SortOrder
     totalPrice?: SortOrder
+    targetPrice?: SortOrder
+    currency?: SortOrder
+    deadline?: SortOrder
+    notes?: SortOrder
     status?: SortOrder
     customerNote?: SortOrder
     manufacturerResponse?: SortOrder
@@ -54259,6 +54455,10 @@ export namespace Prisma {
     quantity?: SortOrder
     unitPrice?: SortOrder
     totalPrice?: SortOrder
+    targetPrice?: SortOrder
+    currency?: SortOrder
+    deadline?: SortOrder
+    notes?: SortOrder
     status?: SortOrder
     customerNote?: SortOrder
     manufacturerResponse?: SortOrder
@@ -54285,6 +54485,7 @@ export namespace Prisma {
     quantity?: SortOrder
     unitPrice?: SortOrder
     totalPrice?: SortOrder
+    targetPrice?: SortOrder
     customerQuotedPrice?: SortOrder
     customerQuoteDays?: SortOrder
     productionDays?: SortOrder
@@ -54815,6 +55016,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     imageUrl?: SortOrder
+    iconValue?: SortOrder
     data?: SortOrder
     tags?: SortOrder
     internalCode?: SortOrder
@@ -54843,6 +55045,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     imageUrl?: SortOrder
+    iconValue?: SortOrder
     internalCode?: SortOrder
     notes?: SortOrder
     isActive?: SortOrder
@@ -54862,6 +55065,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     imageUrl?: SortOrder
+    iconValue?: SortOrder
     internalCode?: SortOrder
     notes?: SortOrder
     isActive?: SortOrder
@@ -62018,6 +62222,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -62067,6 +62273,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -62209,6 +62417,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -62243,6 +62455,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -62378,6 +62594,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -62403,6 +62620,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -63026,6 +63244,8 @@ export namespace Prisma {
     targetPrice?: FloatNullableFilter<"Collection"> | number | null
     currency?: StringNullableFilter<"Collection"> | string | null
     targetLeadTime?: IntNullableFilter<"Collection"> | number | null
+    deadline?: DateTimeNullableFilter<"Collection"> | Date | string | null
+    deadlineDays?: IntNullableFilter<"Collection"> | number | null
     notes?: StringNullableFilter<"Collection"> | string | null
     likesCount?: IntFilter<"Collection"> | number
     viewCount?: IntFilter<"Collection"> | number
@@ -63129,6 +63349,10 @@ export namespace Prisma {
     quantity?: IntFilter<"Order"> | number
     unitPrice?: FloatFilter<"Order"> | number
     totalPrice?: FloatFilter<"Order"> | number
+    targetPrice?: FloatNullableFilter<"Order"> | number | null
+    currency?: StringNullableFilter<"Order"> | string | null
+    deadline?: DateTimeNullableFilter<"Order"> | Date | string | null
+    notes?: StringNullableFilter<"Order"> | string | null
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
     customerNote?: StringNullableFilter<"Order"> | string | null
     manufacturerResponse?: StringNullableFilter<"Order"> | string | null
@@ -63248,6 +63472,7 @@ export namespace Prisma {
     name?: StringFilter<"LibraryItem"> | string
     description?: StringNullableFilter<"LibraryItem"> | string | null
     imageUrl?: StringNullableFilter<"LibraryItem"> | string | null
+    iconValue?: StringNullableFilter<"LibraryItem"> | string | null
     data?: JsonNullableFilter<"LibraryItem">
     tags?: JsonNullableFilter<"LibraryItem">
     internalCode?: StringNullableFilter<"LibraryItem"> | string | null
@@ -63693,6 +63918,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -63727,6 +63956,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -64264,6 +64497,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -64298,6 +64535,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -64567,6 +64808,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -64601,6 +64846,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -65182,6 +65431,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -65216,6 +65469,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -65774,6 +66031,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -65808,6 +66069,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -66003,6 +66268,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -66037,6 +66306,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -66713,6 +66986,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -66762,6 +67037,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -66904,6 +67181,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -66938,6 +67219,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -67142,6 +67427,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -67176,6 +67465,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -67827,6 +68120,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -67852,6 +68146,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -69431,6 +69726,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -69480,6 +69777,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -70312,6 +70611,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -70361,6 +70662,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -70929,6 +71232,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -70954,6 +71258,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -71404,6 +71709,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -71438,6 +71747,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -72437,6 +72750,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -72486,6 +72801,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -72682,6 +72999,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -72731,6 +73050,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -72779,6 +73100,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -72828,6 +73151,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -72881,6 +73206,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -72930,6 +73257,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -73688,6 +74017,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -73737,6 +74068,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -73796,6 +74129,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -73845,6 +74180,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -75099,6 +75436,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -75148,6 +75487,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -75848,6 +76189,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -75897,6 +76240,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -76426,6 +76771,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -76460,6 +76809,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -76635,6 +76988,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -76669,6 +77026,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -76849,6 +77210,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -76898,6 +77261,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -77214,6 +77579,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -77263,6 +77630,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -77575,6 +77944,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -77624,6 +77995,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -77814,6 +78187,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -77863,6 +78238,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -79040,6 +79417,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -79065,6 +79443,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -79094,6 +79473,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -79119,6 +79499,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -79153,6 +79534,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -79178,6 +79560,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -79207,6 +79590,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -79232,6 +79616,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -79276,6 +79661,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -79325,6 +79712,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -79679,6 +80068,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -79704,6 +80094,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -79955,6 +80346,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -80004,6 +80397,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -80042,6 +80437,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -80067,6 +80463,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -80122,6 +80519,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -80171,6 +80570,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -80215,6 +80616,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -80240,6 +80642,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -80758,6 +81161,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -80792,6 +81199,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -81119,6 +81530,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -81153,6 +81568,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -81611,6 +82030,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -81660,6 +82081,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -81792,6 +82215,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -81826,6 +82253,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -82206,6 +82637,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -82255,6 +82688,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -82399,6 +82834,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -82433,6 +82872,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -85356,6 +85799,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -85419,6 +85864,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -85478,6 +85927,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -85886,6 +86336,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -85935,6 +86387,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -85984,6 +86438,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -86135,6 +86591,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -86169,6 +86629,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -86203,6 +86667,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -86333,6 +86801,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -86358,6 +86827,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -86383,6 +86853,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -87298,6 +87769,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -87361,6 +87834,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -87449,6 +87926,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -87714,6 +88195,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -88149,6 +88631,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -88198,6 +88682,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -88247,6 +88733,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -88398,6 +88886,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -88432,6 +88924,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -88466,6 +88962,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -88684,6 +89184,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -88718,6 +89222,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -88752,6 +89260,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -89484,6 +89996,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -89509,6 +90022,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -89534,6 +90048,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -89741,6 +90256,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -89875,6 +90392,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -89924,6 +90443,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -89973,6 +90494,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -90113,6 +90636,8 @@ export namespace Prisma {
     targetPrice?: number | null
     currency?: string | null
     targetLeadTime?: number | null
+    deadline?: Date | string | null
+    deadlineDays?: number | null
     notes?: string | null
     likesCount?: number
     viewCount?: number
@@ -90162,6 +90687,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -90211,6 +90738,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -90260,6 +90789,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -90400,6 +90931,10 @@ export namespace Prisma {
     quantity: number
     unitPrice: number
     totalPrice: number
+    targetPrice?: number | null
+    currency?: string | null
+    deadline?: Date | string | null
+    notes?: string | null
     status?: $Enums.OrderStatus
     customerNote?: string | null
     manufacturerResponse?: string | null
@@ -90491,6 +91026,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -90516,6 +91052,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -90541,6 +91078,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -90832,6 +91370,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -90866,6 +91408,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -90900,6 +91446,10 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
     totalPrice?: FloatFieldUpdateOperationsInput | number
+    targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    currency?: NullableStringFieldUpdateOperationsInput | string | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     customerNote?: NullableStringFieldUpdateOperationsInput | string | null
     manufacturerResponse?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92046,6 +92596,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     imageUrl?: string | null
+    iconValue?: string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: string | null
@@ -92082,6 +92633,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92107,6 +92659,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92132,6 +92685,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92151,6 +92705,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92176,6 +92731,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92201,6 +92757,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92221,6 +92778,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92246,6 +92804,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92271,6 +92830,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    iconValue?: NullableStringFieldUpdateOperationsInput | string | null
     data?: NullableJsonNullValueInput | InputJsonValue
     tags?: NullableJsonNullValueInput | InputJsonValue
     internalCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -92306,6 +92866,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -92355,6 +92917,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number
@@ -92404,6 +92968,8 @@ export namespace Prisma {
     targetPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     targetLeadTime?: NullableIntFieldUpdateOperationsInput | number | null
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deadlineDays?: NullableIntFieldUpdateOperationsInput | number | null
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     likesCount?: IntFieldUpdateOperationsInput | number
     viewCount?: IntFieldUpdateOperationsInput | number

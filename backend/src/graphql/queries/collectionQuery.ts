@@ -9,6 +9,9 @@ builder.queryField("collections", (t) =>
       take: t.arg.int(),
       search: t.arg.string(),
       featured: t.arg.boolean(),
+      categoryId: t.arg.int(),
+      season: t.arg.string(),
+      gender: t.arg.string(),
     },
     authScopes: { public: true },
     resolve: async (query, _root, args, context) => {
@@ -16,13 +19,25 @@ builder.queryField("collections", (t) =>
 
       if (args.search) {
         where.OR = [
-          { name: { contains: args.search, mode: "insensitive" } },
-          { modelCode: { contains: args.search, mode: "insensitive" } },
+          { name: { contains: args.search } },
+          { modelCode: { contains: args.search } },
         ];
       }
 
       if (args.featured) {
         where.isFeatured = true;
+      }
+
+      if (args.categoryId) {
+        where.categoryId = args.categoryId;
+      }
+
+      if (args.season) {
+        where.season = args.season;
+      }
+
+      if (args.gender) {
+        where.gender = args.gender;
       }
 
       return context.prisma.collection.findMany({
@@ -104,9 +119,9 @@ builder.queryField("collectionsByCompany", (t) =>
 
       if (args.search) {
         where.OR = [
-          { name: { contains: args.search, mode: "insensitive" } },
-          { modelCode: { contains: args.search, mode: "insensitive" } },
-          { description: { contains: args.search, mode: "insensitive" } },
+          { name: { contains: args.search } },
+          { modelCode: { contains: args.search } },
+          { description: { contains: args.search } },
         ];
       }
 
@@ -164,9 +179,9 @@ builder.queryField("collectionsCount", (t) =>
 
       if (args.search) {
         where.OR = [
-          { name: { contains: args.search, mode: "insensitive" } },
-          { modelCode: { contains: args.search, mode: "insensitive" } },
-          { description: { contains: args.search, mode: "insensitive" } },
+          { name: { contains: args.search } },
+          { modelCode: { contains: args.search } },
+          { description: { contains: args.search } },
         ];
       }
 

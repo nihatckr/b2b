@@ -356,6 +356,10 @@ builder.prismaNode("Order", {
     quantity: t.exposeInt("quantity"),
     unitPrice: t.exposeFloat("unitPrice"),
     totalPrice: t.exposeFloat("totalPrice"),
+    targetPrice: t.exposeFloat("targetPrice", { nullable: true }),
+    currency: t.exposeString("currency", { nullable: true }),
+    deadline: t.expose("deadline", { type: "DateTime", nullable: true }),
+    notes: t.exposeString("notes", { nullable: true }),
     status: t.expose("status", { type: "String" }),
 
     // Customer Quote
@@ -403,6 +407,8 @@ builder.prismaNode("Order", {
     customerId: t.exposeInt("customerId"),
     manufacture: t.relation("manufacture"),
     manufactureId: t.exposeInt("manufactureId"),
+    manufacturer: t.relation("manufacture"), // Alias for manufacturer
+    manufacturerId: t.exposeInt("manufactureId"), // Alias for manufacturerId
     company: t.relation("company", { nullable: true }),
     companyId: t.exposeInt("companyId", { nullable: true }),
 
@@ -436,6 +442,94 @@ builder.prismaNode("Collection", {
     fabricComposition: t.exposeString("fabricComposition", { nullable: true }),
     accessories: t.exposeString("accessories", { nullable: true }), // JSON
     images: t.exposeString("images", { nullable: true }), // JSON array
+
+    // Enhanced fabric composition with library details
+    fabricDetails: t.field({
+      type: ["LibraryItem"],
+      nullable: true,
+      resolve: async (parent, _args, context) => {
+        if (!parent.fabricComposition) return null;
+
+        try {
+          // Try to parse as JSON first, if fails treat as simple string
+          let fabrics;
+          try {
+            fabrics = JSON.parse(parent.fabricComposition);
+          } catch {
+            // If JSON.parse fails, it's a simple string, return empty array
+            return [];
+          }
+          if (!Array.isArray(fabrics)) return [];
+
+          // Extract library item IDs from fabrics
+          const libraryItemIds = fabrics
+            .filter((fabric) => fabric.libraryItemId)
+            .map((fabric) => parseInt(fabric.libraryItemId));
+
+          if (libraryItemIds.length === 0) return null;
+
+          // Fetch library items with their details
+          return context.prisma.libraryItem.findMany({
+            where: {
+              id: { in: libraryItemIds },
+              isActive: true,
+            },
+            include: {
+              certifications: {
+                where: { isActive: true },
+              },
+            },
+          });
+        } catch (error) {
+          console.error("Error parsing fabricComposition:", error);
+          return null;
+        }
+      },
+    }),
+
+    // Enhanced accessories with library details
+    accessoryDetails: t.field({
+      type: ["LibraryItem"],
+      nullable: true,
+      resolve: async (parent, _args, context) => {
+        if (!parent.accessories) return null;
+
+        try {
+          // Try to parse as JSON first, if fails treat as simple string
+          let accessories;
+          try {
+            accessories = JSON.parse(parent.accessories);
+          } catch {
+            // If JSON.parse fails, it's a simple string, return empty array
+            return [];
+          }
+          if (!Array.isArray(accessories)) return [];
+
+          // Extract library item IDs from accessories
+          const libraryItemIds = accessories
+            .filter((accessory) => accessory.libraryItemId)
+            .map((accessory) => parseInt(accessory.libraryItemId));
+
+          if (libraryItemIds.length === 0) return null;
+
+          // Fetch library items with their details
+          return context.prisma.libraryItem.findMany({
+            where: {
+              id: { in: libraryItemIds },
+              isActive: true,
+            },
+            include: {
+              certifications: {
+                where: { isActive: true },
+              },
+            },
+          });
+        } catch (error) {
+          console.error("Error parsing accessories:", error);
+          return null;
+        }
+      },
+    }),
     techPack: t.exposeString("techPack", { nullable: true }),
 
     // Commercial Info
@@ -443,6 +537,8 @@ builder.prismaNode("Collection", {
     targetPrice: t.exposeFloat("targetPrice", { nullable: true }),
     currency: t.exposeString("currency", { nullable: true }),
     targetLeadTime: t.exposeInt("targetLeadTime", { nullable: true }),
+    deadline: t.expose("deadline", { type: "DateTime", nullable: true }),
+    deadlineDays: t.exposeInt("deadlineDays", { nullable: true }),
     notes: t.exposeString("notes", { nullable: true }),
 
     // Media (additional)
@@ -679,6 +775,7 @@ builder.prismaObject("LibraryItem", {
     name: t.exposeString("name"),
     description: t.exposeString("description", { nullable: true }),
     imageUrl: t.exposeString("imageUrl", { nullable: true }),
+    iconValue: t.exposeString("iconValue", { nullable: true }),
 
     // JSON fields - will be parsed in resolvers
     data: t.field({

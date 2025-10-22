@@ -1,0 +1,42 @@
+mutation SendQuote(
+  $id: Int!
+  $unitPrice: Float!
+  $productionDays: Int!
+  $note: String
+) {
+  sendQuote(
+    id: $id
+    unitPrice: $unitPrice
+    productionDays: $productionDays
+    note: $note
+  ) {
+    id
+    orderNumber
+    status
+    unitPrice
+    totalPrice
+    productionDays
+    manufacturerResponse
+    updatedAt
+  }
+}
+
+mutation AcceptQuote($id: Int!, $note: String) {
+  acceptQuote(id: $id, note: $note) {
+    id
+    orderNumber
+    status
+    customerNote
+    updatedAt
+  }
+}
+
+mutation RejectQuote($id: Int!, $reason: String!) {
+  rejectQuote(id: $id, reason: $reason) {
+    id
+    orderNumber
+    status
+    customerNote
+    updatedAt
+  }
+}

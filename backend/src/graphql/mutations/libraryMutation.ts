@@ -13,6 +13,7 @@ const CreateLibraryItemInput = builder.inputType("CreateLibraryItemInput", {
     name: t.string({ required: true }),
     description: t.string({ required: false }),
     imageUrl: t.string({ required: false }),
+    iconValue: t.string({ required: false }),
     data: t.string({ required: false }),
     tags: t.string({ required: false }),
     internalCode: t.string({ required: false }),
@@ -29,9 +30,11 @@ const CreateLibraryItemInput = builder.inputType("CreateLibraryItemInput", {
 // Input for updating library items
 const UpdateLibraryItemInput = builder.inputType("UpdateLibraryItemInput", {
   fields: (t) => ({
+    code: t.string({ required: false }),
     name: t.string({ required: false }),
     description: t.string({ required: false }),
     imageUrl: t.string({ required: false }),
+    iconValue: t.string({ required: false }),
     data: t.string({ required: false }),
     tags: t.string({ required: false }),
     internalCode: t.string({ required: false }),
@@ -175,6 +178,7 @@ builder.mutationField("createLibraryItem", (t) =>
             name: input.name,
             description: input.description ?? null,
             imageUrl: input.imageUrl ?? null,
+            iconValue: input.iconValue ?? null,
             ...(dataJson !== null && { data: dataJson }),
             ...(tagsJson !== null && { tags: tagsJson }),
             internalCode: input.internalCode ?? null,
@@ -211,6 +215,7 @@ builder.mutationField("createLibraryItem", (t) =>
               name: input.name,
               description: input.description ?? null,
               imageUrl: input.imageUrl ?? null,
+              iconValue: input.iconValue ?? null,
               ...(dataJson !== null && { data: dataJson }),
               ...(tagsJson !== null && { tags: tagsJson }),
               internalCode: input.internalCode ?? null,
@@ -291,16 +296,39 @@ builder.mutationField("updateLibraryItem", (t) =>
         }
       }
 
+      // Check if code is being updated and doesn't conflict with existing items
+      if (
+        input.code !== undefined &&
+        input.code !== null &&
+        input.code !== existing.code
+      ) {
+        const existingWithCode = await context.prisma.libraryItem.findUnique({
+          where: { code: input.code },
+        });
+
+        if (existingWithCode && existingWithCode.id !== args.id) {
+          throw new Error(
+            `Bu kod zaten mevcut: "${input.code}". ` +
+              `Mevcut item: "${existingWithCode.name}" (${existingWithCode.category}). ` +
+              `Lütfen farklı bir kod kullanın.`
+          );
+        }
+      }
+
       return context.prisma.libraryItem.update({
         ...query,
         where: { id: args.id },
         data: {
+          ...(input.code !== undefined &&
+            input.code !== null && { code: input.code }),
           ...(input.name !== undefined &&
             input.name !== null && { name: input.name }),
           ...(input.description !== undefined &&
             input.description !== null && { description: input.description }),
           ...(input.imageUrl !== undefined &&
             input.imageUrl !== null && { imageUrl: input.imageUrl }),
+          ...(input.iconValue !== undefined &&
+            input.iconValue !== null && { iconValue: input.iconValue }),
           ...(dataJson !== undefined && { data: dataJson }),
           ...(tagsJson !== undefined && { tags: tagsJson }),
           ...(input.internalCode !== undefined &&

@@ -573,9 +573,11 @@ model Collection {
   // ADIM 4: Ticari Bilgiler
   moq            Int? // Minimum Order Quantity
   targetPrice    Float? // Hedef fiyat
-  currency       String? @default("USD") // Para birimi: USD, EUR, TRY
+  currency       String?   @default("USD") // Para birimi: USD, EUR, TRY
   targetLeadTime Int? // Hedef termin (gün)
-  notes          String? @db.Text // Açıklama/Notlar
+  deadline       DateTime? // Termin tarihi
+  deadlineDays   Int? // Termin gün sayısı
+  notes          String?   @db.Text // Açıklama/Notlar
 
   // Sertifikalar (GOTS, OEKO-TEX, BSCI vb.) - Artık LibraryItem üzerinden
   certifications LibraryItem[] @relation("CollectionCertifications")
@@ -592,7 +594,8 @@ model Collection {
   lastViewedAt DateTime? // Son görüntülenme zamanı
 
   // Legacy fields (backward compatibility)
-  price      Float   @default(0.00) // Şimdilik targetPrice ile aynı
+  price Float @default(0.00)
+
   sku        String? @unique
   stock      Int     @default(0)
   isActive   Boolean @default(true)
@@ -811,6 +814,10 @@ model Order {
   quantity             Int
   unitPrice            Float // Birim fiyat
   totalPrice           Float // Toplam fiyat
+  targetPrice          Float? // Hedef birim fiyat (müşteri beklentisi)
+  currency             String?     @default("USD") // Para birimi
+  deadline             DateTime? // İstenen teslimat tarihi
+  notes                String?     @db.Text // Genel sipariş notları
   status               OrderStatus @default(PENDING)
   customerNote         String? // Müşteri sipariş notu
   manufacturerResponse String? // Üretici yanıtı/değerlendirme
@@ -1078,6 +1085,7 @@ model LibraryItem {
 
   description String? @db.Text
   imageUrl    String? @db.Text
+  iconValue   String? // Sertifika ikonu için custom icon URL veya emoji
 
   // Category-Specific Data (JSON - Esnek yapı)
   data Json? // {

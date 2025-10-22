@@ -1,6 +1,18 @@
 import { DynamicTaskHelper } from "../../utils/dynamicTaskHelper";
 import builder from "../builder";
 
+// Create Order input type
+const CreateOrderInput = builder.inputType("CreateOrderInput", {
+  fields: (t) => ({
+    collectionId: t.id({ required: true }),
+    quantity: t.int({ required: true }),
+    targetDeadline: t.string({ required: false }),
+    targetPrice: t.float({ required: false }),
+    currency: t.string({ required: false }),
+    notes: t.string({ required: false }),
+  }),
+});
+
 const ValidOrderStatuses = [
   "PENDING",
   "REVIEWED",
@@ -19,47 +31,153 @@ const ValidOrderStatuses = [
   "CANCELLED",
 ];
 
-// Create order (user only)
+// Create order with input type (user only)
 builder.mutationField("createOrder", (t) =>
   t.prismaField({
     type: "Order",
     args: {
-      collectionId: t.arg.int({ required: true }),
-      quantity: t.arg.int({ required: true }),
-      unitPrice: t.arg.float({ required: true }),
-      manufacturerId: t.arg.int({ required: true }),
-      note: t.arg.string(),
+      input: t.arg({ type: CreateOrderInput, required: true }),
     },
     authScopes: { user: true },
-    resolve: async (query, _root, args, context) => {
-      const totalPrice = args.quantity * args.unitPrice;
-      const order = await context.prisma.order.create({
-        ...query,
-        data: {
-          orderNumber: `ORDER-${Date.now()}`,
-          collectionId: args.collectionId,
-          quantity: args.quantity,
-          unitPrice: args.unitPrice,
-          totalPrice,
-          ...(args.note !== null && args.note !== undefined
-            ? { customerNote: args.note }
-            : {}),
-          customerId: context.user?.id || 0,
-          manufactureId: args.manufacturerId,
-          status: "PENDING" as any,
+    resolve: async (query, _, { input }, { user, prisma }) => {
+      if (!user) {
+        throw new Error("Authentication required");
+      }
+
+      // Get user's company information from database
+      const userWithCompany = await prisma.user.findUnique({
+        where: { id: user.id },
+        include: { company: true },
+      });
+
+      if (!userWithCompany) {
+        throw new Error("User not found");
+      }
+
+      // Debug user and company info
+      console.log("User info:", {
+        id: user.id,
+        role: user.role,
+        companyId: user.companyId,
+        company: userWithCompany.company,
+      });
+
+      // Verify user is a buyer - only check company type
+      const isBuyer = userWithCompany.company?.type === "BUYER";
+
+      if (!isBuyer) {
+        throw new Error(
+          `Only buyers can create orders. Your company type: ${userWithCompany.company?.type} (expected: BUYER)`
+        );
+      }
+
+      // Get collection details
+      const collection = await prisma.collection.findUnique({
+        where: { id: Number(input.collectionId) },
+        include: {
+          company: true,
         },
       });
 
-      // ✅ Create tasks for PENDING status
-      const dynamicTaskHelper = new DynamicTaskHelper(context.prisma);
-      await dynamicTaskHelper.createTasksForOrderStatus(
+      if (!collection) {
+        throw new Error("Collection not found");
+      }
+
+      // Debug collection info
+      console.log("Collection info:", {
+        id: collection.id,
+        name: collection.name,
+        companyId: collection.companyId,
+        company: collection.company,
+        ownerId: collection.company?.ownerId,
+      });
+
+      // Find manufacturer (company owner or first employee)
+      let manufacturerId = collection.company?.ownerId;
+
+      if (!manufacturerId) {
+        // If company has no owner, find the first employee with COMPANY_OWNER role
+        const companyOwner = await prisma.user.findFirst({
+          where: {
+            companyId: collection.companyId,
+            role: "COMPANY_OWNER",
+            isActive: true,
+          },
+        });
+
+        if (companyOwner) {
+          manufacturerId = companyOwner.id;
+        } else {
+          // Fallback: use first active employee
+          const firstEmployee = await prisma.user.findFirst({
+            where: {
+              companyId: collection.companyId,
+              isActive: true,
+            },
+          });
+
+          if (!firstEmployee) {
+            throw new Error("Collection company has no active users");
+          }
+          manufacturerId = firstEmployee.id;
+        }
+      }
+
+      console.log("Manufacturer ID found:", manufacturerId);
+
+      // Generate unique order number
+      const orderNumber = `ORD-${Date.now()}-${collection.id}`;
+
+      // Create the order
+      const order = await prisma.order.create({
+        data: {
+          orderNumber,
+          collectionId: collection.id,
+          customerId: user.id,
+          manufactureId: manufacturerId,
+          companyId: user.companyId,
+          quantity: input.quantity,
+          unitPrice: input.targetPrice || 0,
+          totalPrice: (input.targetPrice || 0) * input.quantity,
+          customerQuotedPrice: input.targetPrice,
+          customerQuoteNote: input.notes,
+          customerQuoteSentAt: new Date(),
+          status: "PENDING",
+        },
+        include: {
+          collection: true,
+          customer: true,
+          manufacture: true,
+          company: true,
+        },
+      });
+
+      // Initialize Dynamic Task Helper
+      const taskHelper = new DynamicTaskHelper(prisma);
+
+      // Create tasks for ORDER status change
+      await taskHelper.createTasksForOrderStatus(
         order.id,
         "PENDING",
-        order.customerId,
-        order.manufactureId
+        user.id, // customer
+        collection.company.ownerId // manufacturer
       );
 
-      console.log(`✅ Order created: ${order.orderNumber} - Tasks created for PENDING status`);
+      // Create notification for manufacturer (in addition to dynamic tasks)
+
+      await prisma.notification.create({
+        data: {
+          userId: manufacturerId!,
+          type: "ORDER",
+          title: "New Order Created",
+          message: `A new order (${order.orderNumber}) has been created for your collection "${collection.name}".`,
+          link: `/dashboard/orders/${order.id}`,
+        },
+      });
+
+      console.log(
+        `✅ Notification created for manufacturer (User ID: ${manufacturerId})`
+      );
 
       return order;
     },
@@ -135,21 +253,41 @@ builder.mutationField("updateOrder", (t) =>
       }
 
       // Customer Quote fields
-      if (args.customerQuotedPrice !== null && args.customerQuotedPrice !== undefined)
+      if (
+        args.customerQuotedPrice !== null &&
+        args.customerQuotedPrice !== undefined
+      )
         updateData.customerQuotedPrice = args.customerQuotedPrice;
-      if (args.customerQuoteDays !== null && args.customerQuoteDays !== undefined)
+      if (
+        args.customerQuoteDays !== null &&
+        args.customerQuoteDays !== undefined
+      )
         updateData.customerQuoteDays = args.customerQuoteDays;
-      if (args.customerQuoteNote !== null && args.customerQuoteNote !== undefined)
+      if (
+        args.customerQuoteNote !== null &&
+        args.customerQuoteNote !== undefined
+      )
         updateData.customerQuoteNote = args.customerQuoteNote;
 
       // Production fields
       if (args.productionDays !== null && args.productionDays !== undefined)
         updateData.productionDays = args.productionDays;
-      if (args.estimatedProductionDate !== null && args.estimatedProductionDate !== undefined)
-        updateData.estimatedProductionDate = new Date(args.estimatedProductionDate);
-      if (args.actualProductionStart !== null && args.actualProductionStart !== undefined)
+      if (
+        args.estimatedProductionDate !== null &&
+        args.estimatedProductionDate !== undefined
+      )
+        updateData.estimatedProductionDate = new Date(
+          args.estimatedProductionDate
+        );
+      if (
+        args.actualProductionStart !== null &&
+        args.actualProductionStart !== undefined
+      )
         updateData.actualProductionStart = new Date(args.actualProductionStart);
-      if (args.actualProductionEnd !== null && args.actualProductionEnd !== undefined)
+      if (
+        args.actualProductionEnd !== null &&
+        args.actualProductionEnd !== undefined
+      )
         updateData.actualProductionEnd = new Date(args.actualProductionEnd);
 
       // Shipping fields
@@ -157,13 +295,19 @@ builder.mutationField("updateOrder", (t) =>
         updateData.shippingDate = new Date(args.shippingDate);
       if (args.deliveryAddress !== null && args.deliveryAddress !== undefined)
         updateData.deliveryAddress = args.deliveryAddress;
-      if (args.cargoTrackingNumber !== null && args.cargoTrackingNumber !== undefined)
+      if (
+        args.cargoTrackingNumber !== null &&
+        args.cargoTrackingNumber !== undefined
+      )
         updateData.cargoTrackingNumber = args.cargoTrackingNumber;
 
       // Notes
       if (args.customerNote !== null && args.customerNote !== undefined)
         updateData.customerNote = args.customerNote;
-      if (args.manufacturerResponse !== null && args.manufacturerResponse !== undefined)
+      if (
+        args.manufacturerResponse !== null &&
+        args.manufacturerResponse !== undefined
+      )
         updateData.manufacturerResponse = args.manufacturerResponse;
 
       const updatedOrder = await context.prisma.order.update({
@@ -173,8 +317,14 @@ builder.mutationField("updateOrder", (t) =>
       });
 
       // ✅ Create tasks if status changed
-      if (args.status !== null && args.status !== undefined && args.status !== order.status) {
-        console.log(`📋 Order status changed: ${order.status} → ${args.status}`);
+      if (
+        args.status !== null &&
+        args.status !== undefined &&
+        args.status !== order.status
+      ) {
+        console.log(
+          `📋 Order status changed: ${order.status} → ${args.status}`
+        );
 
         const dynamicTaskHelper = new DynamicTaskHelper(context.prisma);
 
@@ -186,7 +336,9 @@ builder.mutationField("updateOrder", (t) =>
           updatedOrder.manufactureId
         );
 
-        console.log(`✅ Tasks created for order ${updatedOrder.orderNumber} - Status: ${args.status}`);
+        console.log(
+          `✅ Tasks created for order ${updatedOrder.orderNumber} - Status: ${args.status}`
+        );
       }
 
       return updatedOrder;

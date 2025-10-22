@@ -32,6 +32,7 @@ import {
 } from "@/lib/zod-schema";
 import { GENDERS } from "@/utils/library-constants";
 import { ShieldCheck } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useQuery } from "urql";
 import { FormFileUpload, FormImageUpload } from "../forms";
@@ -60,6 +61,7 @@ export interface LibraryItemFormData {
   data: Record<string, unknown>;
   imageFile?: File;
   imageUrl?: string; // 🖼️ Existing image URL (for edit mode)
+  iconValue?: string; // 🎨 Custom icon URL (for certification icons)
   certificationIds?: number[]; // 🔗 Certification IDs
   tags?: string; // 🏷️ JSON stringified tags for certification categories
 }
@@ -473,6 +475,7 @@ export default function CreateLibraryItemModal({
     description: "",
     data: {},
     certificationIds: [],
+    iconValue: "",
   });
 
   // Get the appropriate schema for the current category
@@ -627,23 +630,6 @@ export default function CreateLibraryItemModal({
       SEASON: "Season",
     };
     return labels[category];
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData({ ...formData, imageFile: file });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setFormData({ ...formData, imageFile: undefined });
-    setImagePreview(null);
   };
 
   // 🔄 Toggle certification selection
@@ -840,6 +826,7 @@ export default function CreateLibraryItemModal({
         description: "",
         data: {},
         certificationIds: [],
+        iconValue: "",
       });
       setImagePreview(null);
       setSelectedCertificationIds([]); // 🔄 Reset selected certifications
@@ -1785,8 +1772,153 @@ export default function CreateLibraryItemModal({
           ? autoGenerateCertStatus(validUntil, autoRenewal)
           : "ACTIVE";
 
+        // Popular certification icons
+        const certificationIcons = [
+          { value: "shield-check", label: "🛡️ Shield Check", icon: "🛡️" },
+          { value: "leaf", label: "🍃 Leaf (Organic)", icon: "🍃" },
+          { value: "recycle", label: "♻️ Recycle", icon: "♻️" },
+          { value: "award", label: "🏆 Award", icon: "🏆" },
+          { value: "star", label: "⭐ Star", icon: "⭐" },
+          { value: "check-circle", label: "✅ Check Circle", icon: "✅" },
+          { value: "eco", label: "🌱 Eco", icon: "🌱" },
+          { value: "quality", label: "💎 Quality", icon: "💎" },
+          { value: "global", label: "🌍 Global", icon: "🌍" },
+          { value: "certificate", label: "📜 Certificate", icon: "📜" },
+        ];
+
         return (
           <>
+            {/* Icon Selection */}
+            <div className="space-y-2">
+              <Label>Certification Icon</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {certificationIcons.map((iconOption) => (
+                  <button
+                    key={iconOption.value}
+                    type="button"
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        data: { ...formData.data, icon: iconOption.value },
+                      })
+                    }
+                    className={`
+                      flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all text-xs
+                      ${
+                        formData.data.icon === iconOption.value
+                          ? "border-primary bg-primary/5"
+                          : "border-gray-200 hover:border-gray-300"
+                      }
+                    `}
+                    title={iconOption.label}
+                  >
+                    <span className="text-lg">{iconOption.icon}</span>
+                    <span className="text-[10px] text-center leading-tight">
+                      {iconOption.label.split(" ")[1] || iconOption.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Select an icon to represent this certification
+              </p>
+            </div>
+            {/* Custom Icon Upload */}
+            <FormFileUpload
+              value={formData.iconValue}
+              onChange={(url) => {
+                setFormData({ ...formData, iconValue: url });
+              }}
+              onDelete={() => {
+                setFormData({ ...formData, iconValue: "" });
+              }}
+              label="Custom Icon Upload (Optional)"
+              description="Upload a custom icon for this certification"
+              accept=".png,.jpg,.jpeg,.svg,.ico"
+              fileType="image"
+              uploadType="certifications"
+              maxSize={2}
+              recommended="32x32px or larger"
+              aspectRatio="square"
+            />
+            {/* OLD MANUAL UPLOAD - REMOVED */}
+            <div className="space-y-2 hidden">
+              <Label>Custom Icon Upload (Optional)</Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                {formData.imageUrl ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center overflow-hidden relative">
+                        <Image
+                          src={
+                            formData.imageUrl.startsWith("/")
+                              ? `http://localhost:4001${formData.imageUrl}`
+                              : formData.imageUrl
+                          }
+                          alt="Custom icon"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600">
+                        Custom icon uploaded
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, imageUrl: "" });
+                        setImagePreview(null);
+                      }}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg,.svg,.ico"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          // Store file for upload
+                          setFormData({ ...formData, imageFile: file });
+
+                          // Create preview
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setImagePreview(reader.result as string);
+                            setFormData((prev) => ({
+                              ...prev,
+                              imageUrl: reader.result as string,
+                            }));
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                      id="icon-upload"
+                    />
+                    <label
+                      htmlFor="icon-upload"
+                      className="cursor-pointer flex flex-col items-center gap-2 text-gray-500 hover:text-gray-700"
+                    >
+                      <div className="w-8 h-8 border-2 border-gray-300 border-dashed rounded flex items-center justify-center">
+                        <span className="text-lg">📁</span>
+                      </div>
+                      <span className="text-xs">Upload PNG, SVG, ICO</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Upload a custom icon file (PNG, SVG, ICO). If not uploaded, the
+                selected emoji icon will be used.
+              </p>
+            </div>{" "}
+            {/* END OLD MANUAL UPLOAD */}
             <div className="space-y-2">
               <Label htmlFor="issuer">Issuer *</Label>
               <Input
@@ -1805,7 +1937,6 @@ export default function CreateLibraryItemModal({
                 Common: GOTS, OEKO-TEX, Fair Trade, GRS, BCI, Bluesign
               </p>
             </div>
-
             {/* Certification Category Tags */}
             <div className="space-y-2">
               <Label>Applicable Categories *</Label>
@@ -1892,7 +2023,6 @@ export default function CreateLibraryItemModal({
                 }
               />
             </div>
-
             {/* Certification Dates - More logical flow */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -1958,7 +2088,6 @@ export default function CreateLibraryItemModal({
                 </p>
               </div>
             </div>
-
             {/* Certification Document Upload */}
             <FormFileUpload
               value={formData.imageUrl}
@@ -1976,7 +2105,6 @@ export default function CreateLibraryItemModal({
               maxSize={10}
               recommended="PDF format recommended"
             />
-
             {/* Calculated Expiry Date Display */}
             {formData.data.validUntil && (
               <div className="bg-muted/50 p-3 rounded-lg">
@@ -2003,12 +2131,41 @@ export default function CreateLibraryItemModal({
                 </div>
               </div>
             )}
-
             {/* Auto-generated Preview */}
             {issuer && (
               <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
                 <p className="text-sm font-medium">🤖 Auto-Generated:</p>
                 <div className="space-y-1 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Icon:</span>
+                    <div className="flex items-center gap-2">
+                      {formData.imageUrl ? (
+                        <div className="w-6 h-6 bg-gray-100 rounded flex items-center justify-center overflow-hidden relative">
+                          <Image
+                            src={
+                              formData.imageUrl.startsWith("/")
+                                ? `http://localhost:4001${formData.imageUrl}`
+                                : formData.imageUrl
+                            }
+                            alt="Custom icon"
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-lg">
+                          {formData.data.icon
+                            ? certificationIcons.find(
+                                (ic) => ic.value === formData.data.icon
+                              )?.icon || "🛡️"
+                            : "🛡️"}
+                        </span>
+                      )}
+                      <span className="text-xs text-muted-foreground">
+                        {formData.imageUrl ? "(custom)" : "(emoji)"}
+                      </span>
+                    </div>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Code:</span>
                     <span className="font-mono font-semibold">

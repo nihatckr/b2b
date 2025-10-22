@@ -116,6 +116,7 @@ export default function CertificationsPage() {
         description: data.description || "",
         data: JSON.stringify(data.data),
         imageUrl: data.imageUrl || undefined,
+        iconValue: data.iconValue || undefined,
       };
 
       const result = await createLibraryItem({ input });
@@ -165,6 +166,7 @@ export default function CertificationsPage() {
         data:
           typeof data.data === "object" ? JSON.stringify(data.data) : data.data,
         imageUrl: data.imageUrl || undefined,
+        iconValue: data.iconValue || undefined,
         isActive: true,
       };
 
