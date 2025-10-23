@@ -3,6 +3,8 @@
 import {
   BuyerOrderDetailDocument,
   ManufacturerAcceptCustomerQuoteDocument,
+  RespondToProductionPlanDocument,
+  SendProductionPlanForApprovalDocument,
 } from "@/__generated__/graphql";
 import { CounterOfferDialog } from "@/components/orders/CounterOfferDialog";
 import { ProductionPlanDialog } from "@/components/orders/ProductionPlanDialog";
@@ -51,18 +53,42 @@ const statusColors: Record<string, string> = {
   REJECTED: "bg-red-100 text-red-800 border-red-300",
 };
 
-const statusLabels: Record<string, string> = {
-  PENDING: "Beklemede",
-  CUSTOMER_QUOTE_SENT: "Müşteri Teklifi Gönderildi",
-  QUOTE_SENT: "Teklif Gönderildi",
-  CONFIRMED: "Onaylandı",
-  IN_PRODUCTION: "Üretimde",
-  QUALITY_CHECK: "Kalite Kontrolü",
-  READY_TO_SHIP: "Gönderime Hazır",
-  SHIPPED: "Gönderildi",
-  DELIVERED: "Teslim Edildi",
-  CANCELLED: "İptal Edildi",
-  REJECTED: "Reddedildi",
+// Dynamic status labels based on user perspective
+const getStatusLabel = (
+  status: string,
+  isCustomer: boolean,
+  isManufacturer: boolean
+): string => {
+  switch (status) {
+    case "PENDING":
+      return "Beklemede";
+    case "CUSTOMER_QUOTE_SENT":
+      if (isCustomer) return "Teklifiniz Gönderildi";
+      if (isManufacturer) return "Müşteri Teklifi Alındı";
+      return "Müşteri Teklifi Gönderildi";
+    case "QUOTE_SENT":
+      if (isCustomer) return "Teklif Alındı";
+      if (isManufacturer) return "Teklifiniz Gönderildi";
+      return "Teklif Gönderildi";
+    case "CONFIRMED":
+      return "Onaylandı";
+    case "IN_PRODUCTION":
+      return "Üretimde";
+    case "QUALITY_CHECK":
+      return "Kalite Kontrolü";
+    case "READY_TO_SHIP":
+      return "Gönderime Hazır";
+    case "SHIPPED":
+      return "Gönderildi";
+    case "DELIVERED":
+      return "Teslim Edildi";
+    case "CANCELLED":
+      return "İptal Edildi";
+    case "REJECTED":
+      return "Reddedildi";
+    default:
+      return status;
+  }
 };
 
 const statusIcons: Record<string, React.ReactNode> = {
@@ -94,6 +120,12 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
     ManufacturerAcceptCustomerQuoteDocument
   );
 
+  // Production plan approval mutations
+  const [, sendForApproval] = useMutation(
+    SendProductionPlanForApprovalDocument
+  );
+  const [, respondToPlan] = useMutation(RespondToProductionPlanDocument);
+
   const handleAcceptQuote = async () => {
     const result = await acceptCustomerQuote({ orderId });
     if (result.error) {
@@ -101,6 +133,59 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
       return;
     }
     toast.success("✅ Teklif kabul edildi!");
+    refetchOrder({ requestPolicy: "network-only" });
+  };
+
+  // Production plan approval handlers
+  const handleSendForApproval = async (productionId: string | number) => {
+    // Check if it's a Global ID or numeric ID
+    const numericId =
+      typeof productionId === "string" && productionId.length > 10
+        ? decodeGlobalId(productionId)
+        : Number(productionId);
+
+    if (!numericId) {
+      toast.error("Geçersiz üretim planı ID'si");
+      return;
+    }
+
+    const result = await sendForApproval({ productionId: numericId });
+    if (result.error) {
+      toast.error(`Hata: ${result.error.message}`);
+      return;
+    }
+    toast.success("📋 Üretim planı müşteriye onay için gönderildi!");
+    refetchOrder({ requestPolicy: "network-only" });
+  };
+
+  const handleRespondToPlan = async (
+    productionId: string | number,
+    approved: boolean,
+    customerNote?: string
+  ) => {
+    // Check if it's a Global ID or numeric ID
+    const numericId =
+      typeof productionId === "string" && productionId.length > 10
+        ? decodeGlobalId(productionId)
+        : Number(productionId);
+
+    if (!numericId) {
+      toast.error("Geçersiz üretim planı ID'si");
+      return;
+    }
+
+    const result = await respondToPlan({
+      productionId: numericId,
+      approved,
+      customerNote,
+    });
+    if (result.error) {
+      toast.error(`Hata: ${result.error.message}`);
+      return;
+    }
+    toast.success(
+      approved ? "✅ Üretim planı onaylandı!" : "❌ Üretim planı reddedildi!"
+    );
     refetchOrder({ requestPolicy: "network-only" });
   };
 
@@ -141,6 +226,15 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
   }
 
   const { order } = data;
+
+  // Debug: Log order data to check productionTracking
+  console.log("Order data:", order);
+  console.log("Production tracking:", order.productionTracking);
+  console.log(
+    "📋 Approval Status:",
+    order.productionTracking?.customerApprovalStatus
+  );
+  console.log("🔄 Revision Count:", order.productionTracking?.revisionCount);
 
   // Check if user is customer (ordered the collection)
   const customerCompanyId = order.customer?.company?.id
@@ -192,7 +286,7 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
           <span className="flex items-center gap-2">
             {order.status && statusIcons[order.status]}
             {order.status
-              ? statusLabels[order.status] || order.status
+              ? getStatusLabel(order.status, isCustomer, isManufacturer)
               : "Bilinmiyor"}
           </span>
         </Badge>
@@ -322,22 +416,410 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               {order.notes && (
                 <div>
                   <p className="text-sm text-gray-500">Notlar</p>
-                  <p className="text-sm bg-gray-50 p-3 rounded border">
-                    {order.notes}
-                  </p>
+                  <p className="text-sm   p-3 rounded border">{order.notes}</p>
                 </div>
               )}
 
               {order.manufacturerResponse && (
                 <div>
                   <p className="text-sm text-gray-500">Üretici Yanıtı</p>
-                  <p className="text-sm bg-blue-50 p-3 rounded border border-blue-200">
+                  <p className="text-sm   p-3 rounded border border-blue-200">
                     {order.manufacturerResponse}
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
+
+          {/* Production Tracking */}
+          {order.productionTracking && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Üretim Takibi
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  {/* Overall Progress */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium  ">
+                        Genel İlerleme
+                      </span>
+                      <span className="text-sm font-semibold text-red-600">
+                        {order.productionTracking.progress}%
+                      </span>
+                    </div>
+                    <div className="w-full   rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${order.productionTracking.progress}%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Current Stage */}
+                  <div className=" border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>
+                      <span className="font-medium  ">
+                        Mevcut Aşama: {order.productionTracking.currentStage}
+                      </span>
+                    </div>
+                    {order.productionTracking.overallStatus && (
+                      <p className="text-sm   mt-1">
+                        Durum: {order.productionTracking.overallStatus}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Stage Updates */}
+                  {order.productionTracking.stageUpdates &&
+                    order.productionTracking.stageUpdates.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="font-medium  ">Aşama Detayları</h4>
+                        <div className="space-y-2">
+                          {order.productionTracking.stageUpdates.map(
+                            (stage, index) => (
+                              <div
+                                key={stage.id}
+                                className="flex items-start gap-3"
+                              >
+                                <div className="flex flex-col items-center">
+                                  <div
+                                    className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${
+                                      stage.status === "COMPLETED"
+                                        ? "bg-green-500 text-white"
+                                        : stage.status === "IN_PROGRESS"
+                                        ? "bg-blue-500 text-white"
+                                        : "bg-gray-300 text-gray-600"
+                                    }`}
+                                  >
+                                    {stage.status === "COMPLETED"
+                                      ? "✓"
+                                      : index + 1}
+                                  </div>
+                                  {index <
+                                    (order.productionTracking?.stageUpdates
+                                      ?.length || 0) -
+                                      1 && (
+                                    <div className="w-0.5 h-8   mt-1"></div>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between">
+                                    <p className="text-sm font-medium  ">
+                                      {stage.stage}
+                                    </p>
+                                    <span
+                                      className={`text-xs px-2 py-1 rounded-full ${
+                                        stage.status === "COMPLETED"
+                                          ? "bg-green-100 text-green-800"
+                                          : stage.status === "IN_PROGRESS"
+                                          ? "bg-blue-100 text-blue-800"
+                                          : "bg-gray-100 text-gray-800"
+                                      }`}
+                                    >
+                                      {stage.status === "COMPLETED"
+                                        ? "Tamamlandı"
+                                        : stage.status === "IN_PROGRESS"
+                                        ? "Devam Ediyor"
+                                        : "Beklemede"}
+                                    </span>
+                                  </div>
+                                  {stage.estimatedDays && (
+                                    <p className="text-xs   mt-1">
+                                      Tahmini: {stage.estimatedDays} gün
+                                      {(stage.extraDays || 0) > 0 && (
+                                        <span className="text-amber-600 ml-1">
+                                          (+{stage.extraDays || 0} gün gecikme)
+                                        </span>
+                                      )}
+                                    </p>
+                                  )}
+                                  {stage.notes && (
+                                    <p className="text-xs text-gray-600 mt-1 bg-gray-50 p-2 rounded">
+                                      {stage.notes}
+                                    </p>
+                                  )}
+                                  {stage.actualStartDate && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      Başlangıç:{" "}
+                                      {format(
+                                        new Date(stage.actualStartDate),
+                                        "dd MMM yyyy",
+                                        { locale: tr }
+                                      )}
+                                    </p>
+                                  )}
+                                  {stage.actualEndDate && (
+                                    <p className="text-xs text-gray-500">
+                                      Bitiş:{" "}
+                                      {format(
+                                        new Date(stage.actualEndDate),
+                                        "dd MMM yyyy",
+                                        { locale: tr }
+                                      )}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Timeline */}
+                  {(order.productionTracking.estimatedStartDate ||
+                    order.productionTracking.estimatedEndDate) && (
+                    <div className="  border rounded-lg p-3">
+                      <h4 className="font-medium   mb-2">Zaman Çizelgesi</h4>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        {order.productionTracking.estimatedStartDate && (
+                          <div>
+                            <p className=" ">Tahmini Başlangıç</p>
+                            <p className="font-medium">
+                              {format(
+                                new Date(
+                                  order.productionTracking.estimatedStartDate
+                                ),
+                                "dd MMMM yyyy",
+                                { locale: tr }
+                              )}
+                            </p>
+                          </div>
+                        )}
+                        {order.productionTracking.estimatedEndDate && (
+                          <div>
+                            <p className="text-gray-500">Tahmini Bitiş</p>
+                            <p className="font-medium">
+                              {format(
+                                new Date(
+                                  order.productionTracking.estimatedEndDate
+                                ),
+                                "dd MMMM yyyy",
+                                { locale: tr }
+                              )}
+                            </p>
+                          </div>
+                        )}
+                        {order.productionTracking.actualStartDate && (
+                          <div>
+                            <p className="text-gray-500">Gerçek Başlangıç</p>
+                            <p className="font-medium text-green-600">
+                              {format(
+                                new Date(
+                                  order.productionTracking.actualStartDate
+                                ),
+                                "dd MMMM yyyy",
+                                { locale: tr }
+                              )}
+                            </p>
+                          </div>
+                        )}
+                        {order.productionTracking.actualEndDate && (
+                          <div>
+                            <p className=" ">Gerçek Bitiş</p>
+                            <p className="font-medium text-green-600">
+                              {format(
+                                new Date(
+                                  order.productionTracking.actualEndDate
+                                ),
+                                "dd MMMM yyyy",
+                                { locale: tr }
+                              )}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Production Notes */}
+                  {order.productionTracking.notes && (
+                    <div>
+                      <p className="text-sm   mb-1">Üretim Notları</p>
+                      <p className="text-sm  p-3 rounded border border-gray-500 ">
+                        {order.productionTracking.notes}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Customer Approval Status */}
+                  {order.productionTracking.customerApprovalStatus && (
+                    <div
+                      className={`border rounded-lg p-4 ${
+                        order.productionTracking.customerApprovalStatus ===
+                        "DRAFT"
+                          ? "bg-blue-50 border-blue-200"
+                          : order.productionTracking.customerApprovalStatus ===
+                            "PENDING"
+                          ? "bg-amber-50 border-amber-200"
+                          : order.productionTracking.customerApprovalStatus ===
+                            "APPROVED"
+                          ? "bg-green-50 border-green-200"
+                          : "bg-red-50 border-red-200"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle
+                            className={`w-4 h-4 ${
+                              order.productionTracking
+                                .customerApprovalStatus === "DRAFT"
+                                ? "text-blue-600"
+                                : order.productionTracking
+                                    .customerApprovalStatus === "PENDING"
+                                ? "text-amber-600"
+                                : order.productionTracking
+                                    .customerApprovalStatus === "APPROVED"
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          />
+                          <span
+                            className={`font-medium ${
+                              order.productionTracking
+                                .customerApprovalStatus === "DRAFT"
+                                ? "text-blue-900"
+                                : order.productionTracking
+                                    .customerApprovalStatus === "PENDING"
+                                ? "text-amber-900"
+                                : order.productionTracking
+                                    .customerApprovalStatus === "APPROVED"
+                                ? "text-green-900"
+                                : "text-red-900"
+                            }`}
+                          >
+                            Üretim Planı:
+                            {order.productionTracking.customerApprovalStatus ===
+                              "DRAFT" &&
+                              ((order.productionTracking.revisionCount || 0) > 0
+                                ? " Revize Edildi - Müşteri Onayına Gönderildi"
+                                : " Taslak Hazırlanıyor")}
+                            {order.productionTracking.customerApprovalStatus ===
+                              "PENDING" && " Müşteri Onayı Bekleniyor"}
+                            {order.productionTracking.customerApprovalStatus ===
+                              "APPROVED" && " Onaylandı - Üretim Başladı"}
+                            {order.productionTracking.customerApprovalStatus ===
+                              "REJECTED" && " Reddedildi"}
+                          </span>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          {/* Manufacturer: Send for Approval (DRAFT status) */}
+                          {isManufacturer &&
+                            order.productionTracking.customerApprovalStatus ===
+                              "DRAFT" && (
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleSendForApproval(
+                                    Number(order.productionTracking?.id)
+                                  )
+                                }
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                📋 Müşteriye Gönder
+                              </Button>
+                            )}
+
+                          {/* Customer: Approve/Reject (PENDING status) */}
+                          {isCustomer &&
+                            order.productionTracking.customerApprovalStatus ===
+                              "PENDING" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() =>
+                                    handleRespondToPlan(
+                                      Number(order.productionTracking?.id),
+                                      true
+                                    )
+                                  }
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  ✅ Onayla
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    handleRespondToPlan(
+                                      Number(order.productionTracking?.id),
+                                      false,
+                                      "Plan uygun değil, revizyon gerekiyor."
+                                    )
+                                  }
+                                  className="border-red-200 text-red-700 hover:bg-red-50"
+                                >
+                                  ❌ Reddet
+                                </Button>
+                              </>
+                            )}
+
+                          {/* Manufacturer: Revise (REJECTED status) */}
+                          {isManufacturer &&
+                            order.productionTracking.customerApprovalStatus ===
+                              "REJECTED" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setProductionPlanOpen(true)}
+                                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                              >
+                                ✏️ Planı Revize Et
+                              </Button>
+                            )}
+
+                          {/* Manufacturer: Send for Approval (DRAFT status after revision) */}
+                          {isManufacturer &&
+                            order.productionTracking.customerApprovalStatus ===
+                              "DRAFT" &&
+                            (order.productionTracking.revisionCount || 0) >
+                              0 && (
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleSendForApproval(
+                                    Number(order.productionTracking?.id)
+                                  )
+                                }
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                📋 Müşteri Onayına Gönder
+                              </Button>
+                            )}
+                        </div>
+                      </div>
+                      {order.productionTracking.customerNote && (
+                        <p className="text-sm text-amber-800 mt-2">
+                          {order.productionTracking.customerNote}
+                        </p>
+                      )}
+                      {order.productionTracking.customerApprovedAt && (
+                        <p className="text-xs text-amber-600 mt-1">
+                          {format(
+                            new Date(
+                              order.productionTracking.customerApprovedAt
+                            ),
+                            "dd MMMM yyyy, HH:mm",
+                            { locale: tr }
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -483,7 +965,9 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                     onClick={() => setProductionPlanOpen(true)}
                   >
                     <Calendar className="w-4 h-4 mr-2" />
-                    Üretim Planı Oluştur
+                    {order.productionTracking
+                      ? "Üretim Planını Güncelle"
+                      : "Üretim Planı Oluştur"}
                   </Button>
                   <Button className="w-full" variant="outline">
                     <FileText className="w-4 h-4 mr-2" />
@@ -519,6 +1003,9 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
             open={productionPlanOpen}
             onOpenChange={setProductionPlanOpen}
             orderId={orderId}
+            customerDeadline={order.deadline}
+            quantity={order.quantity || undefined}
+            existingPlan={order.productionTracking || undefined}
             onSuccess={() => {
               refetchOrder({ requestPolicy: "network-only" });
             }}
