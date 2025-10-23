@@ -126,8 +126,6 @@ exports.Prisma.CompanyScalarFieldEnum = {
   email: 'email',
   phone: 'phone',
   address: 'address',
-  city: 'city',
-  country: 'country',
   location: 'location',
   website: 'website',
   type: 'type',
@@ -167,7 +165,9 @@ exports.Prisma.CompanyScalarFieldEnum = {
   defaultView: 'defaultView',
   enabledModules: 'enabledModules',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  city: 'city',
+  country: 'country'
 };
 
 exports.Prisma.MessageScalarFieldEnum = {
@@ -196,15 +196,15 @@ exports.Prisma.ProductionTrackingScalarFieldEnum = {
   actualStartDate: 'actualStartDate',
   actualEndDate: 'actualEndDate',
   notes: 'notes',
-  customerApprovalStatus: 'customerApprovalStatus',
-  customerApprovedAt: 'customerApprovedAt',
-  customerNote: 'customerNote',
-  revisionCount: 'revisionCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId',
   sewingWorkshopId: 'sewingWorkshopId',
-  packagingWorkshopId: 'packagingWorkshopId'
+  packagingWorkshopId: 'packagingWorkshopId',
+  customerApprovalStatus: 'customerApprovalStatus',
+  customerApprovedAt: 'customerApprovedAt',
+  customerNote: 'customerNote',
+  revisionCount: 'revisionCount'
 };
 
 exports.Prisma.RevisionScalarFieldEnum = {
@@ -240,20 +240,20 @@ exports.Prisma.UserScalarFieldEnum = {
   isActive: 'isActive',
   isPendingApproval: 'isPendingApproval',
   avatar: 'avatar',
-  customAvatar: 'customAvatar',
   bio: 'bio',
   socialLinks: 'socialLinks',
   emailNotifications: 'emailNotifications',
   pushNotifications: 'pushNotifications',
   language: 'language',
   timezone: 'timezone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   resetToken: 'resetToken',
   resetTokenExpiry: 'resetTokenExpiry',
-  emailVerified: 'emailVerified',
-  emailVerificationToken: 'emailVerificationToken',
   emailVerificationExpiry: 'emailVerificationExpiry',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  emailVerificationToken: 'emailVerificationToken',
+  emailVerified: 'emailVerified',
+  customAvatar: 'customAvatar'
 };
 
 exports.Prisma.StandardCategoryScalarFieldEnum = {
@@ -326,10 +326,7 @@ exports.Prisma.CollectionScalarFieldEnum = {
   techPack: 'techPack',
   moq: 'moq',
   targetPrice: 'targetPrice',
-  currency: 'currency',
   targetLeadTime: 'targetLeadTime',
-  deadline: 'deadline',
-  deadlineDays: 'deadlineDays',
   notes: 'notes',
   likesCount: 'likesCount',
   viewCount: 'viewCount',
@@ -345,7 +342,10 @@ exports.Prisma.CollectionScalarFieldEnum = {
   categoryId: 'categoryId',
   companyCategoryId: 'companyCategoryId',
   authorId: 'authorId',
-  companyId: 'companyId'
+  companyId: 'companyId',
+  currency: 'currency',
+  deadline: 'deadline',
+  deadlineDays: 'deadlineDays'
 };
 
 exports.Prisma.UserFavoriteCollectionScalarFieldEnum = {
@@ -588,7 +588,6 @@ exports.Prisma.LibraryItemScalarFieldEnum = {
   name: 'name',
   description: 'description',
   imageUrl: 'imageUrl',
-  iconValue: 'iconValue',
   data: 'data',
   tags: 'tags',
   internalCode: 'internalCode',
@@ -599,7 +598,8 @@ exports.Prisma.LibraryItemScalarFieldEnum = {
   standardItemId: 'standardItemId',
   createdById: 'createdById',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  iconValue: 'iconValue'
 };
 
 exports.Prisma.BillOfMaterialScalarFieldEnum = {
@@ -640,13 +640,13 @@ exports.Prisma.NotificationScalarFieldEnum = {
   message: 'message',
   link: 'link',
   isRead: 'isRead',
-  data: 'data',
   userId: 'userId',
   orderId: 'orderId',
   sampleId: 'sampleId',
   productionTrackingId: 'productionTrackingId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  data: 'data'
 };
 
 exports.Prisma.TaskScalarFieldEnum = {
@@ -818,8 +818,6 @@ exports.Prisma.CompanyOrderByRelevanceFieldEnum = {
   email: 'email',
   phone: 'phone',
   address: 'address',
-  city: 'city',
-  country: 'country',
   location: 'location',
   website: 'website',
   description: 'description',
@@ -829,7 +827,9 @@ exports.Prisma.CompanyOrderByRelevanceFieldEnum = {
   logo: 'logo',
   coverImage: 'coverImage',
   profileSlug: 'profileSlug',
-  defaultView: 'defaultView'
+  defaultView: 'defaultView',
+  city: 'city',
+  country: 'country'
 };
 
 exports.Prisma.MessageOrderByRelevanceFieldEnum = {
@@ -858,12 +858,12 @@ exports.Prisma.UserOrderByRelevanceFieldEnum = {
   phone: 'phone',
   jobTitle: 'jobTitle',
   avatar: 'avatar',
-  customAvatar: 'customAvatar',
   bio: 'bio',
   language: 'language',
   timezone: 'timezone',
   resetToken: 'resetToken',
-  emailVerificationToken: 'emailVerificationToken'
+  emailVerificationToken: 'emailVerificationToken',
+  customAvatar: 'customAvatar'
 };
 
 exports.Prisma.StandardCategoryOrderByRelevanceFieldEnum = {
@@ -902,10 +902,10 @@ exports.Prisma.CollectionOrderByRelevanceFieldEnum = {
   accessories: 'accessories',
   images: 'images',
   techPack: 'techPack',
-  currency: 'currency',
   notes: 'notes',
   sku: 'sku',
-  slug: 'slug'
+  slug: 'slug',
+  currency: 'currency'
 };
 
 exports.Prisma.SampleOrderByRelevanceFieldEnum = {
@@ -1011,9 +1011,9 @@ exports.Prisma.LibraryItemOrderByRelevanceFieldEnum = {
   name: 'name',
   description: 'description',
   imageUrl: 'imageUrl',
-  iconValue: 'iconValue',
   internalCode: 'internalCode',
-  notes: 'notes'
+  notes: 'notes',
+  iconValue: 'iconValue'
 };
 
 exports.Prisma.BillOfMaterialOrderByRelevanceFieldEnum = {
