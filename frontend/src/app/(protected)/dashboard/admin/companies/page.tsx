@@ -3,6 +3,7 @@
 import {
   AdminCompaniesListDocument,
   AdminCompanyDetailDocument,
+  AdminCreateCompanyDocument,
   AdminDeleteCompanyDocument,
   AdminToggleCompanyStatusDocument,
   AdminUpdateCompanyDocument,
@@ -210,6 +211,15 @@ export default function AdminCompaniesPage() {
             Platform genelindeki firmaları yönetin
           </p>
         </div>
+        <Button
+          onClick={() => {
+            setSelectedCompany(null);
+            setEditDialogOpen(true);
+          }}
+        >
+          <Building2 className="h-4 w-4 mr-2" />
+          Yeni Firma
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -517,10 +527,13 @@ function EditCompanyDialog({
   onSuccess: () => void;
 }) {
   const { decodeGlobalId } = useRelayIds();
+  const isCreateMode = !company;
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
+    type: "MANUFACTURER",
     description: "",
     website: "",
     address: "",
@@ -537,6 +550,7 @@ function EditCompanyDialog({
         name: company.name || "",
         email: company.email || "",
         phone: company.phone || "",
+        type: company.type || "MANUFACTURER",
         description: company.description || "",
         website: company.website || "",
         address: company.address || "",
@@ -545,43 +559,80 @@ function EditCompanyDialog({
         subscriptionPlan: company.subscriptionPlan || "FREE",
         subscriptionStatus: company.subscriptionStatus || "TRIAL",
       });
+    } else {
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        type: "MANUFACTURER",
+        description: "",
+        website: "",
+        address: "",
+        city: "",
+        country: "",
+        subscriptionPlan: "FREE",
+        subscriptionStatus: "TRIAL",
+      });
     }
   }, [company]);
 
-  // Mutation
+  // Mutations
   const [updateResult, updateCompany] = useMutation(AdminUpdateCompanyDocument);
+  const [createResult, createCompany] = useMutation(AdminCreateCompanyDocument);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!company) return;
 
-    const numericId = decodeGlobalId(company.id);
-    if (!numericId) {
-      toast.error("Geçersiz firma ID");
-      return;
-    }
+    if (isCreateMode) {
+      const result = await createCompany({
+        name: form.name,
+        email: form.email,
+        phone: form.phone || undefined,
+        type: form.type,
+      });
 
-    const result = await updateCompany({
-      id: numericId,
-      ...form,
-    });
+      if (result.data) {
+        toast.success("Firma başarıyla oluşturuldu");
+        onSuccess();
+      } else if (result.error) {
+        toast.error("Firma oluşturulurken hata oluştu");
+        console.error(result.error);
+      }
+    } else {
+      const numericId = decodeGlobalId(company.id);
+      if (!numericId) {
+        toast.error("Geçersiz firma ID");
+        return;
+      }
 
-    if (result.data) {
-      toast.success("Firma bilgileri güncellendi");
-      onSuccess();
-    } else if (result.error) {
-      toast.error("Firma güncellenirken hata oluştu");
-      console.error(result.error);
+      const result = await updateCompany({
+        id: numericId,
+        ...form,
+      });
+
+      if (result.data) {
+        toast.success("Firma bilgileri güncellendi");
+        onSuccess();
+      } else if (result.error) {
+        toast.error("Firma güncellenirken hata oluştu");
+        console.error(result.error);
+      }
     }
   };
+
+  const isLoading = updateResult.fetching || createResult.fetching;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Firma Düzenle</DialogTitle>
+          <DialogTitle>
+            {isCreateMode ? "Yeni Firma Ekle" : "Firma Düzenle"}
+          </DialogTitle>
           <DialogDescription>
-            {company?.name} firma bilgilerini güncelleyin
+            {isCreateMode
+              ? "Sisteme yeni firma ekleyin"
+              : `${company?.name} firma bilgilerini güncelleyin`}
           </DialogDescription>
         </DialogHeader>
 
@@ -621,108 +672,142 @@ function EditCompanyDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                value={form.website}
-                onChange={(e) => setForm({ ...form, website: e.target.value })}
-              />
+              <Label htmlFor="type">Firma Tipi *</Label>
+              <Select
+                value={form.type}
+                onValueChange={(value) => setForm({ ...form, type: value })}
+                disabled={!isCreateMode}
+              >
+                <SelectTrigger id="type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MANUFACTURER">Üretici</SelectItem>
+                  <SelectItem value="BUYER">Alıcı</SelectItem>
+                  <SelectItem value="BOTH">Her İkisi</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Açıklama</Label>
-            <Textarea
-              id="description"
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              rows={3}
-            />
-          </div>
-
-          {/* Address */}
-          <div className="space-y-2">
-            <Label htmlFor="address">Adres</Label>
-            <Input
-              id="address"
-              value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="city">Şehir</Label>
-              <Input
-                id="city"
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="country">Ülke</Label>
-              <Input
-                id="country"
-                value={form.country}
-                onChange={(e) => setForm({ ...form, country: e.target.value })}
-              />
-            </div>
-          </div>
-
-          {/* Subscription (Admin Only) */}
-          <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-            <h3 className="font-semibold text-sm">Abonelik Yönetimi (Admin)</h3>
-            <div className="grid grid-cols-2 gap-4">
+          {!isCreateMode && (
+            <>
               <div className="space-y-2">
-                <Label htmlFor="subscriptionPlan">Abonelik Planı</Label>
-                <Select
-                  value={form.subscriptionPlan}
-                  onValueChange={(value) =>
-                    setForm({ ...form, subscriptionPlan: value })
+                <Label htmlFor="website">Website</Label>
+                <Input
+                  id="website"
+                  value={form.website}
+                  onChange={(e) =>
+                    setForm({ ...form, website: e.target.value })
                   }
-                >
-                  <SelectTrigger id="subscriptionPlan">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="FREE">Free</SelectItem>
-                    <SelectItem value="STARTER">Starter</SelectItem>
-                    <SelectItem value="PROFESSIONAL">Professional</SelectItem>
-                    <SelectItem value="ENTERPRISE">Enterprise</SelectItem>
-                    <SelectItem value="CUSTOM">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="subscriptionStatus">Abonelik Durumu</Label>
-                <Select
-                  value={form.subscriptionStatus}
-                  onValueChange={(value) =>
-                    setForm({ ...form, subscriptionStatus: value })
+                <Label htmlFor="description">Açıklama</Label>
+                <Textarea
+                  id="description"
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm({ ...form, description: e.target.value })
                   }
-                >
-                  <SelectTrigger id="subscriptionStatus">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TRIAL">Trial (Deneme)</SelectItem>
-                    <SelectItem value="ACTIVE">Active (Aktif)</SelectItem>
-                    <SelectItem value="PAST_DUE">
-                      Past Due (Gecikmiş)
-                    </SelectItem>
-                    <SelectItem value="CANCELLED">Cancelled (İptal)</SelectItem>
-                    <SelectItem value="EXPIRED">
-                      Expired (Süresi Dolmuş)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                  rows={3}
+                />
               </div>
-            </div>
-          </div>
+
+              {/* Address */}
+              <div className="space-y-2">
+                <Label htmlFor="address">Adres</Label>
+                <Input
+                  id="address"
+                  value={form.address}
+                  onChange={(e) =>
+                    setForm({ ...form, address: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="city">Şehir</Label>
+                  <Input
+                    id="city"
+                    value={form.city}
+                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country">Ülke</Label>
+                  <Input
+                    id="country"
+                    value={form.country}
+                    onChange={(e) =>
+                      setForm({ ...form, country: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Subscription (Admin Only) */}
+              <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+                <h3 className="font-semibold text-sm">
+                  Abonelik Yönetimi (Admin)
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="subscriptionPlan">Abonelik Planı</Label>
+                    <Select
+                      value={form.subscriptionPlan}
+                      onValueChange={(value) =>
+                        setForm({ ...form, subscriptionPlan: value })
+                      }
+                    >
+                      <SelectTrigger id="subscriptionPlan">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="FREE">Free</SelectItem>
+                        <SelectItem value="STARTER">Starter</SelectItem>
+                        <SelectItem value="PROFESSIONAL">
+                          Professional
+                        </SelectItem>
+                        <SelectItem value="ENTERPRISE">Enterprise</SelectItem>
+                        <SelectItem value="CUSTOM">Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="subscriptionStatus">Abonelik Durumu</Label>
+                    <Select
+                      value={form.subscriptionStatus}
+                      onValueChange={(value) =>
+                        setForm({ ...form, subscriptionStatus: value })
+                      }
+                    >
+                      <SelectTrigger id="subscriptionStatus">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="TRIAL">Trial (Deneme)</SelectItem>
+                        <SelectItem value="ACTIVE">Active (Aktif)</SelectItem>
+                        <SelectItem value="PAST_DUE">
+                          Past Due (Gecikmiş)
+                        </SelectItem>
+                        <SelectItem value="CANCELLED">
+                          Cancelled (İptal)
+                        </SelectItem>
+                        <SelectItem value="EXPIRED">
+                          Expired (Süresi Dolmuş)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">
@@ -733,8 +818,12 @@ function EditCompanyDialog({
             >
               İptal
             </Button>
-            <Button type="submit" disabled={updateResult.fetching}>
-              {updateResult.fetching ? "Kaydediliyor..." : "Kaydet"}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading
+                ? "Kaydediliyor..."
+                : isCreateMode
+                ? "Firma Oluştur"
+                : "Güncelle"}
             </Button>
           </div>
         </form>

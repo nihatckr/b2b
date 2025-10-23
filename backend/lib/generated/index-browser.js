@@ -196,6 +196,10 @@ exports.Prisma.ProductionTrackingScalarFieldEnum = {
   actualStartDate: 'actualStartDate',
   actualEndDate: 'actualEndDate',
   notes: 'notes',
+  customerApprovalStatus: 'customerApprovalStatus',
+  customerApprovedAt: 'customerApprovedAt',
+  customerNote: 'customerNote',
+  revisionCount: 'revisionCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   companyId: 'companyId',
@@ -456,10 +460,31 @@ exports.Prisma.OrderScalarFieldEnum = {
   shippingDate: 'shippingDate',
   deliveryAddress: 'deliveryAddress',
   cargoTrackingNumber: 'cargoTrackingNumber',
+  negotiationStatus: 'negotiationStatus',
+  agreedPrice: 'agreedPrice',
+  agreedDays: 'agreedDays',
+  agreedAt: 'agreedAt',
+  agreedQuantity: 'agreedQuantity',
   collectionId: 'collectionId',
   customerId: 'customerId',
   manufactureId: 'manufactureId',
   companyId: 'companyId'
+};
+
+exports.Prisma.OrderNegotiationScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  senderId: 'senderId',
+  senderRole: 'senderRole',
+  unitPrice: 'unitPrice',
+  productionDays: 'productionDays',
+  quantity: 'quantity',
+  currency: 'currency',
+  message: 'message',
+  status: 'status',
+  respondedAt: 'respondedAt',
+  respondedBy: 'respondedBy',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.OrderProductionScalarFieldEnum = {
@@ -615,6 +640,7 @@ exports.Prisma.NotificationScalarFieldEnum = {
   message: 'message',
   link: 'link',
   isRead: 'isRead',
+  data: 'data',
   userId: 'userId',
   orderId: 'orderId',
   sampleId: 'sampleId',
@@ -812,7 +838,9 @@ exports.Prisma.MessageOrderByRelevanceFieldEnum = {
 };
 
 exports.Prisma.ProductionTrackingOrderByRelevanceFieldEnum = {
-  notes: 'notes'
+  notes: 'notes',
+  customerApprovalStatus: 'customerApprovalStatus',
+  customerNote: 'customerNote'
 };
 
 exports.Prisma.RevisionOrderByRelevanceFieldEnum = {
@@ -930,7 +958,15 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   customerQuoteNote: 'customerQuoteNote',
   customerQuoteType: 'customerQuoteType',
   deliveryAddress: 'deliveryAddress',
-  cargoTrackingNumber: 'cargoTrackingNumber'
+  cargoTrackingNumber: 'cargoTrackingNumber',
+  negotiationStatus: 'negotiationStatus'
+};
+
+exports.Prisma.OrderNegotiationOrderByRelevanceFieldEnum = {
+  senderRole: 'senderRole',
+  currency: 'currency',
+  message: 'message',
+  status: 'status'
 };
 
 exports.Prisma.OrderProductionOrderByRelevanceFieldEnum = {
@@ -1154,6 +1190,9 @@ exports.OrderStatus = exports.$Enums.OrderStatus = {
   CUSTOMER_QUOTE_SENT: 'CUSTOMER_QUOTE_SENT',
   MANUFACTURER_REVIEWING_QUOTE: 'MANUFACTURER_REVIEWING_QUOTE',
   CONFIRMED: 'CONFIRMED',
+  PRODUCTION_PLAN_SENT: 'PRODUCTION_PLAN_SENT',
+  PRODUCTION_PLAN_APPROVED: 'PRODUCTION_PLAN_APPROVED',
+  PRODUCTION_PLAN_REJECTED: 'PRODUCTION_PLAN_REJECTED',
   REJECTED: 'REJECTED',
   REJECTED_BY_CUSTOMER: 'REJECTED_BY_CUSTOMER',
   REJECTED_BY_MANUFACTURER: 'REJECTED_BY_MANUFACTURER',
@@ -1302,6 +1341,7 @@ exports.Prisma.ModelName = {
   AIAnalysis: 'AIAnalysis',
   SampleProduction: 'SampleProduction',
   Order: 'Order',
+  OrderNegotiation: 'OrderNegotiation',
   OrderProduction: 'OrderProduction',
   Question: 'Question',
   Review: 'Review',

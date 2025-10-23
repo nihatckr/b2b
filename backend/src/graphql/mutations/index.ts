@@ -11,6 +11,7 @@ import "./likeMutation";
 import "./messageMutation";
 import "./notificationMutation";
 import "./orderMutation";
+import "./orderNegotiationMutation";
 import "./productionMutation";
 import "./questionMutation";
 import "./reviewMutation";

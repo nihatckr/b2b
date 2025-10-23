@@ -380,22 +380,103 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
 
   CONFIRMED: {
     manufacturerTask: {
-      title: "🎉 Sipariş Onaylandı - Üretime Başlayın",
-      description: "Müşteri siparişi onayladı. Üretim planlaması yapmalısınız.",
+      title: "🎉 Sipariş Onaylandı - Üretim Planı Hazırlayın",
+      description: "Müşteri siparişi onayladı. 7 aşamalı üretim planı oluşturup müşteri onayına sunmalısınız.",
+      type: "PRODUCTION_STAGE",
+      priority: "HIGH",
+      dueDays: 1,
+      targetStatus: "PRODUCTION_PLAN_SENT",
+      actionData: {
+        requiresProductionPlan: true,
+        stages: 7,
+        nextStep: "create_production_plan",
+      },
+    },
+    customerTask: {
+      title: "✅ Siparişiniz Onaylandı",
+      description: "Sipariş onaylandı. Üretici üretim planı hazırlayacak ve sizin onayınıza sunacak.",
+      type: "NOTIFICATION",
+      priority: "MEDIUM",
+      dueDays: 3,
+      actionData: {
+        awaitingProductionPlan: true,
+      },
+    },
+  },
+
+  // === ÜRETİM PLANI ONAY SÜRECİ (YENİ) ===
+  PRODUCTION_PLAN_SENT: {
+    customerTask: {
+      title: "📋 Üretim Planı Onayı Bekliyor",
+      description: "Üretici 7 aşamalı üretim planını gönderdi. İnceleyip onaylamalı veya revize talep etmelisiniz.",
+      type: "APPROVE_REJECT",
+      priority: "HIGH",
+      dueDays: 2,
+      targetStatus: "PRODUCTION_PLAN_APPROVED",
+      actionData: {
+        actions: ["approve", "request_revision"],
+        productionPlanReview: true,
+      },
+    },
+    manufacturerTask: {
+      title: "⏳ Üretim Planı Onayı Bekleniyor",
+      description: "Üretim planınız müşteriye gönderildi. Onay bekleniyor.",
+      type: "STATUS_CHANGE",
+      priority: "MEDIUM",
+      dueDays: 3,
+      actionData: {
+        planSent: true,
+      },
+    },
+  },
+
+  PRODUCTION_PLAN_APPROVED: {
+    manufacturerTask: {
+      title: "🎉 Üretim Planı Onaylandı - Üretime Başlayın",
+      description: "Müşteri üretim planını onayladı. Plana göre üretime başlayabilirsiniz.",
       type: "PRODUCTION_STAGE",
       priority: "HIGH",
       dueDays: 1,
       targetStatus: "IN_PRODUCTION",
       actionData: {
-        requiresProductionPlan: true,
+        productionApproved: true,
+        startProduction: true,
       },
     },
     customerTask: {
-      title: "✅ Siparişiniz Onaylandı",
-      description: "Sipariş onaylandı. Üretim süreci başlayacak.",
+      title: "✅ Üretim Planı Onaylandı",
+      description: "Üretim planını onayladınız. Üretim başlayacak ve her aşamayı takip edebileceksiniz.",
       type: "NOTIFICATION",
       priority: "MEDIUM",
       dueDays: 7,
+      actionData: {
+        canTrackProduction: true,
+      },
+    },
+  },
+
+  PRODUCTION_PLAN_REJECTED: {
+    manufacturerTask: {
+      title: "🔄 Üretim Planı Revize Talebi",
+      description: "Müşteri üretim planında değişiklik talep etti. Planı güncelleyip tekrar göndermelisiniz.",
+      type: "PRODUCTION_STAGE",
+      priority: "HIGH",
+      dueDays: 1,
+      targetStatus: "PRODUCTION_PLAN_SENT",
+      actionData: {
+        revisionRequired: true,
+        updatePlan: true,
+      },
+    },
+    customerTask: {
+      title: "📝 Revize Talebiniz İletildi",
+      description: "Üretim planı revize talebiniz üreticiye iletildi. Güncellenmiş plan bekliyor.",
+      type: "STATUS_CHANGE",
+      priority: "MEDIUM",
+      dueDays: 3,
+      actionData: {
+        waitingForRevision: true,
+      },
     },
   },
 

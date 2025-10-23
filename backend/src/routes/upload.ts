@@ -216,6 +216,13 @@ router.post(
   upload.single("file"),
   async (req: Request, res: Response) => {
     try {
+      console.log("📤 Upload Request:", {
+        hasFile: !!req.file,
+        uploadType: req.query.type,
+        category: req.body.category,
+        mimetype: req.file?.mimetype,
+      });
+
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
@@ -223,6 +230,12 @@ router.post(
       const category = req.body.category || "general"; // collections, documents, etc.
       const uploadType = (req.query.type as string) || "logo"; // logo, cover, avatar
       const tempPath = req.file.path;
+
+      console.log("📂 Target directory calculation:", {
+        uploadType,
+        category,
+        tempPath,
+      });
       const isPdf = req.file.mimetype === "application/pdf";
       const isSvg = req.file.mimetype === "image/svg+xml";
       const isDocument =
@@ -285,6 +298,16 @@ router.post(
       const filename = `${uuidv4()}${ext}`;
       const outputPath = path.join(targetDir, filename);
 
+      console.log("💾 File processing:", {
+        targetDir,
+        filename,
+        outputPath,
+        isPdf,
+        isSvg,
+        isDocument,
+        isImage,
+      });
+
       if (isPdf || isDocument || isSvg) {
         // Just move document files and SVGs, no optimization
         await fs.rename(tempPath, outputPath);
@@ -298,7 +321,20 @@ router.post(
             : "logo";
 
         await optimizeImage(tempPath, outputPath, optimizeType);
-        await fs.unlink(tempPath);
+
+        // Wait a bit before unlinking (Sharp may still have file handle)
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        try {
+          await fs.unlink(tempPath);
+        } catch (unlinkError: any) {
+          // If file is still locked, log but don't fail the request
+          if (unlinkError.code === 'EBUSY' || unlinkError.code === 'EPERM') {
+            console.warn(`⚠️ Could not delete temp file (locked), will be cleaned up later: ${tempPath}`);
+          } else {
+            throw unlinkError;
+          }
+        }
       } else {
         // Just move other file types
         await fs.rename(tempPath, outputPath);
@@ -343,9 +379,14 @@ router.post(
       // Cleanup temp file on error
       if (req.file?.path) {
         try {
+          // Wait a bit before unlinking
+          await new Promise(resolve => setTimeout(resolve, 100));
           await fs.unlink(req.file.path);
-        } catch (cleanupError) {
-          console.error("Cleanup error:", cleanupError);
+        } catch (cleanupError: any) {
+          // Don't fail if file is locked
+          if (cleanupError.code !== 'EBUSY' && cleanupError.code !== 'EPERM') {
+            console.error("Cleanup error:", cleanupError);
+          }
         }
       }
 

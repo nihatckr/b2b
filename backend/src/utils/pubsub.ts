@@ -183,11 +183,14 @@ export interface NotificationPayload {
   title: string;
   message: string;
   type: string;
+  link?: string | null;
   isRead: boolean;
-  relatedEntityType?: string | null;
-  relatedEntityId?: number | null;
-  actionUrl?: string | null;
+  data?: any | null;
+  orderId?: number | null;
+  sampleId?: number | null;
+  productionTrackingId?: number | null;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface TaskPayload {

@@ -1,0 +1,57 @@
+# Order Negotiation Queries and Mutations
+
+# Get all negotiations for an order
+query OrderNegotiations($orderId: Int!) {
+  orderNegotiations(orderId: $orderId) {
+    id
+    orderId
+    senderId
+    senderRole
+    unitPrice
+    productionDays
+    quantity
+    currency
+    message
+    status
+    respondedAt
+    respondedBy
+    createdAt
+    sender {
+      id
+      name
+      email
+    }
+    responder {
+      id
+      name
+      email
+    }
+  }
+}
+
+# Send a new offer (customer or manufacturer)
+mutation SendOrderOffer($input: SendOrderOfferInput!) {
+  sendOrderOffer(input: $input) {
+    id
+    orderId
+    senderId
+    senderRole
+    unitPrice
+    productionDays
+    quantity
+    currency
+    message
+    status
+    createdAt
+  }
+}
+
+# Accept or reject an offer
+mutation RespondToOrderOffer($input: RespondToOfferInput!) {
+  respondToOrderOffer(input: $input) {
+    id
+    status
+    respondedAt
+    respondedBy
+  }
+}

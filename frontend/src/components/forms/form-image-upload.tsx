@@ -86,6 +86,14 @@ export function FormImageUpload({
   const uploadFile = async (file: File) => {
     setUploading(true);
     try {
+      console.log("🔍 Upload Debug:", {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        hasBackendToken: !!session?.user?.backendToken,
+        tokenPreview: session?.user?.backendToken?.substring(0, 20) + "...",
+        uploadType,
+      });
+
       if (!session?.user?.backendToken) {
         toast.error("Oturum bilgisi bulunamadı. Lütfen yeniden giriş yapın.");
         return;

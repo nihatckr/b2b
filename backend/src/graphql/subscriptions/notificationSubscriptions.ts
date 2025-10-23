@@ -17,11 +17,14 @@ const NotificationEvent = builder.objectRef<{
   title: string;
   message: string;
   type: string;
+  link?: string | null;
   isRead: boolean;
-  relatedEntityType?: string | null;
-  relatedEntityId?: number | null;
-  actionUrl?: string | null;
+  data?: any | null;
+  orderId?: number | null;
+  sampleId?: number | null;
+  productionTrackingId?: number | null;
   createdAt: Date;
+  updatedAt: Date;
 }>("NotificationEvent");
 
 NotificationEvent.implement({
@@ -31,11 +34,14 @@ NotificationEvent.implement({
     title: t.exposeString("title"),
     message: t.exposeString("message"),
     type: t.exposeString("type"),
+    link: t.exposeString("link", { nullable: true }),
     isRead: t.exposeBoolean("isRead"),
-    relatedEntityType: t.exposeString("relatedEntityType", { nullable: true }),
-    relatedEntityId: t.exposeInt("relatedEntityId", { nullable: true }),
-    actionUrl: t.exposeString("actionUrl", { nullable: true }),
+    data: t.expose("data", { type: "JSON", nullable: true }),
+    orderId: t.exposeInt("orderId", { nullable: true }),
+    sampleId: t.exposeInt("sampleId", { nullable: true }),
+    productionTrackingId: t.exposeInt("productionTrackingId", { nullable: true }),
     createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
 });
 

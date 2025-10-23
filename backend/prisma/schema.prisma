@@ -68,7 +68,7 @@ enum BillingCycle {
   YEARLY   // Yıllık
 }
 
- 
+
 enum Gender {
   WOMEN // Kadın
   MEN // Erkek
@@ -243,6 +243,12 @@ model ProductionTracking {
 
   notes String? @db.Text
 
+  // Customer Approval (Production Plan)
+  customerApprovalStatus String?   // null=not_sent, PENDING, APPROVED, REJECTED
+  customerApprovedAt     DateTime?
+  customerNote           String?   @db.Text
+  revisionCount          Int       @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -396,6 +402,10 @@ model User {
   // Unified Library Management (Admin)
   createdLibraryItems       LibraryItem[] @relation("LibraryItemCreator")
 
+  // Order Negotiations
+  sentNegotiations         OrderNegotiation[] @relation("SentNegotiations")
+  respondedNegotiations    OrderNegotiation[] @relation("RespondedNegotiations")
+
   @@index([email])
   @@index([username])
   @@index([companyId, role])
@@ -548,7 +558,7 @@ model Collection {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   name        String
-  description String?
+  description String?  @db.Text
 
   // ADIM 1: Temel Bilgiler
   modelCode String  @unique // THS-2024-00
@@ -594,8 +604,8 @@ model Collection {
   lastViewedAt DateTime? // Son görüntülenme zamanı
 
   // Legacy fields (backward compatibility)
-  price      Float   @default(0.00)  
-   
+  price      Float   @default(0.00)
+
   sku        String? @unique
   stock      Int     @default(0)
   isActive   Boolean @default(true)
@@ -838,6 +848,15 @@ model Order {
   deliveryAddress         String? // Teslimat adresi
   cargoTrackingNumber     String? // Kargo takip numarası
 
+  // ============================================
+  // PAZARLIK SİSTEMİ (Negotiation)
+  // ============================================
+  negotiationStatus String? @default("OPEN") // OPEN, AGREED, CLOSED
+  agreedPrice       Float? // Anlaşılan birim fiyat (USD/adet)
+  agreedDays        Int? // Anlaşılan üretim süresi (gün)
+  agreedAt          DateTime? // Anlaşma tarihi
+  agreedQuantity    Int? // Anlaşılan koleksiyon adeti (sipariş miktarı)
+
   collection         Collection           @relation(fields: [collectionId], references: [id])
   collectionId       Int
   customer           User                 @relation("CustomerOrders", fields: [customerId], references: [id])
@@ -858,6 +877,56 @@ model Order {
 
   // Notifications
   notifications Notification[] @relation("OrderNotifications")
+
+  // Pazarlık
+  negotiations OrderNegotiation[]
+
+  @@index([orderNumber])
+  @@index([status])
+  @@index([customerId, status])
+  @@index([manufactureId, status])
+  @@index([companyId, status, createdAt])
+  @@index([collectionId])
+  @@map("orders")
+}
+
+// ============================================
+// PAZARLIK SİSTEMİ (Order Negotiation)
+// ============================================
+model OrderNegotiation {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+
+  // Teklif veren
+  senderId  Int
+  senderRole String  // "CUSTOMER" veya "MANUFACTURER"
+
+  // Teklif detayları
+  unitPrice      Float   // Teklif edilen birim fiyat (USD/adet)
+  productionDays Int     // Teklif edilen üretim süresi (gün)
+  quantity       Int?    // Teklif edilen koleksiyon adeti (opsiyonel, değişiklik varsa)
+  currency       String  @default("USD")
+
+  // Mesaj
+  message   String?  @db.Text
+
+  // Durum
+  status    String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, SUPERSEDED
+
+  // Yanıt
+  respondedAt DateTime?
+  respondedBy Int?
+
+  createdAt DateTime @default(now())
+
+  // İlişkiler
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sender    User     @relation("SentNegotiations", fields: [senderId], references: [id])
+  responder User?    @relation("RespondedNegotiations", fields: [respondedBy], references: [id])
+
+  @@index([orderId, createdAt])
+  @@index([status])
+  @@map("order_negotiations")
 }
 
 // Sipariş üretim geçmişi takibi
@@ -959,6 +1028,9 @@ enum OrderStatus {
   CUSTOMER_QUOTE_SENT // Müşteri teklif gönderdi (standart veya revize)
   MANUFACTURER_REVIEWING_QUOTE // Üretici müşteri teklifini inceliyor
   CONFIRMED // Müşteri siparişi onayladı
+  PRODUCTION_PLAN_SENT // Üretici üretim planı gönderdi
+  PRODUCTION_PLAN_APPROVED // Müşteri üretim planını onayladı
+  PRODUCTION_PLAN_REJECTED // Müşteri üretim planını reddetti (revizyon gerekli)
   REJECTED // Sipariş reddedildi
   REJECTED_BY_CUSTOMER // Müşteri tarafından reddedildi
   REJECTED_BY_MANUFACTURER // Üretici tarafından reddedildi
@@ -1078,7 +1150,7 @@ model LibraryItem {
   id       Int            @id @default(autoincrement())
   scope    LibraryScope   @default(COMPANY_CUSTOM)
   category LibraryCategory
- 
+
   // Universal Fields (Her kategori için ortak)
   code        String?  @unique
   name        String   // i18n key or direct name (frontend handles translations)
@@ -1247,23 +1319,23 @@ model BillOfMaterial {
 
   // Manual component (if not from library)
   componentName String? // Custom component name if not using library item
-  
+
   // Consumption data
   consumption   Float   // Amount needed per unit
   unit         String  // "meters", "pieces", "hours", "kg"
   wastePercent Float   @default(0) // Waste/tolerance percentage
   placement    String? // "front", "back", "sleeve", "all"
-  
+
   // Supplier info
   supplier     String?
   supplierCode String?
-  
+
   // Timing
   leadTime     Int?    // Days needed to procure
-  
+
   // Additional notes
   notes        String? @db.Text
-  
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

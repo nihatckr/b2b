@@ -45,6 +45,10 @@ query BuyerOrderDetail($id: Int!) {
     deadline
     status
     notes
+    unitPrice
+    productionDays
+    manufacturerResponse
+    actualProductionStart
     createdAt
     updatedAt
     collection {
@@ -107,5 +111,57 @@ query BuyerOrderDetail($id: Int!) {
         country
       }
     }
+  }
+}
+
+# Customer sends counter offer
+mutation CustomerCounterOffer(
+  $id: Int!
+  $customerQuotedPrice: Float!
+  $customerQuoteDays: Int
+  $customerQuoteNote: String
+) {
+  updateOrder(
+    id: $id
+    customerQuotedPrice: $customerQuotedPrice
+    customerQuoteDays: $customerQuoteDays
+    customerQuoteNote: $customerQuoteNote
+    status: "CUSTOMER_NEGOTIATING"
+  ) {
+    id
+    orderNumber
+    status
+    customerQuotedPrice
+    customerQuoteDays
+    customerQuoteNote
+  }
+}
+
+# Customer accepts manufacturer quote
+mutation CustomerAcceptQuote($id: Int!) {
+  updateOrder(id: $id, status: "CONFIRMED") {
+    id
+    orderNumber
+    status
+  }
+}
+
+# Customer rejects manufacturer quote
+mutation CustomerRejectQuote($id: Int!) {
+  updateOrder(id: $id, status: "REJECTED") {
+    id
+    orderNumber
+    status
+  }
+}
+
+# Manufacturer accepts customer quote (direct acceptance)
+mutation ManufacturerAcceptCustomerQuote($orderId: Int!) {
+  manufacturerAcceptCustomerQuote(orderId: $orderId) {
+    id
+    orderNumber
+    status
+    unitPrice
+    productionDays
   }
 }

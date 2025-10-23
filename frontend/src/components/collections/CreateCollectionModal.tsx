@@ -2,6 +2,7 @@
 import {
   CollectionsCreateDocument,
   DashboardLibraryItemsDocument,
+  DashboardStandardCategoriesDocument,
 } from "@/__generated__/graphql";
 import { FormFileUpload, FormImageUpload } from "@/components/forms";
 import { Button } from "@/components/ui/button";
@@ -42,11 +43,12 @@ interface CollectionFormData {
   description: string;
   modelCode: string;
   trend: string;
-  categoryPath: string; // "WOMEN-ÜSTGIYIM-GÖMLEK" formatında
-  // Adım adım kategori seçimi
-  selectedGender: string; // "WOMEN", "MEN", "KIDS", etc.
-  selectedMainCategory: string; // "ÜSTGIYIM", "ALTGIYIM", etc.
-  selectedSubCategory: string; // "GÖMLEK", "PANTOLON", etc.
+  categoryPath: string; // "WOMEN-ÜSTGIYIM-GÖMLEK-UZUN_KOLLU" formatında
+  // Adım adım kategori seçimi (4 seviye)
+  selectedGender: string; // ROOT level: "WOMEN", "MEN", "KIDS", etc.
+  selectedMainCategory: string; // MAIN level: "ÜSTGIYIM", "ALTGIYIM", etc.
+  selectedSubCategory: string; // SUB level: "GÖMLEK", "PANTOLON", etc.
+  selectedDetailCategory: string; // DETAIL level: "UZUN_KOLLU", "KISA_KOLLU", etc.
   season: string;
   fit: string;
 
@@ -149,7 +151,34 @@ export function CreateCollectionModal({
   const [fabricSearch, setFabricSearch] = useState("");
   const [accessorySearch, setAccessorySearch] = useState("");
 
-  // Library Data Queries
+  // Form state - MUST be before queries that depend on it
+  const [formData, setFormData] = useState<CollectionFormData>({
+    name: "",
+    description: "",
+    modelCode: "",
+    trend: "",
+    categoryPath: "",
+    selectedGender: "",
+    selectedMainCategory: "",
+    selectedSubCategory: "",
+    selectedDetailCategory: "",
+    season: "",
+    fit: "",
+    colors: [],
+    sizeRange: "",
+    measurementChart: "",
+    fabrics: [],
+    accessories: [],
+    images: [],
+    techPack: "",
+    moq: 100,
+    price: 0,
+    currency: "USD",
+    deadlineDays: 30,
+    notes: "",
+  });
+
+  // Library Data Queries (after formData state)
   const [{ data: seasonsData }] = useQuery({
     query: DashboardLibraryItemsDocument,
     variables: { filter: { category: "SEASON" } },
@@ -180,29 +209,46 @@ export function CreateCollectionModal({
     variables: { filter: { category: "MATERIAL" } },
   });
 
-  const [formData, setFormData] = useState<CollectionFormData>({
-    name: "",
-    description: "",
-    modelCode: "",
-    trend: "",
-    categoryPath: "",
-    selectedGender: "",
-    selectedMainCategory: "",
-    selectedSubCategory: "",
-    season: "",
-    fit: "",
-    colors: [],
-    sizeRange: "",
-    measurementChart: "",
-    fabrics: [],
-    accessories: [],
-    images: [],
-    techPack: "",
-    moq: 100,
-    price: 0,
-    currency: "USD",
-    deadlineDays: 30,
-    notes: "",
+  // Standard Categories (Klasman - ROOT level = Gender: Kadın, Erkek, Çocuk)
+  const [{ data: genderCategoriesData }] = useQuery({
+    query: DashboardStandardCategoriesDocument,
+    variables: { level: "ROOT" },
+  });
+
+  // Main Categories (MAIN level = Ana kategoriler: Üst Giyim, Alt Giyim, etc.)
+  const [{ data: mainCategoriesData }] = useQuery({
+    query: DashboardStandardCategoriesDocument,
+    variables: {
+      level: "MAIN",
+      parentId: formData.selectedGender
+        ? parseInt(formData.selectedGender)
+        : undefined,
+    },
+    pause: !formData.selectedGender,
+  });
+
+  // Sub Categories (SUB level = Alt kategoriler: Gömlek, Pantolon, etc.)
+  const [{ data: subCategoriesData }] = useQuery({
+    query: DashboardStandardCategoriesDocument,
+    variables: {
+      level: "SUB",
+      parentId: formData.selectedMainCategory
+        ? parseInt(formData.selectedMainCategory)
+        : undefined,
+    },
+    pause: !formData.selectedMainCategory,
+  });
+
+  // Detail Categories (DETAIL level = Detay: Uzun Kollu, Kısa Kollu, etc.)
+  const [{ data: detailCategoriesData }] = useQuery({
+    query: DashboardStandardCategoriesDocument,
+    variables: {
+      level: "DETAIL",
+      parentId: formData.selectedSubCategory
+        ? parseInt(formData.selectedSubCategory)
+        : undefined,
+    },
+    pause: !formData.selectedSubCategory,
   });
 
   // Update form data when initialData changes (for edit mode)
@@ -233,6 +279,7 @@ export function CreateCollectionModal({
         selectedGender: initialData.gender || "",
         selectedMainCategory: "",
         selectedSubCategory: "",
+        selectedDetailCategory: "",
         season: initialData.season || "",
         fit: initialData.fit || "",
         colors: parseJsonSafely(initialData.colors),
@@ -296,68 +343,68 @@ export function CreateCollectionModal({
     }
   };
 
-  // Kategori verileri - Seed'den gelen yapıya uygun
-  const categoryData = {
-    WOMEN: {
-      name: "Kadın",
-      categories: {
-        "ÜST GİYİM": ["Bluz", "Gömlek", "Tişört", "Kazak", "Hırka"],
-        "ALT GİYİM": ["Pantolon", "Etek", "Şort", "Tayt"],
-        "DIŞ GİYİM": ["Mont", "Ceket", "Palto", "Yelek"],
-        ELBİSE: ["Günlük Elbise", "Kokteyl Elbise", "Gece Elbisesi"],
-        "İÇ GİYİM": ["Sütyem", "Külot", "Pijama", "Gecelik"],
-      },
-    },
-    MEN: {
-      name: "Erkek",
-      categories: {
-        "ÜST GİYİM": ["Gömlek", "Tişört", "Polo", "Kazak", "Sweatshirt"],
-        "ALT GİYİM": ["Pantolon", "Kot Pantolon", "Şort", "Eşofman Altı"],
-        "DIŞ GİYİM": ["Mont", "Ceket", "Palto", "Blazer"],
-        TAKIMI: ["Takım Elbise", "Smokin"],
-        "İÇ GİYİM": ["Atlet", "Boxer", "Pijama"],
-      },
-    },
-    KIDS: {
-      name: "Çocuk",
-      categories: {
-        "ÜST GİYİM": ["Tişört", "Gömlek", "Kazak", "Hırka"],
-        "ALT GİYİM": ["Pantolon", "Etek", "Şort", "Tayt"],
-        "DIŞ GİYİM": ["Mont", "Ceket", "Yelek"],
-        ELBİSE: ["Günlük Elbise", "Parti Elbisesi"],
-        TAKIMI: ["Eşofman Takımı", "Pijama Takımı"],
-      },
-    },
-  };
-
-  // Helper: Kategori yolu oluştur
+  // Helper: Kategori yolu oluştur (name kullanarak - 4 seviye)
   const updateCategoryPath = () => {
     if (
       formData.selectedGender &&
       formData.selectedMainCategory &&
       formData.selectedSubCategory
     ) {
-      const path = `${formData.selectedGender}-${formData.selectedMainCategory}-${formData.selectedSubCategory}`;
-      handleInputChange("categoryPath", path);
+      // ID'lerden name'leri bul
+      const genderName = genderCategoriesData?.standardCategories?.find(
+        (cat: any) => cat.id === formData.selectedGender
+      )?.name;
+      const mainName = mainCategoriesData?.standardCategories?.find(
+        (cat: any) => cat.id === formData.selectedMainCategory
+      )?.name;
+      const subName = subCategoriesData?.standardCategories?.find(
+        (cat: any) => cat.id === formData.selectedSubCategory
+      )?.name;
+
+      if (genderName && mainName && subName) {
+        // Detail category opsiyonel
+        if (formData.selectedDetailCategory) {
+          const detailName = detailCategoriesData?.standardCategories?.find(
+            (cat: any) => cat.id === formData.selectedDetailCategory
+          )?.name;
+          if (detailName) {
+            const path = `${genderName}-${mainName}-${subName}-${detailName}`;
+            handleInputChange("categoryPath", path);
+            return;
+          }
+        }
+
+        // Detail category yoksa 3 seviye
+        const path = `${genderName}-${mainName}-${subName}`;
+        handleInputChange("categoryPath", path);
+      }
     }
   };
 
   // Kategori seçimi değiştiğinde path'i güncelle
-  const handleGenderChange = (gender: string) => {
-    handleInputChange("selectedGender", gender);
+  const handleGenderChange = (genderId: string) => {
+    handleInputChange("selectedGender", genderId);
     handleInputChange("selectedMainCategory", "");
     handleInputChange("selectedSubCategory", "");
+    handleInputChange("selectedDetailCategory", "");
     handleInputChange("categoryPath", "");
   };
 
-  const handleMainCategoryChange = (mainCategory: string) => {
-    handleInputChange("selectedMainCategory", mainCategory);
+  const handleMainCategoryChange = (mainCategoryId: string) => {
+    handleInputChange("selectedMainCategory", mainCategoryId);
     handleInputChange("selectedSubCategory", "");
+    handleInputChange("selectedDetailCategory", "");
     setTimeout(updateCategoryPath, 0);
   };
 
-  const handleSubCategoryChange = (subCategory: string) => {
-    handleInputChange("selectedSubCategory", subCategory);
+  const handleSubCategoryChange = (subCategoryId: string) => {
+    handleInputChange("selectedSubCategory", subCategoryId);
+    handleInputChange("selectedDetailCategory", "");
+    setTimeout(updateCategoryPath, 0);
+  };
+
+  const handleDetailCategoryChange = (detailCategoryId: string) => {
+    handleInputChange("selectedDetailCategory", detailCategoryId);
     setTimeout(updateCategoryPath, 0);
   };
 
@@ -368,17 +415,13 @@ export function CreateCollectionModal({
       formData.selectedMainCategory &&
       formData.selectedSubCategory
     ) {
-      const path = `${formData.selectedGender}-${formData.selectedMainCategory}-${formData.selectedSubCategory}`;
-      if (path !== formData.categoryPath) {
-        handleInputChange("categoryPath", path);
-      }
+      updateCategoryPath();
     }
   }, [
     formData.selectedGender,
     formData.selectedMainCategory,
     formData.selectedSubCategory,
-    formData.categoryPath,
-    handleInputChange,
+    formData.selectedDetailCategory,
   ]);
 
   // Color Management // Color Management
@@ -469,18 +512,45 @@ export function CreateCollectionModal({
 
   const handleSubmit = async () => {
     try {
+      // Helper function to convert category name to Gender enum
+      const mapGenderCategoryToEnum = (
+        categoryName: string
+      ): "WOMEN" | "MEN" | "GIRLS" | "BOYS" | "UNISEX" | null => {
+        const mapping: Record<
+          string,
+          "WOMEN" | "MEN" | "GIRLS" | "BOYS" | "UNISEX"
+        > = {
+          KADIN: "WOMEN",
+          WOMEN: "WOMEN",
+          ERKEK: "MEN",
+          MEN: "MEN",
+          KIZ: "GIRLS",
+          "KIZ ÇOCUK": "GIRLS",
+          GIRLS: "GIRLS",
+          "ERKEK ÇOCUK": "BOYS",
+          BOYS: "BOYS",
+          UNISEX: "UNISEX",
+          UNİSEX: "UNISEX",
+        };
+
+        const upperName = categoryName.toUpperCase().trim();
+        return mapping[upperName] || null;
+      };
+
       // Edit mode - use onSubmit callback
       if (isEditMode && onSubmit) {
         const finalModelCode = formData.modelCode || `MODEL-${Date.now()}`;
+
+        const genderValue = formData.categoryPath
+          ? mapGenderCategoryToEnum(formData.categoryPath.split("-")[0])
+          : undefined;
 
         const submitData = {
           name: formData.name,
           description: formData.description || undefined,
           modelCode: finalModelCode,
           season: formData.season || undefined,
-          gender: formData.categoryPath
-            ? formData.categoryPath.split("-")[0]
-            : undefined,
+          gender: genderValue || undefined,
           fit: formData.fit || undefined,
           trend: formData.trend || undefined,
           colors:
@@ -515,19 +585,16 @@ export function CreateCollectionModal({
       // Create mode - use createCollection mutation
       const finalModelCode = formData.modelCode || `MODEL-${Date.now()}`;
 
+      const genderForCreate = formData.categoryPath
+        ? mapGenderCategoryToEnum(formData.categoryPath.split("-")[0])
+        : null;
+
       const result = await createCollection({
         name: formData.name,
         description: formData.description || null,
         modelCode: finalModelCode,
         season: formData.season || null,
-        gender: formData.categoryPath
-          ? (formData.categoryPath.split("-")[0] as
-              | "WOMEN"
-              | "MEN"
-              | "GIRLS"
-              | "BOYS"
-              | "UNISEX")
-          : null,
+        gender: genderForCreate,
         fit: formData.fit || null,
         trend: formData.trend || null,
         colors:
@@ -567,6 +634,7 @@ export function CreateCollectionModal({
         selectedGender: "",
         selectedMainCategory: "",
         selectedSubCategory: "",
+        selectedDetailCategory: "",
         season: "",
         fit: "",
         colors: [],
@@ -701,7 +769,11 @@ export function CreateCollectionModal({
                 }
                 placeholder="Koleksiyon hakkında açıklama..."
                 rows={3}
+                maxLength={5000}
               />
+              <p className="text-xs text-muted-foreground">
+                {formData.description.length}/5000 karakter
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -717,7 +789,7 @@ export function CreateCollectionModal({
             <div className="space-y-4">
               <Label>Klasman Seçimi</Label>
               <div className="flex flex-wrap gap-3">
-                {/* 1. Cinsiyet Seçimi - Her zaman görünür */}
+                {/* 1. Cinsiyet Seçimi (GENDER level) - Her zaman görünür */}
                 <div className="min-w-[200px]">
                   <Select
                     value={formData.selectedGender}
@@ -727,16 +799,36 @@ export function CreateCollectionModal({
                       <SelectValue placeholder="Cinsiyet seçin" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(categoryData).map(([key, value]) => (
-                        <SelectItem key={key} value={key}>
-                          {value.name}
-                        </SelectItem>
-                      ))}
+                      {(() => {
+                        const categories =
+                          genderCategoriesData?.standardCategories || [];
+                        console.log(
+                          "🔍 Gender Categories:",
+                          categories.map((g) => ({
+                            id: g.id,
+                            name: g.name,
+                            idType: typeof g.id,
+                            isEmpty: g.id === "",
+                            isNull: g.id === null,
+                            isUndefined: g.id === undefined,
+                          }))
+                        );
+
+                        return categories
+                          .filter(
+                            (gender: any) => gender.id && gender.id !== ""
+                          )
+                          .map((gender: any) => (
+                            <SelectItem key={gender.id} value={gender.id}>
+                              {gender.name}
+                            </SelectItem>
+                          ));
+                      })()}
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* 2. Ana Kategori Seçimi - Sadece cinsiyet seçilince görünür */}
+                {/* 2. Ana Kategori Seçimi (MAIN_CATEGORY level) - Sadece cinsiyet seçilince görünür */}
                 {formData.selectedGender && (
                   <div className="min-w-[200px]">
                     <Select
@@ -747,21 +839,21 @@ export function CreateCollectionModal({
                         <SelectValue placeholder="Ana kategori seçin" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.keys(
-                          categoryData[
-                            formData.selectedGender as keyof typeof categoryData
-                          ]?.categories || {}
-                        ).map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
+                        {mainCategoriesData?.standardCategories
+                          ?.filter(
+                            (category: any) => category.id && category.id !== ""
+                          )
+                          .map((category: any) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
                 )}
 
-                {/* 3. Alt Kategori Seçimi - Sadece ana kategori seçilince görünür */}
+                {/* 3. Alt Kategori Seçimi (SUB level) - Sadece ana kategori seçilince görünür */}
                 {formData.selectedGender && formData.selectedMainCategory && (
                   <div className="min-w-[200px]">
                     <Select
@@ -772,27 +864,54 @@ export function CreateCollectionModal({
                         <SelectValue placeholder="Alt kategori seçin" />
                       </SelectTrigger>
                       <SelectContent>
-                        {(() => {
-                          const genderData =
-                            categoryData[
-                              formData.selectedGender as keyof typeof categoryData
-                            ];
-                          const mainCategoryData =
-                            genderData?.categories[
-                              formData.selectedMainCategory as keyof typeof genderData.categories
-                            ];
-                          return mainCategoryData?.map(
-                            (subCategory: string) => (
-                              <SelectItem key={subCategory} value={subCategory}>
-                                {subCategory}
-                              </SelectItem>
-                            )
-                          );
-                        })()}
+                        {subCategoriesData?.standardCategories
+                          ?.filter(
+                            (subCategory: any) =>
+                              subCategory.id && subCategory.id !== ""
+                          )
+                          .map((subCategory: any) => (
+                            <SelectItem
+                              key={subCategory.id}
+                              value={subCategory.id}
+                            >
+                              {subCategory.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
                 )}
+
+                {/* 4. Detay Kategori Seçimi (DETAIL level) - Sadece alt kategori seçilince görünür (OPSIYONEL) */}
+                {formData.selectedGender &&
+                  formData.selectedMainCategory &&
+                  formData.selectedSubCategory && (
+                    <div className="min-w-[200px]">
+                      <Select
+                        value={formData.selectedDetailCategory}
+                        onValueChange={handleDetailCategoryChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Detay seçin (opsiyonel)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {detailCategoriesData?.standardCategories
+                            ?.filter(
+                              (detailCategory: any) =>
+                                detailCategory.id && detailCategory.id !== ""
+                            )
+                            .map((detailCategory: any) => (
+                              <SelectItem
+                                key={detailCategory.id}
+                                value={detailCategory.id}
+                              >
+                                {detailCategory.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
               </div>
 
               {/* Seçilen Kategori Yolu Gösterimi */}
@@ -817,11 +936,33 @@ export function CreateCollectionModal({
                     <SelectValue placeholder="Sezon seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
-                    {seasonsData?.libraryItems?.map((season) => (
-                      <SelectItem key={season.id} value={season.name || ""}>
-                        {season.name || "Unknown"}
-                      </SelectItem>
-                    ))}
+                    {(() => {
+                      const seasons = seasonsData?.libraryItems || [];
+                      console.log(
+                        "🔍 Seasons:",
+                        seasons.map((s) => ({
+                          id: s.id,
+                          name: s.name,
+                          nameType: typeof s.name,
+                          isEmpty: s.name === "",
+                          isNull: s.name === null,
+                          isUndefined: s.name === undefined,
+                        }))
+                      );
+
+                      return seasons
+                        .filter(
+                          (season: any) =>
+                            season.id != null &&
+                            season.name != null &&
+                            season.name !== ""
+                        )
+                        .map((season: any) => (
+                          <SelectItem key={season.id} value={season.name}>
+                            {season.name || "Unknown"}
+                          </SelectItem>
+                        ));
+                    })()}
                   </SelectContent>
                 </Select>
               </div>
@@ -836,11 +977,30 @@ export function CreateCollectionModal({
                     <SelectValue placeholder="Fit seçiniz" />
                   </SelectTrigger>
                   <SelectContent>
-                    {fitsData?.libraryItems?.map((fit) => (
-                      <SelectItem key={fit.id} value={fit.name || ""}>
-                        {fit.name || "Unknown"}
-                      </SelectItem>
-                    ))}
+                    {(() => {
+                      const fits = fitsData?.libraryItems || [];
+                      console.log(
+                        "🔍 Fits:",
+                        fits.map((f) => ({
+                          id: f.id,
+                          name: f.name,
+                          nameType: typeof f.name,
+                          isEmpty: f.name === "",
+                          isNull: f.name === null,
+                          isUndefined: f.name === undefined,
+                        }))
+                      );
+
+                      return fits
+                        .filter(
+                          (fit: any) => fit.id && fit.name && fit.name !== ""
+                        )
+                        .map((fit: any) => (
+                          <SelectItem key={fit.id} value={fit.name}>
+                            {fit.name || "Unknown"}
+                          </SelectItem>
+                        ));
+                    })()}
                   </SelectContent>
                 </Select>
               </div>
@@ -927,26 +1087,45 @@ export function CreateCollectionModal({
                   <SelectValue placeholder="Beden aralığı seçiniz" />
                 </SelectTrigger>
                 <SelectContent>
-                  {sizeGroupsData?.libraryItems?.map((sizeGroup) => {
-                    const sizesText = getSizesFromSizeGroup(sizeGroup);
-                    return (
-                      <SelectItem
-                        key={sizeGroup.id}
-                        value={sizeGroup.name || ""}
-                      >
-                        <div className="flex flex-col items-start">
-                          <span className="font-medium text-sm">
-                            {sizeGroup.name}
-                          </span>
-                          {sizesText && sizesText !== sizeGroup.name && (
-                            <span className="text-xs text-muted-foreground">
-                              {sizesText}
-                            </span>
-                          )}
-                        </div>
-                      </SelectItem>
+                  {(() => {
+                    const sizeGroups = sizeGroupsData?.libraryItems || [];
+                    console.log(
+                      "🔍 Size Groups:",
+                      sizeGroups.map((sg) => ({
+                        id: sg.id,
+                        name: sg.name,
+                        nameType: typeof sg.name,
+                        isEmpty: sg.name === "",
+                        isNull: sg.name === null,
+                        isUndefined: sg.name === undefined,
+                      }))
                     );
-                  })}
+
+                    return sizeGroups
+                      .filter(
+                        (sizeGroup: any) =>
+                          sizeGroup.id &&
+                          sizeGroup.name &&
+                          sizeGroup.name !== ""
+                      )
+                      .map((sizeGroup: any) => {
+                        const sizesText = getSizesFromSizeGroup(sizeGroup);
+                        return (
+                          <SelectItem key={sizeGroup.id} value={sizeGroup.name}>
+                            <div className="flex flex-col items-start">
+                              <span className="font-medium text-sm">
+                                {sizeGroup.name}
+                              </span>
+                              {sizesText && sizesText !== sizeGroup.name && (
+                                <span className="text-xs text-muted-foreground">
+                                  {sizesText}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        );
+                      });
+                  })()}
                 </SelectContent>
               </Select>
             </div>

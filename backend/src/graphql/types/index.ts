@@ -445,7 +445,7 @@ builder.prismaNode("Collection", {
 
     // Enhanced fabric composition with library details
     fabricDetails: t.field({
-      type: ["LibraryItem"],
+      type: [LibraryItem],
       nullable: true,
       resolve: async (parent, _args, context) => {
         if (!parent.fabricComposition) return null;
@@ -489,7 +489,7 @@ builder.prismaNode("Collection", {
 
     // Enhanced accessories with library details
     accessoryDetails: t.field({
-      type: ["LibraryItem"],
+      type: [LibraryItem],
       nullable: true,
       resolve: async (parent, _args, context) => {
         if (!parent.accessories) return null;
@@ -732,9 +732,17 @@ builder.prismaObject("Message", {
 builder.prismaObject("Notification", {
   fields: (t) => ({
     id: t.exposeID("id"),
+    type: t.exposeString("type"),
+    title: t.exposeString("title"),
     message: t.exposeString("message"),
+    link: t.exposeString("link", { nullable: true }),
     isRead: t.exposeBoolean("isRead"),
+    data: t.expose("data", { type: "JSON", nullable: true }),
+    orderId: t.exposeInt("orderId", { nullable: true }),
+    sampleId: t.exposeInt("sampleId", { nullable: true }),
+    productionTrackingId: t.exposeInt("productionTrackingId", { nullable: true }),
     createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
 });
 
@@ -766,7 +774,7 @@ builder.prismaObject("Review", {
 // ========================================
 
 // Unified LibraryItem Type
-builder.prismaObject("LibraryItem", {
+const LibraryItem = builder.prismaObject("LibraryItem", {
   fields: (t) => ({
     id: t.exposeID("id"),
     scope: t.exposeString("scope"), // LibraryScope enum

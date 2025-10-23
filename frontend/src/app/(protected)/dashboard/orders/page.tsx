@@ -1,12 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "urql";
 import { BuyerOrdersDocument } from "@/__generated__/graphql";
-import { useSession } from "next-auth/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -23,17 +20,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Search,
-  Package,
-  Eye,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
-import Link from "next/link";
+import { ChevronLeft, ChevronRight, Eye, Package, Search } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import { useQuery } from "urql";
 
 const statusColors = {
   PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -79,7 +73,7 @@ export default function OrdersPage() {
   });
 
   const orders = data?.orders || [];
-  const isBuyer = session?.user?.company?.type === "BUYER";
+  const isBuyer = session?.user?.companyType === "BUYER";
 
   const getOrderStatusBadge = (status: string) => {
     const colorClass =
@@ -122,10 +116,10 @@ export default function OrdersPage() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold  ">
           {isBuyer ? "Siparişlerim" : "Gelen Siparişler"}
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className=" ">
           {isBuyer
             ? "Verdiğiniz siparişleri takip edin"
             : "Gelen siparişleri yönetin"}
@@ -180,7 +174,10 @@ export default function OrdersPage() {
           {fetching ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse flex items-center space-x-4 py-4 border-b">
+                <div
+                  key={i}
+                  className="animate-pulse flex items-center space-x-4 py-4 border-b"
+                >
                   <div className="h-4 bg-gray-200 rounded w-24"></div>
                   <div className="h-4 bg-gray-200 rounded w-32"></div>
                   <div className="h-4 bg-gray-200 rounded w-20"></div>
@@ -219,16 +216,24 @@ export default function OrdersPage() {
                     <TableHead className="w-[120px]">Sipariş No</TableHead>
                     <TableHead>Koleksiyon</TableHead>
                     <TableHead className="w-[100px]">Durum</TableHead>
-                    <TableHead className="w-[80px] text-right">Miktar</TableHead>
-                    <TableHead className="w-[120px] text-right">Hedef Fiyat</TableHead>
-                    <TableHead className="w-[120px]">{isBuyer ? "Üretici" : "Müşteri"}</TableHead>
+                    <TableHead className="w-[80px] text-right">
+                      Miktar
+                    </TableHead>
+                    <TableHead className="w-[120px] text-right">
+                      Hedef Fiyat
+                    </TableHead>
+                    <TableHead className="w-[120px]">
+                      {isBuyer ? "Üretici" : "Müşteri"}
+                    </TableHead>
                     <TableHead className="w-[100px]">Tarih</TableHead>
-                    <TableHead className="w-[80px] text-center">İşlemler</TableHead>
+                    <TableHead className="w-[80px] text-center">
+                      İşlemler
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {orders.map((order) => (
-                    <TableRow key={order.id} className="hover:bg-gray-50">
+                    <TableRow key={order.id} className="hover:neutral-700">
                       <TableCell className="font-medium">
                         {order.orderNumber}
                       </TableCell>
@@ -238,7 +243,7 @@ export default function OrdersPage() {
                             JSON.parse(order.collection.images)[0] && (
                               <Image
                                 src={JSON.parse(order.collection.images)[0]}
-                                alt={order.collection.name}
+                                alt={order.collection.name || "Koleksiyon"}
                                 width={32}
                                 height={32}
                                 className="w-8 h-8 rounded object-cover"
@@ -255,7 +260,7 @@ export default function OrdersPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {getOrderStatusBadge(order.status)}
+                        {getOrderStatusBadge(order.status || "PENDING")}
                       </TableCell>
                       <TableCell className="text-right">
                         {order.quantity?.toLocaleString()}

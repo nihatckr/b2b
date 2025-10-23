@@ -1,30 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { CreateOrderDocument } from "@/__generated__/graphql";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, Package, DollarSign, FileText } from "lucide-react";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
-import { useMutation } from "urql";
-import { CreateOrderDocument } from "@/__generated__/graphql";
-import { useRouter } from "next/navigation";
+import { Textarea } from "@/components/ui/textarea";
 import { useRelayIds } from "@/hooks/useRelayIds";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon, DollarSign, FileText, Package } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useMutation } from "urql";
 
 interface AddToPOModalProps {
   open: boolean;
@@ -66,15 +67,24 @@ export function AddToPOModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!collection?.id) {
+      toast.error("Koleksiyon bulunamadı");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Call the GraphQL mutation
-      const result = await createOrderMutation({
+      // Create order with initial negotiation (backend handles everything)
+      const decodedId = decodeGlobalId(collection.id);
+      if (!decodedId) {
+        throw new Error("Invalid collection ID");
+      }
+
+      const orderResult = await createOrderMutation({
         input: {
-          collectionId: collection?.id
-            ? decodeGlobalId(collection.id).toString()
-            : "",
+          collectionId: decodedId.toString(),
           quantity,
           targetDeadline: targetDeadline?.toISOString(),
           targetPrice: targetPrice ? parseFloat(targetPrice) : undefined,
@@ -83,12 +93,22 @@ export function AddToPOModal({
         },
       });
 
-      if (result.error) {
-        throw new Error(result.error.message);
+      if (orderResult.error) {
+        throw new Error(orderResult.error.message);
       }
 
-      // Success - redirect to orders page
-      router.push(`/dashboard/orders?orderId=${result.data?.createOrder?.id}`);
+      const createdOrder = orderResult.data?.createOrder;
+      if (!createdOrder?.id) {
+        throw new Error("Order could not be created");
+      }
+
+      // Success notification
+      toast.success("✅ Siparişiniz İletildi!", {
+        description: "Üretici en kısa sürede size geri dönüş yapacaktır.",
+      });
+
+      // Redirect to order detail page
+      router.push(`/dashboard/orders/${createdOrder.id}`);
 
       // Reset form
       setQuantity(1);
@@ -100,7 +120,9 @@ export function AddToPOModal({
       onOpenChange(false);
     } catch (error) {
       console.error("Error creating order:", error);
-      // Here you could show a toast notification or error message
+      toast.error("Sipariş Oluşturulamadı", {
+        description: error instanceof Error ? error.message : "Bir hata oluştu",
+      });
     } finally {
       setIsSubmitting(false);
     }

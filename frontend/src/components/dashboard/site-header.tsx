@@ -60,7 +60,7 @@ export function SiteHeader({ user, navItems = [] }: SideHeaderProps) {
   const pageTitle = getPageTitle(pathname);
 
   const handleLogout = async () => {
-    await signOut({ redirect: true, callbackUrl: "/" });
+    await signOut({ redirect: true, callbackUrl: "/auth/login" });
   };
 
   // Generate breadcrumb items based on current path

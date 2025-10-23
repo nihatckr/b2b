@@ -11,9 +11,10 @@ subscription NotificationOnNewNotification {
     message
     type
     isRead
-    relatedEntityType
-    relatedEntityId
-    actionUrl
+    link
+    orderId
+    sampleId
+    productionTrackingId
     createdAt
   }
 }

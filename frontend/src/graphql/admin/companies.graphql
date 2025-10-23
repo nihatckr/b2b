@@ -175,3 +175,21 @@ mutation AdminToggleCompanyStatus($id: Int!) {
 mutation AdminDeleteCompany($id: Int!, $hardDelete: Boolean) {
   deleteCompany(id: $id, hardDelete: $hardDelete)
 }
+
+# Create new company (admin only)
+mutation AdminCreateCompany(
+  $name: String!
+  $email: String!
+  $phone: String
+  $type: String!
+) {
+  createCompany(name: $name, email: $email, phone: $phone, type: $type) {
+    id
+    name
+    email
+    type
+    phone
+    isActive
+    createdAt
+  }
+}

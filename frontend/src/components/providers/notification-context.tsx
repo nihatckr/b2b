@@ -224,20 +224,30 @@ export function NotificationProvider({
           message: notification.message || "",
         });
 
-        // Show toast only for important notifications (error/warning)
-        // For others, just update bell icon badge silently
+        // Show toast notification with action if link exists
+        const toastOptions = {
+          description: notification.message || "",
+          duration: 5000,
+          action: notification.link
+            ? {
+                label: "Görüntüle",
+                onClick: () => {
+                  window.location.href = notification.link!;
+                },
+              }
+            : undefined,
+        };
+
+        // Show toast for all notification types
         if (toastType === "error") {
-          toast.error(notification.title || "Notification", {
-            description: notification.message || "",
-            duration: 5000,
-          });
+          toast.error(notification.title || "Notification", toastOptions);
         } else if (toastType === "warning") {
-          toast.warning(notification.title || "Notification", {
-            description: notification.message || "",
-            duration: 4000,
-          });
+          toast.warning(notification.title || "Notification", toastOptions);
+        } else if (toastType === "success") {
+          toast.success(notification.title || "Notification", toastOptions);
+        } else {
+          toast.info(notification.title || "Notification", toastOptions);
         }
-        // Success and info notifications only show in bell icon
       }
       return data;
     }

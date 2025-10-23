@@ -1,4 +1,5 @@
 import { DynamicTaskHelper } from "../../utils/dynamicTaskHelper";
+import { publishNotification } from "../../utils/publishHelpers";
 import builder from "../builder";
 
 // Create Order input type
@@ -128,21 +129,24 @@ builder.mutationField("createOrder", (t) =>
       // Generate unique order number
       const orderNumber = `ORD-${Date.now()}-${collection.id}`;
 
-      // Create the order
+      // Create the order with CUSTOMER_QUOTE_SENT status (müşteri teklif gönderdi)
       const order = await prisma.order.create({
         data: {
           orderNumber,
           collectionId: collection.id,
           customerId: user.id,
           manufactureId: manufacturerId,
-          companyId: user.companyId,
+          companyId: user.companyId ?? null,
           quantity: input.quantity,
           unitPrice: input.targetPrice || 0,
           totalPrice: (input.targetPrice || 0) * input.quantity,
-          customerQuotedPrice: input.targetPrice,
-          customerQuoteNote: input.notes,
+          customerQuotedPrice: input.targetPrice ?? null,
+          customerQuoteNote: input.notes ?? null,
           customerQuoteSentAt: new Date(),
-          status: "PENDING",
+          status: "CUSTOMER_QUOTE_SENT", // Müşteri teklif gönderdi
+          negotiationStatus: "OPEN", // Pazarlık açık
+          currency: input.currency || "USD",
+          deadline: input.targetDeadline ? new Date(input.targetDeadline) : null,
         },
         include: {
           collection: true,
@@ -152,31 +156,65 @@ builder.mutationField("createOrder", (t) =>
         },
       });
 
+      // Create initial negotiation record (müşterinin ilk teklifi)
+      await prisma.orderNegotiation.create({
+        data: {
+          orderId: order.id,
+          senderId: user.id,
+          senderRole: "CUSTOMER",
+          unitPrice: input.targetPrice || 0,
+          productionDays: 30, // Default, üretici güncelleyecek
+          quantity: input.quantity,
+          currency: input.currency || "USD",
+          message: input.notes || "İlk sipariş teklifi",
+          status: "PENDING",
+        },
+      });
+
       // Initialize Dynamic Task Helper
       const taskHelper = new DynamicTaskHelper(prisma);
 
-      // Create tasks for ORDER status change
+      // Create tasks for CUSTOMER_QUOTE_SENT status
       await taskHelper.createTasksForOrderStatus(
         order.id,
-        "PENDING",
+        "CUSTOMER_QUOTE_SENT", // Müşteri teklif gönderdi
         user.id, // customer
-        collection.company.ownerId // manufacturer
+        manufacturerId! // manufacturer
       );
 
-      // Create notification for manufacturer (in addition to dynamic tasks)
-
-      await prisma.notification.create({
+      // Create notifications
+      // 1. Müşteriye: Siparişiniz oluşturuldu (bilgilendirme)
+      const customerNotification = await prisma.notification.create({
         data: {
-          userId: manufacturerId!,
+          userId: user.id,
           type: "ORDER",
-          title: "New Order Created",
-          message: `A new order (${order.orderNumber}) has been created for your collection "${collection.name}".`,
+          title: "✅ Sipariş Talebiniz Oluşturuldu",
+          message: `Sipariş talebiniz (${order.orderNumber}) başarıyla oluşturuldu. Üreticinin teklifini bekliyorsunuz.`,
+          orderId: order.id,
           link: `/dashboard/orders/${order.id}`,
         },
       });
 
+      // Publish to WebSocket subscribers
+      await publishNotification(customerNotification);
+
+      // 2. Üreticiye: Yeni sipariş talebi aldınız
+      const manufacturerNotification = await prisma.notification.create({
+        data: {
+          userId: manufacturerId!,
+          type: "ORDER",
+          title: "🆕 Yeni Sipariş Talebi Aldınız",
+          message: `${userWithCompany.name} firmasından yeni sipariş talebi! Sipariş No: ${order.orderNumber}, Adet: ${input.quantity}. Lütfen teklif verin.`,
+          orderId: order.id,
+          link: `/dashboard/orders/${order.id}`,
+        },
+      });
+
+      // Publish to WebSocket subscribers
+      await publishNotification(manufacturerNotification);
+
       console.log(
-        `✅ Notification created for manufacturer (User ID: ${manufacturerId})`
+        `✅ Order created with negotiation. Notifications sent to customer and manufacturer.`
       );
 
       return order;
@@ -371,6 +409,176 @@ builder.mutationField("deleteOrder", (t) =>
         where: { id: args.id },
       });
       return true;
+    },
+  })
+);
+
+// Customer Counter Offer
+builder.mutationField("customerCounterOffer", (t) =>
+  t.prismaField({
+    type: "Order",
+    args: {
+      orderId: t.arg.int({ required: true }),
+      quotedPrice: t.arg.float({ required: true }),
+      quoteDays: t.arg.int({ required: true }),
+      quoteNote: t.arg.string(),
+    },
+    authScopes: { user: true },
+    resolve: async (query, _root, args, context) => {
+      const user = context.user!;
+
+      // Get order
+      const order = await context.prisma.order.findUnique({
+        where: { id: args.orderId },
+        include: {
+          customer: true,
+          manufacture: true,
+        },
+      });
+
+      if (!order) throw new Error("Order not found");
+
+      // Only customer can send counter offer
+      if (order.customerId !== user.id) {
+        throw new Error("Only the customer can send a counter offer");
+      }
+
+      // Order must be in QUOTE_SENT status
+      if (order.status !== "QUOTE_SENT") {
+        throw new Error(
+          "Counter offer can only be sent when manufacturer has sent a quote"
+        );
+      }
+
+      // Update order with customer's counter offer
+      const updatedOrder = await context.prisma.order.update({
+        ...query,
+        where: { id: args.orderId },
+        data: {
+          customerQuotedPrice: args.quotedPrice,
+          customerQuoteDays: args.quoteDays,
+          customerQuoteNote: args.quoteNote || null,
+          status: "CUSTOMER_QUOTE_SENT", // Using existing status for negotiation
+        },
+      });
+
+      // Notification to manufacturer
+      const manufacturerNotification = await context.prisma.notification.create(
+        {
+          data: {
+            userId: order.manufactureId,
+            type: "ORDER",
+            title: "💬 Karşı Teklif Aldınız",
+            message: `${order.customer?.name || "Müşteri"} karşı teklif gönderdi. Sipariş No: ${order.orderNumber}. Teklif: $${args.quotedPrice} - ${args.quoteDays} gün`,
+            orderId: order.id,
+            link: `/dashboard/orders/${order.id}`,
+          },
+        }
+      );
+
+      await publishNotification(manufacturerNotification);
+
+      // Notification to customer (confirmation)
+      const customerNotification = await context.prisma.notification.create({
+        data: {
+          userId: user.id,
+          type: "ORDER",
+          title: "✅ Karşı Teklifiniz Gönderildi",
+          message: `Karşı teklifiniz (${order.orderNumber}) üreticiye iletildi. Yanıt bekleniyor.`,
+          orderId: order.id,
+          link: `/dashboard/orders/${order.id}`,
+        },
+      });
+
+      await publishNotification(customerNotification);
+
+      console.log(`✅ Customer counter offer sent for order ${order.orderNumber}`);
+
+      return updatedOrder;
+    },
+  })
+);
+
+// Manufacturer Accept Customer Quote
+builder.mutationField("manufacturerAcceptCustomerQuote", (t) =>
+  t.prismaField({
+    type: "Order",
+    args: {
+      orderId: t.arg.int({ required: true }),
+    },
+    authScopes: { user: true },
+    resolve: async (query, _root, args, context) => {
+      const user = context.user!;
+
+      // Get order
+      const order = await context.prisma.order.findUnique({
+        where: { id: args.orderId },
+        include: {
+          customer: true,
+          collection: {
+            include: {
+              company: true,
+            },
+          },
+        },
+      });
+
+      if (!order) throw new Error("Order not found");
+
+      // Only manufacturer can accept
+      if (order.collection.companyId !== user.companyId) {
+        throw new Error("Only the manufacturer can accept this quote");
+      }
+
+      // Order must be in CUSTOMER_QUOTE_SENT status
+      if (order.status !== "CUSTOMER_QUOTE_SENT") {
+        throw new Error(
+          "Can only accept when customer has sent their quote"
+        );
+      }
+
+      // Update order - accept customer's quote
+      const updatedOrder = await context.prisma.order.update({
+        ...query,
+        where: { id: args.orderId },
+        data: {
+          status: "CONFIRMED",
+          unitPrice: order.customerQuotedPrice || order.unitPrice,
+          productionDays: order.customerQuoteDays || order.productionDays,
+        },
+      });
+
+      // Notification to customer
+      const customerNotification = await context.prisma.notification.create({
+        data: {
+          userId: order.customerId,
+          type: "ORDER",
+          title: "✅ Teklifiniz Kabul Edildi",
+          message: `${order.collection.company?.name || "Üretici"} teklifinizi kabul etti! Sipariş No: ${order.orderNumber}`,
+          orderId: order.id,
+          link: `/dashboard/orders/${order.id}`,
+        },
+      });
+
+      await publishNotification(customerNotification);
+
+      // Notification to manufacturer (confirmation)
+      const manufacturerNotification = await context.prisma.notification.create({
+        data: {
+          userId: user.id,
+          type: "ORDER",
+          title: "✅ Sipariş Onaylandı",
+          message: `${order.orderNumber} numaralı sipariş onaylandı. Üretim başlatılabilir.`,
+          orderId: order.id,
+          link: `/dashboard/orders/${order.id}`,
+        },
+      });
+
+      await publishNotification(manufacturerNotification);
+
+      console.log(`✅ Manufacturer accepted customer quote for order ${order.orderNumber}`);
+
+      return updatedOrder;
     },
   })
 );

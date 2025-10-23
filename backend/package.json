@@ -1,5 +1,5 @@
 {
-  "name": "@fullstack/backend-refactoring",
+  "name": "@fullstack/backend",
   "$schema": "https://json.schemastore.org/package.json",
   "version": "1.0.0",
   "description": "Refactoring and backup area for main backend system",
@@ -12,6 +12,7 @@
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
     "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:seed:full": "tsx prisma/seed.ts",
     "prisma:migrate": "prisma migrate dev",
     "prisma:reset": "prisma migrate reset --force",
     "db:reset": "prisma migrate reset --force && prisma generate && npm run prisma:seed",

@@ -53,7 +53,7 @@ export const Navbar = () => {
                   <Button
                     variant="ghost"
                     className="text-slate-300 hover:text-white"
-                    onClick={() => signOut()}
+                    onClick={() => signOut({ callbackUrl: "/auth/login" })}
                   >
                     Çıkış
                   </Button>
@@ -116,7 +116,7 @@ export const Navbar = () => {
                     variant="outline"
                     className="w-full border-slate-600"
                     onClick={() => {
-                      signOut();
+                      signOut({ callbackUrl: "/auth/login" });
                       setIsOpen(false);
                     }}
                   >
