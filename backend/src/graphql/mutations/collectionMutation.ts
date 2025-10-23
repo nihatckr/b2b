@@ -142,8 +142,15 @@ builder.mutationField("createCollection", (t) =>
       if (
         args.fabricComposition !== null &&
         args.fabricComposition !== undefined
-      )
+      ) {
+        // Validate fabricComposition length to prevent database errors
+        if (args.fabricComposition.length > 10000) {
+          throw new Error(
+            "Fabric composition data is too large. Please reduce the amount of fabric information."
+          );
+        }
         data.fabricComposition = args.fabricComposition;
+      }
       if (args.accessories !== null && args.accessories !== undefined)
         data.accessories = args.accessories;
       if (args.techPack !== null && args.techPack !== undefined)
@@ -320,8 +327,15 @@ builder.mutationField("updateCollection", (t) =>
       if (
         args.fabricComposition !== null &&
         args.fabricComposition !== undefined
-      )
+      ) {
+        // Validate fabricComposition length to prevent database errors
+        if (args.fabricComposition.length > 10000) {
+          throw new Error(
+            "Fabric composition data is too large. Please reduce the amount of fabric information."
+          );
+        }
         updateData.fabricComposition = args.fabricComposition;
+      }
       if (args.accessories !== null && args.accessories !== undefined)
         updateData.accessories = args.accessories;
       if (args.techPack !== null && args.techPack !== undefined)
@@ -491,14 +505,15 @@ builder.mutationField("toggleCollectionLike", (t) =>
       if (!collection) throw new Error("Collection not found");
 
       // Check if user already liked this collection
-      const existingLike = await context.prisma.userFavoriteCollection.findUnique({
-        where: {
-          userId_collectionId: {
-            userId: context.user.id,
-            collectionId: args.id,
+      const existingLike =
+        await context.prisma.userFavoriteCollection.findUnique({
+          where: {
+            userId_collectionId: {
+              userId: context.user.id,
+              collectionId: args.id,
+            },
           },
-        },
-      });
+        });
 
       if (existingLike) {
         // Unlike - remove favorite record and decrement count
@@ -510,7 +525,7 @@ builder.mutationField("toggleCollectionLike", (t) =>
             },
           },
         });
-        
+
         await context.prisma.collection.update({
           where: { id: args.id },
           data: {
@@ -525,7 +540,7 @@ builder.mutationField("toggleCollectionLike", (t) =>
             collectionId: args.id,
           },
         });
-        
+
         await context.prisma.collection.update({
           where: { id: args.id },
           data: {

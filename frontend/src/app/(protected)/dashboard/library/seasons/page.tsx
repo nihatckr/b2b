@@ -46,6 +46,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
+import { toTurkishDate } from "../../../../../lib/date-utils";
 
 // Type alias for library item from query responses
 type LibraryItemType = NonNullable<
@@ -733,17 +734,13 @@ export default function SeasonsPage() {
                     <h4 className="font-semibold text-muted-foreground mb-1">
                       Created
                     </h4>
-                    <p>
-                      {new Date(selectedItem.createdAt).toLocaleDateString()}
-                    </p>
+                    <p>{toTurkishDate(selectedItem.createdAt)}</p>
                   </div>
                   <div>
                     <h4 className="font-semibold text-muted-foreground mb-1">
                       Updated
                     </h4>
-                    <p>
-                      {new Date(selectedItem.updatedAt).toLocaleDateString()}
-                    </p>
+                    <p>{toTurkishDate(selectedItem.updatedAt)}</p>
                   </div>
                 </div>
               </div>

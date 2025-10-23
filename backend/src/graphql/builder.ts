@@ -1,9 +1,9 @@
 import SchemaBuilder from "@pothos/core";
-import DataloaderPlugin from '@pothos/plugin-dataloader';
+import DataloaderPlugin from "@pothos/plugin-dataloader";
 import PrismaPlugin from "@pothos/plugin-prisma";
 import RelayPlugin from "@pothos/plugin-relay";
 import ScopeAuthPlugin from "@pothos/plugin-scope-auth";
-import ValidationPlugin from '@pothos/plugin-validation';
+import ValidationPlugin from "@pothos/plugin-validation";
 import { DateResolver, JSONResolver } from "graphql-scalars";
 import type { YogaInitialContext } from "graphql-yoga";
 import type PrismaTypes from "../../lib/pothos-prisma-types"; // path to generated types, specified in your prisma.schema
@@ -50,7 +50,13 @@ export const builder = new SchemaBuilder<{
     };
   };
 }>({
-  plugins: [ScopeAuthPlugin, PrismaPlugin, RelayPlugin, DataloaderPlugin, ValidationPlugin],
+  plugins: [
+    ScopeAuthPlugin,
+    PrismaPlugin,
+    RelayPlugin,
+    DataloaderPlugin,
+    ValidationPlugin,
+  ],
   prisma: {
     client: prisma,
     dmmf: getDatamodel(),
@@ -73,7 +79,47 @@ export const builder = new SchemaBuilder<{
 });
 
 builder.addScalarType("JSON", JSONResolver);
-builder.addScalarType("DateTime", DateResolver);
+
+// Custom DateTime resolver to ensure full ISO string serialization
+builder.scalarType("DateTime", {
+  serialize: (value: any) => {
+    console.log("🔍 DateTime serialize:", {
+      value,
+      type: typeof value,
+      constructor: value?.constructor?.name,
+    });
+    if (!value) return null;
+    if (value instanceof Date) {
+      const result = value.toISOString();
+      console.log("🔍 DateTime serialize result:", result);
+      return result; // Always return full ISO string with time
+    }
+    if (typeof value === "string" || typeof value === "number") {
+      const result = new Date(value).toISOString();
+      console.log("🔍 DateTime serialize result (from string/number):", result);
+      return result;
+    }
+    const result = new Date(value).toISOString();
+    console.log("🔍 DateTime serialize result (fallback):", result);
+    return result;
+  },
+  parseValue: (value: any): Date => {
+    console.log("🔍 DateTime parseValue:", { value, type: typeof value });
+    if (!value) throw new Error("Date value is required");
+    try {
+      const date = new Date(value);
+      if (isNaN(date.getTime())) {
+        throw new Error(`Invalid date: ${value}`);
+      }
+      console.log("🔍 DateTime parseValue result:", date);
+      return date;
+    } catch (error) {
+      console.error("🔍 DateTime parseValue error:", error);
+      throw new Error(`Date cannot represent an invalid date-string ${value}.`);
+    }
+  },
+  parseLiteral: DateResolver.parseLiteral,
+});
 
 // File scalar for GraphQL Yoga v5 (WHATWG File API)
 // GraphQL Yoga automatically handles File type with multipart/form-data
@@ -85,7 +131,7 @@ builder.scalarType("File", {
   parseValue: (value) => {
     // GraphQL Yoga provides WHATWG File objects automatically
     // Just pass through the value
-    if (value && typeof value === 'object') {
+    if (value && typeof value === "object") {
       console.log("🔍 [File Scalar parseValue]:", {
         hasValue: !!value,
         type: typeof value,

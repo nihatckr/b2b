@@ -111,6 +111,33 @@ query BuyerOrderDetail($id: Int!) {
         country
       }
     }
+    productionTracking {
+      id
+      currentStage
+      overallStatus
+      progress
+      estimatedStartDate
+      estimatedEndDate
+      actualStartDate
+      actualEndDate
+      notes
+      customerApprovalStatus
+      customerApprovedAt
+      customerNote
+      revisionCount
+      stageUpdates {
+        id
+        stage
+        status
+        actualStartDate
+        actualEndDate
+        estimatedDays
+        notes
+        extraDays
+        isRevision
+        delayReason
+      }
+    }
   }
 }
 
@@ -163,5 +190,82 @@ mutation ManufacturerAcceptCustomerQuote($orderId: Int!) {
     status
     unitPrice
     productionDays
+  }
+}
+
+# Create Production Plan
+mutation CreateProductionPlan(
+  $orderId: Int!
+  $stagesJson: String!
+  $estimatedStartDate: DateTime
+  $notes: String
+) {
+  createProductionPlan(
+    orderId: $orderId
+    stagesJson: $stagesJson
+    estimatedStartDate: $estimatedStartDate
+    notes: $notes
+  ) {
+    id
+    currentStage
+    overallStatus
+    progress
+    estimatedStartDate
+    estimatedEndDate
+    notes
+    customerApprovalStatus
+  }
+}
+
+# Update Production Plan
+mutation UpdateProductionPlan(
+  $productionId: Int!
+  $stagesJson: String!
+  $notes: String
+) {
+  updateProductionPlan(
+    productionId: $productionId
+    stagesJson: $stagesJson
+    notes: $notes
+  ) {
+    id
+    currentStage
+    overallStatus
+    progress
+    estimatedStartDate
+    estimatedEndDate
+    notes
+    customerApprovalStatus
+    revisionCount
+  }
+}
+
+# Send Production Plan for Customer Approval
+mutation SendProductionPlanForApproval($productionId: Int!) {
+  sendProductionPlanForApproval(productionId: $productionId) {
+    id
+    customerApprovalStatus
+    currentStage
+    overallStatus
+  }
+}
+
+# Customer Response to Production Plan
+mutation RespondToProductionPlan(
+  $productionId: Int!
+  $approved: Boolean!
+  $customerNote: String
+) {
+  respondToProductionPlan(
+    productionId: $productionId
+    approved: $approved
+    customerNote: $customerNote
+  ) {
+    id
+    customerApprovalStatus
+    customerApprovedAt
+    customerNote
+    currentStage
+    overallStatus
   }
 }

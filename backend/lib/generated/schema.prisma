@@ -229,7 +229,7 @@ model Message {
 
 model ProductionTracking {
   id       Int  @id @default(autoincrement())
-  orderId  Int?
+  orderId  Int? @unique // Her sipariş için tek plan
   sampleId Int?
 
   currentStage  ProductionStage  @default(PLANNING)
@@ -244,10 +244,10 @@ model ProductionTracking {
   notes String? @db.Text
 
   // Customer Approval (Production Plan)
-  customerApprovalStatus String? // null=not_sent, PENDING, APPROVED, REJECTED
+  customerApprovalStatus ApprovalStatus @default(DRAFT) // Plan approval workflow
   customerApprovedAt     DateTime?
-  customerNote           String?   @db.Text
-  revisionCount          Int       @default(0)
+  customerNote           String?        @db.Text
+  revisionCount          Int            @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -558,7 +558,7 @@ model Collection {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   name        String
-  description String?
+  description String?  @db.Text
 
   // ADIM 1: Temel Bilgiler
   modelCode String  @unique // THS-2024-00
@@ -575,7 +575,7 @@ model Collection {
   measurementChart String? // File path: /uploads/measurements/xxx.pdf
 
   // ADIM 3: Teknik Detaylar
-  fabricComposition String? // "%100 Cotton" veya "80% Cotton 20% Polyester"
+  fabricComposition String? @db.Text // "%100 Cotton" veya "80% Cotton 20% Polyester" - TEXT tipi uzun açıklamalar için
   accessories       String? @db.Text // JSON: {"buttons": "metal", "zipper": "YKK", "labels": "woven"}
   images            String? @db.Text // JSON array: ["/uploads/products/img1.jpg", ...] or ["https://..."]
   techPack          String? // File path: /uploads/techpacks/xxx.pdf
@@ -857,14 +857,14 @@ model Order {
   agreedAt          DateTime? // Anlaşma tarihi
   agreedQuantity    Int? // Anlaşılan koleksiyon adeti (sipariş miktarı)
 
-  collection         Collection           @relation(fields: [collectionId], references: [id])
+  collection         Collection          @relation(fields: [collectionId], references: [id])
   collectionId       Int
-  customer           User                 @relation("CustomerOrders", fields: [customerId], references: [id])
+  customer           User                @relation("CustomerOrders", fields: [customerId], references: [id])
   customerId         Int
-  manufacture        User                 @relation("ManufactureOrders", fields: [manufactureId], references: [id])
+  manufacture        User                @relation("ManufactureOrders", fields: [manufactureId], references: [id])
   manufactureId      Int
   productionHistory  OrderProduction[] // Üretim süreç takibi
-  productionTracking ProductionTracking[]
+  productionTracking ProductionTracking? // Her sipariş için tek üretim planı
   revisions          Revision[]
   messages           Message[] // Sipariş bazlı mesajlaşma
 
@@ -1378,12 +1378,13 @@ model ProductionRevision {
 // Production Enums
 enum ProductionStage {
   PLANNING
-  FABRIC
-  CUTTING
-  SEWING
-  QUALITY
-  PACKAGING
-  SHIPPING
+  FABRIC // Kumaş Tedarik
+  CUTTING // Kesim  
+  SEWING // Dikim
+  PRESSING // Ütü ve Pres
+  QUALITY // Kalite Kontrol
+  PACKAGING // Paketleme
+  SHIPPING // Sevkiyat Hazırlık
 }
 
 enum StageStatus {
@@ -1400,6 +1401,14 @@ enum ProductionStatus {
   BLOCKED
   COMPLETED
   CANCELLED
+}
+
+enum ApprovalStatus {
+  DRAFT // Üretici henüz hazırlıyor
+  PENDING // Müşteri onayı bekleniyor
+  APPROVED // Müşteri onayladı
+  REJECTED // Müşteri reddetti
+  REVISION // Revizyon gerekiyor
 }
 
 enum QualityResult {

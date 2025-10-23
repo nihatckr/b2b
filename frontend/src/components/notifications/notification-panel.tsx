@@ -20,8 +20,7 @@ import { useNotifications } from "@/components/providers/notification-context";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { formatDistanceToNow } from "date-fns";
-import { tr } from "date-fns/locale";
+import { toRelativeTime } from "@/lib/date-utils";
 import {
   AlertCircle,
   Bell,
@@ -164,10 +163,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                     </p>
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(notification.timestamp, {
-                          addSuffix: true,
-                          locale: tr,
-                        })}
+                        {toRelativeTime(notification.timestamp)}
                       </span>
                       <Button
                         variant="ghost"

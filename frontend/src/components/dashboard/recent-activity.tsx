@@ -1,7 +1,6 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
-import { tr } from "date-fns/locale";
+import { toRelativeTime } from "@/lib/date-utils";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -41,7 +40,9 @@ const getActivityIcon = (type: string): string => {
   }
 };
 
-const getStatusColor = (status?: string): "default" | "secondary" | "outline" => {
+const getStatusColor = (
+  status?: string
+): "default" | "secondary" | "outline" => {
   if (!status) return "default";
 
   const statusLower = status.toLowerCase();
@@ -116,10 +117,7 @@ export function RecentActivity({ activities, loading }: RecentActivityProps) {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(activity.timestamp), {
-                      addSuffix: true,
-                      locale: tr,
-                    })}
+                    {toRelativeTime(activity.timestamp)}
                   </p>
                 </div>
               </div>

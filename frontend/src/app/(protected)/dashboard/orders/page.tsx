@@ -20,8 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDistanceToNow } from "date-fns";
-import { tr } from "date-fns/locale";
+import { toRelativeTime } from "@/lib/date-utils";
 import { ChevronLeft, ChevronRight, Eye, Package, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -279,10 +278,7 @@ export default function OrdersPage() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {formatDistanceToNow(new Date(order.createdAt), {
-                            addSuffix: true,
-                            locale: tr,
-                          })}
+                          {toRelativeTime(order.createdAt)}
                         </div>
                       </TableCell>
                       <TableCell className="text-center">

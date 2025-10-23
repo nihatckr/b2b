@@ -64,6 +64,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useRelayIds } from "@/hooks/useRelayIds";
+import { toRelativeTime } from "@/lib/date-utils";
 import {
   filterUsers,
   getDepartmentLabel,
@@ -71,8 +72,6 @@ import {
   isCompanyRole,
   validateUserForm,
 } from "@/lib/user-utils";
-import { formatDistanceToNow } from "date-fns";
-import { tr } from "date-fns/locale";
 import {
   AlertCircle,
   Building2,
@@ -532,10 +531,7 @@ export default function AdminUsersPage() {
                       </TableCell>
                       <TableCell>
                         <span className="text-sm">
-                          {formatDistanceToNow(new Date(user.createdAt), {
-                            addSuffix: true,
-                            locale: tr,
-                          })}
+                          {toRelativeTime(user.createdAt)}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">

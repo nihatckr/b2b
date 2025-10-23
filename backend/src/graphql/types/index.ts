@@ -411,6 +411,7 @@ builder.prismaNode("Order", {
     manufacturerId: t.exposeInt("manufactureId"), // Alias for manufacturerId
     company: t.relation("company", { nullable: true }),
     companyId: t.exposeInt("companyId", { nullable: true }),
+    productionTracking: t.relation("productionTracking", { nullable: true }),
 
     createdAt: t.expose("createdAt", { type: "DateTime" }),
     updatedAt: t.expose("updatedAt", { type: "DateTime" }),
@@ -740,7 +741,9 @@ builder.prismaObject("Notification", {
     data: t.expose("data", { type: "JSON", nullable: true }),
     orderId: t.exposeInt("orderId", { nullable: true }),
     sampleId: t.exposeInt("sampleId", { nullable: true }),
-    productionTrackingId: t.exposeInt("productionTrackingId", { nullable: true }),
+    productionTrackingId: t.exposeInt("productionTrackingId", {
+      nullable: true,
+    }),
     createdAt: t.expose("createdAt", { type: "DateTime" }),
     updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
@@ -859,10 +862,20 @@ builder.prismaObject("ProductionStageUpdate", {
   fields: (t) => ({
     id: t.exposeID("id"),
     stage: t.exposeString("stage"),
-    notes: t.exposeString("notes"),
     status: t.exposeString("status"),
+    actualStartDate: t.expose("actualStartDate", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    actualEndDate: t.expose("actualEndDate", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    estimatedDays: t.exposeInt("estimatedDays", { nullable: true }),
+    notes: t.exposeString("notes", { nullable: true }),
     extraDays: t.exposeInt("extraDays"),
     isRevision: t.exposeBoolean("isRevision"),
+    delayReason: t.exposeString("delayReason", { nullable: true }),
     createdAt: t.expose("createdAt", { type: "DateTime" }),
     updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
@@ -889,7 +902,33 @@ builder.prismaObject("ProductionTracking", {
     currentStage: t.exposeString("currentStage"),
     overallStatus: t.exposeString("overallStatus"),
     progress: t.exposeInt("progress"),
-    notes: t.exposeString("notes"),
+    estimatedStartDate: t.expose("estimatedStartDate", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    estimatedEndDate: t.expose("estimatedEndDate", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    actualStartDate: t.expose("actualStartDate", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    actualEndDate: t.expose("actualEndDate", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    notes: t.exposeString("notes", { nullable: true }),
+    customerApprovalStatus: t.exposeString("customerApprovalStatus", {
+      nullable: true,
+    }),
+    customerApprovedAt: t.expose("customerApprovedAt", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    customerNote: t.exposeString("customerNote", { nullable: true }),
+    revisionCount: t.exposeInt("revisionCount"),
+    stageUpdates: t.relation("stageUpdates"),
     createdAt: t.expose("createdAt", { type: "DateTime" }),
     updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),

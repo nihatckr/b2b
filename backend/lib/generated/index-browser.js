@@ -839,7 +839,6 @@ exports.Prisma.MessageOrderByRelevanceFieldEnum = {
 
 exports.Prisma.ProductionTrackingOrderByRelevanceFieldEnum = {
   notes: 'notes',
-  customerApprovalStatus: 'customerApprovalStatus',
   customerNote: 'customerNote'
 };
 
@@ -1099,6 +1098,7 @@ exports.ProductionStage = exports.$Enums.ProductionStage = {
   FABRIC: 'FABRIC',
   CUTTING: 'CUTTING',
   SEWING: 'SEWING',
+  PRESSING: 'PRESSING',
   QUALITY: 'QUALITY',
   PACKAGING: 'PACKAGING',
   SHIPPING: 'SHIPPING'
@@ -1110,6 +1110,14 @@ exports.ProductionStatus = exports.$Enums.ProductionStatus = {
   BLOCKED: 'BLOCKED',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED'
+};
+
+exports.ApprovalStatus = exports.$Enums.ApprovalStatus = {
+  DRAFT: 'DRAFT',
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  REVISION: 'REVISION'
 };
 
 exports.Role = exports.$Enums.Role = {

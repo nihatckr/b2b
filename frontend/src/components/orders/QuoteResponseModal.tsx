@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation } from "urql";
 import {
   AcceptQuoteDocument,
   RejectQuoteDocument,
 } from "@/__generated__/graphql";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,17 +12,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  CheckCircle,
-  XCircle,
-  DollarSign,
   Calendar,
+  CheckCircle,
+  DollarSign,
   FileText,
+  XCircle,
 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { useMutation } from "urql";
 
 interface QuoteResponseModalProps {
   open: boolean;
@@ -135,7 +135,7 @@ export function QuoteResponseModal({
 
         <div className="space-y-4">
           {/* Quote Details */}
-          <div className="bg-blue-50 p-4 rounded-lg space-y-3">
+          <div className=" p-4 rounded-lg space-y-3">
             <h4 className="font-medium text-blue-900">Gelen Teklif</h4>
 
             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -203,7 +203,7 @@ export function QuoteResponseModal({
           {/* Accept Form */}
           {action === "accept" && (
             <div className="space-y-4">
-              <div className="bg-green-50 p-3 rounded-lg">
+              <div className=" p-3 rounded-lg">
                 <p className="text-green-800 font-medium">Teklifi Kabul Et</p>
                 <p className="text-green-700 text-sm">
                   Bu teklifi kabul ettiğinizde üretim süreci başlayacaktır.

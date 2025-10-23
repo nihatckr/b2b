@@ -194,7 +194,13 @@ export function CreateCollectionModal({
     variables: { filter: { category: "COLOR" } },
   });
 
-  const [{ data: sizeGroupsData }] = useQuery({
+  const [
+    {
+      data: sizeGroupsData,
+      fetching: sizeGroupsLoading,
+      error: sizeGroupsError,
+    },
+  ] = useQuery({
     query: DashboardLibraryItemsDocument,
     variables: { filter: { category: "SIZE_GROUP" } },
   });
@@ -319,24 +325,27 @@ export function CreateCollectionModal({
           : sizeGroup.data;
       })();
 
-      // sizes array'i varsa
-      if (
-        data &&
-        typeof data === "object" &&
-        "sizes" in data &&
-        Array.isArray(data.sizes)
-      ) {
-        const sizeValues = data.sizes
-          .map(
-            (sizeItem: { value?: string; name?: string }) =>
-              sizeItem.value || sizeItem.name
-          )
-          .filter(Boolean)
-          .join(", ");
-        return sizeValues || sizeGroup.name || "";
+      // sizes field'ı varsa (string veya array olabilir)
+      if (data && typeof data === "object" && "sizes" in data) {
+        // String ise direkt döndür
+        if (typeof data.sizes === "string") {
+          return data.sizes || sizeGroup.name || "";
+        }
+
+        // Array ise işle
+        if (Array.isArray(data.sizes)) {
+          const sizeValues = data.sizes
+            .map(
+              (sizeItem: { value?: string; name?: string }) =>
+                sizeItem.value || sizeItem.name
+            )
+            .filter(Boolean)
+            .join(", ");
+          return sizeValues || sizeGroup.name || "";
+        }
       }
 
-      // sizes array'i yoksa name'i döndür
+      // sizes field'ı yoksa name'i döndür
       return sizeGroup.name || "";
     } catch {
       return sizeGroup.name || "";
@@ -560,7 +569,15 @@ export function CreateCollectionModal({
           sizeRange: formData.sizeRange || undefined,
           fabricComposition:
             formData.fabrics.length > 0
-              ? JSON.stringify(formData.fabrics)
+              ? (() => {
+                  const fabricJson = JSON.stringify(formData.fabrics);
+                  if (fabricJson.length > 10000) {
+                    throw new Error(
+                      "Fabric composition data is too large. Please reduce the amount of fabric information."
+                    );
+                  }
+                  return fabricJson;
+                })()
               : undefined,
           accessories:
             formData.accessories.length > 0
@@ -601,7 +618,17 @@ export function CreateCollectionModal({
           formData.colors.length > 0 ? JSON.stringify(formData.colors) : null,
         sizeRange: formData.sizeRange || null,
         fabricComposition:
-          formData.fabrics.length > 0 ? JSON.stringify(formData.fabrics) : null,
+          formData.fabrics.length > 0
+            ? (() => {
+                const fabricJson = JSON.stringify(formData.fabrics);
+                if (fabricJson.length > 10000) {
+                  throw new Error(
+                    "Fabric composition data is too large. Please reduce the amount of fabric information."
+                  );
+                }
+                return fabricJson;
+              })()
+            : null,
         accessories:
           formData.accessories.length > 0
             ? JSON.stringify(formData.accessories)
@@ -1088,12 +1115,31 @@ export function CreateCollectionModal({
                 </SelectTrigger>
                 <SelectContent>
                   {(() => {
+                    if (sizeGroupsLoading) {
+                      return (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Yükleniyor...
+                        </div>
+                      );
+                    }
+
+                    if (sizeGroupsError) {
+                      return (
+                        <div className="p-2 text-sm text-red-500">
+                          Hata: {sizeGroupsError.message}
+                        </div>
+                      );
+                    }
+
                     const sizeGroups = sizeGroupsData?.libraryItems || [];
+                    console.log("🔍 Size Groups Data:", sizeGroupsData);
+                    console.log("🔍 Size Groups Array:", sizeGroups);
                     console.log(
-                      "🔍 Size Groups:",
+                      "🔍 Size Groups Details:",
                       sizeGroups.map((sg) => ({
                         id: sg.id,
                         name: sg.name,
+                        data: sg.data,
                         nameType: typeof sg.name,
                         isEmpty: sg.name === "",
                         isNull: sg.name === null,
@@ -1101,30 +1147,61 @@ export function CreateCollectionModal({
                       }))
                     );
 
-                    return sizeGroups
-                      .filter(
-                        (sizeGroup: any) =>
-                          sizeGroup.id &&
-                          sizeGroup.name &&
-                          sizeGroup.name !== ""
-                      )
-                      .map((sizeGroup: any) => {
+                    if (sizeGroups.length === 0) {
+                      return (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          Beden grubu bulunamadı
+                        </div>
+                      );
+                    }
+
+                    const filteredSizeGroups = sizeGroups.filter(
+                      (sizeGroup: any) => {
+                        const hasId = sizeGroup.id;
+                        const hasName = sizeGroup.name && sizeGroup.name !== "";
                         const sizesText = getSizesFromSizeGroup(sizeGroup);
-                        return (
-                          <SelectItem key={sizeGroup.id} value={sizeGroup.name}>
-                            <div className="flex flex-col items-start">
-                              <span className="font-medium text-sm">
-                                {sizeGroup.name}
-                              </span>
-                              {sizesText && sizesText !== sizeGroup.name && (
-                                <span className="text-xs text-muted-foreground">
-                                  {sizesText}
-                                </span>
-                              )}
-                            </div>
-                          </SelectItem>
+                        const hasSizes = sizesText && sizesText.trim() !== "";
+                        console.log(
+                          `🔍 Size Group ${sizeGroup.id}: hasId=${hasId}, hasName=${hasName}, name="${sizeGroup.name}", sizesText="${sizesText}", hasSizes=${hasSizes}`
                         );
-                      });
+                        // ID varsa ve ya name var ya da data'dan sizes çıkarılabiliyorsa kabul et
+                        return hasId && (hasName || hasSizes);
+                      }
+                    );
+
+                    console.log(
+                      "🔍 Filtered Size Groups Count:",
+                      filteredSizeGroups.length
+                    );
+
+                    return filteredSizeGroups.map((sizeGroup: any) => {
+                      const sizesText = getSizesFromSizeGroup(sizeGroup);
+                      // Value olarak gerçek size'ları kullan, yoksa sizeGroup.name kullan
+                      const valueToUse =
+                        sizesText && sizesText !== sizeGroup.name
+                          ? sizesText
+                          : sizeGroup.name;
+                      // Görüntülenecek başlık: name varsa name, yoksa sizesText
+                      const displayTitle =
+                        sizeGroup.name && sizeGroup.name.trim() !== ""
+                          ? sizeGroup.name
+                          : sizesText;
+
+                      return (
+                        <SelectItem key={sizeGroup.id} value={valueToUse}>
+                          <div className="flex flex-col items-start">
+                            <span className="font-medium text-sm">
+                              {displayTitle}
+                            </span>
+                            {sizesText && sizesText !== displayTitle && (
+                              <span className="text-xs text-muted-foreground">
+                                {sizesText}
+                              </span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      );
+                    });
                   })()}
                 </SelectContent>
               </Select>

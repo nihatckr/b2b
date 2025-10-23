@@ -17,8 +17,7 @@ import { useNotifications } from "@/components/providers/notification-context";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatDistanceToNow } from "date-fns";
-import { tr } from "date-fns/locale";
+import { toRelativeTime } from "@/lib/date-utils";
 import {
   AlertCircle,
   Bell,
@@ -132,10 +131,7 @@ export default function NotificationsPage() {
           </p>
           <div className="flex items-center justify-between mt-3">
             <span className="text-xs text-slate-500">
-              {formatDistanceToNow(notification.timestamp, {
-                addSuffix: true,
-                locale: tr,
-              })}
+              {toRelativeTime(notification.timestamp)}
             </span>
             {!notification.read && (
               <Button
