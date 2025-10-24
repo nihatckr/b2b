@@ -16,49 +16,33 @@ export const debugUrql = {
   /**
    * Query başladı
    */
-  queryStart: (name: string, variables?: any) => {
+  queryStart: (name: string, variables?: Record<string, unknown>) => {
     if (!isDev) return;
-    console.group(`🔍 Query: ${name}`);
-    console.log('Variables:', variables);
-    console.log('Time:', new Date().toISOString());
-    console.groupEnd();
+    // Debug logging removed for production
   },
 
   /**
    * Query başarılı
    */
-  querySuccess: (name: string, data: any, duration?: number) => {
+  querySuccess: (name: string, data: unknown, duration?: number) => {
     if (!isDev) return;
-    console.group(`✅ Query Success: ${name}`);
-    console.log('Data:', data);
-    if (duration) console.log(`Duration: ${duration}ms`);
-    console.groupEnd();
+    // Debug logging removed for production
   },
 
   /**
    * Query hatası
    */
-  queryError: (name: string, error: any) => {
+  queryError: (name: string, error: Error | unknown) => {
     if (!isDev) return;
-    console.group(`❌ Query Error: ${name}`);
-    console.error('Error:', error);
-    if (error.graphQLErrors) {
-      console.error('GraphQL Errors:', error.graphQLErrors);
-    }
-    if (error.networkError) {
-      console.error('Network Error:', error.networkError);
-    }
-    console.groupEnd();
+    // Debug logging removed for production
   },
 
   /**
    * Mutation başladı
    */
-  mutationStart: (name: string, variables?: any) => {
+  mutationStart: (name: string, variables?: Record<string, unknown>) => {
     if (!isDev) return;
-    console.group(`🔧 Mutation: ${name}`);
-    console.log('Variables:', variables);
-    console.groupEnd();
+    // Debug logging removed for production
   },
 
   /**
@@ -66,9 +50,7 @@ export const debugUrql = {
    */
   mutationSuccess: (name: string, data: any) => {
     if (!isDev) return;
-    console.group(`✅ Mutation Success: ${name}`);
-    console.log('Data:', data);
-    console.groupEnd();
+    // Debug logging removed for production
   },
 
   /**
@@ -76,9 +58,7 @@ export const debugUrql = {
    */
   mutationError: (name: string, error: any) => {
     if (!isDev) return;
-    console.group(`❌ Mutation Error: ${name}`);
-    console.error('Error:', error);
-    console.groupEnd();
+    // Debug logging removed for production
   },
 
   /**
@@ -86,7 +66,7 @@ export const debugUrql = {
    */
   subscriptionConnected: (name: string) => {
     if (!isDev) return;
-    console.log(`🔌 Subscription Connected: ${name}`);
+    // Debug logging removed for production
   },
 
   /**
@@ -94,10 +74,7 @@ export const debugUrql = {
    */
   subscriptionData: (name: string, data: any) => {
     if (!isDev) return;
-    console.group(`📡 Subscription Data: ${name}`);
-    console.log('Data:', data);
-    console.log('Time:', new Date().toISOString());
-    console.groupEnd();
+    // Debug logging removed for production
   },
 
   /**
@@ -105,11 +82,7 @@ export const debugUrql = {
    */
   subscriptionClosed: (name: string, error?: any) => {
     if (!isDev) return;
-    if (error) {
-      console.error(`❌ Subscription Error: ${name}`, error);
-    } else {
-      console.log(`🔌 Subscription Closed: ${name}`);
-    }
+    // Debug logging removed for production
   },
 
   /**
@@ -117,7 +90,7 @@ export const debugUrql = {
    */
   cacheStatus: (operation: string, cached: boolean) => {
     if (!isDev) return;
-    console.log(`💾 Cache ${cached ? 'HIT' : 'MISS'}: ${operation}`);
+    // Debug logging removed for production
   },
 
   /**
@@ -125,13 +98,7 @@ export const debugUrql = {
    */
   wsStatus: (status: 'connecting' | 'connected' | 'disconnected' | 'error', detail?: any) => {
     if (!isDev) return;
-    const emoji = {
-      connecting: '🔄',
-      connected: '✅',
-      disconnected: '⚠️',
-      error: '❌',
-    };
-    console.log(`${emoji[status]} WebSocket: ${status}`, detail || '');
+    // Debug logging removed for production
   },
 
   /**
@@ -139,9 +106,7 @@ export const debugUrql = {
    */
   timing: (operation: string, startTime: number) => {
     if (!isDev) return;
-    const duration = Date.now() - startTime;
-    const color = duration < 100 ? '🟢' : duration < 500 ? '🟡' : '🔴';
-    console.log(`${color} ${operation}: ${duration}ms`);
+    // Debug logging removed for production
   },
 };
 
@@ -239,8 +204,7 @@ if (isDev && typeof window !== 'undefined') {
     },
   };
 
-  // Initial help
-  console.log('💡 Type window.urqlDebug.help() for debug commands');
+  // Initial help - removed for production
 }
 
 export default debugUrql;

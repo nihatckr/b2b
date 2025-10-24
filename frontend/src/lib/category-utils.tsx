@@ -1,5 +1,6 @@
 import * as LucideIcons from "lucide-react";
 import { FileIcon, FolderIcon, FolderTreeIcon, LayersIcon } from "lucide-react";
+import { validators } from "./validation-utils";
 
 /**
  * Category Level Enum (matches backend)

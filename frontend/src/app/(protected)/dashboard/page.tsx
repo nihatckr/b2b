@@ -5,13 +5,9 @@ import {
   SettingsResendVerificationEmailDocument,
 } from "@/__generated__/graphql";
 import { PermissionGate } from "@/components/auth/permission-gate";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePermissions } from "@/hooks/usePermissions";
 import {
-  AlertTriangle,
   ArrowRight,
   ClipboardCheck,
   Factory,
@@ -25,6 +21,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
+import AlertButton from "../../../components/alerts/alert-button";
+import AlertLink from "../../../components/alerts/alert-link";
+import StatsCard from "../../../components/stats/StatsCard";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -95,59 +94,26 @@ export default function DashboardPage() {
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       {/* Email Verification Warning */}
       {showEmailAlert && (
-        <Alert
-          variant="destructive"
-          className="border-red-200 dark:border-red-900"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Email Doğrulaması Gerekli</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
-            <span>
-              Hesabınızı tam olarak kullanabilmek için email adresinizi
-              doğrulamanız gerekmektedir. Lütfen gelen kutunuzu kontrol edin ve
-              doğrulama linkine tıklayın.
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resendVerificationEmail}
-              disabled={isResendingEmail}
-              className="ml-4 whitespace-nowrap"
-            >
-              <Mail className="mr-2 h-4 w-4" />
-              {isResendingEmail ? "Gönderiliyor..." : "Tekrar Gönder"}
-            </Button>
-          </AlertDescription>
-        </Alert>
+        <AlertButton
+          resendVerificationEmail={resendVerificationEmail}
+          isResendingEmail={isResendingEmail}
+          description="Hesabınızı tam olarak kullanabilmek için email adresinizi doğrulamanız gerekmektedir. Lütfen gelen kutunuzu kontrol edin ve doğrulama linkine tıklayın."
+          label="Email Doğrulaması Gerekli"
+          buttonTextResending="Gönderiliyor..."
+          buttonTextDefault="Tekrar Gönder"
+          icon={<Mail className="mr-2 h-4 w-4" />}
+        />
       )}
 
       {/* Company Information Warning */}
       {showCompanyAlert && isCompanyOwner && (
-        <Alert
-          variant="default"
-          className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950"
-        >
-          <Factory className="h-4 w-4 text-orange-600" />
-          <AlertTitle className="text-orange-900 dark:text-orange-100">
-            Firma Bilgilerinizi Tamamlayın
-          </AlertTitle>
-          <AlertDescription className="flex items-center justify-between text-orange-800 dark:text-orange-200">
-            <span>
-              Sistemi tam olarak kullanabilmek için firma bilgilerinizi girmeniz
-              gerekmektedir. Lütfen firma profilinizi tamamlayın.
-            </span>
-            <Link href="/dashboard/settings?tab=company">
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-4 whitespace-nowrap border-orange-300 hover:bg-orange-100 dark:border-orange-700 dark:hover:bg-orange-900"
-              >
-                <ArrowRight className="mr-2 h-4 w-4" />
-                Firma Bilgilerini Gir
-              </Button>
-            </Link>
-          </AlertDescription>
-        </Alert>
+        <AlertLink
+          linkLabel="Firma Bilgilerini Gir"
+          description="Sistemi tam olarak kullanabilmek için firma bilgilerinizi girmeniz gerekmektedir. Lütfen firma profilinizi tamamlayın."
+          label="  Firma Bilgilerini Girmeniz Gerekiyor"
+          href="/dashboard/settings?tab=company"
+          icon={<Factory className="h-4 w-4 text-orange-600" />}
+        />
       )}
 
       {/* Welcome Header */}
@@ -166,51 +132,33 @@ export default function DashboardPage() {
 
       {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">
-              +12% from last month
-            </p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Active Orders"
+          value="24"
+          icon={<ShoppingCart className="h-4 w-4 text-muted-foreground" />}
+          description="+12% from last month"
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Samples</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">18</div>
-            <p className="text-xs text-muted-foreground">+5 new this week</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Samples"
+          value="18"
+          icon={<Package className="h-4 w-4 text-muted-foreground" />}
+          description="+5 new this week"
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Production</CardTitle>
-            <Factory className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">3 in final stage</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Production"
+          value="12"
+          icon={<Factory className="h-4 w-4 text-muted-foreground" />}
+          description="3 in final stage"
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Quality Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">94%</div>
-            <p className="text-xs text-muted-foreground">+2% from last month</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Quality Rate"
+          value="94%"
+          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+          description="+2% from last month"
+        />
       </div>
 
       {/* Quick Actions */}
@@ -278,28 +226,6 @@ export default function DashboardPage() {
               <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
             </Link>
           </PermissionGate>
-        </CardContent>
-      </Card>
-
-      {/* Active Permissions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Permissions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {permissions.length > 0 ? (
-              permissions.map((permission, index) => (
-                <Badge key={`${permission}-${index}`} variant="secondary">
-                  {permission}
-                </Badge>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No permissions assigned
-              </p>
-            )}
-          </div>
         </CardContent>
       </Card>
     </div>

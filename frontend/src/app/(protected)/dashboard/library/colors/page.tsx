@@ -170,9 +170,8 @@ export default function ColorsPage() {
         input.certificationIds = data.certificationIds;
       }
 
-      // TODO: Handle image upload if imageFile exists
+      // Image upload handling - will be implemented in future version
       if (data.imageFile) {
-        console.log("Image upload will be implemented next:", data.imageFile);
         // input.imageUrl = uploadedUrl;
       }
 

@@ -12,16 +12,6 @@ import {
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -46,6 +36,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
+import AlertDialogProtexflow from "../../../../../components/alerts/alert-dialog-protextflow";
 
 // Type alias for library item from query responses
 type LibraryItemType = NonNullable<
@@ -790,29 +781,17 @@ export default function AccessoriesPage() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Accessory</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete &quot;{selectedItem?.name}&quot;?
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={loadingDelete}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              disabled={loadingDelete}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-            >
-              {loadingDelete ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AlertDialogProtexflow
+        deleteAlertOpen={deleteAlertOpen}
+        setDeleteAlertOpen={setDeleteAlertOpen}
+        label={selectedItem?.name}
+        loadingDelete={loadingDelete}
+        handleConfirmDelete={handleConfirmDelete}
+        alertTitle="Delete Accessory"
+        alertCancelText="Cancel"
+        alertSubmitText="Delete"
+        alertSendText="Deleting..."
+      />
     </div>
   );
 }

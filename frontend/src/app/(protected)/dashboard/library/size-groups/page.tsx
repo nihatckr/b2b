@@ -12,23 +12,7 @@ import {
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building,
@@ -44,8 +28,21 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
+import AlertDialogProtexflow from "../../../../../components/alerts/alert-dialog-protextflow";
+import TitleHeader from "../../../../../components/headers/title-header";
+
+import SizeCard from "../../../../../components/library/sizes/SizeCard";
+import SizeDetail from "../../../../../components/library/sizes/SizeDetail";
+import LoadingError from "../../../../../components/loading/loading-error";
+import {
+  getRegionalStandard,
+  getSizeCategory,
+  getSizes,
+  getTargetGender,
+} from "../../../../../lib/utils-helper";
 
 // Type alias for library item from query responses
+
 type LibraryItemType = NonNullable<
   DashboardPlatformStandardsQuery["platformStandards"]
 >[0];
@@ -102,62 +99,6 @@ export default function SizeGroupsPage() {
   const [, createLibraryItem] = useMutation(DashboardCreateLibraryItemDocument);
   const [, updateLibraryItem] = useMutation(DashboardUpdateLibraryItemDocument);
   const [, deleteLibraryItem] = useMutation(DashboardDeleteLibraryItemDocument);
-
-  // Helper: Get sizes array from data
-  const getSizes = (data: unknown): string[] => {
-    if (!data) return [];
-    try {
-      const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      const sizes = parsed.sizes || "";
-      // If sizes is a string (comma-separated), split it
-      if (typeof sizes === "string") {
-        return sizes
-          .split(",")
-          .map((s: string) => s.trim())
-          .filter(Boolean);
-      }
-      // If sizes is already an array, return it
-      if (Array.isArray(sizes)) {
-        return sizes;
-      }
-      return [];
-    } catch {
-      return [];
-    }
-  };
-
-  // Helper: Get size category
-  const getSizeCategory = (data: unknown): string | null => {
-    if (!data) return null;
-    try {
-      const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      return parsed.sizeCategory || null;
-    } catch {
-      return null;
-    }
-  };
-
-  // Helper: Get regional standard
-  const getRegionalStandard = (data: unknown): string | null => {
-    if (!data) return null;
-    try {
-      const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      return parsed.regionalStandard || null;
-    } catch {
-      return null;
-    }
-  };
-
-  // Helper: Get target gender
-  const getTargetGender = (data: unknown): string | null => {
-    if (!data) return null;
-    try {
-      const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      return parsed.targetGender || null;
-    } catch {
-      return null;
-    }
-  };
 
   // Handlers
   const handleOpenCreateModal = (
@@ -295,24 +236,30 @@ export default function SizeGroupsPage() {
       setLoadingDelete(false);
     }
   };
-
+  if (
+    platformData.length === 0 &&
+    companyData.length === 0 &&
+    allCompaniesData.length === 0
+  ) {
+    return (
+      <LoadingError
+        message="No size groups found."
+        errorTitle="Veri bulunamadı.!"
+      />
+    );
+  }
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 flex items-center gap-2">
-              <Ruler className="h-7 w-7 text-purple-600" />
-              Size Groups Library
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Manage size groups and measurements
-            </p>
-          </div>
-        </div>
-      </div>
 
+      <TitleHeader
+        titleHeader="Size Groups Library"
+        descriptionHeader="Manage size groups and measurements"
+        titleReverseHeader="Beden Grupları Kütüphanesi"
+        descriptionReverseHeader="Beden gruplarını ve ölçümleri yönetin"
+        isBuyer={true}
+        icon={<Ruler className="h-7 w-7 text-purple-600" />}
+      />
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -377,123 +324,62 @@ export default function SizeGroupsPage() {
         </div>
 
         {/* Platform Standards Tab */}
-        <TabsContent value="platform" className="space-y-4">
-          <div className="rounded-lg border bg-card p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Globe className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <h3 className="font-semibold">Platform Standards</h3>
-              <span className="text-sm text-muted-foreground">
-                (Visible to all users)
-              </span>
-            </div>
-
-            {platformResult.fetching ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Loading size groups...
-              </div>
-            ) : platformData.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-2">
-                  No platform standard size groups yet
-                </p>
-                {isAdmin && (
-                  <Button variant="outline" size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add First Standard Size Group
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {platformData.map((sizeGroup) => {
-                  const sizes = getSizes(sizeGroup.data);
-                  const category = getSizeCategory(sizeGroup.data);
-                  const regional = getRegionalStandard(sizeGroup.data);
-                  const gender = getTargetGender(sizeGroup.data);
-
-                  return (
-                    <div
-                      key={sizeGroup.id}
-                      className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium">{sizeGroup.name}</h4>
-                        {sizeGroup.isPopular && (
-                          <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded">
-                            Popular
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="space-y-2 text-sm text-muted-foreground mb-3">
-                        {regional && <p>Region: {regional}</p>}
-                        {gender && <p>Gender: {gender}</p>}
-                        {category && <p>Category: {category}</p>}
-                      </div>
-
-                      {sizes.length > 0 && (
-                        <div className="mb-3">
-                          <p className="text-xs text-muted-foreground mb-2">
-                            Sizes:
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {sizes.map((size: string, idx: number) => (
-                              <span
-                                key={idx}
-                                className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded"
-                              >
-                                {size}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {sizeGroup.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                          {sizeGroup.description}
-                        </p>
-                      )}
-
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleViewDetails(sizeGroup)}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          Details
-                        </Button>
-                        {isAdmin && (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditItem(sizeGroup)}
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700"
-                              onClick={() => handleDeleteItem(sizeGroup)}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
+        <SizeCard
+          response={{
+            fetching: platformResult.fetching,
+            data: platformData
+              .filter((item) => item.id !== null && item.id !== undefined)
+              .map((item) => ({
+                id: Number(item.id),
+                name: item.name ?? "",
+                description: item.description ?? "",
+                data:
+                  typeof item.data === "string"
+                    ? JSON.parse(item.data)
+                    : item.data ?? {},
+                isPopular: item.isPopular ?? undefined,
+              })),
+          }}
+          role={isAdmin}
+          setSelectedItem={setSelectedItem}
+          setEditModalOpen={setEditModalOpen}
+          setDetailsModalOpen={setDetailsModalOpen}
+          setDeleteAlertOpen={setDeleteAlertOpen}
+          title="Platform Standards"
+          subtitle="Size groups available to all users"
+          description="Manage standard size groups used across the platform."
+          iconText="Standard"
+          value="platform"
+        />
+        {isAdmin && (
+          <SizeCard
+            response={{
+              fetching: platformResult.fetching,
+              data: platformData
+                .filter((item) => item.id !== null && item.id !== undefined)
+                .map((item) => ({
+                  id: Number(item.id),
+                  name: item.name ?? "",
+                  description: item.description ?? "",
+                  data:
+                    typeof item.data === "string"
+                      ? JSON.parse(item.data)
+                      : item.data ?? {},
+                  isPopular: item.isPopular ?? undefined,
+                })),
+            }}
+            role={!isAdmin}
+            setSelectedItem={setSelectedItem}
+            setEditModalOpen={setEditModalOpen}
+            setDetailsModalOpen={setDetailsModalOpen}
+            setDeleteAlertOpen={setDeleteAlertOpen}
+            title="Platform Standards"
+            subtitle="Size groups available to all users"
+            description="Manage standard size groups used across the platform."
+            iconText="Standard"
+            value="company"
+          />
+        )}
         {/* My Company Tab */}
         {!isAdmin && (
           <TabsContent value="company" className="space-y-4">
@@ -715,151 +601,37 @@ export default function SizeGroupsPage() {
       )}
 
       {/* Details Modal */}
-      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Ruler className="h-5 w-5 text-purple-600" />
-              {selectedItem?.name}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedItem && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                    Name
-                  </h4>
-                  <p>{selectedItem.name}</p>
-                </div>
-                {selectedItem.code && (
-                  <div>
-                    <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                      Code
-                    </h4>
-                    <p className="font-mono text-sm">{selectedItem.code}</p>
-                  </div>
-                )}
-              </div>
-
-              {selectedItem.description && (
-                <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                    Description
-                  </h4>
-                  <p className="text-sm">{selectedItem.description}</p>
-                </div>
-              )}
-
-              {(() => {
-                const sizes = getSizes(selectedItem.data);
-                const category = getSizeCategory(selectedItem.data);
-                const regional = getRegionalStandard(selectedItem.data);
-                const gender = getTargetGender(selectedItem.data);
-
-                return (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      {regional && (
-                        <div>
-                          <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                            Regional Standard
-                          </h4>
-                          <p>{regional}</p>
-                        </div>
-                      )}
-
-                      {gender && (
-                        <div>
-                          <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                            Target Gender
-                          </h4>
-                          <p>{gender}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {category && (
-                      <div>
-                        <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                          Category
-                        </h4>
-                        <p>{category}</p>
-                      </div>
-                    )}
-
-                    {sizes.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                          Sizes
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {sizes.map((size: string, idx: number) => (
-                            <span
-                              key={idx}
-                              className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-3 py-1 rounded-full"
-                            >
-                              {size}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-
-              <div className="border-t pt-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <h4 className="font-semibold text-muted-foreground mb-1">
-                      Created
-                    </h4>
-                    <p>
-                      {selectedItem.createdAt &&
-                        new Date(selectedItem.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-muted-foreground mb-1">
-                      Updated
-                    </h4>
-                    <p>
-                      {selectedItem.updatedAt &&
-                        new Date(selectedItem.updatedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
+      <SizeDetail
+        detailsModalOpen={detailsModalOpen}
+        setDetailsModalOpen={setDetailsModalOpen}
+        initialData={
+          selectedItem
+            ? {
+                name: selectedItem.name ?? "",
+                code: selectedItem.code ?? "",
+                description: selectedItem.description ?? "",
+                data:
+                  typeof selectedItem.data === "string"
+                    ? JSON.parse(selectedItem.data)
+                    : selectedItem.data,
+                createdAt: selectedItem.createdAt ?? undefined,
+                updatedAt: selectedItem.updatedAt ?? undefined,
+              }
+            : undefined
+        }
+      />
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Size Group</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete &quot;{selectedItem?.name}&quot;?
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={loadingDelete}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              disabled={loadingDelete}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-            >
-              {loadingDelete ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AlertDialogProtexflow
+        deleteAlertOpen={deleteAlertOpen}
+        setDeleteAlertOpen={setDeleteAlertOpen}
+        label={selectedItem?.name || "this size group"}
+        loadingDelete={loadingDelete}
+        handleConfirmDelete={handleConfirmDelete}
+        alertTitle="Delete Size Group"
+        alertCancelText="Cancel"
+        alertSubmitText="Deleting..."
+        alertSendText="Delete"
+      />
     </div>
   );
 }

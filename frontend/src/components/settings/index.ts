@@ -9,6 +9,6 @@
  * - ImageUploadWithSync: Image upload with backend sync
  */
 
-export { ImageUploadWithSync } from "./image-upload-with-sync";
+export { ImageUploadWithSync } from "../upload/image-upload-with-sync";
 export { SettingsCard } from "./settings-card";
 export { SettingsSection } from "./settings-section";

@@ -4,14 +4,6 @@ import { BuyerOrdersDocument } from "@/__generated__/graphql";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -21,12 +13,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toRelativeTime } from "@/lib/date-utils";
-import { ChevronLeft, ChevronRight, Eye, Package, Search } from "lucide-react";
+import { Eye, Package } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "urql";
+import TitleHeader from "../../../../components/headers/title-header";
+import LoadingError from "../../../../components/loading/loading-error";
+import LoadingSpinner from "../../../../components/loading/loading-spinner";
+import FilterSearch from "../../../../components/navigation/FilterSearch";
+import PrevNextPagination from "../../../../components/navigation/PrevNextPagination";
 
 const statusColors = {
   PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -96,71 +93,46 @@ export default function OrdersPage() {
     return `${amount.toLocaleString()} ${currencySymbol}`;
   };
 
+  if (fetching) {
+    return <LoadingSpinner message="Siparişler yükleniyor..." />;
+  }
+
   if (error) {
     return (
-      <div className="p-6">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-medium text-red-600 mb-2">
-              Bir hata oluştu
-            </h3>
-            <p className="text-gray-600">{error.message}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <LoadingError
+        message="Siparişler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin."
+        errorTitle="Sipariş Yükleme Hatası"
+      />
     );
   }
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold  ">
-          {isBuyer ? "Siparişlerim" : "Gelen Siparişler"}
-        </h1>
-        <p className=" ">
-          {isBuyer
-            ? "Verdiğiniz siparişleri takip edin"
-            : "Gelen siparişleri yönetin"}
-        </p>
-      </div>
-
+      <TitleHeader
+        isBuyer={isBuyer}
+        titleHeader="Siparişlerim"
+        titleReverseHeader="Gelen Siparişler"
+        descriptionHeader="Verdiğiniz siparişleri takip edin"
+        descriptionReverseHeader="Gelen siparişleri yönetin"
+      />
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtreler</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Sipariş no, koleksiyon ara..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Durum filtrele" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tüm Durumlar</SelectItem>
-                <SelectItem value="PENDING">Beklemede</SelectItem>
-                <SelectItem value="REVIEWED">İncelendi</SelectItem>
-                <SelectItem value="QUOTE_SENT">Teklif Gönderildi</SelectItem>
-                <SelectItem value="CONFIRMED">Onaylandı</SelectItem>
-                <SelectItem value="IN_PRODUCTION">Üretimde</SelectItem>
-                <SelectItem value="SHIPPED">Kargoda</SelectItem>
-                <SelectItem value="DELIVERED">Teslim Edildi</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
+      <FilterSearch
+        cardTitle="Filtreler"
+        allStatuses={"Tüm Durumlar"}
+        pendingStatuses={"Beklemede"}
+        reviewedStatuses={"İncelendi"}
+        quoteSentStatuses={"Teklif Gönderildi"}
+        confirmedStatuses={"Onaylandı"}
+        inProductionStatuses={"Üretimde"}
+        shippedStatuses={"Kargoda"}
+        deliveredStatuses={"Teslim Edildi"}
+        setStatusFilter={setStatusFilter}
+        statusFilter={statusFilter}
+        setSearch={setSearch}
+        search={search}
+      />
       {/* Orders Data Table */}
       <Card>
         <CardHeader>
@@ -299,26 +271,14 @@ export default function OrdersPage() {
 
       {/* Pagination */}
       {orders.length >= take && (
-        <div className="flex justify-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setSkip(Math.max(0, skip - take))}
-            disabled={skip === 0}
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Önceki
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setSkip(skip + take)}
-            disabled={orders.length < take}
-            className="flex items-center gap-2"
-          >
-            Sonraki
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+        <PrevNextPagination
+          skip={skip}
+          take={take}
+          setSkip={setSkip}
+          orders={orders}
+          prevText="Önceki"
+          nextText="Sonraki"
+        />
       )}
     </div>
   );
