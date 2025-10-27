@@ -20,12 +20,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 6.18.0
- * Query Engine version: 34b5a692b7bd79939a9a2c3ef97d816e749cda2f
+ * Prisma Client JS version: 6.17.1
+ * Query Engine version: 272a37d34178c2894197e17273bf937f25acdeac
  */
 Prisma.prismaVersion = {
-  client: "6.18.0",
-  engine: "34b5a692b7bd79939a9a2c3ef97d816e749cda2f"
+  client: "6.17.1",
+  engine: "272a37d34178c2894197e17273bf937f25acdeac"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -484,6 +484,23 @@ exports.Prisma.OrderNegotiationScalarFieldEnum = {
   status: 'status',
   respondedAt: 'respondedAt',
   respondedBy: 'respondedBy',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.OrderChangeLogScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  changedBy: 'changedBy',
+  changeType: 'changeType',
+  previousValues: 'previousValues',
+  newValues: 'newValues',
+  changeReason: 'changeReason',
+  manufacturerStatus: 'manufacturerStatus',
+  manufacturerResponse: 'manufacturerResponse',
+  manufacturerReviewedAt: 'manufacturerReviewedAt',
+  manufacturerReviewedBy: 'manufacturerReviewedBy',
+  negotiationTriggered: 'negotiationTriggered',
+  negotiationId: 'negotiationId',
   createdAt: 'createdAt'
 };
 
@@ -968,6 +985,13 @@ exports.Prisma.OrderNegotiationOrderByRelevanceFieldEnum = {
   status: 'status'
 };
 
+exports.Prisma.OrderChangeLogOrderByRelevanceFieldEnum = {
+  changeType: 'changeType',
+  changeReason: 'changeReason',
+  manufacturerStatus: 'manufacturerStatus',
+  manufacturerResponse: 'manufacturerResponse'
+};
+
 exports.Prisma.OrderProductionOrderByRelevanceFieldEnum = {
   note: 'note'
 };
@@ -1350,6 +1374,7 @@ exports.Prisma.ModelName = {
   SampleProduction: 'SampleProduction',
   Order: 'Order',
   OrderNegotiation: 'OrderNegotiation',
+  OrderChangeLog: 'OrderChangeLog',
   OrderProduction: 'OrderProduction',
   Question: 'Question',
   Review: 'Review',

@@ -13,6 +13,7 @@
 
 "use client";
 
+import { LoadingState, PageHeader } from "@/components/common";
 import { useNotifications } from "@/components/providers/notification-context";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -31,7 +32,6 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import LoadingSpinner from "../../../../components/loading/loading-spinner";
 
 export default function NotificationsPage() {
   const { data: session, status } = useSession();
@@ -55,7 +55,16 @@ export default function NotificationsPage() {
 
   // Show loading state while checking auth
   if (status === "loading") {
-    return <LoadingSpinner message="Yükleniyor..." />;
+    return (
+      <div className="p-6 space-y-6">
+        <PageHeader
+          title="Bildirimler"
+          description="Tüm bildirimleriniz"
+          icon={<Bell className="h-6 w-6" />}
+        />
+        <LoadingState />
+      </div>
+    );
   }
 
   // Don't render if not authenticated
@@ -150,40 +159,39 @@ export default function NotificationsPage() {
     <div className="min-h-screenbg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 ">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-              Bildirimler
-            </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">
-              {unreadCount > 0
-                ? `${unreadCount} okunmamış bildirim`
-                : "Tüm bildirimler okundu"}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
-              <Button
-                variant="outline"
-                onClick={markAllAsRead}
-                className="flex items-center gap-2"
-              >
-                <CheckCheck className="w-4 h-4" />
-                Tümünü Okundu İşaretle
-              </Button>
-            )}
-            {notifications.length > 0 && (
-              <Button
-                variant="destructive"
-                onClick={clearAll}
-                className="flex items-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                Tümünü Temizle
-              </Button>
-            )}
-          </div>
-        </div>
+        <PageHeader
+          title="Bildirimler"
+          description={
+            unreadCount > 0
+              ? `${unreadCount} okunmamış bildirim`
+              : "Tüm bildirimler okundu"
+          }
+          icon={<Bell className="h-6 w-6" />}
+          action={
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={markAllAsRead}
+                  className="flex items-center gap-2"
+                >
+                  <CheckCheck className="w-4 h-4" />
+                  Tümünü Okundu İşaretle
+                </Button>
+              )}
+              {notifications.length > 0 && (
+                <Button
+                  variant="destructive"
+                  onClick={clearAll}
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Tümünü Temizle
+                </Button>
+              )}
+            </div>
+          }
+        />
 
         {/* Content */}
         {notifications.length === 0 ? (

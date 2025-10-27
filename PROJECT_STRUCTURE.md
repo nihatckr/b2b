@@ -2,7 +2,7 @@
 
 Detailed folder structure and conventions for ProtexFlow.
 
-**Last Updated:** October 20, 2025
+**Last Updated:** January 27, 2025
 
 ---
 
@@ -13,9 +13,15 @@ ProtexFlow follows a monorepo-style structure with separate frontend and backend
 ```
 fullstack/
 ├── frontend/          # Next.js frontend application
-├── server/            # Express + GraphQL backend
+├── backend/           # Express + GraphQL backend (renamed from server/)
 ├── docs/              # Documentation
-└── README.md          # Main documentation
+├── README.md          # Main documentation (✅ Updated Jan 2025)
+├── DEVELOPMENT_GUIDE.md        # Development workflow guide
+├── BACKEND_DEVELOPMENT.md      # Backend-specific development guide
+├── FRONTEND_DEVELOPMENT.md     # Frontend-specific development guide
+├── PROJECT_STRUCTURE.md        # This file
+├── aa.md                       # Quick reference notes
+└── errors.md                   # Error troubleshooting guide
 ```
 
 ---

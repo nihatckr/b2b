@@ -11,6 +11,7 @@ import {
   DashboardUpdateLibraryItemDocument,
   UpdateLibraryItemInput,
 } from "@/__generated__/graphql";
+import { PageHeader } from "@/components/common";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
@@ -266,21 +267,13 @@ export default function SeasonsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <div className="container mx-auto space-y-6 p-4 sm:p-6 md:p-8">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 flex items-center gap-2">
-              <CalendarDays className="h-7 w-7 text-orange-600" />
-              Seasons Library
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Manage seasonal collections - SS (Spring/Summer), FW (Fall/Winter)
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Seasons Library"
+        description="Manage seasonal collections - SS (Spring/Summer), FW (Fall/Winter)"
+        icon={<CalendarDays className="h-7 w-7 text-orange-600" />}
+      />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

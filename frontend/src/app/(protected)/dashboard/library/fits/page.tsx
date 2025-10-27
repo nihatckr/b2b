@@ -11,6 +11,7 @@ import {
   DashboardUpdateLibraryItemDocument,
   UpdateLibraryItemInput,
 } from "@/__generated__/graphql";
+import { PageHeader } from "@/components/common";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
@@ -305,19 +306,12 @@ export default function FitsPage() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 flex items-center gap-2">
-              <Sparkles className="h-7 w-7 text-indigo-600" />
-              Fits Library
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Manage fit types - Slim, Regular, Oversized
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Fits Library"
+        description="Manage fit types - Slim, Regular, Oversized"
+        icon={<Sparkles className="h-7 w-7 text-indigo-600" />}
+        className="mb-6"
+      />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

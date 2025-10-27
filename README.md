@@ -1,458 +1,1254 @@
-# 🏭 ProtexFlow - B2B Textile Management System# 🏭 ProtexFlow - B2B Textile Management System# 🏭 ProtexFlow - B2B Textile Production Management System# 🏭 Tekstil Üretim Yönetim Sistemi
+# ProtexFlow - B2B Textile Production Management System# 🏭 ProtexFlow - B2B Textile Production Management System# 🏭 ProtexFlow - B2B Textile Production Management System# 🏭 ProtexFlow - B2B Textile Production Management System
 
-> Modern, full-stack B2B textile production and order management platform> Modern full-stack B2B textile production and order management platform
+> Modern, full-stack B2B textile production and order management platform built with Next.js 15, GraphQL, and Prisma.
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black)](https://nextjs.org/)[![Next.js](https://img.shields.io/badge/Next.js-15.1.3-black)](https://nextjs.org/)> Modern, full-stack B2B textile production and order management platform built with Next.js 15, GraphQL Yoga, and Prisma.> **B2B Tekstil Üretim ve Sipariş Yönetim Platformu**
+[![Next.js](https://img.shields.io/badge/Next.js-15.1.3-black)](https://nextjs.org/)> Modern, full-stack B2B textile production and order management platform built with Next.js 15, GraphQL, and Prisma.
 
 [![GraphQL](https://img.shields.io/badge/GraphQL-Yoga-e535ab)](https://the-guild.dev/graphql/yoga-server)
 
-[![Prisma](https://img.shields.io/badge/Prisma-6.17.1-2D3748)](https://www.prisma.io/)[![GraphQL Yoga](https://img.shields.io/badge/GraphQL-Yoga-e535ab)](https://the-guild.dev/graphql/yoga-server)
+[![Prisma](https://img.shields.io/badge/Prisma-6.2.1-2D3748)](https://www.prisma.io/)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)](https://www.typescriptlang.org/)
 
-[![URQL](https://img.shields.io/badge/URQL-4.1.0-orange)](https://formidable.com/open-source/urql/)[![Prisma](https://img.shields.io/badge/Prisma-6.2.1-2D3748)](https://www.prisma.io/)
+[![Status](https://img.shields.io/badge/status-production--ready-success)](https://github.com/nihatckr/fullstack)[![Next.js](https://img.shields.io/badge/Next.js-15.1.3-black)](https://nextjs.org/)> Modern, full-stack B2B textile production and order management platform built with Next.js 15, GraphQL, and Prisma.> Modern, full-stack B2B textile production and order management platform built with Next.js 15, GraphQL, and Prisma.
 
-[![Status](https://img.shields.io/badge/status-production--ready-success)](https://github.com/nihatckr/fullstack)
+------[![GraphQL](https://img.shields.io/badge/GraphQL-Yoga-e535ab)](https://the-guild.dev/graphql/yoga-server)
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)](https://www.typescriptlang.org/)
+## Overview[![Prisma](https://img.shields.io/badge/Prisma-6.2.1-2D3748)](https://www.prisma.io/)
 
----
+**ProtexFlow** connects textile manufacturers with customers, enabling seamless order management, production tracking, quality control, and real-time collaboration.[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)](https://www.typescriptlang.org/)
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.1.3-black)](https://nextjs.org/)[![Status](https://img.shields.io/badge/status-production--ready-success)](https://github.com/nihatckr/fullstack)
+### Key Capabilities[![Status](https://img.shields.io/badge/status-production--ready-success)](https://github.com/nihatckr/fullstack)[![Next.js](https://img.shields.io/badge/Next.js-15.1.3-black)](https://nextjs.org/)[![Next.js](https://img.shields.io/badge/Next.js-15.1.3-black)](https://nextjs.org/)
 
-## 📋 Table of Contents
+- Multi-Role System: Admin, Company Owner, Company Employee, Individual Customer
 
-## 🎯 Overview
+- Real-Time Updates: WebSocket-based notifications and subscriptions
 
-- [Overview](#-overview)
+- Production Management: Complete 7-stage workflow from order to delivery---[![GraphQL](https://img.shields.io/badge/GraphQL-Yoga-e535ab)](https://the-guild.dev/graphql/yoga-server)[![GraphQL](https://img.shields.io/badge/GraphQL-Yoga-e535ab)](https://the-guild.dev/graphql/yoga-server)
 
-- [Features](#-features)[![GraphQL](https://img.shields.io/badge/GraphQL-Yoga-e535ab)](https://the-guild.dev/graphql/yoga-server)[![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black)](https://nextjs.org/)
+- Quality Control: Stage-by-stage quality checks and approvals
 
-- [Tech Stack](#-tech-stack)
+- Order Management: Digital order processing with sample approval flow
 
-- [Quick Start](#-quick-start)**ProtexFlow** connects textile manufacturers with customers, enabling seamless order management, production tracking, quality control, and real-time collaboration.
+- Sample Library: Digital sample catalog with AI-ready infrastructure
 
-- [Project Structure](#-project-structure)
-
-- [Documentation](#-documentation)[![Prisma](https://img.shields.io/badge/Prisma-6.2.1-2D3748)](https://www.prisma.io/)[![Apollo Server](https://img.shields.io/badge/Apollo%20Server-5.0.0-311C87)](https://www.apollographql.com/)
-
-- [Development Workflow](#-development-workflow)
-
-- [Contributing](#-contributing)### Key Features
-
----[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)](https://www.typescriptlang.org/)[![Prisma](https://img.shields.io/badge/Prisma-6.17.1-2D3748)](https://www.prisma.io/)
-
-## 🎯 Overview- 🔐 JWT Authentication with auto-refresh (7-day tokens, 12-hour rotation)
-
-**ProtexFlow** connects textile manufacturers with customers, enabling seamless order management, production tracking, quality control, and real-time collaboration.- 👥 Role-Based Access Control (5 roles, 40+ permissions)[![License](https://img.shields.io/badge/license-Private-red)](LICENSE)
-
-### Key Capabilities- 📦 Complete order lifecycle management
-
-- 🔐 **Multi-Role System**: Admin, Company Owner, Employee, Customer roles with granular permissions- 🏭 7-stage production tracking with quality control---
-
-- 🔔 **Real-Time Updates**: WebSocket-based notifications and subscriptions
-
-- 🏭 **Production Management**: Complete 7-stage workflow from order to delivery- 🔔 Real-time WebSocket notifications
-
-- ✅ **Quality Control**: Stage-by-stage quality checks with photo reporting
-
-- 📦 **Order Management**: Digital order processing with sample approval- 💼 Company & employee management---
-
-- 🎨 **Sample Library**: Digital catalog with AI-ready infrastructure
-
-- 📊 **Dynamic Task System**: Automated task creation based on status changes- 📊 Dashboard analytics per role
-
-- 🎯 **Reusable Architecture**: Custom hooks and utilities for rapid development
-
-## 📋 Table of Contents
+- Component Architecture: 15+ reusable components with TypeScript support## 🎯 Overview[![Prisma](https://img.shields.io/badge/Prisma-6.2.1-2D3748)](https://www.prisma.io/)[![Prisma](https://img.shields.io/badge/Prisma-6.2.1-2D3748)](https://www.prisma.io/)
 
 ---
 
-## 🚀 Quick Start
-
-## ✨ Features
-
-## 📋 İçindekiler
-
-### 👔 Collection Management
+## Quick Start**ProtexFlow** connects textile manufacturers with customers, enabling seamless order management, production tracking, quality control, and real-time collaboration.[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)](https://www.typescriptlang.org/)[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)](https://www.typescriptlang.org/)
 
 ### Prerequisites
 
-- Multi-step product creation (category, season, fit, trends)
+- Node.js 18+### Key Capabilities[![Status](https://img.shields.io/badge/status-production--ready-success)](https://github.com/nihatckr/fullstack)
 
-- Multiple color and size options- [Overview](#-overview)
+- PostgreSQL
 
-- Tech pack and measurement chart uploads
+- npm or yarn
 
-- Category-based organization- Node.js 18+
+### Installation- 🔐 **Multi-Role System**: Admin, Company Owner, Company Employee, Individual Customer[![Status](https://img.shields.io/badge/status-production--ready-success)](https://github.com/nihatckr/fullstack)
 
-### 🎨 Sample (Numune) Process- MySQL 8+- [Features](#-features)- [Genel Bakış](#-genel-bakış)
+```bash- 🔔 **Real-Time Updates**: WebSocket-based notifications and subscriptions
 
-- Digital sample requests- npm
+# Clone repository
 
-- Approval/rejection system
+git clone https://github.com/nihatckr/fullstack.git- 🏭 **Production Management**: Complete 7-stage workflow from order to delivery---
 
-- 7-stage production tracking- [Tech Stack](#-tech-stack)- [Özellikler](#-temel-özellikler)
+cd fullstack
 
-- Real-time status updates
+- ✅ **Quality Control**: Stage-by-stage quality checks and approvals
 
-- Revision management### Installation
+# Backend setup
 
-### 📦 Order Management- [Getting Started](#-getting-started)- [Teknoloji Stack](#-teknoloji-stack)
-
-- Sample approval → Order conversion```bash
-
-- Price and quantity management
-
-- Production planning# Clone repo- [Project Structure](#-project-structure)- [Dynamic Task System](#-dynamic-task-system-yeni)
-
-- Delivery tracking
-
-- Invoice and documentationgit clone https://github.com/nihatckr/fullstack.git
-
-### 🏭 7-Stage Production Trackingcd fullstack- [Documentation](#-documentation)- [Kurulum](#-kurulum)
-
-1. **Planning** - Production schema
-
-2. **Fabric** - Sourcing and preparation
-
-3. **Cutting** - Pattern and cutting# Backend setup- [Development Workflow](#-development-workflow)- [Kullanım](#-kullanım)
-
-4. **Sewing** - Assembly
-
-5. **Quality** - 7 test typescd backend
-
-6. **Packaging** - Preparation
-
-7. **Shipping** - Deliverynpm install- [Dökümantasyon](#-dökümantasyon)
-
-### ✅ Quality Control Systemcp .env.example .env # Edit with your config
-
-- 7 standard test typesnpx prisma generate---- [Proje Yapısı](#-proje-yapısı)
-
-- Fabric, measurement, color, stitch controls
-
-- Photo-based reportingnpx prisma migrate dev
-
-- Pass/Fail system
-
-- Revision trackingnpx prisma db seed
-
-### 📚 Library Management
-
-- Color library# Start backend (Terminal 1)## 🎯 Overview---
-
-- Fabric database
-
-- Size groupsnpm run dev # http://localhost:4001
-
-- Season management
-
-- Fit (pattern) definitions
-
-- Certificates (GOTS, OEKO-TEX, etc.)
-
-# Frontend setup (Terminal 2)
-
-### 🎯 Dynamic Task System
-
-cd ../frontend**ProtexFlow** is a comprehensive B2B platform that connects textile manufacturers with customers, enabling seamless order management, production tracking, quality control, and real-time collaboration.## 🎯 Genel Bakış
-
-- **Status-based task creation** - Auto-create tasks on status changes
-
-- **28 SampleStatus mappings** - Custom tasks for each statusnpm install
-
-- **15 OrderStatus mappings** - Order workflow automation
-
-- **7 Production stage tasks** - Production phase trackingcp .env.example .env.local # Edit with your config
-
-- **Role-specific tasks** - Different tasks for customers and manufacturers
-
-- **Auto-completion** - Auto-complete old TODO tasks
-
-- **Deadline tracking** - Deadline warnings and priorities
-
-# Start frontend### Key CapabilitiesBu sistem, tekstil üreticileri ve alıcıları arasında **tam döngülü üretim yönetimi** sağlayan modern bir B2B platformudur. Koleksiyon yönetiminden kalite kontrole kadar tüm üretim sürecini dijitalleştirir.
-
-### 👥 Multi-User Management
-
-npm run dev # http://localhost:3000
-
-- 6 different user roles
-
-- Company-based authorization```
-
-- Department and position management
-
-- Granular permission system### Test Accounts- 🔐 **Multi-Role System**: Admin, Company Owner, Company Employee, Individual Customer### Temel Kullanım Senaryoları
-
-- Team collaboration
-
-`````- 🔔 **Real-Time Updates**: WebSocket-based notifications and subscriptions
-
----
-
-Admin:        admin@protexflow.com / Admin123!
-
-## 🛠 Tech Stack
-
-Manufacturer: owner@textile.com / Owner123!- 🏭 **Production Management**: Complete workflow from order to delivery with 7-stage tracking```
-
-### Frontend
-
-Customer:     owner@fashionretail.com / Customer123!
-
-| Category          | Technology                   | Version |
-
-| ----------------- | ---------------------------- | ------- |```- ✅ **Quality Control**: Stage-by-stage quality checks and approvalsÜretici → Koleksiyon Oluştur → Numune İsteği Al → Üretim → Kalite Kontrol → Teslimat
-
-| **Framework**     | Next.js (App Router)         | 15.5.4  |
-
-| **Language**      | TypeScript                   | 5.7.3   |
-
-| **UI Library**    | React                        | 19.1.0  |
-
-| **Styling**       | Tailwind CSS                 | 3.4.18  |## 📚 Documentation- 📦 **Order Management**: Digital order processing with sample approval flow                                       ↓
-
-| **Components**    | Radix UI + Shadcn UI         | Latest  |
-
-| **GraphQL Client**| URQL                         | 4.1.0   |
-
-| **Code Generation**| GraphQL Codegen             | 5.0.0   |
-
-| **Forms**         | React Hook Form + Zod        | Latest  |### Core Docs- 🎨 **Sample Library**: Digital sample catalog with AI-ready infrastructureMüşteri → Katalog Görüntüle → Numune Talep Et → Sipariş Ver → Takip Et
-
-| **Auth**          | NextAuth.js                  | 4.24.11 |
-
-
-
-### Backend
-
-- **[ARCHITECTURE](./docs/ARCHITECTURE.md)** - System design & architecture- 🔒 **Granular Permissions**: 40+ individual permissions across 7 resource categories```
-
-| Category          | Technology                   | Version |
-
-| ----------------- | ---------------------------- | ------- |- **[API](./docs/API.md)** - GraphQL API reference
-
-| **Runtime**       | Node.js                      | 18+     |
-
-| **Framework**     | Express.js                   | 5.1.0   |- **[DATABASE](./docs/DATABASE.md)** - Database schema & ERD
-
-| **GraphQL Server**| GraphQL Yoga                 | 5.10.6  |
-
-| **Schema Builder**| Pothos GraphQL               | 4.3.0   |- **[AUTHENTICATION](./docs/AUTHENTICATION.md)** - Auth & security
-
-| **Database**      | MySQL                        | 8.0+    |
-
-| **ORM**           | Prisma                       | 6.17.1  |- **[RBAC](./docs/RBAC.md)** - Roles & permissions------
-
-| **Authentication**| JWT                          | -       |
-
-| **Authorization** | GraphQL Shield               | -       |
-
-| **File Upload**   | Multer                       | 2.0.2   |
-
-### Feature Guides
-
-### Key Features
-
-
-
-- **Relay Global IDs**: Pothos uses Base64 encoded Global Object Identification
-
-- **Code-First GraphQL**: Type-safe schema with Pothos- **[Orders](./docs/FEATURES/ORDERS.md)** - Order management flow## ✨ Features## ✨ Temel Özellikler
-
-- **Real-Time**: GraphQL Subscriptions via WebSockets
-
-- **Type Safety**: End-to-end TypeScript with GraphQL Codegen- **[Production](./docs/FEATURES/PRODUCTION.md)** - Production tracking
-
-
-
----- **[Quality Control](./docs/FEATURES/QUALITY.md)** - QC process
-
-
-
-## 🚀 Quick Start- **[Notifications](./docs/FEATURES/NOTIFICATIONS.md)** - Real-time system
-
-
-
-### Prerequisites- **[Companies](./docs/FEATURES/COMPANIES.md)** - Company management### 🔐 Authentication & Authorization### 👔 Koleksiyon Yönetimi
-
-
-
-- Node.js 18+
-
-- MySQL 8+
-
-- npm or yarn### Developer Guides- 4 adımlı detaylı ürün oluşturma
-
-
-
-### 1. Clone Repository
-
-
-
-```bash- **[Getting Started](./docs/GUIDES/GETTING_STARTED.md)** - Setup guide**JWT-Based Security (7-day tokens)**- Sezon, cinsiyet, fit, trend yönetimi
-
-git clone https://github.com/nihatckr/fullstack.git
-
-cd fullstack- **[Adding Features](./docs/GUIDES/NEW_FEATURES.md)** - Development workflow
-
-```
-
-- **[Best Practices](./docs/GUIDES/BEST_PRACTICES.md)** - Code standards- Automatic token refresh every 12 hours- Çoklu renk ve beden seçenekleri
-
-### 2. Backend Setup
-
-- **[Deployment](./docs/GUIDES/DEPLOYMENT.md)** - Production deployment
-
-```bash
-
-cd server- Session management with NextAuth.js v4- Tech pack ve ölçü tablosu yükleme
-
-
-
-# Install dependencies## 🛠 Tech Stack
+cd backend- 📦 **Order Management**: Digital order processing with sample approval flow[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)](https://www.typescriptlang.org/)
 
 npm install
 
-- 4-layer security architecture:- Kategori bazlı organizasyon
+cp .env.example .env # Edit with your config- 🎨 **Sample Library**: Digital sample catalog with AI-ready infrastructure
 
-# Configure environment
+npx prisma generate
 
-cp .env.example .env**Frontend**: Next.js 15, React 19, TypeScript, TailwindCSS, URQL, NextAuth.js
+npx prisma migrate dev- 🎯 **Component Architecture**: 15+ reusable components with TypeScript support## 🎯 Overview
 
-# Edit .env with your DATABASE_URL, JWT_SECRET, etc.
+npx prisma db seed
 
-  1. **Middleware** - Route protection & role-based access
-
-# Setup database
-
-npx prisma generate**Backend**: Node.js, Express, GraphQL Yoga, Pothos, Prisma, MySQL, JWT
-
-npx prisma migrate dev
-
-npm run seed  2. **Component** - UI-level permission checks### 🎨 Sample (Numune) Süreci
+npm run dev # http://localhost:4001
 
 
 
-# Start server**Real-Time**: WebSocket (graphql-ws), GraphQL Subscriptions
-
-npm run dev
-
-# Backend: http://localhost:4000  3. **GraphQL Shield** - API authorization layer- Dijital numune talebi
-
-# GraphQL Playground: http://localhost:4000/graphql
-
-```## 📁 Project Structure
-
-
-
-### 3. Frontend Setup  4. **Resolver** - Business logic validation- Onay/red sistemi
-
-
-
-```bash````
+# Frontend setup (Terminal 2)------
 
 cd ../frontend
 
-fullstack/- 7 aşamalı üretim takibi
+npm install
 
-# Install dependencies
+cp .env.example .env.local # Edit with your config
 
-npm install├── backend/ # GraphQL API server
+npm run codegen## 🚀 Quick Start**ProtexFlow** connects textile manufacturers with customers, enabling seamless order management, production tracking, quality control, and real-time collaboration.
 
-
-
-# Configure environment│ ├── prisma/ # Database schema & migrations**Role-Based Access Control (RBAC)**- Real-time durum güncellemeleri
-
-cp .env.example .env.local
-
-# Edit .env.local with your settings│ ├── src/
-
-
-
-# Start development server│ │ ├── graphql/ # Types, queries, mutations, subscriptions- 5 role types: `ADMIN`, `COMPANY_OWNER`, `COMPANY_EMPLOYEE`, `INDIVIDUAL_CUSTOMER`- Revizyon yönetimi
-
-npm run dev
-
-# Frontend: http://localhost:3000│ │ ├── permission/ # GraphQL Shield rules
+npm run dev # http://localhost:3000
 
 ```
 
-│ │ └── server.ts- 6 department types: `PURCHASING`, `PRODUCTION`, `QUALITY`, `DESIGN`, `SALES`, `MANAGEMENT`
+### Test Accounts### Prerequisites[![Next.js](https://img.shields.io/badge/Next.js-15.1.3-black)](https://nextjs.org/)[![Status](https://img.shields.io/badge/status-production--ready-success)](https://github.com/nihatckr/fullstack)
 
-### 4. Demo Accounts
+````typescript
 
-│ └── uploads/ # File storage
+Admin:        admin@protexflow.com / Admin123!
 
-After running `npm run seed`:
+Manufacturer: owner@textile.com / Owner123!- Node.js 18+### Key Capabilities
 
-│- 3 company types: `MANUFACTURER`, `BUYER`, `BOTH`### 📦 Sipariş Yönetimi
+Customer:     owner@fashionretail.com / Customer123!
 
-```typescript
-
-// Admin (Full Access)├── frontend/ # Next.js app
-
-Email: admin@demo.com
-
-Password: demo123│ ├── src/- JSON-based granular permissions stored per user- Sample onayı sonrası sipariş
+```- PostgreSQL
 
 
 
-// Manufacturer│ │ ├── app/ # App router pages
-
-Email: manufacturer@demo.com
-
-Password: demo123│ │ ├── components/ # React components- Fiyat ve miktar yönetimi
+------- npm or yarn## 📋 Table of Contents
 
 
 
-// Customer│ │ ├── lib/ # Utils (auth, urql, dal)
+## Tech Stack
 
-Email: customer@demo.com
 
-Password: demo123│ │ ├── hooks/ # Custom hooks### 📦 Order & Production Management- Üretim planlaması
 
-```
+### Frontend### Installation- 🔐 **Multi-Role System**: Admin, Company Owner, Company Employee, Individual Customer
 
-│ │ ├── graphql/ # Operations
 
----
 
-│ │ └── middleware.ts- Teslimat takibi
+| Category | Technology | Version |
 
-## 📁 Project Structure
+|----------|-----------|---------|
 
-│ └── public/
+| **Framework** | Next.js (App Router) | 15.1.3 |```bash- 🔔 **Real-Time Updates**: WebSocket-based notifications and subscriptions## 🎯 Overview
 
-```
+| **Language** | TypeScript | 5.7.3 |
 
-fullstack/│**7-Stage Production Workflow**- Fatura ve dökümantasyon
+| **UI Library** | React | 19.0.0 |# Clone repository
 
-├── frontend/                    # Next.js Frontend
+| **Styling** | TailwindCSS + shadcn/ui | 3.4.17 |
 
-│   ├── src/└── docs/ # Documentation
+| **GraphQL Client** | URQL | 4.1.0 |git clone https://github.com/nihatckr/fullstack.git- 🏭 **Production Management**: Complete 7-stage workflow from order to delivery
 
-│   │   ├── app/                # App Router pages
+| **State Management** | URQL Cache + React Context | - |
 
-│   │   ├── components/         # React components    ├── FEATURES/   # Feature-specific guides1. **Planning** - Production planning and scheduling
+| **Forms** | React Hook Form + Zod | 7.54.2 |cd fullstack
 
-│   │   ├── hooks/             # Custom hooks (useRelayIds, useOptimisticMutation)
+| **Auth** | NextAuth.js | 4.24.11 |
 
-│   │   ├── lib/               # Utilities (URQL, auth, user-utils)    └── GUIDES/     # Development guides
+| **Real-Time** | WebSocket Subscriptions | graphql-ws |- ✅ **Quality Control**: Stage-by-stage quality checks and approvals- [Overview](#-overview)
 
-│   │   ├── graphql/           # GraphQL operations (.graphql files)
 
-│   │   └── middleware.ts      # Route protection````2. **Fabric** - Material sourcing and preparation### 🏭 7 Aşamalı Üretim Takibi
 
-│   └── codegen.ts             # GraphQL Codegen config
+### Backend# Backend setup
+
+
+
+| Category | Technology | Version |cd backend- 📦 **Order Management**: Digital order processing with sample approval flow
+
+|----------|-----------|---------|
+
+| **Runtime** | Node.js | 18+ |npm install
+
+| **Server** | Express.js | 4.21.2 |
+
+| **GraphQL** | GraphQL Yoga | 5.10.6 |cp .env.example .env # Edit with your config- 🎨 **Sample Library**: Digital sample catalog with AI-ready infrastructure- [Features](#-features)[![GraphQL](https://img.shields.io/badge/GraphQL-Yoga-e535ab)](https://the-guild.dev/graphql/yoga-server)[![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black)](https://nextjs.org/)
+
+| **Schema Builder** | Pothos GraphQL | 4.3.0 |
+
+| **Database** | PostgreSQL | 14+ |npx prisma generate
+
+| **ORM** | Prisma | 6.2.1 |
+
+| **Authentication** | JWT | jsonwebtoken |npx prisma migrate dev- 🎯 **Component Architecture**: 15+ reusable components with TypeScript support
+
+| **Authorization** | GraphQL Shield | - |
+
+| **File Upload** | Multer | 1.4.5 |npx prisma db seed
+
+| **Image Processing** | Sharp | 0.33.5 |
+
+npm run dev # http://localhost:4001- [Tech Stack](#-tech-stack)
+
+------
+
+
+
+## Features
+
+# Frontend setup (Terminal 2)---
+
+### Authentication & Authorization
+
+cd ../frontend
+
+**JWT-Based Security (7-day tokens)**
+
+- Automatic token refresh every 12 hoursnpm install- [Quick Start](#-quick-start)**ProtexFlow** connects textile manufacturers with customers, enabling seamless order management, production tracking, quality control, and real-time collaboration.
+
+- Session management with NextAuth.js v4
+
+- 4-layer security architecture:cp .env.example .env.local # Edit with your config
+
+  1. **Middleware** - Route protection & role-based access
+
+  2. **Component** - UI-level permission checksnpm run codegen## 🚀 Quick Start
+
+  3. **GraphQL Shield** - API authorization layer
+
+  4. **Resolver** - Business logic validationnpm run dev # http://localhost:3000
+
+
+
+**Role-Based Access Control (RBAC)**```- [Project Structure](#-project-structure)
+
+- 5 role types: `ADMIN`, `COMPANY_OWNER`, `COMPANY_EMPLOYEE`, `INDIVIDUAL_CUSTOMER`
+
+- 6 department types: `PURCHASING`, `PRODUCTION`, `QUALITY`, `DESIGN`, `SALES`, `MANAGEMENT`
+
+- 3 company types: `MANUFACTURER`, `BUYER`, `BOTH`
+
+- JSON-based granular permissions stored per user### Test Accounts### Prerequisites
+
+
+
+### Order & Production Management
+
+
+
+**7-Stage Production Workflow**```typescript- [Documentation](#-documentation)[![Prisma](https://img.shields.io/badge/Prisma-6.2.1-2D3748)](https://www.prisma.io/)[![Apollo Server](https://img.shields.io/badge/Apollo%20Server-5.0.0-311C87)](https://www.apollographql.com/)
+
+
+
+1. **Planning** - Production planning and schedulingAdmin:        admin@protexflow.com / Admin123!
+
+2. **Fabric** - Material sourcing and preparation
+
+3. **Cutting** - Pattern and cutting operationsManufacturer: owner@textile.com / Owner123!- Node.js 18+
+
+4. **Sewing** - Assembly and manufacturing
+
+5. **Quality** - 7-point quality inspectionCustomer:     owner@fashionretail.com / Customer123!
+
+6. **Packaging** - Preparation for delivery
+
+7. **Shipping** - Logistics and delivery```- PostgreSQL- [Development Workflow](#-development-workflow)
+
+
+
+**Sample & Order Flow**
+
+```text
+
+Customer Request → Sample Creation → Quote Sent → Approval → Order Placed → Production → Delivery---- npm or yarn
+
+````
+
+**Quality Control System**
+
+- 7 standard test types## 🛠️ Tech Stack- [Contributing](#-contributing)### Key Features
+
+- Fabric, measurement, color, and stitch controls
+
+- Photo-based reporting
+
+- Pass/Fail system with revision tracking
+
+### Frontend### Installation
+
+### Real-Time Notifications
+
+- WebSocket subscriptions for instant updates
+
+- In-app notification center| Category | Technology | Version |---[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)](https://www.typescriptlang.org/)[![Prisma](https://img.shields.io/badge/Prisma-6.17.1-2D3748)](https://www.prisma.io/)
+
+- Email notifications (configurable)
+
+- User preferences per notification type|----------|-----------|---------|
+
+- Auto-mark as read functionality
+
+| **Framework** | Next.js (App Router) | 15.1.3 |```bash
+
+### Dynamic Task System
+
+| **Language** | TypeScript | 5.7.3 |
+
+- **Status-based task creation** - Auto-create tasks on Sample/Order status changes
+
+- **28 SampleStatus mappings** - Custom tasks for each status| **UI Library** | React | 19.0.0 |# Clone repository## 🎯 Overview- 🔐 JWT Authentication with auto-refresh (7-day tokens, 12-hour rotation)
+
+- **15 OrderStatus mappings** - Order workflow automation
+
+- **7 Production stage tasks** - Production phase tracking| **Styling** | TailwindCSS + shadcn/ui | 3.4.17 |
+
+- **Role-specific tasks** - Different tasks for customers and manufacturers
+
+- **Auto-completion** - Auto-complete old tasks when new ones are created| **GraphQL Client** | URQL | 4.1.0 |git clone https://github.com/nihatckr/fullstack.git
+
+- **Deadline tracking** - Deadline warnings and priorities
+
+| **State Management** | URQL Cache + React Context | - |
+
+````typescript
+
+// Example: Auto task creation| **Forms** | React Hook Form + Zod | 7.54.2 |cd fullstack**ProtexFlow** connects textile manufacturers with customers, enabling seamless order management, production tracking, quality control, and real-time collaboration.- 👥 Role-Based Access Control (5 roles, 40+ permissions)[![License](https://img.shields.io/badge/license-Private-red)](LICENSE)
+
+Status: QUOTE_SENT
+
+→ Customer: "✅ Quote Received - Review and Respond" (3 days)| **Auth** | NextAuth.js | 4.24.11 |
+
+→ Manufacturer: "⏳ Awaiting Customer Response" (5 days)
+
+```| **Real-Time** | WebSocket Subscriptions | graphql-ws |
+
+
+
+### Component Architecture (January 2025 Update)
+
+
+
+**Reusable Component Library**### Backend# Backend setup### Key Capabilities- 📦 Complete order lifecycle management
+
+- **36% fewer folders** (22 → 14 component folders)
+
+- **29% fewer files** (80 → 57 component files)
+
+- **Zero dead code** - All components verified as actively used
+
+- **15+ reusable components** with full TypeScript support| Category | Technology | Version |cd backend
+
+
+
+**New Components Created:**|----------|-----------|---------|
+
+- `DataTable` - Generic table with TypeScript support
+
+- `PageHeader` - Standardized page headers| **Runtime** | Node.js | 18+ |npm install- 🔐 **Multi-Role System**: Admin, Company Owner, Employee, Customer roles with granular permissions- 🏭 7-stage production tracking with quality control---
+
+- `FilterBar` - Search and filter controls
+
+- `StatsGrid` - Dashboard statistics display| **Server** | Express.js | 4.21.2 |
+
+- `LoadingState` & `EmptyState` - UI state management
+
+- `DetailModal` & `DeleteDialog` - Modal patterns| **GraphQL** | GraphQL Yoga | 5.10.6 |cp .env.example .env # Edit with your config
+
+- `InfoCard` & `InfoGrid` - Information display
+
+- `ActionButtons` - Button group patterns| **Schema Builder** | Pothos GraphQL | 4.3.0 |
+
+- `Pagination` - Table pagination component
+
+| **Database** | PostgreSQL | 14+ |npx prisma generate- 🔔 **Real-Time Updates**: WebSocket-based notifications and subscriptions
+
+**Developer Experience:**
+
+- **Type-safe components** with full TypeScript interfaces| **ORM** | Prisma | 6.2.1 |
+
+- **Consistent styling** with Tailwind CSS and shadcn/ui
+
+- **DRY principles** - Zero code duplication| **Authentication** | JWT | jsonwebtoken |npx prisma migrate dev
+
+- **Composition patterns** - Flexible children props
+
+- **Auto null handling** - Safe prop handling| **Authorization** | GraphQL Shield | - |
+
+
+
+------| **File Upload** | Multer | 1.4.5 |npx prisma db seed- 🏭 **Production Management**: Complete 7-stage workflow from order to delivery- 🔔 Real-time WebSocket notifications
+
+
+
+## Project Structure| **Image Processing** | Sharp | 0.33.5 |
+
+
+
+```textnpm run dev # http://localhost:4001
+
+fullstack/
+
+├── frontend/                    # Next.js Frontend---
+
+│   ├── src/
+
+│   │   ├── app/                # App Router pages- ✅ **Quality Control**: Stage-by-stage quality checks with photo reporting
+
+│   │   ├── components/         # React components
+
+│   │   │   ├── common/         # Reusable component library (15+ components)## ✨ Features
+
+│   │   │   ├── ui/            # shadcn/ui base components
+
+│   │   │   ├── providers/     # Context providers# Frontend setup (Terminal 2)
+
+│   │   │   └── ...
+
+│   │   ├── hooks/             # Custom hooks (useRelayIds, useOptimisticMutation)### 🔐 Authentication & Authorization
+
+│   │   ├── lib/               # Utilities (URQL, auth, user-utils)
+
+│   │   ├── graphql/           # GraphQL operations (.graphql files)cd ../frontend- 📦 **Order Management**: Digital order processing with sample approval- 💼 Company & employee management---
+
+│   │   └── middleware.ts      # Route protection
+
+│   └── codegen.ts             # GraphQL Codegen config**JWT-Based Security (7-day tokens)**
 
 │
 
-├── server/                      # Express + GraphQL Backend
+├── backend/                     # Express + GraphQL Backend- Automatic token refresh every 12 hoursnpm install
 
-│   ├── prisma/## 🔧 Development3. **Cutting** - Pattern and cutting operations1. **Planlama** - Üretim şeması
+│   ├── prisma/
+
+│   │   ├── schema.prisma      # Database schema- Session management with NextAuth.js v4
+
+│   │   └── seed.ts           # Seed data
+
+│   ├── src/- 4-layer security architecture:cp .env.example .env.local # Edit with your config- 🎨 **Sample Library**: Digital catalog with AI-ready infrastructure
+
+│   │   ├── graphql/          # Pothos schema, types, resolvers
+
+│   │   ├── utils/            # Utilities (DynamicTaskHelper)  1. **Middleware** - Route protection & role-based access
+
+│   │   └── server.ts         # Server entry point
+
+│   └── uploads/              # File storage  2. **Component** - UI-level permission checksnpm run codegen
+
+│
+
+├── docs/                       # Documentation Hub  3. **GraphQL Shield** - API authorization layer
+
+│   ├── ARCHITECTURE.md        # System architecture
+
+│   ├── FEATURES/              # Feature guides  4. **Resolver** - Business logic validationnpm run dev # http://localhost:3000- 📊 **Dynamic Task System**: Automated task creation based on status changes- 📊 Dashboard analytics per role
+
+│   └── GUIDES/                # Development guides
+
+│
+
+├── frontend/                   # Component Documentation
+
+│   ├── COMPONENT_CLEANUP_SUMMARY.md     # Component cleanup log**Role-Based Access Control (RBAC)**```
+
+│   ├── CLEANUP_COMPARISON.md            # Before/after comparison
+
+│   └── COMMON_COMPONENTS_GUIDE.md       # Component usage guide- 5 role types: `ADMIN`, `COMPANY_OWNER`, `COMPANY_EMPLOYEE`, `INDIVIDUAL_CUSTOMER`
+
+│
+
+└── README.md                   # This file- 6 department types: `PURCHASING`, `PRODUCTION`, `QUALITY`, `DESIGN`, `SALES`, `MANAGEMENT`- 🎯 **Reusable Architecture**: Custom hooks and utilities for rapid development
+
+````
+
+- 3 company types: `MANUFACTURER`, `BUYER`, `BOTH`
+
+---
+
+- JSON-based granular permissions stored per user### Test Accounts
+
+## Development Workflow
+
+### Backend Commands
+
+### 📦 Order & Production Management## 📋 Table of Contents
+
+````bash
+
+# Development
+
+npm run dev              # Start dev server with hot reload
+
+**7-Stage Production Workflow**```typescript
+
+# Database
+
+npx prisma studio        # Open Prisma Studio (visual DB editor)
+
+npx prisma generate      # Generate Prisma Client
+
+npx prisma migrate dev   # Create new migration1. **Planning** - Production planning and schedulingAdmin:        admin@protexflow.com / Admin123!---
+
+npx prisma db seed       # Seed test data
+
+2. **Fabric** - Material sourcing and preparation
+
+# Build
+
+npm run build            # Build for production3. **Cutting** - Pattern and cutting operationsManufacturer: owner@textile.com / Owner123!
+
+npm start                # Start production server
+
+```4. **Sewing** - Assembly and manufacturing
+
+
+
+### Frontend Commands5. **Quality** - 7-point quality inspectionCustomer:     owner@fashionretail.com / Customer123!## 🚀 Quick Start
+
+
+
+```bash6. **Packaging** - Preparation for delivery
+
+# Development
+
+npm run dev              # Start dev server7. **Shipping** - Logistics and delivery```
+
+
+
+# Code Generation
+
+npm run codegen          # Generate GraphQL types from schema
+
+**Sample & Order Flow**## ✨ Features
+
+# Build
+
+npm run build            # Build for production```
+
+npm run start            # Start production server
+
+Customer Request → Sample Creation → Quote Sent → Approval → Order Placed → Production → Delivery---
+
+# Code Quality
+
+npm run lint             # Run ESLint```
+
+npm run type-check       # TypeScript check
+
+```## 📋 İçindekiler
+
+
+
+### After Schema Changes**Quality Control System**
+
+
+
+When you modify the Prisma schema or GraphQL operations:- 7 standard test types## 🛠️ Tech Stack
+
+
+
+```bash- Fabric, measurement, color, and stitch controls
+
+# 1. Backend - Generate Prisma Client
+
+cd backend- Photo-based reporting### 👔 Collection Management
+
+npx prisma generate
+
+npx prisma migrate dev --name your_migration_name- Pass/Fail system with revision tracking
+
+
+
+# 2. Restart backend server### Frontend
+
+npm run dev
+
+### 🔔 Real-Time Notifications
+
+# 3. Frontend - Generate GraphQL types
+
+cd ../frontend### Prerequisites
+
+npm run codegen
+
+- WebSocket subscriptions for instant updates
+
+# 4. Restart frontend server
+
+npm run dev- In-app notification center| Category | Technology | Version |
+
+````
+
+- Email notifications (configurable)
+
+---
+
+- User preferences per notification type|----------|-----------|---------|- Multi-step product creation (category, season, fit, trends)
+
+## Project Stats
+
+- Auto-mark as read functionality
+
+```text
+
+✨ Features:           100+ features implemented| **Framework** | Next.js (App Router) | 15.1.3 |
+
+📄 Pages:              30+ pages
+
+🔄 GraphQL Ops:        100+ queries/mutations/subscriptions### 🎯 Dynamic Task System
+
+🎭 User Roles:         5 roles with granular permissions
+
+🏭 Production Stages:  7 stages with quality control| **Language** | TypeScript | 5.7.3 |- Multiple color and size options- [Overview](#-overview)
+
+📊 Sample States:      28 status values
+
+📦 Order States:       15 status values- **Status-based task creation** - Auto-create tasks on Sample/Order status changes
+
+🗄️ Database Models:    20+ models with relationships
+
+🎨 UI Components:      57 React components (cleaned from 80+)- **28 SampleStatus mappings** - Custom tasks for each status| **UI Library** | React | 19.0.0 |
+
+⚡ Dynamic Tasks:      700+ lines automation
+
+📱 Responsive:         100% mobile-friendly- **15 OrderStatus mappings** - Order workflow automation
+
+```
+
+- **7 Production stage tasks** - Production phase tracking| **Styling** | TailwindCSS + shadcn/ui | 3.4.17 |- Tech pack and measurement chart uploads
+
+---
+
+- **Role-specific tasks** - Different tasks for customers and manufacturers
+
+## System Status
+
+- **Auto-completion** - Auto-complete old tasks when new ones are created| **GraphQL Client** | URQL | 4.1.0 |
+
+### Production Ready
+
+- **Deadline tracking** - Deadline warnings and priorities
+
+- Authentication & Authorization (4-layer security)
+
+- User & Company Management| **State Management** | URQL Cache + React Context | - |- Category-based organization- Node.js 18+
+
+- Order Management (full lifecycle)
+
+- Production Tracking (7 stages)```typescript
+
+- Quality Control System
+
+- Real-Time Notifications// Example: Auto task creation| **Forms** | React Hook Form + Zod | 7.54.2 |
+
+- Image Upload System
+
+- Token Auto-RefreshStatus: QUOTE_SENT
+
+- Component Architecture (15+ reusable components)
+
+→ Customer: "✅ Quote Received - Review and Respond" (3 days)| **Auth** | NextAuth.js | 4.24.11 |### 🎨 Sample (Numune) Process- MySQL 8+- [Features](#-features)- [Genel Bakış](#-genel-bakış)
+
+### In Progress
+
+→ Manufacturer: "⏳ Awaiting Customer Response" (5 days)
+
+- Email Notifications (90%)
+
+- Advanced Search & Filters```| **Real-Time** | WebSocket Subscriptions | graphql-ws |
+
+- Export Features (PDF/Excel)
+
+### Planned
+
+### 🎨 Component Architecture (January 2025 Update)- Digital sample requests- npm
+
+- Multi-language Support (i18n)
+
+- AI Integration
+
+- Mobile App (React Native)
+
+- Admin Analytics Dashboard**Reusable Component Library**### Backend
+
+------- ✅ **36% fewer folders** (22 → 14 component folders)
+
+## Security- ✅ **29% fewer files** (80 → 57 component files)- Approval/rejection system
+
+### Implemented Security Measures- ✅ **Zero dead code** - All components verified as actively used
+
+- JWT tokens with 7-day expiry- ✅ **15+ reusable components** with full TypeScript support| Category | Technology | Version |
+
+- Automatic token refresh (12-hour rotation)
+
+- Password hashing with bcryptjs
+
+- GraphQL Shield authorization layer
+
+- Input validation with Zod**New Components Created:**|----------|-----------|---------|- 7-stage production tracking- [Tech Stack](#-tech-stack)- [Özellikler](#-temel-özellikler)
+
+- SQL injection protection (Prisma ORM)
+
+- XSS protection (React auto-escaping)- `DataTable` - Generic table with TypeScript support
+
+- CORS configuration
+
+- Rate limiting on login attempts- `PageHeader` - Standardized page headers| **Runtime** | Node.js | 18+ |
+
+- Session-expired redirect protection
+
+- `FilterBar` - Search and filter controls
+
+---
+
+- `StatsGrid` - Dashboard statistics display| **Server** | Express.js | 4.21.2 |- Real-time status updates
+
+## Deployment
+
+- `LoadingState` & `EmptyState` - UI state management
+
+### Production Checklist
+
+- `DetailModal` & `DeleteDialog` - Modal patterns| **GraphQL** | GraphQL Yoga | 5.10.6 |
+
+- [ ] Set `NODE_ENV=production`
+
+- [ ] Use strong JWT_SECRET (min 32 chars)- `InfoCard` & `InfoGrid` - Information display
+
+- [ ] Set strong NEXTAUTH_SECRET
+
+- [ ] Configure CORS_ORIGIN to your domain- `ActionButtons` - Button group patterns| **Schema Builder** | Pothos GraphQL | 4.3.0 |- Revision management### Installation
+
+- [ ] Use HTTPS (SSL certificate)
+
+- [ ] Set secure database credentials- `Pagination` - Table pagination component
+
+- [ ] Run `npx prisma migrate deploy`
+
+- [ ] Build frontend: `npm run build`| **Database** | PostgreSQL | 14+ |
+
+- [ ] Build backend: `npm run build`
+
+- [ ] Set up reverse proxy (nginx)**Developer Experience:**
+
+- [ ] Configure file upload limits
+
+- [ ] Set up monitoring and logging- ✅ **Type-safe components** with full TypeScript interfaces| **ORM** | Prisma | 6.2.1 |### 📦 Order Management- [Getting Started](#-getting-started)- [Teknoloji Stack](#-teknoloji-stack)
+
+- [ ] Configure backup strategy
+
+- ✅ **Consistent styling** with Tailwind CSS and shadcn/ui
+
+---
+
+- ✅ **DRY principles** - Zero code duplication| **Authentication** | JWT | jsonwebtoken |
+
+## Contributing
+
+- ✅ **Composition patterns** - Flexible children props
+
+We welcome contributions! Please follow these steps:
+
+- ✅ **Auto null handling** - Safe prop handling| **Authorization** | GraphQL Shield | - |- Sample approval → Order conversion```bash
+
+1. Fork the repository
+
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+
+3. Follow our coding standards
+
+4. Write tests for new features---| **File Upload** | Multer | 1.4.5 |
+
+5. Commit your changes (`git commit -m 'Add AmazingFeature'`)
+
+6. Push to the branch (`git push origin feature/AmazingFeature`)
+
+7. Open a Pull Request
+
+## 📁 Project Structure| **Image Processing** | Sharp | 0.33.5 |- Price and quantity management
+
+---
+
+## License
+
+```
+
+This project is proprietary software. All rights reserved.
+
+fullstack/
+
+**Copyright © 2025 Nihat Çakar**
+
+├── frontend/                    # Next.js Frontend---- Production planning# Clone repo- [Project Structure](#-project-structure)- [Dynamic Task System](#-dynamic-task-system-yeni)
+
+------
+
+│   ├── src/
+
+## Author
+
+│   │   ├── app/                # App Router pages
+
+**Nihat Çakar**
+
+- GitHub: [@nihatckr](https://github.com/nihatckr)│   │   ├── components/         # React components
+
+- Project: [ProtexFlow](https://github.com/nihatckr/fullstack)
+
+│   │   │   ├── common/         # 🆕 Reusable component library (15+ components)## ✨ Features- Delivery tracking
+
+------
+
+│   │   │   ├── ui/            # shadcn/ui base components
+
+## Acknowledgments
+
+│   │   │   ├── providers/     # Context providers
+
+Special thanks to the open-source community and these amazing projects:
+
+│   │   │   └── ...
+
+- [Next.js](https://nextjs.org/) - React framework
+
+- [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server) - GraphQL server│   │   ├── hooks/             # Custom hooks (useRelayIds, useOptimisticMutation)### 🔐 Authentication & Authorization- Invoice and documentationgit clone https://github.com/nihatckr/fullstack.git
+
+- [Prisma](https://www.prisma.io/) - Next-generation ORM
+
+- [Pothos GraphQL](https://pothos-graphql.dev/) - Code-first GraphQL│   │   ├── lib/               # Utilities (URQL, auth, user-utils)
+
+- [URQL](https://formidable.com/open-source/urql/) - GraphQL client
+
+- [shadcn/ui](https://ui.shadcn.com/) - UI components│   │   ├── graphql/           # GraphQL operations (.graphql files)
+
+- [TailwindCSS](https://tailwindcss.com/) - Utility-first CSS
+
+│   │   └── middleware.ts      # Route protection
+
+------
+
+│   └── codegen.ts             # GraphQL Codegen config**JWT-Based Security (7-day tokens)**### 🏭 7-Stage Production Trackingcd fullstack- [Documentation](#-documentation)- [Kurulum](#-kurulum)
+
+<div align="center">
+
+│
+
+**⭐ Star this repo if you find it helpful!**
+
+├── backend/                     # Express + GraphQL Backend- Automatic token refresh every 12 hours
+
+**📦 Version:** 3.0.0 (Production Ready + Component Architecture)
+
+**📅 Last Updated:** January 27, 2025  │   ├── prisma/
+
+**🔥 Status:** Active Development
+
+│   │   ├── schema.prisma      # Database schema- Session management with NextAuth.js v41. **Planning** - Production schema
+
+</div>
+│   │   └── seed.ts           # Seed data
+
+│   ├── src/- 4-layer security architecture:
+
+│   │   ├── graphql/          # Pothos schema, types, resolvers
+
+│   │   ├── utils/            # Utilities (DynamicTaskHelper)  1. **Middleware** - Route protection & role-based access2. **Fabric** - Sourcing and preparation
+
+│   │   └── server.ts         # Server entry point
+
+│   └── uploads/              # File storage  2. **Component** - UI-level permission checks
+
+│
+
+├── docs/                       # Documentation Hub  3. **GraphQL Shield** - API authorization layer3. **Cutting** - Pattern and cutting# Backend setup- [Development Workflow](#-development-workflow)- [Kullanım](#-kullanım)
+
+│   ├── ARCHITECTURE.md        # System architecture
+
+│   ├── FEATURES/              # Feature guides  4. **Resolver** - Business logic validation
+
+│   └── GUIDES/                # Development guides
+
+│4. **Sewing** - Assembly
+
+├── frontend/                   # 🆕 Component Documentation
+
+│   ├── COMPONENT_CLEANUP_SUMMARY.md     # Component cleanup log**Role-Based Access Control (RBAC)**
+
+│   ├── CLEANUP_COMPARISON.md            # Before/after comparison
+
+│   └── COMMON_COMPONENTS_GUIDE.md       # Component usage guide- 5 role types: `ADMIN`, `COMPANY_OWNER`, `COMPANY_EMPLOYEE`, `INDIVIDUAL_CUSTOMER`5. **Quality** - 7 test typescd backend
+
+│
+
+└── README.md                   # This file- 6 department types: `PURCHASING`, `PRODUCTION`, `QUALITY`, `DESIGN`, `SALES`, `MANAGEMENT`
+
+```
+
+- 3 company types: `MANUFACTURER`, `BUYER`, `BOTH`6. **Packaging** - Preparation
+
+---
+
+- JSON-based granular permissions stored per user
+
+## 🔧 Development Workflow
+
+7. **Shipping** - Deliverynpm install- [Dökümantasyon](#-dökümantasyon)
+
+### Backend Commands
+
+### 📦 Order & Production Management
+
+````bash
+
+# Development### ✅ Quality Control Systemcp .env.example .env # Edit with your config
+
+npm run dev              # Start dev server with hot reload
+
+**7-Stage Production Workflow**
+
+# Database
+
+npx prisma studio        # Open Prisma Studio (visual DB editor)- 7 standard test typesnpx prisma generate---- [Proje Yapısı](#-proje-yapısı)
+
+npx prisma generate      # Generate Prisma Client
+
+npx prisma migrate dev   # Create new migration1. **Planning** - Production planning and scheduling
+
+npx prisma db seed       # Seed test data
+
+2. **Fabric** - Material sourcing and preparation- Fabric, measurement, color, stitch controls
+
+# Build
+
+npm run build            # Build for production3. **Cutting** - Pattern and cutting operations
+
+npm start                # Start production server
+
+```4. **Sewing** - Assembly and manufacturing- Photo-based reportingnpx prisma migrate dev
+
+
+
+### Frontend Commands5. **Quality** - 7-point quality inspection
+
+
+
+```bash6. **Packaging** - Preparation for delivery- Pass/Fail system
+
+# Development
+
+npm run dev              # Start dev server7. **Shipping** - Logistics and delivery
+
+
+
+# Code Generation- Revision trackingnpx prisma db seed
+
+npm run codegen          # Generate GraphQL types from schema
+
+**Sample & Order Flow**
+
+# Build
+
+npm run build            # Build for production```### 📚 Library Management
+
+npm run start            # Start production server
+
+Customer Request → Sample Creation → Quote Sent → Approval → Order Placed → Production → Delivery
+
+# Code Quality
+
+npm run lint             # Run ESLint```- Color library# Start backend (Terminal 1)## 🎯 Overview---
+
+npm run type-check       # TypeScript check
+
+````
+
+### After Schema Changes**Quality Control System**- Fabric database
+
+When you modify the Prisma schema or GraphQL operations:- 7 standard test types
+
+```bash- Fabric, measurement, color, and stitch controls- Size groupsnpm run dev # http://localhost:4001
+
+# 1. Backend - Generate Prisma Client
+
+cd backend- Photo-based reporting
+
+npx prisma generate
+
+npx prisma migrate dev --name your_migration_name- Pass/Fail system with revision tracking- Season management
+
+
+
+# 2. Restart backend server
+
+npm run dev
+
+### 🔔 Real-Time Notifications- Fit (pattern) definitions
+
+# 3. Frontend - Generate GraphQL types
+
+cd ../frontend
+
+npm run codegen
+
+- WebSocket subscriptions for instant updates- Certificates (GOTS, OEKO-TEX, etc.)
+
+# 4. Restart frontend server
+
+npm run dev- In-app notification center
+
+```
+
+- Email notifications (configurable)# Frontend setup (Terminal 2)
+
+---
+
+- User preferences per notification type
+
+## 📊 Project Stats
+
+- Auto-mark as read functionality### 🎯 Dynamic Task System
+
+```
+
+✨ Features:           100+ features implemented
+
+📄 Pages:              30+ pages
+
+🔄 GraphQL Ops:        100+ queries/mutations/subscriptions### 🎯 Dynamic Task System (🆕)cd ../frontend**ProtexFlow** is a comprehensive B2B platform that connects textile manufacturers with customers, enabling seamless order management, production tracking, quality control, and real-time collaboration.## 🎯 Genel Bakış
+
+🎭 User Roles:         5 roles with granular permissions
+
+🏭 Production Stages:  7 stages with quality control
+
+📊 Sample States:      28 status values
+
+📦 Order States:       15 status values- **Status-based task creation** - Auto-create tasks on Sample/Order status changes- **Status-based task creation** - Auto-create tasks on status changes
+
+🗄️ Database Models:    20+ models with relationships
+
+🎨 UI Components:      57 React components (cleaned from 80+)- **28 SampleStatus mappings** - Custom tasks for each status
+
+⚡ Dynamic Tasks:      700+ lines automation
+
+📱 Responsive:         100% mobile-friendly- **15 OrderStatus mappings** - Order workflow automation- **28 SampleStatus mappings** - Custom tasks for each statusnpm install
+
+```
+
+- **7 Production stage tasks** - Production phase tracking
+
+---
+
+- **Role-specific tasks** - Different tasks for customers and manufacturers- **15 OrderStatus mappings** - Order workflow automation
+
+## 🎯 System Status
+
+- **Auto-completion** - Auto-complete old tasks when new ones are created
+
+### ✅ Production Ready
+
+- **Deadline tracking** - Deadline warnings and priorities- **7 Production stage tasks** - Production phase trackingcp .env.example .env.local # Edit with your config
+
+- Authentication & Authorization (4-layer security)
+
+- User & Company Management
+
+- Order Management (full lifecycle)
+
+- Production Tracking (7 stages)```typescript- **Role-specific tasks** - Different tasks for customers and manufacturers
+
+- Quality Control System
+
+- Real-Time Notifications// Example: Auto task creation
+
+- Image Upload System
+
+- Token Auto-RefreshStatus: QUOTE_SENT- **Auto-completion** - Auto-complete old TODO tasks
+
+- Component Architecture (15+ reusable components)
+
+→ Customer: "✅ Quote Received - Review and Respond" (3 days)
+
+### 🚧 In Progress
+
+→ Manufacturer: "⏳ Awaiting Customer Response" (5 days)- **Deadline tracking** - Deadline warnings and priorities
+
+- Email Notifications (90%)
+
+- Advanced Search & Filters```
+
+- Export Features (PDF/Excel)
+
+# Start frontend### Key CapabilitiesBu sistem, tekstil üreticileri ve alıcıları arasında **tam döngülü üretim yönetimi** sağlayan modern bir B2B platformudur. Koleksiyon yönetiminden kalite kontrole kadar tüm üretim sürecini dijitalleştirir.
+
+### 📋 Planned
+
+📖 **Full Documentation**: [DYNAMIC_TASK_SYSTEM_COMPLETED.md](./DYNAMIC_TASK_SYSTEM_COMPLETED.md)
+
+- Multi-language Support (i18n)
+
+- AI Integration### 👥 Multi-User Management
+
+- Mobile App (React Native)
+
+- Admin Analytics Dashboard### 🎨 Component Architecture (January 2025 Update)
+
+---npm run dev # http://localhost:3000
+
+## 🔒 Security**Reusable Component Library**
+
+### Implemented Security Measures- ✅ **36% fewer folders** (22 → 14 component folders)- 6 different user roles
+
+- ✅ JWT tokens with 7-day expiry- ✅ **29% fewer files** (80 → 57 component files)
+
+- ✅ Automatic token refresh (12-hour rotation)
+
+- ✅ Password hashing with bcryptjs- ✅ **Zero dead code** - All components verified as actively used- Company-based authorization```
+
+- ✅ GraphQL Shield authorization layer
+
+- ✅ Input validation with Zod- ✅ **15+ reusable components** with full TypeScript support
+
+- ✅ SQL injection protection (Prisma ORM)
+
+- ✅ XSS protection (React auto-escaping)- Department and position management
+
+- ✅ CORS configuration
+
+- ✅ Rate limiting on login attempts**New Components Created:**
+
+- ✅ Session-expired redirect protection
+
+- `DataTable` - Generic table with TypeScript support- Granular permission system### Test Accounts- 🔐 **Multi-Role System**: Admin, Company Owner, Company Employee, Individual Customer### Temel Kullanım Senaryoları
+
+---
+
+- `PageHeader` - Standardized page headers
+
+## 🚀 Deployment
+
+- `FilterBar` - Search and filter controls- Team collaboration
+
+### Production Checklist
+
+- `StatsGrid` - Dashboard statistics display
+
+- [ ] Set `NODE_ENV=production`
+
+- [ ] Use strong JWT_SECRET (min 32 chars)- `LoadingState` & `EmptyState` - UI state management`````- 🔔 **Real-Time Updates**: WebSocket-based notifications and subscriptions
+
+- [ ] Set strong NEXTAUTH_SECRET
+
+- [ ] Configure CORS_ORIGIN to your domain- `DetailModal` & `DeleteDialog` - Modal patterns
+
+- [ ] Use HTTPS (SSL certificate)
+
+- [ ] Set secure database credentials- `InfoCard` & `InfoGrid` - Information display---
+
+- [ ] Run `npx prisma migrate deploy`
+
+- [ ] Build frontend: `npm run build`- `ActionButtons` - Button group patterns
+
+- [ ] Build backend: `npm run build`
+
+- [ ] Set up reverse proxy (nginx)- `Pagination` - Table pagination componentAdmin: admin@protexflow.com / Admin123!
+
+- [ ] Configure file upload limits
+
+- [ ] Set up monitoring and logging
+
+- [ ] Configure backup strategy
+
+**Developer Experience:**## 🛠 Tech Stack
+
+---
+
+- ✅ **Type-safe components** with full TypeScript interfaces
+
+## 🤝 Contributing
+
+- ✅ **Consistent styling** with Tailwind CSS and shadcn/uiManufacturer: owner@textile.com / Owner123!- 🏭 **Production Management**: Complete workflow from order to delivery with 7-stage tracking```
+
+We welcome contributions! Please follow these steps:
+
+- ✅ **DRY principles** - Zero code duplication
+
+1. Fork the repository
+
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)- ✅ **Composition patterns** - Flexible children props### Frontend
+
+3. Follow our coding standards
+
+4. Write tests for new features- ✅ **Auto null handling** - Safe prop handling
+
+5. Commit your changes (`git commit -m 'Add AmazingFeature'`)
+
+6. Push to the branch (`git push origin feature/AmazingFeature`)Customer: owner@fashionretail.com / Customer123!
+
+7. Open a Pull Request
+
+---
+
+---
+
+| Category | Technology | Version |
+
+## 📄 License
+
+## 📁 Project Structure
+
+This project is proprietary software. All rights reserved.
+
+| ----------------- | ---------------------------- | ------- |```- ✅ **Quality Control**: Stage-by-stage quality checks and approvalsÜretici → Koleksiyon Oluştur → Numune İsteği Al → Üretim → Kalite Kontrol → Teslimat
+
+**Copyright © 2025 Nihat Çakar**
+
+````
+
+---
+
+fullstack/| **Framework**     | Next.js (App Router)         | 15.5.4  |
+
+## 👤 Author
+
+├── frontend/                    # Next.js Frontend
+
+**Nihat Çakar**
+
+- GitHub: [@nihatckr](https://github.com/nihatckr)│   ├── src/| **Language**      | TypeScript                   | 5.7.3   |
+
+- Project: [ProtexFlow](https://github.com/nihatckr/fullstack)
+
+│   │   ├── app/                # App Router pages
+
+---
+
+│   │   ├── components/         # React components| **UI Library**    | React                        | 19.1.0  |
+
+## 🙏 Acknowledgments
+
+│   │   │   ├── common/         # 🆕 Reusable component library (15+ components)
+
+Special thanks to the open-source community and these amazing projects:
+
+│   │   │   ├── ui/            # shadcn/ui base components| **Styling**       | Tailwind CSS                 | 3.4.18  |## 📚 Documentation- 📦 **Order Management**: Digital order processing with sample approval flow                                       ↓
+
+- [Next.js](https://nextjs.org/) - React framework
+
+- [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server) - GraphQL server│   │   │   ├── providers/     # Context providers
+
+- [Prisma](https://www.prisma.io/) - Next-generation ORM
+
+- [Pothos GraphQL](https://pothos-graphql.dev/) - Code-first GraphQL│   │   │   └── ...| **Components**    | Radix UI + Shadcn UI         | Latest  |
+
+- [URQL](https://formidable.com/open-source/urql/) - GraphQL client
+
+- [shadcn/ui](https://ui.shadcn.com/) - UI components│   │   ├── hooks/             # Custom hooks (useRelayIds, useOptimisticMutation)
+
+- [TailwindCSS](https://tailwindcss.com/) - Utility-first CSS
+
+│   │   ├── lib/               # Utilities (URQL, auth, user-utils)| **GraphQL Client**| URQL                         | 4.1.0   |
+
+---
+
+│   │   ├── graphql/           # GraphQL operations (.graphql files)
+
+<div align="center">
+
+│   │   └── middleware.ts      # Route protection| **Code Generation**| GraphQL Codegen             | 5.0.0   |
+
+**⭐ Star this repo if you find it helpful!**
+
+│   └── codegen.ts             # GraphQL Codegen config
+
+**📦 Version:** 3.0.0 (Production Ready + Component Architecture)
+
+**📅 Last Updated:** January 27, 2025  │| **Forms**         | React Hook Form + Zod        | Latest  |### Core Docs- 🎨 **Sample Library**: Digital sample catalog with AI-ready infrastructureMüşteri → Katalog Görüntüle → Numune Talep Et → Sipariş Ver → Takip Et
+
+**🔥 Status:** Active Development
+
+├── backend/                     # Express + GraphQL Backend
+
+</div>
+│   ├── prisma/| **Auth**          | NextAuth.js                  | 4.24.11 |
 
 │   │   ├── schema.prisma      # Database schema
 
@@ -460,37 +1256,531 @@ fullstack/│**7-Stage Production Workflow**- Fatura ve dökümantasyon
 
 │   ├── src/
 
-│   │   ├── graphql/          # Pothos schema, types, resolvers### Backend Commands4. **Sewing** - Assembly and manufacturing2. **Kumaş** - Tedarik ve hazırlık
+│   │   ├── graphql/          # Pothos schema, types, resolvers### Backend
 
 │   │   ├── utils/            # Utilities (DynamicTaskHelper)
 
-│   │   └── server.ts         # Server entry point
+│   │   └── server.ts         # Server entry point- **[ARCHITECTURE](./docs/ARCHITECTURE.md)** - System design & architecture- 🔒 **Granular Permissions**: 40+ individual permissions across 7 resource categories```
 
 │   └── uploads/              # File storage
 
-│```bash5. **Quality** - 7-point quality inspection3. **Kesim** - Kalıp ve kesim
+│| Category          | Technology                   | Version |
 
-├── docs/                       # Documentation
+├── docs/                       # Documentation Hub
 
-│   ├── ARCHITECTURE.mdnpm run dev           # Start dev server
+│   ├── ARCHITECTURE.md        # System architecture| ----------------- | ---------------------------- | ------- |- **[API](./docs/API.md)** - GraphQL API reference
 
-│   ├── DATABASE.md
+│   ├── FEATURES/              # Feature guides
 
-│   ├── FEATURES/npx prisma studio     # Open Prisma Studio6. **Packaging** - Preparation for delivery4. **Dikim** - Montaj
+│   └── GUIDES/                # Development guides| **Runtime**       | Node.js                      | 18+     |
 
-│   └── GUIDES/
+│
 
-│npx prisma generate   # Generate client
+├── frontend/                   # 🆕 Component Documentation| **Framework**     | Express.js                   | 5.1.0   |- **[DATABASE](./docs/DATABASE.md)** - Database schema & ERD
 
-├── DEVELOPMENT_GUIDE.md        # Development workflow
+│   ├── COMPONENT_CLEANUP_SUMMARY.md     # Component cleanup log
 
-├── BACKEND_DEVELOPMENT.md      # Backend guidenpx prisma migrate dev # Create migration7. **Shipping** - Logistics and delivery5. **Kalite** - 7 test türü
+│   ├── CLEANUP_COMPARISON.md            # Before/after comparison| **GraphQL Server**| GraphQL Yoga                 | 5.10.6  |
 
-├── FRONTEND_DEVELOPMENT.md     # Frontend guide
+│   └── COMMON_COMPONENTS_GUIDE.md       # Component usage guide
+
+│| **Schema Builder**| Pothos GraphQL               | 4.3.0   |- **[AUTHENTICATION](./docs/AUTHENTICATION.md)** - Auth & security
+
+└── README.md                   # This file
+
+```| **Database**      | MySQL                        | 8.0+    |
+
+
+
+---| **ORM**           | Prisma                       | 6.17.1  |- **[RBAC](./docs/RBAC.md)** - Roles & permissions------
+
+
+
+## 📚 Documentation| **Authentication**| JWT                          | -       |
+
+
+
+### Essential Docs| **Authorization** | GraphQL Shield               | -       |
+
+
+
+| Document | Description || **File Upload**   | Multer                       | 2.0.2   |
+
+|----------|-------------|
+
+| **[DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md)** | Complete development workflow |### Feature Guides
+
+| **[BACKEND_DEVELOPMENT.md](./BACKEND_DEVELOPMENT.md)** | Backend development with Pothos + Prisma |
+
+| **[FRONTEND_DEVELOPMENT.md](./FRONTEND_DEVELOPMENT.md)** | Frontend development with Next.js + URQL |### Key Features
+
+| **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** | Detailed folder structure |
+
+
+
+### Component Architecture (🆕)
+
+- **Relay Global IDs**: Pothos uses Base64 encoded Global Object Identification
+
+| Document | Description |
+
+|----------|-------------|- **Code-First GraphQL**: Type-safe schema with Pothos- **[Orders](./docs/FEATURES/ORDERS.md)** - Order management flow## ✨ Features## ✨ Temel Özellikler
+
+| **[Component Cleanup Summary](frontend/COMPONENT_CLEANUP_SUMMARY.md)** | Detailed component refactoring log |
+
+| **[Cleanup Comparison](frontend/CLEANUP_COMPARISON.md)** | Before/after component structure |- **Real-Time**: GraphQL Subscriptions via WebSockets
+
+| **[Common Components Guide](frontend/COMMON_COMPONENTS_GUIDE.md)** | Reusable component documentation |
+
+- **Type Safety**: End-to-end TypeScript with GraphQL Codegen- **[Production](./docs/FEATURES/PRODUCTION.md)** - Production tracking
+
+### Technical Guides
+
+
+
+| Document | Description |
+
+|----------|-------------|---- **[Quality Control](./docs/FEATURES/QUALITY.md)** - QC process
+
+| **[Authentication Guide](frontend/AUTHENTICATION_GUIDE.md)** | NextAuth.js implementation |
+
+| **[URQL Usage Guide](frontend/URQL_USAGE_GUIDE.md)** | GraphQL client patterns |
+
+| **[WebSocket Subscriptions](frontend/WEBSOCKET_SUBSCRIPTIONS_GUIDE.md)** | Real-time features |
+
+| **[Permission Usage Guide](frontend/PERMISSION_USAGE_GUIDE.md)** | RBAC implementation |## 🚀 Quick Start- **[Notifications](./docs/FEATURES/NOTIFICATIONS.md)** - Real-time system
+
+
+
+### Feature Guides
+
+
+
+| Feature | Guide |### Prerequisites- **[Companies](./docs/FEATURES/COMPANIES.md)** - Company management### 🔐 Authentication & Authorization### 👔 Koleksiyon Yönetimi
+
+|---------|-------|
+
+| **Dynamic Tasks** | [DYNAMIC_TASK_SYSTEM_COMPLETED.md](./DYNAMIC_TASK_SYSTEM_COMPLETED.md) |
+
+| **Orders** | [docs/FEATURES/ORDERS.md](./docs/FEATURES/ORDERS.md) |
+
+| **Production** | [docs/FEATURES/PRODUCTION.md](./docs/FEATURES/PRODUCTION.md) |- Node.js 18+
+
+| **Quality Control** | [docs/FEATURES/QUALITY.md](./docs/FEATURES/QUALITY.md) |
+
+| **Notifications** | [docs/FEATURES/NOTIFICATIONS.md](./docs/FEATURES/NOTIFICATIONS.md) |- MySQL 8+
+
+
+
+---- npm or yarn### Developer Guides- 4 adımlı detaylı ürün oluşturma
+
+
+
+## 🔧 Development Workflow
+
+
+
+### Backend Commands### 1. Clone Repository
+
+
+
+```bash
+
+# Development
+
+npm run dev              # Start dev server with hot reload```bash- **[Getting Started](./docs/GUIDES/GETTING_STARTED.md)** - Setup guide**JWT-Based Security (7-day tokens)**- Sezon, cinsiyet, fit, trend yönetimi
+
+
+
+# Databasegit clone https://github.com/nihatckr/fullstack.git
+
+npx prisma studio        # Open Prisma Studio (visual DB editor)
+
+npx prisma generate      # Generate Prisma Clientcd fullstack- **[Adding Features](./docs/GUIDES/NEW_FEATURES.md)** - Development workflow
+
+npx prisma migrate dev   # Create new migration
+
+npx prisma db seed       # Seed test data```
+
+
+
+# Build- **[Best Practices](./docs/GUIDES/BEST_PRACTICES.md)** - Code standards- Automatic token refresh every 12 hours- Çoklu renk ve beden seçenekleri
+
+npm run build            # Build for production
+
+npm start                # Start production server### 2. Backend Setup
+
+````
+
+- **[Deployment](./docs/GUIDES/DEPLOYMENT.md)** - Production deployment
+
+### Frontend Commands
+
+````bash
+
+```bash
+
+# Developmentcd server- Session management with NextAuth.js v4- Tech pack ve ölçü tablosu yükleme
+
+npm run dev              # Start dev server
+
+
+
+# Code Generation
+
+npm run codegen          # Generate GraphQL types from schema# Install dependencies## 🛠 Tech Stack
+
+
+
+# Buildnpm install
+
+npm run build            # Build for production
+
+npm run start            # Start production server- 4-layer security architecture:- Kategori bazlı organizasyon
+
+
+
+# Code Quality# Configure environment
+
+npm run lint             # Run ESLint
+
+npm run type-check       # TypeScript checkcp .env.example .env**Frontend**: Next.js 15, React 19, TypeScript, TailwindCSS, URQL, NextAuth.js
+
+````
+
+# Edit .env with your DATABASE_URL, JWT_SECRET, etc.
+
+### After Schema Changes
+
+1. **Middleware** - Route protection & role-based access
+
+When you modify the Prisma schema or GraphQL operations:
+
+# Setup database
+
+`````bash
+
+# 1. Backend - Generate Prisma Clientnpx prisma generate**Backend**: Node.js, Express, GraphQL Yoga, Pothos, Prisma, MySQL, JWT
+
+cd backend
+
+npx prisma generatenpx prisma migrate dev
+
+npx prisma migrate dev --name your_migration_name
+
+npm run seed  2. **Component** - UI-level permission checks### 🎨 Sample (Numune) Süreci
+
+# 2. Restart backend server
+
+npm run dev
+
+
+
+# 3. Frontend - Generate GraphQL types# Start server**Real-Time**: WebSocket (graphql-ws), GraphQL Subscriptions
+
+cd ../frontend
+
+npm run codegennpm run dev
+
+
+
+# 4. Restart frontend server# Backend: http://localhost:4000  3. **GraphQL Shield** - API authorization layer- Dijital numune talebi
+
+npm run dev
+
+```# GraphQL Playground: http://localhost:4000/graphql
+
+
+
+---```## 📁 Project Structure
+
+
+
+## 📊 Project Stats
+
+
+
+```### 3. Frontend Setup  4. **Resolver** - Business logic validation- Onay/red sistemi
+
+✨ Features:           100+ features implemented
+
+📄 Pages:              30+ pages
+
+🔄 GraphQL Ops:        100+ queries/mutations/subscriptions
+
+🎭 User Roles:         5 roles with granular permissions```bash````
+
+🏭 Production Stages:  7 stages with quality control
+
+📊 Sample States:      28 status valuescd ../frontend
+
+📦 Order States:       15 status values
+
+🗄️ Database Models:    20+ models with relationshipsfullstack/- 7 aşamalı üretim takibi
+
+🎨 UI Components:      57 React components (cleaned from 80+)
+
+⚡ Dynamic Tasks:      700+ lines automation# Install dependencies
+
+📱 Responsive:         100% mobile-friendly
+
+```npm install├── backend/ # GraphQL API server
+
+
+
+---
+
+
+
+## 🎯 System Status# Configure environment│ ├── prisma/ # Database schema & migrations**Role-Based Access Control (RBAC)**- Real-time durum güncellemeleri
+
+
+
+### ✅ Production Readycp .env.example .env.local
+
+
+
+- Authentication & Authorization (4-layer security)# Edit .env.local with your settings│ ├── src/
+
+- User & Company Management
+
+- Order Management (full lifecycle)
+
+- Production Tracking (7 stages)
+
+- Quality Control System# Start development server│ │ ├── graphql/ # Types, queries, mutations, subscriptions- 5 role types: `ADMIN`, `COMPANY_OWNER`, `COMPANY_EMPLOYEE`, `INDIVIDUAL_CUSTOMER`- Revizyon yönetimi
+
+- Real-Time Notifications
+
+- Image Upload Systemnpm run dev
+
+- Token Auto-Refresh
+
+- Component Architecture (15+ reusable components)# Frontend: http://localhost:3000│ │ ├── permission/ # GraphQL Shield rules
+
+
+
+### 🚧 In Progress```
+
+
+
+- Email Notifications (90%)│ │ └── server.ts- 6 department types: `PURCHASING`, `PRODUCTION`, `QUALITY`, `DESIGN`, `SALES`, `MANAGEMENT`
+
+- Advanced Search & Filters
+
+- Export Features (PDF/Excel)### 4. Demo Accounts
+
+
+
+### 📋 Planned│ └── uploads/ # File storage
+
+
+
+- Multi-language Support (i18n)After running `npm run seed`:
+
+- AI Integration
+
+- Mobile App (React Native)│- 3 company types: `MANUFACTURER`, `BUYER`, `BOTH`### 📦 Sipariş Yönetimi
+
+- Admin Analytics Dashboard
+
+```typescript
+
+---
+
+// Admin (Full Access)├── frontend/ # Next.js app
+
+## 🔒 Security
+
+Email: admin@demo.com
+
+### Implemented Security Measures
+
+Password: demo123│ ├── src/- JSON-based granular permissions stored per user- Sample onayı sonrası sipariş
+
+- ✅ JWT tokens with 7-day expiry
+
+- ✅ Automatic token refresh (12-hour rotation)
+
+- ✅ Password hashing with bcryptjs
+
+- ✅ GraphQL Shield authorization layer// Manufacturer│ │ ├── app/ # App router pages
+
+- ✅ Input validation with Zod
+
+- ✅ SQL injection protection (Prisma ORM)Email: manufacturer@demo.com
+
+- ✅ XSS protection (React auto-escaping)
+
+- ✅ CORS configurationPassword: demo123│ │ ├── components/ # React components- Fiyat ve miktar yönetimi
+
+- ✅ Rate limiting on login attempts
+
+- ✅ Session-expired redirect protection
+
+
+
+---// Customer│ │ ├── lib/ # Utils (auth, urql, dal)
+
+
+
+## 🚀 DeploymentEmail: customer@demo.com
+
+
+
+### Production ChecklistPassword: demo123│ │ ├── hooks/ # Custom hooks### 📦 Order & Production Management- Üretim planlaması
+
+
+
+- [ ] Set `NODE_ENV=production````
+
+- [ ] Use strong JWT_SECRET (min 32 chars)
+
+- [ ] Set strong NEXTAUTH_SECRET│ │ ├── graphql/ # Operations
+
+- [ ] Configure CORS_ORIGIN to your domain
+
+- [ ] Use HTTPS (SSL certificate)---
+
+- [ ] Set secure database credentials
+
+- [ ] Run `npx prisma migrate deploy`│ │ └── middleware.ts- Teslimat takibi
+
+- [ ] Build frontend: `npm run build`
+
+- [ ] Build backend: `npm run build`## 📁 Project Structure
+
+- [ ] Set up reverse proxy (nginx)
+
+- [ ] Configure file upload limits│ └── public/
+
+- [ ] Set up monitoring and logging
+
+- [ ] Configure backup strategy```
+
+
+
+See [docs/GUIDES/DEPLOYMENT.md](./docs/GUIDES/DEPLOYMENT.md) for detailed guide.fullstack/│**7-Stage Production Workflow**- Fatura ve dökümantasyon
+
+
+
+---├── frontend/                    # Next.js Frontend
+
+
+
+## 🤝 Contributing│   ├── src/└── docs/ # Documentation
+
+
+
+We welcome contributions! Please follow these steps:│   │   ├── app/                # App Router pages
+
+
+
+1. Fork the repository│   │   ├── components/         # React components    ├── FEATURES/   # Feature-specific guides1. **Planning** - Production planning and scheduling
+
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+
+3. Follow our [coding standards](./docs/GUIDES/BEST_PRACTICES.md)│   │   ├── hooks/             # Custom hooks (useRelayIds, useOptimisticMutation)
+
+4. Write tests for new features
+
+5. Commit your changes (`git commit -m 'Add AmazingFeature'`)│   │   ├── lib/               # Utilities (URQL, auth, user-utils)    └── GUIDES/     # Development guides
+
+6. Push to the branch (`git push origin feature/AmazingFeature`)
+
+7. Open a Pull Request│   │   ├── graphql/           # GraphQL operations (.graphql files)
+
+
+
+---│   │   └── middleware.ts      # Route protection````2. **Fabric** - Material sourcing and preparation### 🏭 7 Aşamalı Üretim Takibi
+
+
+
+## 📄 License│   └── codegen.ts             # GraphQL Codegen config
+
+
+
+This project is proprietary software. All rights reserved.│
+
+
+
+**Copyright © 2025 Nihat Çakar**├── server/                      # Express + GraphQL Backend
+
+
+
+---│   ├── prisma/## 🔧 Development3. **Cutting** - Pattern and cutting operations1. **Planlama** - Üretim şeması
+
+
+
+## 👤 Author│   │   ├── schema.prisma      # Database schema
+
+
+
+**Nihat Çakar**│   │   └── seed.ts           # Seed data
+
+- GitHub: [@nihatckr](https://github.com/nihatckr)
+
+- Project: [ProtexFlow](https://github.com/nihatckr/fullstack)│   ├── src/
+
+
+
+---│   │   ├── graphql/          # Pothos schema, types, resolvers### Backend Commands4. **Sewing** - Assembly and manufacturing2. **Kumaş** - Tedarik ve hazırlık
+
+
+
+## 🙏 Acknowledgments│   │   ├── utils/            # Utilities (DynamicTaskHelper)
+
+
+
+Special thanks to the open-source community and these amazing projects:│   │   └── server.ts         # Server entry point
+
+
+
+- [Next.js](https://nextjs.org/) - React framework│   └── uploads/              # File storage
+
+- [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server) - GraphQL server
+
+- [Prisma](https://www.prisma.io/) - Next-generation ORM│```bash5. **Quality** - 7-point quality inspection3. **Kesim** - Kalıp ve kesim
+
+- [Pothos GraphQL](https://pothos-graphql.dev/) - Code-first GraphQL
+
+- [URQL](https://formidable.com/open-source/urql/) - GraphQL client├── docs/                       # Documentation
+
+- [shadcn/ui](https://ui.shadcn.com/) - UI components
+
+- [TailwindCSS](https://tailwindcss.com/) - Utility-first CSS│   ├── ARCHITECTURE.mdnpm run dev           # Start dev server
+
+
+
+---│   ├── DATABASE.md
+
+
+
+<div align="center">│   ├── FEATURES/npx prisma studio     # Open Prisma Studio6. **Packaging** - Preparation for delivery4. **Dikim** - Montaj
+
+
+
+**⭐ Star this repo if you find it helpful!**│   └── GUIDES/
+
+
+
+**📦 Version:** 3.0.0 (Production Ready + Component Architecture)  │npx prisma generate   # Generate client
+
+**📅 Last Updated:** January 27, 2025
+
+**🔥 Status:** Active Development├── DEVELOPMENT_GUIDE.md        # Development workflow
+
+
+
+[Documentation](./docs/) • [Issues](https://github.com/nihatckr/fullstack/issues) • [Discussions](https://github.com/nihatckr/fullstack/discussions)├── BACKEND_DEVELOPMENT.md      # Backend guidenpx prisma migrate dev # Create migration7. **Shipping** - Logistics and delivery5. **Kalite** - 7 test türü
+
+
+
+</div>├── FRONTEND_DEVELOPMENT.md     # Frontend guide
 
 └── README.md                   # This file````
 
-```
+`````
 
 6. **Paketleme** - Hazırlık
 
@@ -504,7 +1794,7 @@ For detailed structure, see **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)**
 
 ## 📚 Documentation
 
-````bash
+`````bash
 
 ### 🚀 Start Here
 
@@ -1814,4 +3104,5 @@ Bu projeyi geliştirmede kullanılan teknolojilere ve açık kaynak topluluğuna
 **Versiyon:** 2.0.0 (Production Ready + Dynamic Task System)
 **Durum:** ✅ Aktif Geliştirme
 ````
+
 # b2b

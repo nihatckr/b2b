@@ -137,3 +137,67 @@ builder.queryField("order", (t) =>
     },
   })
 );
+
+// Get order change logs for an order
+builder.queryField("orderChangeLogs", (t) =>
+  t.prismaField({
+    type: ["OrderChangeLog"],
+    args: {
+      orderId: t.arg.int({ required: true }),
+      skip: t.arg.int(),
+      take: t.arg.int(),
+    },
+    authScopes: { user: true },
+    resolve: async (query, _root, args, context) => {
+      const user = context.user;
+      if (!user) throw new Error("Unauthorized");
+
+      // First check if user has access to this order
+      const order = await context.prisma.order.findUniqueOrThrow({
+        where: { id: args.orderId },
+        include: {
+          customer: true,
+          collection: {
+            include: { company: true },
+          },
+        },
+      });
+
+      // Check permissions (same logic as order query)
+      let hasAccess = false;
+
+      if (user.role === "ADMIN") {
+        hasAccess = true;
+      } else if (user.role === "INDIVIDUAL_CUSTOMER") {
+        hasAccess = order.customerId === user.id;
+      } else if (user.companyId) {
+        const company = await context.prisma.company.findUnique({
+          where: { id: user.companyId },
+          select: { type: true },
+        });
+
+        if (company?.type === "BUYER") {
+          hasAccess = order.customer?.companyId === user.companyId;
+        } else if (company?.type === "MANUFACTURER") {
+          hasAccess = order.collection?.companyId === user.companyId;
+        }
+      }
+
+      if (!hasAccess) {
+        throw new Error("You don't have permission to view order change logs");
+      }
+
+      return context.prisma.orderChangeLog.findMany({
+        ...query,
+        where: { orderId: args.orderId },
+        ...(args.skip !== null && args.skip !== undefined
+          ? { skip: args.skip }
+          : {}),
+        ...(args.take !== null && args.take !== undefined
+          ? { take: args.take }
+          : {}),
+        orderBy: { createdAt: "desc" },
+      });
+    },
+  })
+);

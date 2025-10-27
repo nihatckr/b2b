@@ -4,6 +4,7 @@ import {
   CollectionsDetailDocument,
   CollectionsUpdateDocument,
 } from "@/__generated__/graphql";
+import { PageHeader } from "@/components/common";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +19,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { useRelayIds } from "@/hooks/useRelayIds";
 import {
   ArrowLeft,
@@ -26,6 +26,7 @@ import {
   Calendar,
   Edit,
   Eye,
+  Folder,
   Heart,
   Package,
   Share2,
@@ -61,12 +62,15 @@ function Label({
 }
 // Certification icon mapping
 interface Certification {
-  iconValue?: string;
-  data?: string;
-  name?: string;
+  iconValue?: string | null;
+  data?: string | null;
+  name?: string | null;
+  [key: string]: unknown; // Index signature for flexibility
 }
 
-function getIconForCertification(cert: Certification): string | JSX.Element {
+function getIconForCertification(
+  cert: Certification
+): string | React.ReactNode {
   // Priority 1: Custom iconValue
   if (cert.iconValue && typeof cert.iconValue === "string") {
     return (
@@ -276,17 +280,22 @@ export default function CollectionDetailPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/dashboard/collections">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Collections
-            </Link>
-          </Button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold">{collection.name}</h1>
+      <PageHeader
+        title={collection.name || "Collection"}
+        description={`Model Code: ${collection.modelCode || "N/A"}`}
+        icon={<Folder className="h-6 w-6" />}
+        action={
+          <div className="flex items-center gap-4">
+            {/* Back Button */}
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/dashboard/collections">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Link>
+            </Button>
+
+            {/* Badges */}
+            <div className="flex gap-2">
               {collection.isFeatured && (
                 <Badge className="bg-yellow-500 hover:bg-yellow-600">
                   <Star className="mr-1 h-3 w-3" />
@@ -297,53 +306,50 @@ export default function CollectionDetailPage() {
                 {collection.isActive ? "Active" : "Inactive"}
               </Badge>
             </div>
-            <p className="text-muted-foreground">
-              Model Code: {collection.modelCode}
-            </p>
-          </div>
-        </div>
 
-        {/* Actions */}
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={toggleFeatured}>
-            <Star className="mr-2 h-4 w-4" />
-            {collection.isFeatured ? "Unfeature" : "Feature"}
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href={`/dashboard/collections/${collection.id}/edit`}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Link>
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={toggleFeatured}>
+                <Star className="mr-2 h-4 w-4" />
+                {collection.isFeatured ? "Unfeature" : "Feature"}
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Collection</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete &quot;{collection.name}&quot;?
-                  This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="bg-destructive hover:bg-destructive/90"
-                >
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </div>
+              <Button variant="outline" asChild>
+                <Link href={`/dashboard/collections/${collection.id}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Link>
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Collection</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete &quot;{collection.name}
+                      &quot;? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="bg-destructive hover:bg-destructive/90"
+                    >
+                      {isDeleting ? "Deleting..." : "Delete"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
@@ -574,8 +580,8 @@ export default function CollectionDetailPage() {
                                     className="text-xs"
                                   >
                                     {typeof group === "object"
-                                      ? group.name || group.id
-                                      : group}
+                                      ? String(group.name ?? group.id ?? "")
+                                      : String(group)}
                                   </Badge>
                                 )
                               )}
@@ -769,7 +775,7 @@ export default function CollectionDetailPage() {
                                               <div
                                                 key={certIndex}
                                                 className="flex items-center gap-2 bg-white border border-green-200 px-3 py-1.5 rounded-lg shadow-sm"
-                                                title={cert.name}
+                                                title={cert.name || undefined}
                                               >
                                                 <span className="w-4 h-4 flex items-center justify-center">
                                                   {getIconForCertification(
@@ -1022,7 +1028,7 @@ export default function CollectionDetailPage() {
                                               <div
                                                 key={certIndex}
                                                 className="flex items-center gap-2 bg-white border border-blue-200 px-3 py-1.5 rounded-lg shadow-sm"
-                                                title={cert.name}
+                                                title={cert.name ?? undefined}
                                               >
                                                 <span className="w-4 h-4 flex items-center justify-center">
                                                   {getIconForCertification(

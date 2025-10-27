@@ -249,3 +249,15 @@ export const ReportType = builder.enumType('ReportType', {
 export const ReportPeriod = builder.enumType('ReportPeriod', {
   values: ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'] as const,
 });
+
+// ========================================
+// ORDER CHANGE LOG ENUMS
+// ========================================
+
+export const OrderChangeLogStatus = builder.enumType('OrderChangeLogStatus', {
+  values: ['PENDING', 'APPROVED', 'REJECTED', 'NEEDS_NEGOTIATION'] as const,
+});
+
+export const OrderChangeType = builder.enumType('OrderChangeType', {
+  values: ['QUANTITY', 'PRICE', 'DEADLINE', 'SPECIFICATIONS', 'NOTES', 'OTHER'] as const,
+});

@@ -1,4 +1,5 @@
 "use client";
+import { PageHeader } from "@/components/common";
 import {
   FormImageUpload,
   FormInput,
@@ -41,6 +42,7 @@ import {
   Lock,
   Mail,
   Save,
+  Settings,
   User,
   UserCircle,
 } from "lucide-react";
@@ -80,7 +82,7 @@ import {
   type PasswordInput,
   type PreferencesInput,
   type ProfileInput,
-} from "@/lib/zod-schema";
+} from "@/lib/validations";
 
 // Change Password Mutation (not yet in GraphQL operations file)
 const CHANGE_PASSWORD_MUTATION = `
@@ -472,14 +474,11 @@ export default function SettingsPage() {
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
-          <p className="text-muted-foreground">
-            Manage your account settings and preferences
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Settings"
+        description="Manage your account settings and preferences"
+        icon={<Settings className="h-6 w-6" />}
+      />
 
       <Separator />
 
@@ -688,7 +687,9 @@ export default function SettingsPage() {
             <SettingsSection>
               <ImageUploadWithSync
                 value={profileForm.watch("customAvatar")}
-                onChange={(url) => profileForm.setValue("customAvatar", url)}
+                onChange={(url: string) =>
+                  profileForm.setValue("customAvatar", url)
+                }
                 onValueClear={() => profileForm.setValue("customAvatar", "")}
                 mutation={updateProfileMutation}
                 mutationField="customAvatar"

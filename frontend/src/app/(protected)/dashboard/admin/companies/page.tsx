@@ -9,6 +9,12 @@ import {
   AdminUpdateCompanyDocument,
 } from "@/__generated__/graphql";
 import {
+  DataTable,
+  FilterBar,
+  PageHeader,
+  StatsGrid,
+} from "@/components/common";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -36,23 +42,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { Textarea } from "@/components/ui/textarea";
 import { useRelayIds } from "@/hooks/useRelayIds";
 import {
   Building2,
+  CheckCircle,
   Power,
   PowerOff,
-  Search,
   Trash2,
   Users,
+  XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -204,220 +204,206 @@ export default function AdminCompaniesPage() {
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Firma Yönetimi</h1>
-          <p className="text-muted-foreground">
-            Platform genelindeki firmaları yönetin
-          </p>
-        </div>
-        <Button
-          onClick={() => {
-            setSelectedCompany(null);
-            setEditDialogOpen(true);
-          }}
-        >
-          <Building2 className="h-4 w-4 mr-2" />
-          Yeni Firma
-        </Button>
-      </div>
+      <PageHeader
+        title="Firma Yönetimi"
+        description="Platform genelindeki firmaları yönetin"
+        icon={<Building2 className="h-6 w-6" />}
+        action={
+          <Button
+            onClick={() => {
+              setSelectedCompany(null);
+              setEditDialogOpen(true);
+            }}
+          >
+            <Building2 className="h-4 w-4 mr-2" />
+            Yeni Firma
+          </Button>
+        }
+      />
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-        <div className="rounded-lg border bg-card p-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Building2 className="h-4 w-4" />
-            Toplam
-          </div>
-          <div className="mt-2 text-2xl font-bold">{stats.total}</div>
-        </div>
-
-        <div className="rounded-lg border bg-card p-4">
-          <div className="text-sm text-muted-foreground">Üretici</div>
-          <div className="mt-2 text-2xl font-bold">{stats.manufacturers}</div>
-        </div>
-
-        <div className="rounded-lg border bg-card p-4">
-          <div className="text-sm text-muted-foreground">Alıcı</div>
-          <div className="mt-2 text-2xl font-bold">{stats.buyers}</div>
-        </div>
-
-        <div className="rounded-lg border bg-card p-4">
-          <div className="text-sm text-muted-foreground">Her İkisi</div>
-          <div className="mt-2 text-2xl font-bold">{stats.both}</div>
-        </div>
-
-        <div className="rounded-lg border bg-card p-4">
-          <div className="text-sm text-green-600">Aktif</div>
-          <div className="mt-2 text-2xl font-bold text-green-600">
-            {stats.active}
-          </div>
-        </div>
-
-        <div className="rounded-lg border bg-card p-4">
-          <div className="text-sm text-red-600">Pasif</div>
-          <div className="mt-2 text-2xl font-bold text-red-600">
-            {stats.inactive}
-          </div>
-        </div>
-      </div>
+      <StatsGrid
+        stats={[
+          {
+            title: "Toplam",
+            value: stats.total,
+            icon: <Building2 className="h-4 w-4" />,
+          },
+          {
+            title: "Üretici",
+            value: stats.manufacturers,
+          },
+          {
+            title: "Alıcı",
+            value: stats.buyers,
+          },
+          {
+            title: "Her İkisi",
+            value: stats.both,
+          },
+          {
+            title: "Aktif",
+            value: stats.active,
+            icon: <CheckCircle className="h-4 w-4" />,
+            valueColor: "text-green-600",
+          },
+          {
+            title: "Pasif",
+            value: stats.inactive,
+            icon: <XCircle className="h-4 w-4" />,
+            valueColor: "text-red-600",
+          },
+        ]}
+        columns="6"
+      />
 
       {/* Filters */}
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Firma ara (ad, email)..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Tip" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tüm Tipler</SelectItem>
-            <SelectItem value="MANUFACTURER">Üretici</SelectItem>
-            <SelectItem value="BUYER">Alıcı</SelectItem>
-            <SelectItem value="BOTH">Her İkisi</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <FilterBar
+        search={{
+          value: searchTerm,
+          onChange: setSearchTerm,
+          placeholder: "Firma adı, email veya telefon ara...",
+        }}
+        filters={[
+          {
+            value: typeFilter,
+            onChange: setTypeFilter,
+            options: [
+              { value: "ALL", label: "Tüm Tipler" },
+              { value: "MANUFACTURER", label: "Üretici" },
+              { value: "BUYER", label: "Alıcı" },
+              { value: "BOTH", label: "Her İkisi" },
+            ],
+            placeholder: "Firma Tipi",
+          },
+        ]}
+      />
 
       {/* Companies Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Firma</TableHead>
-              <TableHead>Tip</TableHead>
-              <TableHead>İletişim</TableHead>
-              <TableHead>Kullanıcı</TableHead>
-              <TableHead>Abonelik</TableHead>
-              <TableHead>Durum</TableHead>
-              <TableHead className="text-right">İşlemler</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {fetching ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
-                  Yükleniyor...
-                </TableCell>
-              </TableRow>
-            ) : companies.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
-                  Firma bulunamadı
-                </TableCell>
-              </TableRow>
-            ) : (
-              companies.map((company: any) => {
+      {fetching ? (
+        <div className="rounded-md border p-8 text-center text-muted-foreground">
+          Yükleniyor...
+        </div>
+      ) : (
+        <DataTable
+          data={companies}
+          columns={[
+            {
+              header: "Firma",
+              cell: (company: any) => (
+                <div>
+                  <div className="font-medium">{company.name}</div>
+                  {company.description && (
+                    <div className="text-sm text-muted-foreground truncate max-w-xs">
+                      {company.description}
+                    </div>
+                  )}
+                </div>
+              ),
+            },
+            {
+              header: "Tip",
+              cell: (company: any) => {
                 const typeBadge = getCompanyTypeBadge(company.type);
                 return (
-                  <TableRow key={company.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{company.name}</div>
-                        {company.description && (
-                          <div className="text-sm text-muted-foreground truncate max-w-xs">
-                            {company.description}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={typeBadge.variant}>
-                        {typeBadge.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>{company.email}</div>
-                        {company.phone && (
-                          <div className="text-muted-foreground">
-                            {company.phone}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Users className="h-3 w-3" />
-                        {company.currentUsers}/{company.maxUsers}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          company.subscriptionStatus === "ACTIVE"
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
-                        {company.subscriptionPlan}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {company.isActive ? (
-                        <Badge className="bg-green-500">Aktif</Badge>
-                      ) : (
-                        <Badge variant="destructive">Pasif</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDetailClick(company)}
-                        >
-                          Detay
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleEditClick(company)}
-                        >
-                          Düzenle
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setSelectedCompany(company);
-                            setToggleStatusDialogOpen(true);
-                          }}
-                        >
-                          {company.isActive ? (
-                            <PowerOff className="h-4 w-4" />
-                          ) : (
-                            <Power className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => {
-                            setSelectedCompany(company);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  <Badge variant={typeBadge.variant}>{typeBadge.label}</Badge>
                 );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              },
+            },
+            {
+              header: "İletişim",
+              cell: (company: any) => (
+                <div className="text-sm">
+                  <div>{company.email}</div>
+                  {company.phone && (
+                    <div className="text-muted-foreground">{company.phone}</div>
+                  )}
+                </div>
+              ),
+            },
+            {
+              header: "Kullanıcı",
+              cell: (company: any) => (
+                <div className="flex items-center gap-1 text-sm">
+                  <Users className="h-3 w-3" />
+                  {company.currentUsers}/{company.maxUsers}
+                </div>
+              ),
+            },
+            {
+              header: "Abonelik",
+              cell: (company: any) => (
+                <Badge
+                  variant={
+                    company.subscriptionStatus === "ACTIVE"
+                      ? "default"
+                      : "secondary"
+                  }
+                >
+                  {company.subscriptionPlan}
+                </Badge>
+              ),
+            },
+            {
+              header: "Durum",
+              cell: (company: any) =>
+                company.isActive ? (
+                  <Badge className="bg-green-500">Aktif</Badge>
+                ) : (
+                  <Badge variant="destructive">Pasif</Badge>
+                ),
+            },
+            {
+              header: "İşlemler",
+              align: "right",
+              cell: (company: any) => (
+                <div className="flex justify-end gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDetailClick(company)}
+                  >
+                    Detay
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleEditClick(company)}
+                  >
+                    Düzenle
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setSelectedCompany(company);
+                      setToggleStatusDialogOpen(true);
+                    }}
+                  >
+                    {company.isActive ? (
+                      <PowerOff className="h-4 w-4" />
+                    ) : (
+                      <Power className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => {
+                      setSelectedCompany(company);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ),
+            },
+          ]}
+          emptyMessage="Firma bulunamadı"
+        />
+      )}
 
       {/* Edit Dialog */}
       <EditCompanyDialog

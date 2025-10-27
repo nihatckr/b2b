@@ -3,6 +3,9 @@ import builder from "../builder";
 // Import all enums first
 import "../enums";
 
+// Import new types
+import "./OrderChangeLog";
+
 // ========================================
 // RELAY NODES (Global ID Support)
 // ========================================
@@ -412,6 +415,9 @@ builder.prismaNode("Order", {
     company: t.relation("company", { nullable: true }),
     companyId: t.exposeInt("companyId", { nullable: true }),
     productionTracking: t.relation("productionTracking", { nullable: true }),
+
+    // Order Change Tracking
+    changeLogs: t.relation("changeLogs"),
 
     createdAt: t.expose("createdAt", { type: "DateTime" }),
     updatedAt: t.expose("updatedAt", { type: "DateTime" }),

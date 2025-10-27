@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/common";
 import {
   Card,
   CardContent,
@@ -99,15 +100,11 @@ export default function LibraryPage() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-          Library Management
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          Manage your product library - fabrics, colors, sizes, fits, materials,
-          certifications, and seasons
-        </p>
-      </div>
+      <PageHeader
+        title="Library Management"
+        description="Manage your product library - fabrics, colors, sizes, fits, materials, certifications, and seasons"
+        className="mb-6 sm:mb-8"
+      />
 
       {/* Info Card - Mobile-first */}
       <Card className="mb-6 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30">

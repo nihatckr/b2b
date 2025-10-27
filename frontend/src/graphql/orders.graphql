@@ -138,6 +138,28 @@ query BuyerOrderDetail($id: Int!) {
         delayReason
       }
     }
+    changeLogs {
+      id
+      changeType
+      previousValues
+      newValues
+      changeReason
+      manufacturerStatus
+      manufacturerResponse
+      manufacturerReviewedAt
+      negotiationTriggered
+      createdAt
+      changedByUser {
+        id
+        name
+        email
+      }
+      reviewedByUser {
+        id
+        name
+        email
+      }
+    }
   }
 }
 
@@ -267,5 +289,81 @@ mutation RespondToProductionPlan(
     customerNote
     currentStage
     overallStatus
+  }
+}
+
+# Order Change Tracking Operations
+
+# Track order update (customers when they modify orders)
+mutation TrackOrderUpdate(
+  $orderId: Int!
+  $changeType: OrderChangeType!
+  $previousValues: JSON!
+  $newValues: JSON!
+  $changeReason: String
+) {
+  trackOrderUpdate(
+    orderId: $orderId
+    changeType: $changeType
+    previousValues: $previousValues
+    newValues: $newValues
+    changeReason: $changeReason
+  ) {
+    id
+    changeType
+    manufacturerStatus
+    negotiationTriggered
+    createdAt
+  }
+}
+
+# Review order change (manufacturers respond to customer changes)
+mutation ReviewOrderChange(
+  $changeLogId: Int!
+  $status: OrderChangeLogStatus!
+  $response: String
+  $triggerNegotiation: Boolean
+) {
+  reviewOrderChange(
+    changeLogId: $changeLogId
+    status: $status
+    response: $response
+    triggerNegotiation: $triggerNegotiation
+  ) {
+    id
+    manufacturerStatus
+    manufacturerResponse
+    manufacturerReviewedAt
+    negotiationTriggered
+  }
+}
+
+# Query order change logs for an order
+query OrderChangeLogs($orderId: Int!, $skip: Int, $take: Int) {
+  orderChangeLogs(orderId: $orderId, skip: $skip, take: $take) {
+    id
+    changeType
+    previousValues
+    newValues
+    changeReason
+    manufacturerStatus
+    manufacturerResponse
+    manufacturerReviewedAt
+    negotiationTriggered
+    createdAt
+    changedByUser {
+      id
+      name
+      email
+    }
+    reviewedByUser {
+      id
+      name
+      email
+    }
+    relatedNegotiation {
+      id
+      status
+    }
   }
 }

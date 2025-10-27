@@ -1,5 +1,6 @@
 "use client";
 
+import { DataTable, FilterBar, PageHeader } from "@/components/common";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,24 +20,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FolderTree, List, Plus, Search } from "lucide-react";
+import { Folder, FolderTree, List, Plus } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQuery } from "urql";
 
@@ -315,60 +301,53 @@ export default function AdminCategoriesPage() {
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Standart Kategoriler</h1>
-          <p className="text-muted-foreground">
-            Platform genelinde kullanılan standart kategori yönetimi
-          </p>
-        </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Yeni Kategori
-        </Button>
-      </div>
+      <PageHeader
+        title="Standart Kategoriler"
+        description="Platform genelinde kullanılan standart kategori yönetimi"
+        icon={<Folder className="h-6 w-6" />}
+        action={
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Yeni Kategori
+          </Button>
+        }
+      />
 
       {/* Stats */}
       <CategoryStats stats={stats} />
 
       {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Kategori ara (kod, ad, açıklama)..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        <Select value={levelFilter} onValueChange={setLevelFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Seviye" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tüm Seviyeler</SelectItem>
-            <SelectItem value="ROOT">Ana Kategori</SelectItem>
-            <SelectItem value="MAIN">Ana Grup</SelectItem>
-            <SelectItem value="SUB">Alt Grup</SelectItem>
-            <SelectItem value="DETAIL">Detay</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Durum" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tümü</SelectItem>
-            <SelectItem value="active">Aktif</SelectItem>
-            <SelectItem value="inactive">Pasif</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <FilterBar
+        search={{
+          value: search,
+          onChange: setSearch,
+          placeholder: "Kategori ara (kod, ad, açıklama)...",
+        }}
+        filters={[
+          {
+            value: levelFilter,
+            onChange: setLevelFilter,
+            options: [
+              { value: "all", label: "Tüm Seviyeler" },
+              { value: "ROOT", label: "Ana Kategori" },
+              { value: "MAIN", label: "Ana Grup" },
+              { value: "SUB", label: "Alt Grup" },
+              { value: "DETAIL", label: "Detay" },
+            ],
+            placeholder: "Seviye",
+          },
+          {
+            value: statusFilter,
+            onChange: setStatusFilter,
+            options: [
+              { value: "all", label: "Tümü" },
+              { value: "active", label: "Aktif" },
+              { value: "inactive", label: "Pasif" },
+            ],
+            placeholder: "Durum",
+          },
+        ]}
+      />
 
       {/* Tabs: List / Tree View */}
       <Tabs defaultValue="list" className="space-y-4">
@@ -385,126 +364,117 @@ export default function AdminCategoriesPage() {
 
         {/* List View */}
         <TabsContent value="list" className="space-y-4">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Kod</TableHead>
-                  <TableHead>Ad</TableHead>
-                  <TableHead>Seviye</TableHead>
-                  <TableHead>Ana Kategori</TableHead>
-                  <TableHead>Durum</TableHead>
-                  <TableHead>Alt Kategoriler</TableHead>
-                  <TableHead className="text-right">İşlemler</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {fetching ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      Yükleniyor...
-                    </TableCell>
-                  </TableRow>
-                ) : categories.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      Kategori bulunamadı
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  categories.map((category: any) => {
+          {fetching ? (
+            <div className="rounded-md border p-8 text-center text-muted-foreground">
+              Yükleniyor...
+            </div>
+          ) : (
+            <DataTable
+              data={categories}
+              columns={[
+                {
+                  header: "Kod",
+                  cell: (category: any) => (
+                    <code className="text-sm font-mono">{category.code}</code>
+                  ),
+                },
+                {
+                  header: "Ad",
+                  cell: (category: any) => (
+                    <div className="flex items-center gap-2">
+                      {renderCategoryIcon(
+                        category.icon,
+                        category.level as CategoryLevel,
+                        "h-4 w-4 text-muted-foreground"
+                      )}
+                      <span className="font-medium">{category.name}</span>
+                    </div>
+                  ),
+                },
+                {
+                  header: "Seviye",
+                  cell: (category: any) => {
                     const { label, colorClass } = getCategoryLevelBadge(
                       category.level as CategoryLevel
                     );
-
                     return (
-                      <TableRow key={category.id}>
-                        <TableCell>
-                          <code className="text-sm font-mono">
-                            {category.code}
-                          </code>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {renderCategoryIcon(
-                              category.icon,
-                              category.level as CategoryLevel,
-                              "h-4 w-4 text-muted-foreground"
-                            )}
-                            <span className="font-medium">{category.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={colorClass}>
-                            {label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {category.parentCategory ? (
-                            <span className="text-sm text-muted-foreground">
-                              {category.parentCategory.code} -{" "}
-                              {category.parentCategory.name}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Badge
-                              variant={
-                                category.isActive ? "default" : "destructive"
-                              }
-                            >
-                              {category.isActive ? "Aktif" : "Pasif"}
-                            </Badge>
-                            {!category.isPublic && (
-                              <Badge variant="secondary">Özel</Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {category.subCategories?.length || 0}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleToggleStatus(category)}
-                            >
-                              {category.isActive ? "Devre Dışı" : "Aktifleştir"}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setSelectedCategory(category);
-                                setEditDialogOpen(true);
-                              }}
-                            >
-                              Düzenle
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setSelectedCategory(category);
-                                setDeleteDialogOpen(true);
-                              }}
-                              className="text-destructive"
-                            >
-                              Sil
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                      <Badge variant="outline" className={colorClass}>
+                        {label}
+                      </Badge>
                     );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  },
+                },
+                {
+                  header: "Ana Kategori",
+                  cell: (category: any) =>
+                    category.parentCategory ? (
+                      <span className="text-sm text-muted-foreground">
+                        {category.parentCategory.code} -{" "}
+                        {category.parentCategory.name}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    ),
+                },
+                {
+                  header: "Durum",
+                  cell: (category: any) => (
+                    <div className="flex gap-1">
+                      <Badge
+                        variant={category.isActive ? "default" : "destructive"}
+                      >
+                        {category.isActive ? "Aktif" : "Pasif"}
+                      </Badge>
+                      {!category.isPublic && (
+                        <Badge variant="secondary">Özel</Badge>
+                      )}
+                    </div>
+                  ),
+                },
+                {
+                  header: "Alt Kategoriler",
+                  cell: (category: any) => category.subCategories?.length || 0,
+                },
+                {
+                  header: "İşlemler",
+                  align: "right",
+                  cell: (category: any) => (
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleToggleStatus(category)}
+                      >
+                        {category.isActive ? "Devre Dışı" : "Aktifleştir"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setSelectedCategory(category);
+                          setEditDialogOpen(true);
+                        }}
+                      >
+                        Düzenle
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setSelectedCategory(category);
+                          setDeleteDialogOpen(true);
+                        }}
+                        className="text-destructive"
+                      >
+                        Sil
+                      </Button>
+                    </div>
+                  ),
+                },
+              ]}
+              emptyMessage="Kategori bulunamadı"
+            />
+          )}
 
           {/* Pagination */}
           {totalPages > 1 && (

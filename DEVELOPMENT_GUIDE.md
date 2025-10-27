@@ -2,7 +2,7 @@
 
 Complete development workflow for ProtexFlow B2B Textile Management System.
 
-**Last Updated:** October 20, 2025 | **Version:** 3.0.0
+**Last Updated:** January 27, 2025 | **Version:** 3.0.0
 
 ---
 
@@ -11,6 +11,7 @@ Complete development workflow for ProtexFlow B2B Textile Management System.
 - [Overview](#overview)
 - [Development Environment](#development-environment)
 - [Project Architecture](#project-architecture)
+- [🆕 Component Architecture Updates](#component-architecture-updates)
 - [Development Workflow](#development-workflow)
 - [Backend Development](#backend-development)
 - [Frontend Development](#frontend-development)
@@ -24,17 +25,40 @@ Complete development workflow for ProtexFlow B2B Textile Management System.
 
 ProtexFlow uses a modern full-stack architecture:
 
-- **Backend**: Node.js + Express + GraphQL Yoga + Pothos + Prisma + MySQL
+- **Backend**: Node.js + Express + GraphQL Yoga + Pothos + Prisma + PostgreSQL
 - **Frontend**: Next.js 15 + React 19 + TypeScript + URQL + GraphQL Codegen
 - **Real-Time**: WebSocket subscriptions via GraphQL
+- **🆕 Components**: 15+ reusable components (36% fewer folders, 29% fewer files)
 
 ### Development Philosophy
 
 1. **Type-Safe**: End-to-end TypeScript with GraphQL Codegen
 2. **Code-First**: Pothos GraphQL schema builder
-3. **Reusable**: Custom hooks and utilities
+3. **Reusable**: Custom hooks and component library
 4. **DRY**: Don't Repeat Yourself principle
 5. **Convention Over Configuration**: Consistent patterns
+6. **🆕 Component-Driven**: Reusable, type-safe components
+
+---
+
+## 🆕 Component Architecture Updates
+
+### Recent Improvements (January 2025)
+
+- ✅ **36% fewer folders** (22 → 14 component folders)
+- ✅ **29% fewer files** (80 → 57 component files)
+- ✅ **Zero dead code** - All components verified as actively used
+- ✅ **15+ reusable components** with full TypeScript support
+
+**New Reusable Components:**
+
+- `Pagination` - Table pagination with proper TypeScript
+- `DataTable` - Generic table component
+- `PageHeader` - Standardized page headers
+- `FilterBar` - Search and filter controls
+- `LoadingState` & `EmptyState` - UI state management
+
+**See:** [Common Components Guide](frontend/COMMON_COMPONENTS_GUIDE.md)
 
 ---
 
@@ -45,7 +69,7 @@ ProtexFlow uses a modern full-stack architecture:
 ```bash
 # Core Requirements
 Node.js 18+
-MySQL 8.0+
+PostgreSQL 14+
 npm or yarn
 
 # Recommended Tools

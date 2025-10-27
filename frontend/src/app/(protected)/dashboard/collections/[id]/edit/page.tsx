@@ -5,10 +5,11 @@ import {
   CollectionsUpdateDocument,
 } from "@/__generated__/graphql";
 import { CreateCollectionModal } from "@/components/collections/CreateCollectionModal";
+import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRelayIds } from "@/hooks/useRelayIds";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Edit3 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -157,18 +158,19 @@ export default function CollectionEditPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={`/dashboard/collections/${rawId}`}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Collection
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Edit Collection</h1>
-          <p className="text-muted-foreground">{collection.name}</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Edit Collection"
+        description={collection.name || ""}
+        icon={<Edit3 className="h-6 w-6" />}
+        action={
+          <Button variant="ghost" size="sm" asChild>
+            <Link href={`/dashboard/collections/${rawId}`}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Edit Modal */}
       <CreateCollectionModal

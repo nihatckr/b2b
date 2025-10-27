@@ -406,6 +406,10 @@ model User {
   sentNegotiations      OrderNegotiation[] @relation("SentNegotiations")
   respondedNegotiations OrderNegotiation[] @relation("RespondedNegotiations")
 
+  // Order change tracking
+  orderChangesMade     OrderChangeLog[] @relation("OrderChangesMade")
+  orderChangesReviewed OrderChangeLog[] @relation("OrderChangesReviewed")
+
   @@index([email])
   @@index([username])
   @@index([companyId, role])
@@ -881,6 +885,9 @@ model Order {
   // Pazarlık
   negotiations OrderNegotiation[]
 
+  // Değişiklik takibi
+  changeLogs OrderChangeLog[]
+
   @@index([orderNumber])
   @@index([status])
   @@index([customerId, status])
@@ -924,9 +931,58 @@ model OrderNegotiation {
   sender    User  @relation("SentNegotiations", fields: [senderId], references: [id])
   responder User? @relation("RespondedNegotiations", fields: [respondedBy], references: [id])
 
+  // Order değişiklik ile ilişki
+  relatedChangeLog OrderChangeLog?
+
   @@index([orderId, createdAt])
   @@index([status])
   @@map("order_negotiations")
+}
+
+// ============================================
+// SİPARİŞ DEĞİŞİKLİK TAKİP SİSTEMİ
+// ============================================
+model OrderChangeLog {
+  id        Int @id @default(autoincrement())
+  orderId   Int
+  changedBy Int // Değişikliği yapan kullanıcı
+
+  // Değişiklik tipi
+  changeType String // "QUANTITY", "PRICE", "DEADLINE", "NOTES", "FULL_UPDATE"
+
+  // Eski değerler (JSON olarak)
+  previousValues Json // { "quantity": 100, "unitPrice": 25.50, "deadline": "2024-01-15" }
+
+  // Yeni değerler (JSON olarak)
+  newValues Json // { "quantity": 150, "unitPrice": 23.00, "deadline": "2024-01-20" }
+
+  // Değişiklik açıklaması
+  changeReason String? @db.Text // "Müşteri miktarı artırmak istiyor"
+
+  // Üretici yanıtı durumu
+  manufacturerStatus String @default("PENDING") // PENDING, REVIEWED, ACCEPTED, REJECTED, NEGOTIATED
+
+  // Üretici yanıtı
+  manufacturerResponse   String?   @db.Text
+  manufacturerReviewedAt DateTime?
+  manufacturerReviewedBy Int?
+
+  // Pazarlık başlatılır
+  negotiationTriggered Boolean @default(false)
+  negotiationId        Int?    @unique
+
+  createdAt DateTime @default(now())
+
+  // İlişkiler
+  order              Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changedByUser      User              @relation("OrderChangesMade", fields: [changedBy], references: [id])
+  reviewedByUser     User?             @relation("OrderChangesReviewed", fields: [manufacturerReviewedBy], references: [id])
+  relatedNegotiation OrderNegotiation? @relation(fields: [negotiationId], references: [id])
+
+  @@index([orderId, createdAt])
+  @@index([manufacturerStatus])
+  @@index([changeType])
+  @@map("order_change_logs")
 }
 
 // Sipariş üretim geçmişi takibi
@@ -1379,7 +1435,7 @@ model ProductionRevision {
 enum ProductionStage {
   PLANNING
   FABRIC // Kumaş Tedarik
-  CUTTING // Kesim  
+  CUTTING // Kesim
   SEWING // Dikim
   PRESSING // Ütü ve Pres
   QUALITY // Kalite Kontrol

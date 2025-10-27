@@ -9,6 +9,7 @@ import {
   DashboardPlatformStandardsQuery,
   DashboardUpdateLibraryItemDocument,
 } from "@/__generated__/graphql";
+import { PageHeader } from "@/components/common";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
@@ -29,11 +30,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
 import AlertDialogProtexflow from "../../../../../components/alerts/alert-dialog-protextflow";
-import TitleHeader from "../../../../../components/headers/title-header";
 
 import SizeCard from "../../../../../components/library/sizes/SizeCard";
 import SizeDetail from "../../../../../components/library/sizes/SizeDetail";
-import LoadingError from "../../../../../components/loading/loading-error";
+
 import {
   getRegionalStandard,
   getSizeCategory,
@@ -241,23 +241,15 @@ export default function SizeGroupsPage() {
     companyData.length === 0 &&
     allCompaniesData.length === 0
   ) {
-    return (
-      <LoadingError
-        message="No size groups found."
-        errorTitle="Veri bulunamadı.!"
-      />
-    );
+    return <h1>No size groups found.</h1>;
   }
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
 
-      <TitleHeader
-        titleHeader="Size Groups Library"
-        descriptionHeader="Manage size groups and measurements"
-        titleReverseHeader="Beden Grupları Kütüphanesi"
-        descriptionReverseHeader="Beden gruplarını ve ölçümleri yönetin"
-        isBuyer={true}
+      <PageHeader
+        title="Size Groups Library"
+        description="Manage size groups and measurements"
         icon={<Ruler className="h-7 w-7 text-purple-600" />}
       />
       {/* Tabs */}

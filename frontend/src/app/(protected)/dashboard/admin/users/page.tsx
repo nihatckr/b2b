@@ -12,6 +12,12 @@ import {
   AdminUsersDocument,
 } from "@/__generated__/graphql";
 import {
+  DataTable,
+  FilterBar,
+  PageHeader,
+  StatsGrid,
+} from "@/components/common";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -55,14 +61,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { useRelayIds } from "@/hooks/useRelayIds";
 import { toRelativeTime } from "@/lib/date-utils";
 import {
@@ -79,7 +78,6 @@ import {
   Edit,
   MoreVertical,
   Plus,
-  Search,
   Shield,
   Trash2,
   UserCheck,
@@ -319,135 +317,86 @@ export default function AdminUsersPage() {
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Users className="w-8 h-8" />
-            Kullanıcı Yönetimi
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Tüm kullanıcıları görüntüleyin ve yönetin
-          </p>
-        </div>
-        <Button className="gap-2" onClick={() => setShowCreateModal(true)}>
-          <Plus className="w-4 h-4" />
-          Yeni Kullanıcı
-        </Button>
-      </div>
+      <PageHeader
+        title="Kullanıcı Yönetimi"
+        description="Tüm kullanıcıları görüntüleyin ve yönetin"
+        icon={<Users className="w-8 h-8" />}
+        action={
+          <Button className="gap-2" onClick={() => setShowCreateModal(true)}>
+            <Plus className="w-4 h-4" />
+            Yeni Kullanıcı
+          </Button>
+        }
+      />
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Toplam Kullanıcı
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Tüm sistemdeki kullanıcılar
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aktif</CardTitle>
-            <UserCheck className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.byStatus?.active || 0}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Aktif kullanıcılar
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Firma Sahipleri
-            </CardTitle>
-            <Building2 className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.byRole?.COMPANY_OWNER || 0}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Company Owner</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Onay Bekleyenler
-            </CardTitle>
-            <AlertCircle className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {stats.byStatus?.pendingApproval || 0}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Pending approval
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <StatsGrid
+        stats={[
+          {
+            title: "Toplam Kullanıcı",
+            value: stats.total,
+            description: "Tüm sistemdeki kullanıcılar",
+            icon: <Users className="h-4 w-4 text-muted-foreground" />,
+          },
+          {
+            title: "Aktif",
+            value: stats.byStatus?.active || 0,
+            description: "Aktif kullanıcılar",
+            icon: <UserCheck className="h-4 w-4" />,
+            valueColor: "text-green-600",
+          },
+          {
+            title: "Firma Sahipleri",
+            value: stats.byRole?.COMPANY_OWNER || 0,
+            description: "Company Owner",
+            icon: <Building2 className="h-4 w-4" />,
+            valueColor: "text-blue-600",
+          },
+          {
+            title: "Onay Bekleyenler",
+            value: stats.byStatus?.pendingApproval || 0,
+            description: "Pending approval",
+            icon: <AlertCircle className="h-4 w-4" />,
+            valueColor: "text-yellow-600",
+          },
+        ]}
+      />
 
       {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtreler</CardTitle>
-          <CardDescription>Kullanıcıları filtreleyin ve arayın</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="İsim veya email ara..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {/* Role Filter */}
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Rol filtrele" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tüm Roller</SelectItem>
-                <SelectItem value="ADMIN">Admin</SelectItem>
-                <SelectItem value="COMPANY_OWNER">Firma Sahibi</SelectItem>
-                <SelectItem value="COMPANY_EMPLOYEE">Çalışan</SelectItem>
-                <SelectItem value="INDIVIDUAL_CUSTOMER">Müşteri</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Durum filtrele" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tüm Durumlar</SelectItem>
-                <SelectItem value="active">Aktif</SelectItem>
-                <SelectItem value="inactive">Pasif</SelectItem>
-                <SelectItem value="pending">Onay Bekleyen</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <FilterBar
+        title="Filtreler"
+        description="Kullanıcıları filtreleyin ve arayın"
+        search={{
+          placeholder: "İsim veya email ara...",
+          value: searchTerm,
+          onChange: setSearchTerm,
+        }}
+        filters={[
+          {
+            placeholder: "Rol filtrele",
+            value: roleFilter,
+            options: [
+              { label: "Tüm Roller", value: "all" },
+              { label: "Admin", value: "ADMIN" },
+              { label: "Firma Sahibi", value: "COMPANY_OWNER" },
+              { label: "Çalışan", value: "COMPANY_EMPLOYEE" },
+              { label: "Müşteri", value: "INDIVIDUAL_CUSTOMER" },
+            ],
+            onChange: setRoleFilter,
+          },
+          {
+            placeholder: "Durum filtrele",
+            value: statusFilter,
+            options: [
+              { label: "Tüm Durumlar", value: "all" },
+              { label: "Aktif", value: "active" },
+              { label: "Pasif", value: "inactive" },
+              { label: "Onay Bekleyen", value: "pending" },
+            ],
+            onChange: setStatusFilter,
+          },
+        ]}
+      />
 
       {/* Users Table */}
       <Card>
@@ -465,152 +414,142 @@ export default function AdminUsersPage() {
                 <p className="text-muted-foreground">Yükleniyor...</p>
               </div>
             </div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Users className="w-16 h-16 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
-                Kullanıcı Bulunamadı
-              </h3>
-              <p className="text-muted-foreground">
-                Arama kriterlerinize uygun kullanıcı bulunamadı.
-              </p>
-            </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Kullanıcı</TableHead>
-                    <TableHead>Rol</TableHead>
-                    <TableHead>Departman</TableHead>
-                    <TableHead>Şirket</TableHead>
-                    <TableHead>Durum</TableHead>
-                    <TableHead>Kayıt Tarihi</TableHead>
-                    <TableHead className="text-right">İşlemler</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{user.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {user.email}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {getRoleBadge(user?.role || "INDIVIDUAL_CUSTOMER")}
-                      </TableCell>
-                      <TableCell>
-                        {getDepartmentLabel(user.department ?? null)}
-                      </TableCell>
-                      <TableCell>
-                        {user.company ? (
-                          <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm">{user.company.name}</span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {user.isActive ? (
-                          <Badge variant="default" className="gap-1">
-                            <CheckCircle className="w-3 h-3" />
-                            Aktif
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="gap-1">
-                            <UserX className="w-3 h-3" />
-                            Pasif
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {toRelativeTime(user.createdAt)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="gap-2"
-                              onClick={() => {
-                                setEditingUser(user);
-                                setEditForm({
-                                  name: user.name || "",
-                                  email: user.email || "",
-                                  phone: user.phone || "",
-                                  department: user.department || "",
-                                  jobTitle: user.jobTitle || "",
-                                  role: user.role || "",
-                                  newPassword: "",
-                                  companyId: user.company
-                                    ? decodeGlobalId(user.company.id)
-                                    : null,
-                                });
-                                setShowEditModal(true);
-                              }}
-                            >
-                              <Edit className="w-4 h-4" />
-                              Düzenle
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="gap-2"
-                              onClick={() =>
-                                handleToggleStatus(
-                                  user.id,
-                                  user.isActive || false
-                                )
-                              }
-                            >
-                              {user.isActive ? (
-                                <>
-                                  <UserX className="w-4 h-4" />
-                                  Pasif Et
-                                </>
-                              ) : (
-                                <>
-                                  <UserCheck className="w-4 h-4" />
-                                  Aktif Et
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
-                              <UserCog className="w-4 h-4" />
-                              Rol Değiştir
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
-                              <Shield className="w-4 h-4" />
-                              Şifre Sıfırla
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="gap-2 text-destructive"
-                              onClick={() => setDeleteUserId(user.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Sil
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <DataTable
+              data={filteredUsers}
+              columns={[
+                {
+                  header: "Kullanıcı",
+                  cell: (user: any) => (
+                    <div>
+                      <div className="font-medium">{user.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {user.email}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  header: "Rol",
+                  cell: (user: any) =>
+                    getRoleBadge(user?.role || "INDIVIDUAL_CUSTOMER"),
+                },
+                {
+                  header: "Departman",
+                  cell: (user: any) =>
+                    getDepartmentLabel(user.department ?? null),
+                },
+                {
+                  header: "Şirket",
+                  cell: (user: any) =>
+                    user.company ? (
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">{user.company.name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    ),
+                },
+                {
+                  header: "Durum",
+                  cell: (user: any) =>
+                    user.isActive ? (
+                      <Badge variant="default" className="gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Aktif
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="gap-1">
+                        <UserX className="w-3 h-3" />
+                        Pasif
+                      </Badge>
+                    ),
+                },
+                {
+                  header: "Kayıt Tarihi",
+                  cell: (user: any) => (
+                    <span className="text-sm">
+                      {toRelativeTime(user.createdAt)}
+                    </span>
+                  ),
+                },
+                {
+                  header: "İşlemler",
+                  align: "right",
+                  cell: (user: any) => (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="gap-2"
+                          onClick={() => {
+                            setEditingUser(user);
+                            setEditForm({
+                              name: user.name || "",
+                              email: user.email || "",
+                              phone: user.phone || "",
+                              department: user.department || "",
+                              jobTitle: user.jobTitle || "",
+                              role: user.role || "",
+                              newPassword: "",
+                              companyId: user.company
+                                ? decodeGlobalId(user.company.id)
+                                : null,
+                            });
+                            setShowEditModal(true);
+                          }}
+                        >
+                          <Edit className="w-4 h-4" />
+                          Düzenle
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="gap-2"
+                          onClick={() =>
+                            handleToggleStatus(user.id, user.isActive || false)
+                          }
+                        >
+                          {user.isActive ? (
+                            <>
+                              <UserX className="w-4 h-4" />
+                              Pasif Et
+                            </>
+                          ) : (
+                            <>
+                              <UserCheck className="w-4 h-4" />
+                              Aktif Et
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="gap-2">
+                          <UserCog className="w-4 h-4" />
+                          Rol Değiştir
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="gap-2">
+                          <Shield className="w-4 h-4" />
+                          Şifre Sıfırla
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="gap-2 text-destructive"
+                          onClick={() => setDeleteUserId(user.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Sil
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ),
+                },
+              ]}
+              emptyMessage="Arama kriterlerinize uygun kullanıcı bulunamadı"
+            />
           )}
 
           {/* Pagination */}

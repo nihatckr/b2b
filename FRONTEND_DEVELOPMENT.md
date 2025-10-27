@@ -2,7 +2,7 @@
 
 Complete guide for frontend development with Next.js 15, URQL, and GraphQL Codegen.
 
-**Last Updated:** October 20, 2025
+**Last Updated:** January 27, 2025
 
 ---
 
@@ -11,6 +11,7 @@ Complete guide for frontend development with Next.js 15, URQL, and GraphQL Codeg
 - [Overview](#overview)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
+- [Component Architecture (🆕 January 2025)](#component-architecture-january-2025)
 - [Next.js App Router](#nextjs-app-router)
 - [URQL GraphQL Client](#urql-graphql-client)
 - [GraphQL Codegen](#graphql-codegen)
@@ -31,6 +32,7 @@ ProtexFlow frontend is built with:
 - **NextAuth.js**: Authentication solution
 - **Shadcn UI**: Component library
 - **TailwindCSS**: Utility-first CSS
+- **🆕 Component Library**: 15+ reusable components with TypeScript support
 
 ### Architecture
 

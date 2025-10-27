@@ -4,6 +4,7 @@ import {
   DashboardLibraryItemsDocument,
   FileUploadSingleDocument,
 } from "@/__generated__/graphql";
+import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import NextImage from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -393,21 +394,20 @@ export default function CreateCollectionPage() {
     <div className="min-h-screen py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
-        <div className="mb-8">
-          <Button variant="ghost" size="sm" asChild className="mb-4">
-            <Link href="/dashboard/collections">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Koleksiyonlara Dön
-            </Link>
-          </Button>
-
-          <div className="text-center">
-            <h1 className="text-3xl font-bold  mb-2">
-              Yeni Koleksiyon Oluştur
-            </h1>
-            <p className=" ">{STEPS[currentStep - 1].description}</p>
-          </div>
-        </div>
+        <PageHeader
+          title="Yeni Koleksiyon Oluştur"
+          description={STEPS[currentStep - 1].description}
+          icon={<Plus className="h-6 w-6" />}
+          action={
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/dashboard/collections">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Link>
+            </Button>
+          }
+          className="mb-8"
+        />
 
         {/* Progress Bar */}
         <div className="mb-8">

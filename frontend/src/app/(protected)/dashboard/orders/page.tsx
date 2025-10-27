@@ -1,17 +1,17 @@
 "use client";
 
 import { BuyerOrdersDocument } from "@/__generated__/graphql";
+import {
+  DataCard,
+  DataTable,
+  EmptyState,
+  FilterBar,
+  LoadingState,
+  PageHeader,
+  Pagination,
+} from "@/components/common";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { toRelativeTime } from "@/lib/date-utils";
 import { Eye, Package } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -19,11 +19,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "urql";
-import TitleHeader from "../../../../components/headers/title-header";
-import LoadingError from "../../../../components/loading/loading-error";
-import LoadingSpinner from "../../../../components/loading/loading-spinner";
-import FilterSearch from "../../../../components/navigation/FilterSearch";
-import PrevNextPagination from "../../../../components/navigation/PrevNextPagination";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../../../components/ui/card";
 
 const statusColors = {
   PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -55,8 +56,9 @@ export default function OrdersPage() {
   const { data: session } = useSession();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [skip, setSkip] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const take = 20;
+  const skip = (currentPage - 1) * take;
 
   const [{ data, fetching, error }] = useQuery({
     query: BuyerOrdersDocument,
@@ -94,44 +96,75 @@ export default function OrdersPage() {
   };
 
   if (fetching) {
-    return <LoadingSpinner message="Siparişler yükleniyor..." />;
+    return (
+      <div className="p-6 space-y-6">
+        <PageHeader
+          title={isBuyer ? "Siparişlerim" : "Gelen Siparişler"}
+          description={
+            isBuyer
+              ? "Verdiğiniz siparişleri takip edin"
+              : "Gelen siparişleri yönetin"
+          }
+          icon={<Package className="h-6 w-6" />}
+        />
+        <LoadingState />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <LoadingError
-        message="Siparişler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin."
-        errorTitle="Sipariş Yükleme Hatası"
-      />
+      <div className="p-6">
+        <DataCard
+          title="Hata Oluştu"
+          description="Siparişler yüklenirken bir hata oluştu"
+          icon={<Package className="h-5 w-5 text-red-500" />}
+        >
+          <div className="text-center py-6">
+            <p className="text-red-600">{error.message}</p>
+          </div>
+        </DataCard>
+      </div>
     );
   }
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <TitleHeader
-        isBuyer={isBuyer}
-        titleHeader="Siparişlerim"
-        titleReverseHeader="Gelen Siparişler"
-        descriptionHeader="Verdiğiniz siparişleri takip edin"
-        descriptionReverseHeader="Gelen siparişleri yönetin"
+      <PageHeader
+        title={isBuyer ? "Siparişlerim" : "Gelen Siparişler"}
+        description={
+          isBuyer
+            ? "Verdiğiniz siparişleri takip edin"
+            : "Gelen siparişleri yönetin"
+        }
+        icon={<Package className="h-6 w-6" />}
       />
-      {/* Filters */}
 
-      <FilterSearch
-        cardTitle="Filtreler"
-        allStatuses={"Tüm Durumlar"}
-        pendingStatuses={"Beklemede"}
-        reviewedStatuses={"İncelendi"}
-        quoteSentStatuses={"Teklif Gönderildi"}
-        confirmedStatuses={"Onaylandı"}
-        inProductionStatuses={"Üretimde"}
-        shippedStatuses={"Kargoda"}
-        deliveredStatuses={"Teslim Edildi"}
-        setStatusFilter={setStatusFilter}
-        statusFilter={statusFilter}
-        setSearch={setSearch}
-        search={search}
+      {/* Filters */}
+      <FilterBar
+        search={{
+          value: search,
+          onChange: setSearch,
+          placeholder: "Sipariş no, koleksiyon veya firma ara...",
+        }}
+        filters={[
+          {
+            value: statusFilter,
+            onChange: setStatusFilter,
+            options: [
+              { value: "ALL", label: "Tüm Durumlar" },
+              { value: "PENDING", label: "Beklemede" },
+              { value: "REVIEWED", label: "İncelendi" },
+              { value: "QUOTE_SENT", label: "Teklif Gönderildi" },
+              { value: "CONFIRMED", label: "Onaylandı" },
+              { value: "IN_PRODUCTION", label: "Üretimde" },
+              { value: "SHIPPED", label: "Kargoda" },
+              { value: "DELIVERED", label: "Teslim Edildi" },
+            ],
+            placeholder: "Durum",
+          },
+        ]}
       />
       {/* Orders Data Table */}
       <Card>
@@ -142,142 +175,131 @@ export default function OrdersPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {fetching ? (
-            <div className="space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="animate-pulse flex items-center space-x-4 py-4 border-b"
-                >
-                  <div className="h-4 bg-gray-200 rounded w-24"></div>
-                  <div className="h-4 bg-gray-200 rounded w-32"></div>
-                  <div className="h-4 bg-gray-200 rounded w-20"></div>
-                  <div className="h-4 bg-gray-200 rounded w-16"></div>
-                  <div className="h-4 bg-gray-200 rounded w-24"></div>
-                  <div className="h-4 bg-gray-200 rounded w-20"></div>
-                </div>
-              ))}
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {search || statusFilter !== "ALL"
+          {orders.length === 0 ? (
+            <EmptyState
+              icon={<Package className="h-12 w-12" />}
+              title={
+                search || statusFilter !== "ALL"
                   ? "Arama kriterlerinize uygun sipariş bulunamadı"
                   : isBuyer
                   ? "Henüz sipariş vermediniz"
-                  : "Henüz sipariş almadınız"}
-              </h3>
-              <p className="text-gray-500 mb-4">
-                {isBuyer
+                  : "Henüz sipariş almadınız"
+              }
+              description={
+                isBuyer
                   ? "Koleksiyonlara göz atıp sipariş oluşturabilirsiniz"
-                  : "Müşteriler sizden sipariş talep ettiğinde burada görünecek"}
-              </p>
-              {isBuyer && (
-                <Link href="/dashboard/collections">
-                  <Button>Koleksiyonları İncele</Button>
-                </Link>
-              )}
-            </div>
+                  : "Müşteriler sizden sipariş talep ettiğinde burada görünecek"
+              }
+              action={
+                isBuyer ? (
+                  <Link href="/dashboard/collections">
+                    <Button>Koleksiyonları İncele</Button>
+                  </Link>
+                ) : undefined
+              }
+            />
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[120px]">Sipariş No</TableHead>
-                    <TableHead>Koleksiyon</TableHead>
-                    <TableHead className="w-[100px]">Durum</TableHead>
-                    <TableHead className="w-[80px] text-right">
-                      Miktar
-                    </TableHead>
-                    <TableHead className="w-[120px] text-right">
-                      Hedef Fiyat
-                    </TableHead>
-                    <TableHead className="w-[120px]">
-                      {isBuyer ? "Üretici" : "Müşteri"}
-                    </TableHead>
-                    <TableHead className="w-[100px]">Tarih</TableHead>
-                    <TableHead className="w-[80px] text-center">
-                      İşlemler
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders.map((order) => (
-                    <TableRow key={order.id} className="hover:neutral-700">
-                      <TableCell className="font-medium">
-                        {order.orderNumber}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          {order.collection?.images &&
-                            JSON.parse(order.collection.images)[0] && (
-                              <Image
-                                src={JSON.parse(order.collection.images)[0]}
-                                alt={order.collection.name || "Koleksiyon"}
-                                width={32}
-                                height={32}
-                                className="w-8 h-8 rounded object-cover"
-                              />
-                            )}
-                          <div className="min-w-0">
-                            <div className="font-medium text-sm truncate">
-                              {order.collection?.name}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {order.collection?.modelCode}
-                            </div>
-                          </div>
+            <DataTable
+              data={orders}
+              columns={[
+                {
+                  header: "Sipariş No",
+                  className: "w-[120px]",
+                  cell: (order) => (
+                    <span className="font-medium">{order.orderNumber}</span>
+                  ),
+                },
+                {
+                  header: "Koleksiyon",
+                  cell: (order) => (
+                    <div className="flex items-center gap-3">
+                      {order.collection?.images &&
+                        JSON.parse(order.collection.images)[0] && (
+                          <Image
+                            src={JSON.parse(order.collection.images)[0]}
+                            alt={order.collection.name || "Koleksiyon"}
+                            width={32}
+                            height={32}
+                            className="w-8 h-8 rounded object-cover"
+                          />
+                        )}
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm truncate">
+                          {order.collection?.name}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {getOrderStatusBadge(order.status || "PENDING")}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {order.quantity?.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {order.targetPrice
-                          ? formatCurrency(order.targetPrice, order.currency)
-                          : "-"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm truncate">
-                          {isBuyer
-                            ? order.collection?.company?.name
-                            : order.customer?.name}
+                        <div className="text-xs text-gray-500">
+                          {order.collection?.modelCode}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {toRelativeTime(order.createdAt)}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Link href={`/dashboard/orders/${order.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  header: "Durum",
+                  className: "w-[100px]",
+                  cell: (order) =>
+                    getOrderStatusBadge(order.status || "PENDING"),
+                },
+                {
+                  header: "Miktar",
+                  className: "w-[80px]",
+                  align: "right",
+                  cell: (order) => order.quantity?.toLocaleString(),
+                },
+                {
+                  header: "Hedef Fiyat",
+                  className: "w-[120px]",
+                  align: "right",
+                  cell: (order) =>
+                    order.targetPrice
+                      ? formatCurrency(order.targetPrice, order.currency)
+                      : "-",
+                },
+                {
+                  header: isBuyer ? "Üretici" : "Müşteri",
+                  className: "w-[120px]",
+                  cell: (order) => (
+                    <div className="text-sm truncate">
+                      {isBuyer
+                        ? order.collection?.company?.name
+                        : order.customer?.name}
+                    </div>
+                  ),
+                },
+                {
+                  header: "Tarih",
+                  className: "w-[100px]",
+                  cell: (order) => (
+                    <div className="text-sm">
+                      {toRelativeTime(order.createdAt)}
+                    </div>
+                  ),
+                },
+                {
+                  header: "İşlemler",
+                  className: "w-[80px]",
+                  align: "center",
+                  cell: (order) => (
+                    <Link href={`/dashboard/orders/${order.id}`}>
+                      <Button variant="ghost" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  ),
+                },
+              ]}
+            />
           )}
         </CardContent>
       </Card>
 
       {/* Pagination */}
       {orders.length >= take && (
-        <PrevNextPagination
-          skip={skip}
-          take={take}
-          setSkip={setSkip}
-          orders={orders}
-          prevText="Önceki"
-          nextText="Sonraki"
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil((orders.length || 0) / take)}
+          onPageChange={setCurrentPage}
+          hasNextPage={orders.length === take}
         />
       )}
     </div>

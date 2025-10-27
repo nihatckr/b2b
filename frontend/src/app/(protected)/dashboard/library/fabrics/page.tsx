@@ -11,6 +11,7 @@ import {
   DashboardUpdateLibraryItemDocument,
   UpdateLibraryItemInput,
 } from "@/__generated__/graphql";
+import { PageHeader } from "@/components/common";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
@@ -268,18 +269,11 @@ export default function FabricsPage() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">
-              Fabrics Library
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Manage fabric compositions, weights, and suppliers
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Fabrics Library"
+        description="Manage fabric compositions, weights, and suppliers"
+        className="mb-6"
+      />
 
       {/* Tabs - Mobile-first */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

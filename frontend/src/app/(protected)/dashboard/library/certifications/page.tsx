@@ -9,6 +9,7 @@ import {
   DashboardPlatformStandardsQuery,
   DashboardUpdateLibraryItemDocument,
 } from "@/__generated__/graphql";
+import { PageHeader } from "@/components/common";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
@@ -321,19 +322,12 @@ export default function CertificationsPage() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 flex items-center gap-2">
-              <ShieldCheck className="h-7 w-7 text-green-600" />
-              Certifications Library
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Manage certifications - GOTS, OEKO-TEX, Fair Trade, etc.
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Certifications Library"
+        description="Manage certifications - GOTS, OEKO-TEX, Fair Trade, etc."
+        icon={<ShieldCheck className="h-7 w-7 text-green-600" />}
+        className="mb-6"
+      />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

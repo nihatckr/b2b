@@ -5,6 +5,7 @@ import {
   SettingsResendVerificationEmailDocument,
 } from "@/__generated__/graphql";
 import { PermissionGate } from "@/components/auth/permission-gate";
+import { PageHeader, StatsGrid } from "@/components/common";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePermissions } from "@/hooks/usePermissions";
 import {
@@ -23,7 +24,6 @@ import { toast } from "sonner";
 import { useMutation, useQuery } from "urql";
 import AlertButton from "../../../components/alerts/alert-button";
 import AlertLink from "../../../components/alerts/alert-link";
-import StatsCard from "../../../components/stats/StatsCard";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -117,49 +117,42 @@ export default function DashboardPage() {
       )}
 
       {/* Welcome Header */}
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">
-            Welcome back, {session?.user?.name || "User"}! 👋
-          </h2>
-          {departmentLabel && (
-            <p className="text-muted-foreground mt-2">
-              {departmentLabel} Department
-            </p>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title={`Welcome back, ${session?.user?.name || "User"}! 👋`}
+        description={
+          departmentLabel ? `${departmentLabel} Department` : undefined
+        }
+      />
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Active Orders"
-          value="24"
-          icon={<ShoppingCart className="h-4 w-4 text-muted-foreground" />}
-          description="+12% from last month"
-        />
-
-        <StatsCard
-          title="Samples"
-          value="18"
-          icon={<Package className="h-4 w-4 text-muted-foreground" />}
-          description="+5 new this week"
-        />
-
-        <StatsCard
-          title="Production"
-          value="12"
-          icon={<Factory className="h-4 w-4 text-muted-foreground" />}
-          description="3 in final stage"
-        />
-
-        <StatsCard
-          title="Quality Rate"
-          value="94%"
-          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
-          description="+2% from last month"
-        />
-      </div>
+      <StatsGrid
+        stats={[
+          {
+            title: "Active Orders",
+            value: "24",
+            icon: <ShoppingCart className="h-4 w-4 text-muted-foreground" />,
+            description: "+12% from last month",
+          },
+          {
+            title: "Samples",
+            value: "18",
+            icon: <Package className="h-4 w-4 text-muted-foreground" />,
+            description: "+5 new this week",
+          },
+          {
+            title: "Production",
+            value: "12",
+            icon: <Factory className="h-4 w-4 text-muted-foreground" />,
+            description: "3 in final stage",
+          },
+          {
+            title: "Quality Rate",
+            value: "94%",
+            icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />,
+            description: "+2% from last month",
+          },
+        ]}
+      />
 
       {/* Quick Actions */}
       <Card>

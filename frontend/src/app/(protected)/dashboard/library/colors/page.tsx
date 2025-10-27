@@ -9,6 +9,7 @@ import {
   DashboardPlatformStandardsQuery,
   DashboardUpdateLibraryItemDocument,
 } from "@/__generated__/graphql";
+import { PageHeader } from "@/components/common";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
@@ -294,19 +295,12 @@ export default function ColorsPage() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 flex items-center gap-2">
-              <Palette className="h-7 w-7 text-pink-600" />
-              Colors Library
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Manage color palette - Hex, Pantone, RGB codes
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Colors Library"
+        description="Manage color palette - Hex, Pantone, RGB codes"
+        icon={<Palette className="h-7 w-7 text-pink-600" />}
+        className="mb-6"
+      />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

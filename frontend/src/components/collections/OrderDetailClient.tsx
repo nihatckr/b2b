@@ -110,6 +110,7 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
   const { decodeGlobalId } = useRelayIds();
   const [counterOfferOpen, setCounterOfferOpen] = useState(false);
   const [productionPlanOpen, setProductionPlanOpen] = useState(false);
+  const [orderChangeReviewOpen, setOrderChangeReviewOpen] = useState(false);
 
   const [{ data, fetching, error }, refetchOrder] = useQuery({
     query: BuyerOrderDetailDocument,
@@ -430,6 +431,84 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               )}
             </CardContent>
           </Card>
+
+          {/* Order Changes Notification */}
+          {isManufacturer &&
+            order.changeLogs &&
+            order.changeLogs.length > 0 && (
+              <Card className="border-amber-200 bg-amber-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-amber-800">
+                    <AlertCircle className="w-5 h-5" />
+                    Sipariş Değişiklikleri
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {order.changeLogs
+                      .filter(
+                        (log: any) => log.manufacturerStatus === "PENDING"
+                      )
+                      .slice(0, 3)
+                      .map((log: any) => (
+                        <div
+                          key={log.id}
+                          className="flex items-center justify-between p-3 bg-white rounded border border-amber-200"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                            <div>
+                              <p className="text-sm font-medium">
+                                {log.changeType === "QUANTITY" &&
+                                  "Miktar Değişikliği"}
+                                {log.changeType === "PRICE" &&
+                                  "Fiyat Değişikliği"}
+                                {log.changeType === "DEADLINE" &&
+                                  "Termin Değişikliği"}
+                                {log.changeType === "SPECIFICATIONS" &&
+                                  "Özellik Değişikliği"}
+                                {log.changeType === "OTHER" &&
+                                  "Diğer Değişiklik"}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {format(
+                                  new Date(log.createdAt),
+                                  "dd MMM yyyy, HH:mm",
+                                  { locale: tr }
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className="bg-amber-100 text-amber-800 border-amber-300"
+                          >
+                            İnceleme Bekliyor
+                          </Badge>
+                        </div>
+                      ))}
+
+                    {order.changeLogs.filter(
+                      (log: any) => log.manufacturerStatus === "PENDING"
+                    ).length > 0 && (
+                      <Button
+                        className="w-full mt-2"
+                        variant="outline"
+                        onClick={() => setOrderChangeReviewOpen(true)}
+                      >
+                        Tüm Değişiklikleri İncele (
+                        {
+                          order.changeLogs.filter(
+                            (log: any) => log.manufacturerStatus === "PENDING"
+                          ).length
+                        }{" "}
+                        adet)
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
           {/* Production Tracking */}
           {order.productionTracking && (
@@ -973,6 +1052,14 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                     <FileText className="w-4 h-4 mr-2" />
                     Karşı Teklif Gönder
                   </Button>
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={() => setOrderChangeReviewOpen(true)}
+                  >
+                    <AlertCircle className="w-4 h-4 mr-2" />
+                    Sipariş Değişiklikleri
+                  </Button>
                 </>
               )}
 
@@ -1006,6 +1093,15 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
             customerDeadline={order.deadline}
             quantity={order.quantity || undefined}
             existingPlan={order.productionTracking || undefined}
+            onSuccess={() => {
+              refetchOrder({ requestPolicy: "network-only" });
+            }}
+          />
+
+          <OrderChangeReviewDialog
+            open={orderChangeReviewOpen}
+            onOpenChange={setOrderChangeReviewOpen}
+            orderId={orderId}
             onSuccess={() => {
               refetchOrder({ requestPolicy: "network-only" });
             }}

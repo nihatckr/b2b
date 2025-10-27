@@ -10,6 +10,7 @@ import "./likeMutation";
 // import "./manufacturerOrderMutation"; // TODO: Fix duplicate field issue
 import "./messageMutation";
 import "./notificationMutation";
+import "./orderChangeTrackingMutation";
 import "./orderMutation";
 import "./orderNegotiationMutation";
 import "./productionMutation";

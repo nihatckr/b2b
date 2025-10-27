@@ -1,32 +1,32 @@
 "use client";
 import {
+  CollectionsIncrementViewDocument,
   CollectionsListDocument,
   CollectionsToggleLikeDocument,
-  CollectionsIncrementViewDocument,
 } from "@/__generated__/graphql";
-import { CreateCollectionModal } from "@/components/collections/CreateCollectionModal";
 import { AddToPOModal } from "@/components/collections/AddToPOModal";
+import { CreateCollectionModal } from "@/components/collections/CreateCollectionModal";
+import { PageHeader, SearchInput } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { useRelayIds } from "@/hooks/useRelayIds";
 import {
+  Beaker,
   Building2,
+  Edit3,
   Eye,
+  Folder,
   Heart,
   Plus,
-  Search,
-  Star,
   ShoppingCart,
-  Beaker,
-  Edit3,
+  Star,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useQuery, useMutation } from "urql";
-import { useSession } from "next-auth/react";
+import { useMutation, useQuery } from "urql";
 
 export default function CollectionsPage() {
   const router = useRouter();
@@ -79,6 +79,11 @@ export default function CollectionsPage() {
       // Use useRelayIds hook to decode Global ID safely
       const numericId = decodeGlobalId(collectionId);
 
+      if (numericId === null) {
+        console.error("Invalid collection ID");
+        return;
+      }
+
       await toggleLikeMutation({ id: numericId });
       // Refetch to get updated like count
       refetchCollections({ requestPolicy: "network-only" });
@@ -91,6 +96,12 @@ export default function CollectionsPage() {
     try {
       // Use useRelayIds hook to decode Global ID safely
       const numericId = decodeGlobalId(collectionId);
+
+      if (numericId === null) {
+        console.error("Invalid collection ID");
+        router.push(`/dashboard/collections/${collectionId}`);
+        return;
+      }
 
       // Increment view count
       await incrementViewMutation({ id: numericId });
@@ -108,9 +119,9 @@ export default function CollectionsPage() {
   const handleAddToPO = (collectionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     // Find the collection data
-    const collection = data?.collections?.find(c => c.id === collectionId);
-    if (collection) {
-      setSelectedCollection(collection);
+    const collection = data?.collections?.find((c) => c.id === collectionId);
+    if (collection && collection.name) {
+      setSelectedCollection(collection as any);
       setPOModalOpen(true);
     }
   };
@@ -187,20 +198,19 @@ export default function CollectionsPage() {
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Collections</h1>
-          <p className="text-muted-foreground">
-            Manage your product collections and catalogs
-          </p>
-        </div>
-        {!isBuyer && (
-          <Button onClick={() => setCreateModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Collection
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Collections"
+        description="Manage your product collections and catalogs"
+        icon={<Folder className="h-6 w-6" />}
+        action={
+          !isBuyer ? (
+            <Button onClick={() => setCreateModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Collection
+            </Button>
+          ) : undefined
+        }
+      />
 
       {/* Filters */}
       <Card>
@@ -209,15 +219,11 @@ export default function CollectionsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search collections by name or model code..."
-              className="pl-10"
-              value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-            />
-          </div>
+          <SearchInput
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Search collections by name or model code..."
+          />
 
           {/* Featured Filter */}
           <div className="flex gap-2">
@@ -606,7 +612,15 @@ export default function CollectionsPage() {
                             fabric.certifications &&
                             Array.isArray(fabric.certifications)
                           ) {
-                            fabricCertifications.push(...fabric.certifications);
+                            const validCerts = fabric.certifications
+                              .filter((cert) => cert.id != null)
+                              .map((cert) => ({
+                                id: cert.id!,
+                                name: cert.name,
+                                iconValue: cert.iconValue,
+                                data: cert.data,
+                              }));
+                            fabricCertifications.push(...validCerts);
                           }
                         });
                       }
@@ -715,9 +729,15 @@ export default function CollectionsPage() {
                             accessory.certifications &&
                             Array.isArray(accessory.certifications)
                           ) {
-                            accessoryCertifications.push(
-                              ...accessory.certifications
-                            );
+                            const validCerts = accessory.certifications
+                              .filter((cert) => cert.id != null)
+                              .map((cert) => ({
+                                id: cert.id!,
+                                name: cert.name,
+                                iconValue: cert.iconValue,
+                                data: cert.data,
+                              }));
+                            accessoryCertifications.push(...validCerts);
                           }
                         });
                       }
@@ -982,7 +1002,9 @@ export default function CollectionsPage() {
                           }
                         >
                           <Edit3 className="mr-1 h-3 w-3" />
-                          <span className="hidden sm:inline">Request Revised Sample</span>
+                          <span className="hidden sm:inline">
+                            Request Revised Sample
+                          </span>
                           <span className="sm:hidden">Revised</span>
                         </Button>
                       </div>

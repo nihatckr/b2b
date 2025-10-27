@@ -1,3 +1,14 @@
+/**
+ * @deprecated This file is deprecated. Use imports from @/lib/validations instead
+ *
+ * Migration guide:
+ * - import { ProfileSchema } from "@/lib/zod-schema" → import { ProfileSchema } from "@/lib/validations"
+ * - All schemas are now modular and organized by domain
+ */
+
+// Re-export all schemas from validations for backward compatibility
+export * from "./validations";
+
 import * as z from "zod";
 
 // ============================================
