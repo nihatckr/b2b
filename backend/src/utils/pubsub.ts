@@ -29,7 +29,10 @@ export type PubSubChannels = {
    * @param userId - Target user ID
    * @param payload - Notification ID and read status
    */
-  "notification:read": [userId: number, payload: { notificationId: number; isRead: boolean }];
+  "notification:read": [
+    userId: number,
+    payload: { notificationId: number; isRead: boolean }
+  ];
 
   // ========================================
   // TASK EVENTS
@@ -60,7 +63,10 @@ export type PubSubChannels = {
    * @param taskId - Task ID
    * @param payload - Priority update
    */
-  "task:priorityChanged": [taskId: number, payload: { taskId: number; priority: string }];
+  "task:priorityChanged": [
+    taskId: number,
+    payload: { taskId: number; priority: string }
+  ];
 
   // ========================================
   // PRODUCTION TRACKING EVENTS
@@ -70,38 +76,37 @@ export type PubSubChannels = {
    * @param productionId - Production tracking ID
    * @param payload - Production status update
    */
-  "production:statusChanged": [productionId: number, payload: ProductionStatusPayload];
+  "production:statusChanged": [
+    productionId: number,
+    payload: ProductionStatusPayload
+  ];
 
   /**
    * Fired when a production stage is updated
    * @param productionId - Production tracking ID
    * @param payload - Stage update data
    */
-  "production:stageUpdated": [productionId: number, payload: ProductionStagePayload];
-
-  /**
-   * Fired when quality control is performed
-   * @param productionId - Production tracking ID
-   * @param payload - QC result
-   */
-  "production:qualityControl": [productionId: number, payload: QualityControlPayload];
+  "production:stageUpdated": [
+    productionId: number,
+    payload: ProductionStagePayload
+  ];
 
   // ========================================
   // MESSAGE EVENTS
   // ========================================
   /**
    * Fired when a new message is sent
-   * @param productId - Related product ID
+   * @param contextId - Related order or sample ID
    * @param payload - Message data
    */
-  "message:new": [productId: number, payload: MessagePayload];
+  "message:new": [contextId: number, payload: MessagePayload];
 
   /**
    * Fired when a message is marked as read
-   * @param productId - Related product ID
+   * @param contextId - Related order or sample ID
    * @param payload - Message read status
    */
-  "message:read": [productId: number, payload: MessageReadPayload];
+  "message:read": [contextId: number, payload: MessageReadPayload];
 
   /**
    * Fired when user receives a new message
@@ -238,17 +243,6 @@ export interface ProductionStagePayload {
   updatedAt: Date;
 }
 
-export interface QualityControlPayload {
-  id: number;
-  productionId: number;
-  controlType: string;
-  result: string;
-  defects?: number | null;
-  notes?: string | null;
-  inspectedBy?: number | null;
-  inspectedAt: Date;
-}
-
 export interface OrderStatusPayload {
   orderId: number;
   orderNumber?: string | null;
@@ -267,9 +261,11 @@ export interface MessageReadPayload {
 export interface MessagePayload {
   id: number;
   content: string;
-  productId: number;
+  type: string;
+  orderId: number | null;
+  sampleId: number | null;
   senderId: number;
-  receiverId: number;
+  receiverId: number | null;
   isRead: boolean;
   createdAt: Date;
 }

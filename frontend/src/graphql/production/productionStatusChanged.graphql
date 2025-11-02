@@ -1,0 +1,12 @@
+subscription subscription_productionStatusChanged($productionId: Int!) {
+  productionStatusChanged(productionId: $productionId) {
+    actualCompletion
+    currentStage
+    estimatedCompletion
+    previousStatus
+    productionId
+    status
+    updatedAt
+    __typename
+  }
+}

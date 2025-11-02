@@ -1,32 +1,17 @@
-import { useQuery } from 'urql';
-
-// GraphQL query to fetch user permissions
-const MY_PERMISSIONS_QUERY = `
-  query MyPermissions {
-    myPermissions
-  }
-`;
-
-const HAS_PERMISSION_QUERY = `
-  query HasPermission($permission: String!) {
-    hasPermission(permission: $permission)
-  }
-`;
-
-const CAN_ACCESS_ROUTE_QUERY = `
-  query CanAccessRoute($route: String!) {
-    canAccessRoute(route: $route)
-  }
-`;
-
-const DEPARTMENT_INFO_QUERY = `
-  query DepartmentInfo {
-    departmentInfo
-  }
-`;
+import {
+  QueryCanAccessRouteDocument,
+  QueryDepartmentInfoDocument,
+  QueryMyPermissionsDocument,
+} from "@/__generated__/graphql";
+import { useQuery } from "urql";
 
 /**
  * Hook to check user permissions and department information
+ *
+ * Backend Sync:
+ * - Uses auto-generated Documents from graphql.tsx
+ * - Queries: myPermissions, hasPermission, canAccessRoute, departmentInfo
+ * - Type-safe with GraphQL Codegen
  *
  * @example
  * ```tsx
@@ -38,22 +23,36 @@ const DEPARTMENT_INFO_QUERY = `
  * ```
  */
 export function usePermissions() {
-  const [result] = useQuery({ query: MY_PERMISSIONS_QUERY });
+  const [result] = useQuery({ query: QueryMyPermissionsDocument });
 
   // Backend returns permissions as array of {value, label} objects
   const permissionsData = result.data?.myPermissions?.permissions || [];
+
+  interface PermissionItem {
+    value: string;
+    label: string;
+  }
+
   const permissions: string[] = Array.isArray(permissionsData)
-    ? permissionsData.map((p: any) => typeof p === 'string' ? p : p.value)
+    ? permissionsData.map((p: string | PermissionItem) =>
+        typeof p === "string" ? p : p.value
+      )
     : [];
-  const permissionLabels: Record<string, string> = Array.isArray(permissionsData)
-    ? permissionsData.reduce((acc: Record<string, string>, p: any) => {
-        if (typeof p === 'object' && p.value && p.label) {
-          acc[p.value] = p.label;
-        }
-        return acc;
-      }, {})
+  const permissionLabels: Record<string, string> = Array.isArray(
+    permissionsData
+  )
+    ? permissionsData.reduce(
+        (acc: Record<string, string>, p: string | PermissionItem) => {
+          if (typeof p === "object" && p.value && p.label) {
+            acc[p.value] = p.label;
+          }
+          return acc;
+        },
+        {}
+      )
     : {};
-  const departmentLabel: string | null = result.data?.myPermissions?.department || null;
+  const departmentLabel: string | null =
+    result.data?.myPermissions?.department || null;
 
   /**
    * Check if user has a specific permission
@@ -70,7 +69,9 @@ export function usePermissions() {
    * @returns true if user has at least one permission
    */
   const hasAnyPermission = (requiredPermissions: string[]): boolean => {
-    return requiredPermissions.some(permission => permissions.includes(permission));
+    return requiredPermissions.some((permission) =>
+      permissions.includes(permission)
+    );
   };
 
   /**
@@ -79,7 +80,9 @@ export function usePermissions() {
    * @returns true if user has all permissions
    */
   const hasAllPermissions = (requiredPermissions: string[]): boolean => {
-    return requiredPermissions.every(permission => permissions.includes(permission));
+    return requiredPermissions.every((permission) =>
+      permissions.includes(permission)
+    );
   };
 
   return {
@@ -111,7 +114,7 @@ export function usePermissions() {
  */
 export function useCanAccessRoute(route: string) {
   const [result] = useQuery({
-    query: CAN_ACCESS_ROUTE_QUERY,
+    query: QueryCanAccessRouteDocument,
     variables: { route },
     pause: !route, // Don't run query if route is empty
   });
@@ -141,7 +144,7 @@ export function useCanAccessRoute(route: string) {
  * ```
  */
 export function useDepartmentInfo() {
-  const [result] = useQuery({ query: DEPARTMENT_INFO_QUERY });
+  const [result] = useQuery({ query: QueryDepartmentInfoDocument });
 
   return {
     department: result.data?.departmentInfo?.departmentLabel || null,

@@ -1,0 +1,11 @@
+subscription subscription_mySampleUpdates {
+  mySampleUpdates {
+    previousStatus
+    sampleId
+    sampleNumber
+    status
+    updatedAt
+    updatedBy
+    __typename
+  }
+}

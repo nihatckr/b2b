@@ -1,0 +1,3 @@
+query query_companiesByRegion($groupBy: String) {
+  companiesByRegion(groupBy: $groupBy)
+}

@@ -1,0 +1,14 @@
+subscription subscription_newMessage($orderId: Int, $sampleId: Int) {
+  newMessage(orderId: $orderId, sampleId: $sampleId) {
+    content
+    createdAt
+    id
+    isRead
+    orderId
+    receiverId
+    sampleId
+    senderId
+    type
+    __typename
+  }
+}

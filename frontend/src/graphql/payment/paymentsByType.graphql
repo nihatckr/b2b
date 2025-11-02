@@ -1,0 +1,3 @@
+query query_paymentsByType($filter: PaymentFilterInput) {
+  paymentsByType(filter: $filter)
+}

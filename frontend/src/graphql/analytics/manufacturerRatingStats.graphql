@@ -1,0 +1,18 @@
+query query_manufacturerRatingStats($manufactureId: Int!) {
+  manufacturerRatingStats(manufactureId: $manufactureId) {
+    averageCommunicationRating
+    averageDeliveryRating
+    averageQualityRating
+    averageRating
+    ratingBreakdown {
+      fiveStars
+      fourStars
+      oneStar
+      threeStars
+      twoStars
+      __typename
+    }
+    totalReviews
+    __typename
+  }
+}

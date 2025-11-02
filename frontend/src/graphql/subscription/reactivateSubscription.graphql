@@ -1,0 +1,7 @@
+mutation mutation_reactivateSubscription {
+  reactivateSubscription {
+    message
+    success
+    __typename
+  }
+}

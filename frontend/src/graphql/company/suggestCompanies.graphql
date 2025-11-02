@@ -1,0 +1,3 @@
+query query_suggestCompanies($limit: Int, $partial: String!) {
+  suggestCompanies(limit: $limit, partial: $partial)
+}

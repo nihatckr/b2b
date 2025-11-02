@@ -1,0 +1,9 @@
+query query_subscriptionWarnings {
+  subscriptionWarnings {
+    action
+    message
+    severity
+    type
+    __typename
+  }
+}

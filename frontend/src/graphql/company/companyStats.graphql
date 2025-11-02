@@ -1,0 +1,3 @@
+query query_companyStats($filter: CompanyFilterInput) {
+  companyStats(filter: $filter)
+}

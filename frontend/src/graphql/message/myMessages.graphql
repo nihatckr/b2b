@@ -1,0 +1,14 @@
+subscription subscription_myMessages {
+  myMessages {
+    content
+    createdAt
+    id
+    isRead
+    orderId
+    receiverId
+    sampleId
+    senderId
+    type
+    __typename
+  }
+}

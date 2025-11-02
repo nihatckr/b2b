@@ -1,0 +1,3 @@
+query query_recentNotifications($pagination: NotificationPaginationInput) {
+  recentNotifications(pagination: $pagination)
+}

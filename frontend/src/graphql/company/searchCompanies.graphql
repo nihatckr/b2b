@@ -1,0 +1,3 @@
+query query_searchCompanies($limit: Int, $query: String!, $type: String) {
+  searchCompanies(limit: $limit, query: $query, type: $type)
+}

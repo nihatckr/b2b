@@ -1,0 +1,14 @@
+mutation mutation_createFile($input: CreateFileInput!) {
+  createFile(input: $input) {
+    createdAt
+    description
+    encoding
+    filename
+    id
+    mimetype
+    path
+    size
+    updatedAt
+    __typename
+  }
+}

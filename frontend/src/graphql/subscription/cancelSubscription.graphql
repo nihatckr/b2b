@@ -1,0 +1,8 @@
+mutation mutation_cancelSubscription($input: CancelSubscriptionInput!) {
+  cancelSubscription(input: $input) {
+    effectiveDate
+    message
+    success
+    __typename
+  }
+}

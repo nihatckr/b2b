@@ -6,7 +6,7 @@
 
 import { requireAuth } from "../../utils/errors";
 import { pubsub } from "../../utils/pubsub";
-import { builder } from "../builder";
+import builder from "../builder";
 
 /**
  * Notification Type for Subscriptions
@@ -39,7 +39,9 @@ NotificationEvent.implement({
     data: t.expose("data", { type: "JSON", nullable: true }),
     orderId: t.exposeInt("orderId", { nullable: true }),
     sampleId: t.exposeInt("sampleId", { nullable: true }),
-    productionTrackingId: t.exposeInt("productionTrackingId", { nullable: true }),
+    productionTrackingId: t.exposeInt("productionTrackingId", {
+      nullable: true,
+    }),
     createdAt: t.expose("createdAt", { type: "DateTime" }),
     updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
@@ -86,20 +88,10 @@ builder.subscriptionField("newNotification", (t) =>
     subscribe: (root, args, context) => {
       requireAuth(context.user?.id);
 
-      console.log(`🔔 [newNotification] Subscription started for user ${context.user.id}`);
-
       // Subscribe to notification events for this specific user
       return pubsub.subscribe("notification:new", context.user.id);
     },
-    resolve: (payload) => {
-      console.log(`📤 [newNotification] Resolving payload:`, {
-        id: payload.id,
-        userId: payload.userId,
-        title: payload.title,
-        type: payload.type,
-      });
-      return payload;
-    },
+    resolve: (payload) => payload,
   })
 );
 

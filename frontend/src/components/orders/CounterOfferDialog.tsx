@@ -23,6 +23,7 @@ interface CounterOfferDialogProps {
   orderId: number;
   currentPrice: number;
   currentDays: number;
+  currentQuantity?: number;
   onSuccess?: () => void;
 }
 
@@ -32,11 +33,13 @@ export function CounterOfferDialog({
   orderId,
   currentPrice,
   currentDays,
+  currentQuantity,
   onSuccess,
 }: CounterOfferDialogProps) {
   const [formData, setFormData] = useState({
     quotedPrice: currentPrice.toString(),
     quoteDays: currentDays.toString(),
+    quantity: currentQuantity?.toString() || "",
     quoteNote: "",
   });
 
@@ -47,6 +50,7 @@ export function CounterOfferDialog({
 
     const price = parseFloat(formData.quotedPrice);
     const days = parseInt(formData.quoteDays);
+    const quantity = formData.quantity ? parseInt(formData.quantity) : null;
 
     if (isNaN(price) || price <= 0) {
       toast.error("Lütfen geçerli bir fiyat girin");
@@ -58,8 +62,14 @@ export function CounterOfferDialog({
       return;
     }
 
+    if (quantity !== null && (isNaN(quantity) || quantity <= 0)) {
+      toast.error("Lütfen geçerli bir miktar girin");
+      return;
+    }
+
     const result = await counterOffer({
       id: Number(orderId),
+      quantity: quantity,
       customerQuotedPrice: price,
       customerQuoteDays: days,
       customerQuoteNote: formData.quoteNote || null,
@@ -78,6 +88,7 @@ export function CounterOfferDialog({
     setFormData({
       quotedPrice: currentPrice.toString(),
       quoteDays: currentDays.toString(),
+      quantity: currentQuantity?.toString() || "",
       quoteNote: "",
     });
   };
@@ -111,6 +122,23 @@ export function CounterOfferDialog({
 
             {/* Counter Offer Form */}
             <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Miktar (Adet)</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  value={formData.quantity}
+                  onChange={(e) =>
+                    setFormData({ ...formData, quantity: e.target.value })
+                  }
+                  placeholder={currentQuantity?.toString() || "100"}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Boş bırakırsanız mevcut miktar korunur
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="quotedPrice">Önerilen Birim Fiyat ($) *</Label>
                 <Input

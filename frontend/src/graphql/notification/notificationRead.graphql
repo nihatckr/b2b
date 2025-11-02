@@ -1,0 +1,7 @@
+subscription subscription_notificationRead {
+  notificationRead {
+    isRead
+    notificationId
+    __typename
+  }
+}

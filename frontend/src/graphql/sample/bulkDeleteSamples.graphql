@@ -1,0 +1,9 @@
+mutation mutation_bulkDeleteSamples($sampleIds: [Int!]!) {
+  bulkDeleteSamples(sampleIds: $sampleIds) {
+    errors
+    failedIds
+    success
+    updatedCount
+    __typename
+  }
+}

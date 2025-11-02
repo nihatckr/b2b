@@ -1,0 +1,13 @@
+subscription subscription_orderQuoteReceived($orderId: Int!) {
+  orderQuoteReceived(orderId: $orderId) {
+    orderId
+    orderNumber
+    quoteNote
+    quoteType
+    quotedAt
+    quotedBy
+    quotedDays
+    quotedPrice
+    __typename
+  }
+}

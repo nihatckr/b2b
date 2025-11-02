@@ -1,0 +1,11 @@
+query query_productMessages($after: String, $before: String, $first: Int, $input: ProductMessagesInput!, $last: Int) {
+  productMessages(
+    after: $after
+    before: $before
+    first: $first
+    input: $input
+    last: $last
+  ) {
+    __typename
+  }
+}

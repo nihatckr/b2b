@@ -27,7 +27,6 @@ import {
   Edit,
   Eye,
   Folder,
-  Heart,
   Package,
   Share2,
   ShoppingCart,
@@ -461,13 +460,13 @@ export default function CollectionDetailPage() {
 
               {/* Price Information */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {collection.price && (
+                {collection.targetPrice && (
                   <div>
                     <Label className="text-sm text-muted-foreground">
-                      Price
+                      Target Price
                     </Label>
                     <p className="font-medium">
-                      {collection.currency || "$"} {collection.price}
+                      {collection.currency || "$"} {collection.targetPrice}
                     </p>
                   </div>
                 )}
@@ -1268,15 +1267,6 @@ export default function CollectionDetailPage() {
                   <span className="text-sm">Views</span>
                 </div>
                 <span className="font-medium">{collection.viewCount || 0}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Likes</span>
-                </div>
-                <span className="font-medium">
-                  {collection.likesCount || 0}
-                </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

@@ -1,0 +1,14 @@
+query query_file($id: String!) {
+  file(id: $id) {
+    createdAt
+    description
+    encoding
+    filename
+    id
+    mimetype
+    path
+    size
+    updatedAt
+    __typename
+  }
+}

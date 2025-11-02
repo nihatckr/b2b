@@ -1,0 +1,3 @@
+query query_getConversations($pagination: MessagePaginationInput) {
+  getConversations(pagination: $pagination)
+}

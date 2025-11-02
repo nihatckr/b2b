@@ -1,0 +1,3 @@
+query query_userActivity($userId: Int!) {
+  userActivity(userId: $userId)
+}

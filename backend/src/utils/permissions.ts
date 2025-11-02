@@ -177,39 +177,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   // COMPANY_EMPLOYEE - Departmana göre (DEPARTMENT_PERMISSIONS'dan gelir)
   COMPANY_EMPLOYEE: [], // Departmana göre dinamik
 
-  // INDIVIDUAL_CUSTOMER - Müşteri (sınırlı)
+  // INDIVIDUAL_CUSTOMER - Bireysel müşteri (firma olmadan, sınırlı yetkiler)
   INDIVIDUAL_CUSTOMER: [
-    Permission.SAMPLE_VIEW,
-    Permission.SAMPLE_CREATE,
-    Permission.ORDER_VIEW,
-    Permission.ORDER_CREATE,
-    Permission.COLLECTION_VIEW,
-    Permission.COMPANY_VIEW,
-    Permission.ANALYTICS_VIEW,
-    Permission.SETTINGS_VIEW,
-  ],
-
-  // Legacy roles (backward compatibility)
-  MANUFACTURE: [
-    Permission.SAMPLE_VIEW,
-    Permission.SAMPLE_CREATE,
-    Permission.SAMPLE_UPDATE,
-    Permission.ORDER_VIEW,
-    Permission.ORDER_CREATE,
-    Permission.ORDER_UPDATE,
-    Permission.PRODUCTION_VIEW,
-    Permission.PRODUCTION_CREATE,
-    Permission.PRODUCTION_UPDATE,
-    Permission.COLLECTION_VIEW,
-    Permission.COLLECTION_CREATE,
-    Permission.COMPANY_VIEW,
-    Permission.USER_VIEW,
-    Permission.ANALYTICS_VIEW,
-    Permission.REPORTS_VIEW,
-    Permission.SETTINGS_VIEW,
-  ],
-
-  CUSTOMER: [
     Permission.SAMPLE_VIEW,
     Permission.SAMPLE_CREATE,
     Permission.ORDER_VIEW,
@@ -237,7 +206,9 @@ export function hasPermission(
   // Company Employee ise departmana bak
   if (userRole === "COMPANY_EMPLOYEE" && userDepartment) {
     const departmentPermissions = DEPARTMENT_PERMISSIONS[userDepartment];
-    return departmentPermissions ? departmentPermissions.includes(permission) : false;
+    return departmentPermissions
+      ? departmentPermissions.includes(permission)
+      : false;
   }
 
   // Diğer roller için role permissions

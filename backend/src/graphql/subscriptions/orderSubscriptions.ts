@@ -6,7 +6,7 @@
 
 import { requireAuth } from "../../utils/errors";
 import { pubsub } from "../../utils/pubsub";
-import { builder } from "../builder";
+import builder from "../builder";
 
 /**
  * Order Status Event
@@ -74,10 +74,15 @@ OrderShippedEvent.implement({
   fields: (t) => ({
     orderId: t.exposeInt("orderId"),
     orderNumber: t.exposeString("orderNumber", { nullable: true }),
-    cargoTrackingNumber: t.exposeString("cargoTrackingNumber", { nullable: true }),
+    cargoTrackingNumber: t.exposeString("cargoTrackingNumber", {
+      nullable: true,
+    }),
     shippedAt: t.expose("shippedAt", { type: "DateTime" }),
     deliveryAddress: t.exposeString("deliveryAddress", { nullable: true }),
-    estimatedDelivery: t.expose("estimatedDelivery", { type: "DateTime", nullable: true }),
+    estimatedDelivery: t.expose("estimatedDelivery", {
+      type: "DateTime",
+      nullable: true,
+    }),
   }),
 });
 

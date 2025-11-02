@@ -1,0 +1,3 @@
+query query_productionsByStage($filter: ProductionFilterInput) {
+  productionsByStage(filter: $filter)
+}

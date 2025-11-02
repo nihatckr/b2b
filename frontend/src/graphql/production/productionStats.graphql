@@ -1,0 +1,3 @@
+query query_productionStats($filter: ProductionFilterInput) {
+  productionStats(filter: $filter)
+}

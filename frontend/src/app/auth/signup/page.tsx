@@ -1,9 +1,11 @@
 "use client";
 
+import { CardWrapper } from "@/components/auth";
+import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { SignupForm } from "../../../components/auth";
 
 export default function SignupPage() {
   const { data: session, status } = useSession();
@@ -31,9 +33,25 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm md:max-w-4xl">
-        <SignupForm />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <CardWrapper
+          headerLabel="Üye Ol"
+          backButtonLabel="Zaten hesabınız var mı? Giriş yapın"
+          backButtonHref="/auth/login"
+        >
+          <div className="space-y-4 text-center">
+            <p className="text-muted-foreground">
+              Üyelik formu şu anda geliştirme aşamasındadır.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Lütfen sistem yöneticinizle iletişime geçin.
+            </p>
+            <Button asChild className="w-full mt-4">
+              <Link href="/auth/login">Giriş Sayfasına Dön</Link>
+            </Button>
+          </div>
+        </CardWrapper>
       </div>
     </div>
   );

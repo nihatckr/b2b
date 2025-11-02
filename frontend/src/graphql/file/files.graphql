@@ -1,0 +1,14 @@
+query query_files($filter: FileFilterInput, $pagination: FilePaginationInput) {
+  files(filter: $filter, pagination: $pagination) {
+    createdAt
+    description
+    encoding
+    filename
+    id
+    mimetype
+    path
+    size
+    updatedAt
+    __typename
+  }
+}

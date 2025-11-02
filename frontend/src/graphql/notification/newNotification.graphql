@@ -1,0 +1,18 @@
+subscription subscription_newNotification {
+  newNotification {
+    createdAt
+    data
+    id
+    isRead
+    link
+    message
+    orderId
+    productionTrackingId
+    sampleId
+    title
+    type
+    updatedAt
+    userId
+    __typename
+  }
+}

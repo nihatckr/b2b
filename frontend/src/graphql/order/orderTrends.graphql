@@ -1,0 +1,3 @@
+query query_orderTrends($input: TrendPeriodInput!) {
+  orderTrends(input: $input)
+}

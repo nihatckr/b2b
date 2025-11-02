@@ -18,7 +18,11 @@
  * @date October 19, 2025
  */
 
-import { PrismaClient, TaskPriority } from "../../lib/generated";
+import { PrismaClient } from "../../lib/generated";
+
+// TaskPriority is removed from Prisma schema
+// TODO: Implement new task tracking system
+type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
 // =============================================
 // TYPES & INTERFACES
@@ -48,7 +52,8 @@ const SAMPLE_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   PENDING: {
     manufacturerTask: {
       title: "🔔 Yeni Numune Talebi Alındı",
-      description: "Müşteriden yeni bir numune talebi geldi. Teklif hazırlamalısınız.",
+      description:
+        "Müşteriden yeni bir numune talebi geldi. Teklif hazırlamalısınız.",
       type: "REVIEW_QUOTE",
       priority: "HIGH",
       dueDays: 3,
@@ -67,7 +72,8 @@ const SAMPLE_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   REVIEWED: {
     manufacturerTask: {
       title: "💰 Fiyat Teklifi Hazırlayın",
-      description: "Numune incelendi. Şimdi fiyat ve süre teklifi göndermelisiniz.",
+      description:
+        "Numune incelendi. Şimdi fiyat ve süre teklifi göndermelisiniz.",
       type: "QUOTATION",
       priority: "HIGH",
       dueDays: 2,
@@ -78,7 +84,8 @@ const SAMPLE_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   QUOTE_SENT: {
     customerTask: {
       title: "📋 Teklif Onayı Bekliyor",
-      description: "Üretici fiyat ve süre teklifi gönderdi. Onaylamalı veya karşı teklif göndermelisiniz.",
+      description:
+        "Üretici fiyat ve süre teklifi gönderdi. Onaylamalı veya karşı teklif göndermelisiniz.",
       type: "APPROVE_REJECT",
       priority: "HIGH",
       dueDays: 3,
@@ -99,7 +106,8 @@ const SAMPLE_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   CUSTOMER_QUOTE_SENT: {
     manufacturerTask: {
       title: "💬 Müşteri Karşı Teklif Gönderdi",
-      description: "Müşteriden karşı teklif geldi. İncelemeniz ve yanıt vermeniz gerekiyor.",
+      description:
+        "Müşteriden karşı teklif geldi. İncelemeniz ve yanıt vermeniz gerekiyor.",
       type: "REVIEW_QUOTE",
       priority: "HIGH",
       dueDays: 2,
@@ -117,7 +125,8 @@ const SAMPLE_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   MANUFACTURER_REVIEWING_QUOTE: {
     manufacturerTask: {
       title: "🔍 Müşteri Teklifini İnceleyin",
-      description: "Müşterinin karşı teklifini incelemeniz ve yanıt vermeniz gerekiyor.",
+      description:
+        "Müşterinin karşı teklifini incelemeniz ve yanıt vermeniz gerekiyor.",
       type: "REVIEW_QUOTE",
       priority: "HIGH",
       dueDays: 2,
@@ -148,7 +157,8 @@ const SAMPLE_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   REJECTED_BY_CUSTOMER: {
     manufacturerTask: {
       title: "❌ Müşteri Numuneyi Reddetti",
-      description: "Müşteri numuneyi reddetti. Alternatif teklif gönderebilirsiniz.",
+      description:
+        "Müşteri numuneyi reddetti. Alternatif teklif gönderebilirsiniz.",
       type: "NOTIFICATION",
       priority: "MEDIUM",
       dueDays: 3,
@@ -177,7 +187,8 @@ const SAMPLE_STATUS_TASK_MAP: Record<string, TaskConfig> = {
     },
     customerTask: {
       title: "🔄 Numune Üretiliyor",
-      description: "Numuneniz üretim aşamasında. Tamamlanınca bildirim alacaksınız.",
+      description:
+        "Numuneniz üretim aşamasında. Tamamlanınca bildirim alacaksınız.",
       type: "STATUS_CHANGE",
       priority: "LOW",
       dueDays: 10,
@@ -195,7 +206,8 @@ const SAMPLE_STATUS_TASK_MAP: Record<string, TaskConfig> = {
     },
     customerTask: {
       title: "🎉 Numuneniz Hazır",
-      description: "Numuneniz üretildi. Kalite kontrolünden sonra kargoya verilecek.",
+      description:
+        "Numuneniz üretildi. Kalite kontrolünden sonra kargoya verilecek.",
       type: "NOTIFICATION",
       priority: "MEDIUM",
       dueDays: 3,
@@ -224,7 +236,8 @@ const SAMPLE_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   SHIPPED: {
     manufacturerTask: {
       title: "📦 Numune Kargoya Verildi",
-      description: "Numune kargoya verildi. Takip numarasını eklemeyi unutmayın.",
+      description:
+        "Numune kargoya verildi. Takip numarasını eklemeyi unutmayın.",
       type: "SHIPMENT",
       priority: "MEDIUM",
       dueDays: 1,
@@ -302,7 +315,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   PENDING: {
     manufacturerTask: {
       title: "🔔 Yeni Sipariş Alındı",
-      description: "Müşteriden yeni bir sipariş geldi. Teklif hazırlamalısınız.",
+      description:
+        "Müşteriden yeni bir sipariş geldi. Teklif hazırlamalısınız.",
       type: "REVIEW_QUOTE",
       priority: "HIGH",
       dueDays: 2,
@@ -320,7 +334,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   REVIEWED: {
     manufacturerTask: {
       title: "💰 Sipariş Teklifi Hazırlayın",
-      description: "Sipariş incelendi. Fiyat ve teslimat süresi teklifi göndermelisiniz.",
+      description:
+        "Sipariş incelendi. Fiyat ve teslimat süresi teklifi göndermelisiniz.",
       type: "QUOTATION",
       priority: "HIGH",
       dueDays: 1,
@@ -331,7 +346,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   QUOTE_SENT: {
     customerTask: {
       title: "📋 Sipariş Teklifi Onayı",
-      description: "Üretici sipariş teklifi gönderdi. Onaylamalı veya karşı teklif göndermelisiniz.",
+      description:
+        "Üretici sipariş teklifi gönderdi. Onaylamalı veya karşı teklif göndermelisiniz.",
       type: "APPROVE_REJECT",
       priority: "HIGH",
       dueDays: 3,
@@ -352,7 +368,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   CUSTOMER_QUOTE_SENT: {
     manufacturerTask: {
       title: "💬 Müşteri Karşı Teklif Gönderdi",
-      description: "Müşteriden karşı teklif geldi. İncelemeniz ve yanıt vermeniz gerekiyor.",
+      description:
+        "Müşteriden karşı teklif geldi. İncelemeniz ve yanıt vermeniz gerekiyor.",
       type: "REVIEW_QUOTE",
       priority: "HIGH",
       dueDays: 2,
@@ -370,7 +387,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   MANUFACTURER_REVIEWING_QUOTE: {
     manufacturerTask: {
       title: "🔍 Müşteri Teklifini İnceleyin",
-      description: "Müşterinin karşı teklifini incelemeniz ve yanıt vermeniz gerekiyor.",
+      description:
+        "Müşterinin karşı teklifini incelemeniz ve yanıt vermeniz gerekiyor.",
       type: "REVIEW_QUOTE",
       priority: "HIGH",
       dueDays: 2,
@@ -381,7 +399,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   CONFIRMED: {
     manufacturerTask: {
       title: "🎉 Sipariş Onaylandı - Üretim Planı Hazırlayın",
-      description: "Müşteri siparişi onayladı. 7 aşamalı üretim planı oluşturup müşteri onayına sunmalısınız.",
+      description:
+        "Müşteri siparişi onayladı. 7 aşamalı üretim planı oluşturup müşteri onayına sunmalısınız.",
       type: "PRODUCTION_STAGE",
       priority: "HIGH",
       dueDays: 1,
@@ -394,7 +413,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
     },
     customerTask: {
       title: "✅ Siparişiniz Onaylandı",
-      description: "Sipariş onaylandı. Üretici üretim planı hazırlayacak ve sizin onayınıza sunacak.",
+      description:
+        "Sipariş onaylandı. Üretici üretim planı hazırlayacak ve sizin onayınıza sunacak.",
       type: "NOTIFICATION",
       priority: "MEDIUM",
       dueDays: 3,
@@ -408,7 +428,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   PRODUCTION_PLAN_SENT: {
     customerTask: {
       title: "📋 Üretim Planı Onayı Bekliyor",
-      description: "Üretici 7 aşamalı üretim planını gönderdi. İnceleyip onaylamalı veya revize talep etmelisiniz.",
+      description:
+        "Üretici 7 aşamalı üretim planını gönderdi. İnceleyip onaylamalı veya revize talep etmelisiniz.",
       type: "APPROVE_REJECT",
       priority: "HIGH",
       dueDays: 2,
@@ -433,7 +454,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   PRODUCTION_PLAN_APPROVED: {
     manufacturerTask: {
       title: "🎉 Üretim Planı Onaylandı - Üretime Başlayın",
-      description: "Müşteri üretim planını onayladı. Plana göre üretime başlayabilirsiniz.",
+      description:
+        "Müşteri üretim planını onayladı. Plana göre üretime başlayabilirsiniz.",
       type: "PRODUCTION_STAGE",
       priority: "HIGH",
       dueDays: 1,
@@ -445,7 +467,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
     },
     customerTask: {
       title: "✅ Üretim Planı Onaylandı",
-      description: "Üretim planını onayladınız. Üretim başlayacak ve her aşamayı takip edebileceksiniz.",
+      description:
+        "Üretim planını onayladınız. Üretim başlayacak ve her aşamayı takip edebileceksiniz.",
       type: "NOTIFICATION",
       priority: "MEDIUM",
       dueDays: 7,
@@ -458,7 +481,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   PRODUCTION_PLAN_REJECTED: {
     manufacturerTask: {
       title: "🔄 Üretim Planı Revize Talebi",
-      description: "Müşteri üretim planında değişiklik talep etti. Planı güncelleyip tekrar göndermelisiniz.",
+      description:
+        "Müşteri üretim planında değişiklik talep etti. Planı güncelleyip tekrar göndermelisiniz.",
       type: "PRODUCTION_STAGE",
       priority: "HIGH",
       dueDays: 1,
@@ -470,7 +494,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
     },
     customerTask: {
       title: "📝 Revize Talebiniz İletildi",
-      description: "Üretim planı revize talebiniz üreticiye iletildi. Güncellenmiş plan bekliyor.",
+      description:
+        "Üretim planı revize talebiniz üreticiye iletildi. Güncellenmiş plan bekliyor.",
       type: "STATUS_CHANGE",
       priority: "MEDIUM",
       dueDays: 3,
@@ -484,7 +509,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   REJECTED_BY_CUSTOMER: {
     manufacturerTask: {
       title: "❌ Müşteri Siparişi Reddetti",
-      description: "Müşteri siparişi reddetti. Alternatif teklif gönderebilirsiniz.",
+      description:
+        "Müşteri siparişi reddetti. Alternatif teklif gönderebilirsiniz.",
       type: "NOTIFICATION",
       priority: "MEDIUM",
       dueDays: 3,
@@ -513,7 +539,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
     },
     customerTask: {
       title: "🔄 Siparişiniz Üretiliyor",
-      description: "Siparişiniz üretim aşamasında. İlerlemeyi takip edebilirsiniz.",
+      description:
+        "Siparişiniz üretim aşamasında. İlerlemeyi takip edebilirsiniz.",
       type: "STATUS_CHANGE",
       priority: "MEDIUM",
       dueDays: 20,
@@ -531,7 +558,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
     },
     customerTask: {
       title: "🎉 Siparişiniz Hazır",
-      description: "Siparişiniz üretildi. Kalite kontrolünden sonra kargoya verilecek.",
+      description:
+        "Siparişiniz üretildi. Kalite kontrolünden sonra kargoya verilecek.",
       type: "NOTIFICATION",
       priority: "MEDIUM",
       dueDays: 3,
@@ -559,7 +587,8 @@ const ORDER_STATUS_TASK_MAP: Record<string, TaskConfig> = {
   SHIPPED: {
     manufacturerTask: {
       title: "📦 Sipariş Kargoya Verildi",
-      description: "Sipariş kargoya verildi. Takip numarasını eklemeyi unutmayın.",
+      description:
+        "Sipariş kargoya verildi. Takip numarasını eklemeyi unutmayın.",
       type: "SHIPMENT",
       priority: "MEDIUM",
       dueDays: 1,
@@ -793,32 +822,19 @@ export class DynamicTaskHelper {
 
   /**
    * Complete old tasks for an entity
+   * TODO: Task model removed - implement new task tracking system
    */
   async completeOldTasks(entityId: number, entityType: string): Promise<void> {
-    const where: any = {
-      status: { in: ["TODO", "IN_PROGRESS"] },
-      entityType,
-    };
-
-    if (entityType === "SAMPLE") {
-      where.sampleId = entityId;
-    } else if (entityType === "ORDER") {
-      where.orderId = entityId;
-    } else if (entityType === "PRODUCTION") {
-      where.productionTrackingId = entityId;
-    }
-
-    await this.prisma.task.updateMany({
-      where,
-      data: {
-        status: "COMPLETED",
-        completedAt: new Date(),
-      },
-    });
+    // Task model has been removed from Prisma schema
+    // This method is kept for backward compatibility but does nothing
+    console.log(
+      `[DynamicTaskHelper] completeOldTasks called for ${entityType} ${entityId} - Task model removed`
+    );
   }
 
   /**
    * Create a single task
+   * TODO: Task model removed - implement new task tracking system
    */
   private async createTask(params: {
     title: string;
@@ -837,33 +853,16 @@ export class DynamicTaskHelper {
     productionStage?: string;
     actionData?: any;
   }): Promise<void> {
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + params.dueDays);
-
-    await this.prisma.task.create({
-      data: {
-        title: params.title,
-        description: params.description,
-        type: params.type as any,
-        priority: params.priority,
-        dueDate,
-        userId: params.userId,
-        status: "TODO",
-        targetStatus: params.targetStatus ?? null,
-        relatedStatus: params.relatedStatus ?? null,
-        entityType: params.entityType ?? null,
-        sampleId: params.sampleId ?? null,
-        orderId: params.orderId ?? null,
-        collectionId: params.collectionId ?? null,
-        productionTrackingId: params.productionTrackingId ?? null,
-        productionStage: params.productionStage ?? null,
-        actionData: params.actionData ?? null,
-      },
-    });
+    // Task model has been removed from Prisma schema
+    // This method is kept for backward compatibility but does nothing
+    console.log(
+      `[DynamicTaskHelper] createTask called: ${params.title} - Task model removed`
+    );
   }
 
   /**
    * Create deadline warning notification
+   * TODO: Task model removed - implement new task tracking system
    */
   async createDeadlineWarning(
     title: string,
@@ -874,22 +873,10 @@ export class DynamicTaskHelper {
     entityId: number,
     entityType: string
   ): Promise<void> {
-    const data: any = {
-      title,
-      description,
-      type: "DEADLINE_WARNING",
-      priority: "HIGH",
-      dueDate,
-      userId,
-      assignedToId,
-      status: "TODO",
-      entityType,
-    };
-
-    if (entityType === "SAMPLE") data.sampleId = entityId;
-    else if (entityType === "ORDER") data.orderId = entityId;
-    else if (entityType === "PRODUCTION") data.productionTrackingId = entityId;
-
-    await this.prisma.task.create({ data });
+    // Task model has been removed from Prisma schema
+    // This method is kept for backward compatibility but does nothing
+    console.log(
+      `[DynamicTaskHelper] createDeadlineWarning called for ${entityType} ${entityId} - Task model removed`
+    );
   }
 }

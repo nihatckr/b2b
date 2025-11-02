@@ -7,11 +7,9 @@ import {
   FormSwitch,
   FormTextarea,
 } from "@/components/forms";
-import {
-  ImageUploadWithSync,
-  SettingsCard,
-  SettingsSection,
-} from "@/components/settings";
+import { SettingsCard, SettingsSection } from "@/components/settings";
+import { SubscriptionWarningBanner } from "@/components/subscription/SubscriptionWarningBanner";
+import { UsageCard } from "@/components/subscription/UsageCard";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,6 +35,7 @@ import {
   AlertTriangle,
   Bell,
   Building2,
+  CreditCard,
   Globe,
   Loader2,
   Lock,
@@ -48,7 +47,7 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import NextImage from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -60,13 +59,16 @@ import {
 
 // URQL imports
 import {
+  SettingsCompanySubscriptionDocument,
   SettingsGetCurrentUserDocument,
   SettingsGetMyCompanyDocument,
   SettingsResendVerificationEmailDocument,
+  SettingsSubscriptionWarningsDocument,
   SettingsUpdateCompanyInfoDocument,
   SettingsUpdateUserNotificationsDocument,
   SettingsUpdateUserPreferencesDocument,
   SettingsUpdateUserProfileDocument,
+  SettingsUsageStatisticsDocument,
 } from "@/__generated__/graphql";
 import { useMutation, useQuery } from "urql";
 
@@ -101,6 +103,7 @@ type CompanyFormValues = CompanyInput;
 export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -115,6 +118,22 @@ export default function SettingsPage() {
   const [{ data: companyData }] = useQuery({
     query: SettingsGetMyCompanyDocument,
     pause: !hasCompany || !isCompanyOwner, // Only fetch if user has company and is owner
+  });
+
+  // Subscription Queries
+  const [{ data: subscriptionData }] = useQuery({
+    query: SettingsCompanySubscriptionDocument,
+    pause: !hasCompany,
+  });
+
+  const [{ data: usageData }] = useQuery({
+    query: SettingsUsageStatisticsDocument,
+    pause: !hasCompany,
+  });
+
+  const [{ data: warningsData }] = useQuery({
+    query: SettingsSubscriptionWarningsDocument,
+    pause: !hasCompany,
   });
 
   // URQL Mutations
@@ -521,7 +540,7 @@ export default function SettingsPage() {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 h-auto gap-2">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 h-auto gap-2">
           <TabsTrigger
             value="profile"
             className="flex items-center justify-center"
@@ -542,13 +561,6 @@ export default function SettingsPage() {
           >
             <Mail className="mr-2 h-4 w-4" />
             Messages
-          </TabsTrigger>
-          <TabsTrigger
-            value="billing"
-            className="flex items-center justify-center"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            Billing
           </TabsTrigger>
           {hasCompany && isCompanyOwner && (
             <TabsTrigger
@@ -580,6 +592,15 @@ export default function SettingsPage() {
             <Lock className="mr-2 h-4 w-4" />
             Security
           </TabsTrigger>
+          {hasCompany && (
+            <TabsTrigger
+              value="subscription"
+              className="flex items-center justify-center"
+            >
+              <CreditCard className="mr-2 h-4 w-4" />
+              Subscription & Billing
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Profile Tab */}
@@ -685,22 +706,12 @@ export default function SettingsPage() {
             </SettingsSection>
 
             <SettingsSection>
-              <ImageUploadWithSync
-                value={profileForm.watch("customAvatar")}
-                onChange={(url: string) =>
-                  profileForm.setValue("customAvatar", url)
-                }
-                onValueClear={() => profileForm.setValue("customAvatar", "")}
-                mutation={updateProfileMutation}
-                mutationField="customAvatar"
-                label="Profile Picture"
-                description="Upload a custom avatar (replaces OAuth photo)"
-                uploadType="avatar"
-                maxSize={3}
-                recommended="256x256px"
-                aspectRatio="square"
-                successMessage="Profil resmi kaldırıldı"
-                errorMessage="Profil resmi veritabanından silinemedi"
+              <FormInput
+                control={profileForm.control}
+                name="customAvatar"
+                label="Profile Picture URL"
+                description="Enter a custom avatar URL (replaces OAuth photo)"
+                placeholder="https://example.com/avatar.jpg"
               />
             </SettingsSection>
 
@@ -828,35 +839,6 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* Billing Tab */}
-        <TabsContent value="billing" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Billing & Subscription</CardTitle>
-              <CardDescription>
-                Manage your subscription, payment methods, and billing history
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4">
-                <div className="rounded-lg border p-4 bg-muted/50">
-                  <h3 className="font-medium mb-2">Coming Soon</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Billing management features will be available soon.
-                    You&apos;ll be able to:
-                  </p>
-                  <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
-                    <li>View current subscription plan</li>
-                    <li>Upgrade or downgrade your plan</li>
-                    <li>Manage payment methods</li>
-                    <li>View billing history and invoices</li>
-                    <li>Update billing information</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         {/* Company Tab */}
         {hasCompany && isCompanyOwner && (
           <TabsContent value="company" className="space-y-4">
@@ -1495,23 +1477,6 @@ export default function SettingsPage() {
                       <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
                           <p className="text-sm font-medium">
-                            Task Assignments
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            When a new task is assigned to you
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">
-                            Always On
-                          </span>
-                          <Bell className="h-4 w-4 text-blue-500" />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <p className="text-sm font-medium">
                             System Notifications
                           </p>
                           <p className="text-xs text-muted-foreground">
@@ -1781,6 +1746,204 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Subscription Tab - Read-Only View */}
+        {hasCompany && (
+          <TabsContent value="subscription" className="space-y-4">
+            {/* Subscription & Billing */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscription & Billing</CardTitle>
+                <CardDescription>
+                  View your current plan, usage limits, and billing information
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Current Plan */}
+                <div className="flex items-start justify-between p-4 rounded-lg border bg-muted/50">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-lg font-semibold">
+                        {subscriptionData?.myCompany?.subscriptionPlan ||
+                          "FREE"}{" "}
+                        Plan
+                      </h4>
+                      {subscriptionData?.myCompany?.subscriptionStatus ===
+                        "ACTIVE" && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-700 dark:text-green-400">
+                          Active
+                        </span>
+                      )}
+                      {subscriptionData?.myCompany?.subscriptionStatus ===
+                        "TRIAL" && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-700 dark:text-blue-400">
+                          Trial
+                        </span>
+                      )}
+                      {subscriptionData?.myCompany?.subscriptionStatus ===
+                        "EXPIRED" && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-700 dark:text-red-400">
+                          Expired
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {subscriptionData?.myCompany?.subscriptionStartDate && (
+                        <>
+                          Started:{" "}
+                          {new Date(
+                            subscriptionData.myCompany.subscriptionStartDate
+                          ).toLocaleDateString("tr-TR")}
+                        </>
+                      )}
+                    </p>
+                    {subscriptionData?.myCompany?.subscriptionEndDate && (
+                      <p className="text-sm text-muted-foreground">
+                        {subscriptionData.myCompany.subscriptionStatus ===
+                        "ACTIVE"
+                          ? "Renews"
+                          : "Expired"}
+                        :{" "}
+                        {new Date(
+                          subscriptionData.myCompany.subscriptionEndDate
+                        ).toLocaleDateString("tr-TR")}
+                      </p>
+                    )}
+                  </div>
+                  {isCompanyOwner && (
+                    <Button
+                      onClick={() => {
+                        const companyId = session?.user?.companyId;
+                        if (companyId) {
+                          router.push(
+                            `/dashboard/companies-management/${companyId}?tab=subscription`
+                          );
+                        }
+                      }}
+                    >
+                      Manage Plan
+                    </Button>
+                  )}
+                </div>
+
+                {/* Warnings */}
+                {warningsData?.subscriptionWarnings &&
+                  warningsData.subscriptionWarnings.length > 0 && (
+                    <div className="space-y-2">
+                      {warningsData.subscriptionWarnings.map(
+                        (warning, index) => (
+                          <SubscriptionWarningBanner
+                            key={index}
+                            type={warning.type as any}
+                            severity={warning.severity as any}
+                            message={warning.message}
+                            action={warning.action as any}
+                            onActionClick={() => {
+                              if (
+                                warning.action === "UPGRADE" &&
+                                isCompanyOwner
+                              ) {
+                                const companyId = session?.user?.companyId;
+                                if (companyId) {
+                                  router.push(
+                                    `/dashboard/companies-management/${companyId}?tab=subscription`
+                                  );
+                                }
+                              }
+                            }}
+                          />
+                        )
+                      )}
+                    </div>
+                  )}
+
+                {/* Usage Statistics */}
+                {usageData?.usageStatistics && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-3">
+                      Usage Statistics
+                    </h4>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <UsageCard
+                        label="Users"
+                        current={usageData.usageStatistics.users.current}
+                        max={usageData.usageStatistics.users.max}
+                        percentage={usageData.usageStatistics.users.percentage}
+                        isNearLimit={
+                          usageData.usageStatistics.users.isNearLimit
+                        }
+                      />
+                      <UsageCard
+                        label="Samples"
+                        current={usageData.usageStatistics.samples.current}
+                        max={usageData.usageStatistics.samples.max}
+                        percentage={
+                          usageData.usageStatistics.samples.percentage
+                        }
+                        isNearLimit={
+                          usageData.usageStatistics.samples.isNearLimit
+                        }
+                      />
+                      <UsageCard
+                        label="Orders"
+                        current={usageData.usageStatistics.orders.current}
+                        max={usageData.usageStatistics.orders.max}
+                        percentage={usageData.usageStatistics.orders.percentage}
+                        isNearLimit={
+                          usageData.usageStatistics.orders.isNearLimit
+                        }
+                      />
+                      <UsageCard
+                        label="Collections"
+                        current={usageData.usageStatistics.collections.current}
+                        max={usageData.usageStatistics.collections.max}
+                        percentage={
+                          usageData.usageStatistics.collections.percentage
+                        }
+                        isNearLimit={
+                          usageData.usageStatistics.collections.isNearLimit
+                        }
+                      />
+                      <UsageCard
+                        label="Storage"
+                        current={usageData.usageStatistics.storageGB.current}
+                        max={usageData.usageStatistics.storageGB.max}
+                        percentage={
+                          usageData.usageStatistics.storageGB.percentage
+                        }
+                        isNearLimit={
+                          usageData.usageStatistics.storageGB.isNearLimit
+                        }
+                        unit="GB"
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Info Card for Non-Owners */}
+            {!isCompanyOwner && (
+              <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                        Subscription Management
+                      </p>
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        Only company owners can manage subscription plans.
+                        Contact your company owner to upgrade or change the
+                        plan.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

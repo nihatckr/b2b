@@ -1,0 +1,3 @@
+query query_questionsByCollection($filter: QuestionFilterInput) {
+  questionsByCollection(filter: $filter)
+}

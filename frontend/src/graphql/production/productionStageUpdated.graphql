@@ -1,0 +1,13 @@
+subscription subscription_productionStageUpdated($productionId: Int!) {
+  productionStageUpdated(productionId: $productionId) {
+    completedAt
+    notes
+    productionId
+    stage
+    startedAt
+    status
+    updatedAt
+    updatedBy
+    __typename
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { VerifyEmailDocument } from "@/__generated__/graphql";
+import { AuthVerifyEmailDocument } from "@/__generated__/graphql";
 import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -24,7 +24,7 @@ export default function VerifyEmailPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const [, verifyEmailMutation] = useMutation(VerifyEmailDocument);
+  const [, verifyEmailMutation] = useMutation(AuthVerifyEmailDocument);
 
   useEffect(() => {
     const verifyEmail = async () => {

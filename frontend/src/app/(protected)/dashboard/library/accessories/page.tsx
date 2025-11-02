@@ -13,6 +13,7 @@ import { PageHeader } from "@/components/common";
 import CreateLibraryItemModal, {
   LibraryItemFormData,
 } from "@/components/library/CreateLibraryItemModal";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,6 +30,7 @@ import {
   Globe,
   Package,
   Plus,
+  ShieldCheck,
   Trash2,
   Users,
 } from "lucide-react";
@@ -363,6 +365,27 @@ export default function AccessoriesPage() {
               <div className="text-[10px] truncate">Code: {accessory.code}</div>
             )}
           </div>
+
+          {/* 🔗 Certifications Badge */}
+          {accessory.certifications && accessory.certifications.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {accessory.certifications.slice(0, 2).map((cert) => (
+                <Badge
+                  key={cert.id}
+                  variant="secondary"
+                  className="text-[10px] flex items-center gap-1 px-1.5 py-0"
+                >
+                  <ShieldCheck className="h-2.5 w-2.5" />
+                  {cert.code || cert.name}
+                </Badge>
+              ))}
+              {accessory.certifications.length > 2 && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                  +{accessory.certifications.length - 2}
+                </Badge>
+              )}
+            </div>
+          )}
 
           <div className="mt-3 flex gap-2">
             <Button

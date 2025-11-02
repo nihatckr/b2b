@@ -1,0 +1,3 @@
+query query_productionMetrics($dateRange: DateRangeInput) {
+  productionMetrics(dateRange: $dateRange)
+}

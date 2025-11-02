@@ -1,0 +1,3 @@
+query query_searchOrders($input: OrderSearchInput!) {
+  searchOrders(input: $input)
+}

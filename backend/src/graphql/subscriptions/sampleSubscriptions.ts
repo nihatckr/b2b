@@ -6,7 +6,7 @@
 
 import { requireAuth } from "../../utils/errors";
 import { pubsub } from "../../utils/pubsub";
-import { builder } from "../builder";
+import builder from "../builder";
 
 /**
  * Sample Status Event
@@ -71,9 +71,14 @@ SampleShippedEvent.implement({
   fields: (t) => ({
     sampleId: t.exposeInt("sampleId"),
     sampleNumber: t.exposeString("sampleNumber", { nullable: true }),
-    cargoTrackingNumber: t.exposeString("cargoTrackingNumber", { nullable: true }),
+    cargoTrackingNumber: t.exposeString("cargoTrackingNumber", {
+      nullable: true,
+    }),
     shippedAt: t.expose("shippedAt", { type: "DateTime" }),
-    estimatedDelivery: t.expose("estimatedDelivery", { type: "DateTime", nullable: true }),
+    estimatedDelivery: t.expose("estimatedDelivery", {
+      type: "DateTime",
+      nullable: true,
+    }),
   }),
 });
 
@@ -101,7 +106,10 @@ builder.subscriptionField("sampleStatusChanged", (t) =>
     authScopes: { user: true },
     description: "Subscribe to sample status changes",
     args: {
-      sampleId: t.arg.int({ required: true, description: "Sample ID to watch" }),
+      sampleId: t.arg.int({
+        required: true,
+        description: "Sample ID to watch",
+      }),
     },
     subscribe: (root, args, context) => {
       requireAuth(context.user?.id);
@@ -136,7 +144,10 @@ builder.subscriptionField("sampleQuoteReceived", (t) =>
     authScopes: { user: true },
     description: "Subscribe to manufacturer quotes for samples",
     args: {
-      sampleId: t.arg.int({ required: true, description: "Sample ID to watch" }),
+      sampleId: t.arg.int({
+        required: true,
+        description: "Sample ID to watch",
+      }),
     },
     subscribe: (root, args, context) => {
       requireAuth(context.user?.id);
@@ -170,7 +181,10 @@ builder.subscriptionField("sampleShipped", (t) =>
     authScopes: { user: true },
     description: "Subscribe to sample shipment updates",
     args: {
-      sampleId: t.arg.int({ required: true, description: "Sample ID to watch" }),
+      sampleId: t.arg.int({
+        required: true,
+        description: "Sample ID to watch",
+      }),
     },
     subscribe: (root, args, context) => {
       requireAuth(context.user?.id);

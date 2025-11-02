@@ -2,7 +2,6 @@
 import {
   CollectionsCreateDocument,
   DashboardLibraryItemsDocument,
-  DashboardStandardCategoriesDocument,
 } from "@/__generated__/graphql";
 import { FormFileUpload, FormImageUpload } from "@/components/forms";
 import { Button } from "@/components/ui/button";
@@ -215,47 +214,13 @@ export function CreateCollectionModal({
     variables: { filter: { category: "MATERIAL" } },
   });
 
-  // Standard Categories (Klasman - ROOT level = Gender: Kadın, Erkek, Çocuk)
-  const [{ data: genderCategoriesData }] = useQuery({
-    query: DashboardStandardCategoriesDocument,
-    variables: { level: "ROOT" },
-  });
-
-  // Main Categories (MAIN level = Ana kategoriler: Üst Giyim, Alt Giyim, etc.)
-  const [{ data: mainCategoriesData }] = useQuery({
-    query: DashboardStandardCategoriesDocument,
-    variables: {
-      level: "MAIN",
-      parentId: formData.selectedGender
-        ? parseInt(formData.selectedGender)
-        : undefined,
-    },
-    pause: !formData.selectedGender,
-  });
-
-  // Sub Categories (SUB level = Alt kategoriler: Gömlek, Pantolon, etc.)
-  const [{ data: subCategoriesData }] = useQuery({
-    query: DashboardStandardCategoriesDocument,
-    variables: {
-      level: "SUB",
-      parentId: formData.selectedMainCategory
-        ? parseInt(formData.selectedMainCategory)
-        : undefined,
-    },
-    pause: !formData.selectedMainCategory,
-  });
-
-  // Detail Categories (DETAIL level = Detay: Uzun Kollu, Kısa Kollu, etc.)
-  const [{ data: detailCategoriesData }] = useQuery({
-    query: DashboardStandardCategoriesDocument,
-    variables: {
-      level: "DETAIL",
-      parentId: formData.selectedSubCategory
-        ? parseInt(formData.selectedSubCategory)
-        : undefined,
-    },
-    pause: !formData.selectedSubCategory,
-  });
+  // TODO: StandardCategory modeli kaldırıldı.
+  // Bu component'in category seçimi mantığı yeniden tasarlanmalı.
+  // Collection model'inde artık standardCategoryId yok, sadece company-specific categoryId var.
+  const genderCategoriesData = { standardCategories: [] as any[] };
+  const mainCategoriesData = { standardCategories: [] as any[] };
+  const subCategoriesData = { standardCategories: [] as any[] };
+  const detailCategoriesData = { standardCategories: [] as any[] };
 
   // Update form data when initialData changes (for edit mode)
   useEffect(() => {

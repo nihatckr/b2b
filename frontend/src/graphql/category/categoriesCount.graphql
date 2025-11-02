@@ -1,0 +1,3 @@
+query query_categoriesCount($filter: CategoryFilterInput) {
+  categoriesCount(filter: $filter)
+}

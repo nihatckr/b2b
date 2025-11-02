@@ -4,8 +4,6 @@ import {
   IconBuilding,
   IconCamera,
   IconChartBar,
-  IconClipboardCheck,
-  IconClipboardList,
   IconDashboard,
   IconDatabase,
   IconFolder,
@@ -16,7 +14,6 @@ import {
   IconSearch,
   IconSettings,
   IconSparkles,
-  IconTool,
   IconUsers,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -90,21 +87,6 @@ export const getNavMainByRole = (userRole: string, companyType?: string) => {
         icon: IconListDetails,
       },
       {
-        title: "Tasks",
-        url: "/dashboard/tasks",
-        icon: IconClipboardList,
-      },
-      {
-        title: "Quality Control",
-        url: "/dashboard/quality",
-        icon: IconClipboardCheck,
-      },
-      {
-        title: "Workshop Management",
-        url: "/dashboard/workshops",
-        icon: IconTool,
-      },
-      {
         title: "Analytics",
         url: "/dashboard/analytics",
         icon: IconChartBar,
@@ -134,21 +116,6 @@ export const getNavMainByRole = (userRole: string, companyType?: string) => {
         url: "/dashboard/orders",
         icon: IconListDetails,
       },
-      {
-        title: "Tasks",
-        url: "/dashboard/tasks",
-        icon: IconClipboardList,
-      },
-      {
-        title: "Quality Control",
-        url: "/dashboard/quality",
-        icon: IconClipboardCheck,
-      },
-      {
-        title: "Workshop Management",
-        url: "/dashboard/workshops",
-        icon: IconTool,
-      },
     ];
   }
 
@@ -173,11 +140,6 @@ export const getNavMainByRole = (userRole: string, companyType?: string) => {
         title: "My Orders",
         url: "/dashboard/orders",
         icon: IconListDetails,
-      },
-      {
-        title: "Tasks",
-        url: "/dashboard/tasks",
-        icon: IconClipboardList,
       },
     ];
   }
@@ -299,33 +261,28 @@ const data = {
   adminNav: [
     {
       title: "User Management",
-      url: "/dashboard/admin/users",
+      url: "/dashboard/users-management",
       icon: IconUsers,
     },
     {
       title: "Company Management",
-      url: "/dashboard/admin/companies",
+      url: "/dashboard/companies-management",
       icon: IconBuilding,
     },
     {
       title: "Category Management",
-      url: "/dashboard/admin/categories",
+      url: "/dashboard/categories-management",
       icon: IconFolder,
     },
     {
       title: "Collection Management",
-      url: "/dashboard/admin/collections",
+      url: "/dashboard/collections-management",
       icon: IconDatabase,
     },
     {
       title: "Reports",
-      url: "/dashboard/admin/reports",
+      url: "/dashboard/reports",
       icon: IconReport,
-    },
-    {
-      title: "Admin Settings",
-      url: "/dashboard/admin/settings",
-      icon: IconSettings,
     },
   ],
   navSecondary: [

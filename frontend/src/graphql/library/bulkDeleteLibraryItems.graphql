@@ -1,0 +1,3 @@
+mutation mutation_bulkDeleteLibraryItems($ids: [Int!]!) {
+  bulkDeleteLibraryItems(ids: $ids)
+}

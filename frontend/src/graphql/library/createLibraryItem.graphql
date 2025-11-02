@@ -1,0 +1,2981 @@
+mutation mutation_createLibraryItem($input: CreateLibraryItemInput!) {
+  createLibraryItem(input: $input) {
+    category
+    certifications {
+      category
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    certifiedItems {
+      category
+      certifications {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    code
+    collections {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithAccessories {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithColors {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithFabrics {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithFit {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithLabelingType {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithPackagingType {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithPaymentTerms {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithPrint {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithQualityStandard {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithSeason {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithSizeBreakdown {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithSizeGroups {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithTrend {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionsWithWashEffect {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    colorFamily
+    company {
+      address
+      billingAddress
+      billingCycle
+      billingEmail
+      brandColors
+      cancelAtPeriodEnd
+      cancelledAt
+      city
+      country
+      coverImage
+      createdAt
+      currentCollections
+      currentOrders
+      currentPeriodEnd
+      currentPeriodStart
+      currentSamples
+      currentStorageGB
+      currentUsers
+      defaultView
+      description
+      email
+      employees {
+        id
+        __typename
+      }
+      enabledModules
+      id
+      isActive
+      isPublicProfile
+      location
+      logo
+      maxCollections
+      maxOrders
+      maxSamples
+      maxStorageGB
+      maxUsers
+      name
+      owner {
+        id
+        __typename
+      }
+      ownerId
+      phone
+      profileSlug
+      settings
+      socialLinks
+      subscriptionPlan
+      subscriptionStartedAt
+      subscriptionStatus
+      taxId
+      trialEndsAt
+      trialStartedAt
+      type
+      updatedAt
+      website
+      __typename
+    }
+    companyId
+    companyItems {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    createdAt
+    createdBy {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    createdById
+    data
+    description
+    fabricWeight
+    fabricWidth
+    fiberType
+    fitCategory
+    gender
+    hexColor
+    id
+    imageUrl
+    isActive
+    isPopular
+    materialType
+    name
+    notes
+    scope
+    sizeCategory
+    standardItem {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItemId
+      updatedAt
+      __typename
+    }
+    standardItemId
+    updatedAt
+    __typename
+  }
+}

@@ -236,13 +236,7 @@ export default function SizeGroupsPage() {
       setLoadingDelete(false);
     }
   };
-  if (
-    platformData.length === 0 &&
-    companyData.length === 0 &&
-    allCompaniesData.length === 0
-  ) {
-    return <h1>No size groups found.</h1>;
-  }
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
@@ -402,9 +396,12 @@ export default function SizeGroupsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {companyData.map((sizeGroup) => {
                     const sizes = getSizes(sizeGroup.data);
-                    const category = getSizeCategory(sizeGroup.data);
-                    const regional = getRegionalStandard(sizeGroup.data);
-                    const gender = getTargetGender(sizeGroup.data);
+                    // ✅ Hybrid Approach: Use direct fields from schema
+                    const category =
+                      sizeGroup.sizeCategory || getSizeCategory(sizeGroup.data);
+                    const regional = getRegionalStandard(sizeGroup.data); // Stays in JSON
+                    const gender =
+                      sizeGroup.gender || getTargetGender(sizeGroup.data);
 
                     return (
                       <div
@@ -506,8 +503,10 @@ export default function SizeGroupsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {allCompaniesData.map((sizeGroup) => {
                     const sizes = getSizes(sizeGroup.data);
-                    const regional = getRegionalStandard(sizeGroup.data);
-                    const gender = getTargetGender(sizeGroup.data);
+                    const regional = getRegionalStandard(sizeGroup.data); // Stays in JSON
+                    // ✅ Hybrid Approach: Use direct fields from schema
+                    const gender =
+                      sizeGroup.gender || getTargetGender(sizeGroup.data);
 
                     return (
                       <div

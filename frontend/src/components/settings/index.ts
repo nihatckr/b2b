@@ -6,9 +6,7 @@
  * @components
  * - SettingsCard: Card wrapper with form integration
  * - SettingsSection: Section divider with optional title
- * - ImageUploadWithSync: Image upload with backend sync
  */
 
-export { ImageUploadWithSync } from "../upload/image-upload-with-sync";
 export { SettingsCard } from "./settings-card";
 export { SettingsSection } from "./settings-section";

@@ -1,0 +1,3 @@
+query query_suggestLibraryItems($category: String, $limit: Int, $partial: String!) {
+  suggestLibraryItems(category: $category, limit: $limit, partial: $partial)
+}

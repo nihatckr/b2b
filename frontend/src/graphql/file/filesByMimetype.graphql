@@ -1,0 +1,14 @@
+query query_filesByMimetype($limit: Int, $mimetype: String!) {
+  filesByMimetype(limit: $limit, mimetype: $mimetype) {
+    createdAt
+    description
+    encoding
+    filename
+    id
+    mimetype
+    path
+    size
+    updatedAt
+    __typename
+  }
+}

@@ -1,0 +1,9 @@
+mutation mutation_bulkUpdateOrderStatus($orderIds: [Int!]!, $status: OrderStatus!) {
+  bulkUpdateOrderStatus(orderIds: $orderIds, status: $status) {
+    errors
+    failedIds
+    success
+    updatedCount
+    __typename
+  }
+}

@@ -1,0 +1,239 @@
+query query_getQuestionsByUser($pagination: QuestionPaginationInput, $userId: Int!) {
+  getQuestionsByUser(pagination: $pagination, userId: $userId) {
+    answer
+    collection {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionId
+    createdAt
+    customer {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    customerId
+    id
+    isAnswered
+    isPublic
+    manufacture {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    manufactureId
+    question
+    updatedAt
+    __typename
+  }
+}

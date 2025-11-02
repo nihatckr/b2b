@@ -1,0 +1,313 @@
+mutation mutation_holdSample($input: HoldSampleInput!) {
+  holdSample(input: $input) {
+    actualProductionDate
+    aiGenerated
+    aiPrompt
+    aiSketchUrl
+    collection {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionId
+    company {
+      address
+      billingAddress
+      billingCycle
+      billingEmail
+      brandColors
+      cancelAtPeriodEnd
+      cancelledAt
+      city
+      country
+      coverImage
+      createdAt
+      currentCollections
+      currentOrders
+      currentPeriodEnd
+      currentPeriodStart
+      currentSamples
+      currentStorageGB
+      currentUsers
+      defaultView
+      description
+      email
+      employees {
+        id
+        __typename
+      }
+      enabledModules
+      id
+      isActive
+      isPublicProfile
+      location
+      logo
+      maxCollections
+      maxOrders
+      maxSamples
+      maxStorageGB
+      maxUsers
+      name
+      owner {
+        id
+        __typename
+      }
+      ownerId
+      phone
+      profileSlug
+      settings
+      socialLinks
+      subscriptionPlan
+      subscriptionStartedAt
+      subscriptionStatus
+      taxId
+      trialEndsAt
+      trialStartedAt
+      type
+      updatedAt
+      website
+      __typename
+    }
+    companyId
+    createdAt
+    customDesignImages
+    customer {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    customerId
+    customerNote
+    customerQuoteDays
+    customerQuoteNote
+    customerQuotedPrice
+    description
+    estimatedProductionDate
+    id
+    images
+    manufacture {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    manufactureId
+    manufacturerResponse
+    name
+    productionDays
+    sampleNumber
+    sampleType
+    status
+    unitPrice
+    updatedAt
+    __typename
+  }
+}

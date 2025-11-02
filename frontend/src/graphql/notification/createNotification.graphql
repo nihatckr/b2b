@@ -1,0 +1,49 @@
+mutation mutation_createNotification($input: CreateNotificationInput!) {
+  createNotification(input: $input) {
+    createdAt
+    data
+    id
+    isRead
+    link
+    message
+    orderId
+    productionTrackingId
+    sampleId
+    title
+    type
+    updatedAt
+    user {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    userId
+    __typename
+  }
+}

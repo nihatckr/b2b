@@ -1,0 +1,11 @@
+query query_customerOrders($after: String, $before: String, $first: Int, $input: OrderStatusFilterInput, $last: Int) {
+  customerOrders(
+    after: $after
+    before: $before
+    first: $first
+    input: $input
+    last: $last
+  ) {
+    __typename
+  }
+}

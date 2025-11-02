@@ -2,6 +2,7 @@ import * as z from "zod";
 
 // ============================================
 // CATEGORY VALIDATION SCHEMAS
+// Backend: categoryMutation.ts
 // ============================================
 
 // Category Level enum
@@ -17,8 +18,8 @@ export const CategorySchema = z.object({
     .trim(),
   name: z
     .string()
-    .min(2, "Ad en az 2 karakter olmalıdır")
-    .max(100, "Ad en fazla 100 karakter olabilir")
+    .min(2, "İsim en az 2 karakter olmalıdır")
+    .max(100, "İsim en fazla 100 karakter olabilir")
     .trim(),
   description: z
     .string()

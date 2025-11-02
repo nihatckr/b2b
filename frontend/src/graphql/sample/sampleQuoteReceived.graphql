@@ -1,0 +1,12 @@
+subscription subscription_sampleQuoteReceived($sampleId: Int!) {
+  sampleQuoteReceived(sampleId: $sampleId) {
+    quoteNote
+    quotedAt
+    quotedBy
+    quotedDays
+    quotedPrice
+    sampleId
+    sampleNumber
+    __typename
+  }
+}

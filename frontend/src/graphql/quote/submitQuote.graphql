@@ -1,0 +1,337 @@
+mutation mutation_submitQuote($input: SubmitQuoteInput!) {
+  submitQuote(input: $input) {
+    certifications
+    collection {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionId
+    createdAt
+    currency
+    customerNote
+    customerRating
+    expiresAt
+    id
+    isWinner
+    manufacture {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    manufactureId
+    moq
+    notes
+    order {
+      actualProductionEnd
+      actualProductionStart
+      basedOnSample {
+        id
+        __typename
+      }
+      cargoTrackingNumber
+      changeLogs {
+        id
+        __typename
+      }
+      collection {
+        id
+        __typename
+      }
+      collectionImage
+      collectionModelCode
+      collectionName
+      company {
+        id
+        __typename
+      }
+      createdAt
+      currency
+      customer {
+        id
+        __typename
+      }
+      customerNote
+      customerQuoteDays
+      customerQuoteNote
+      customerQuoteSentAt
+      customerQuoteType
+      customerQuotedPrice
+      deadline
+      deliveryAddress
+      estimatedProductionDate
+      id
+      manufacture {
+        id
+        __typename
+      }
+      manufacturerResponse
+      negotiations {
+        id
+        __typename
+      }
+      notes
+      orderNumber
+      productionDays
+      productionTracking {
+        id
+        __typename
+      }
+      quantity
+      shippingDate
+      sizeBreakdown {
+        id
+        __typename
+      }
+      status
+      targetPrice
+      totalPrice
+      unitPrice
+      updatedAt
+      __typename
+    }
+    orderId
+    portfolioImages
+    productionDays
+    sample {
+      actualProductionDate
+      aiGenerated
+      aiPrompt
+      aiSketchUrl
+      collection {
+        id
+        __typename
+      }
+      collectionId
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customDesignImages
+      customer {
+        id
+        __typename
+      }
+      customerId
+      customerNote
+      customerQuoteDays
+      customerQuoteNote
+      customerQuotedPrice
+      description
+      estimatedProductionDate
+      id
+      images
+      manufacture {
+        id
+        __typename
+      }
+      manufactureId
+      manufacturerResponse
+      name
+      productionDays
+      sampleNumber
+      sampleType
+      status
+      unitPrice
+      updatedAt
+      __typename
+    }
+    sampleDays
+    sampleId
+    samplePrice
+    sampleRequested
+    status
+    suggestedFabric
+    suggestedFinish
+    suggestedPrint
+    technicalNotes
+    unitPrice
+    updatedAt
+    __typename
+  }
+}

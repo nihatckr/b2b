@@ -1,0 +1,11 @@
+query query_manufacturerOrders($after: String, $before: String, $first: Int, $input: OrderStatusFilterInput, $last: Int) {
+  manufacturerOrders(
+    after: $after
+    before: $before
+    first: $first
+    input: $input
+    last: $last
+  ) {
+    __typename
+  }
+}

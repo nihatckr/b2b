@@ -1,0 +1,3 @@
+query query_getUsageLimitsStatus($companyId: Int!) {
+  getUsageLimitsStatus(companyId: $companyId)
+}

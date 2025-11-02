@@ -1,0 +1,96 @@
+query query_myPaymentsDue($filter: PaymentFilterInput, $pagination: PaymentPaginationInput) {
+  myPaymentsDue(filter: $filter, pagination: $pagination) {
+    accountHolder
+    amount
+    bankName
+    confirmedAt
+    confirmedBy
+    createdAt
+    currency
+    description
+    dueDate
+    id
+    method
+    notes
+    order {
+      actualProductionEnd
+      actualProductionStart
+      basedOnSample {
+        id
+        __typename
+      }
+      cargoTrackingNumber
+      changeLogs {
+        id
+        __typename
+      }
+      collection {
+        id
+        __typename
+      }
+      collectionImage
+      collectionModelCode
+      collectionName
+      company {
+        id
+        __typename
+      }
+      createdAt
+      currency
+      customer {
+        id
+        __typename
+      }
+      customerNote
+      customerQuoteDays
+      customerQuoteNote
+      customerQuoteSentAt
+      customerQuoteType
+      customerQuotedPrice
+      deadline
+      deliveryAddress
+      estimatedProductionDate
+      id
+      manufacture {
+        id
+        __typename
+      }
+      manufacturerResponse
+      negotiations {
+        id
+        __typename
+      }
+      notes
+      orderNumber
+      productionDays
+      productionTracking {
+        id
+        __typename
+      }
+      quantity
+      shippingDate
+      sizeBreakdown {
+        id
+        __typename
+      }
+      status
+      targetPrice
+      totalPrice
+      unitPrice
+      updatedAt
+      __typename
+    }
+    orderId
+    paidDate
+    percentage
+    receiptUploadedAt
+    receiptUploadedBy
+    receiptUrl
+    rejectionReason
+    status
+    transactionId
+    type
+    updatedAt
+    __typename
+  }
+}

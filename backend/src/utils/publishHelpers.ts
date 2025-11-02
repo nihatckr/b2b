@@ -14,12 +14,11 @@ import type {
   OrderStatusPayload,
   ProductionStagePayload,
   ProductionStatusPayload,
-  QualityControlPayload,
   SampleQuotePayload,
   SampleShippedPayload,
   SampleStatusPayload,
   TaskPayload,
-  TaskStatusPayload
+  TaskStatusPayload,
 } from "./pubsub";
 import { pubsub } from "./pubsub";
 
@@ -31,11 +30,14 @@ import { pubsub } from "./pubsub";
  * Publish a new notification event
  */
 export async function publishNotification(notification: NotificationPayload) {
-  console.log(`📢 [publishNotification] Publishing to user ${notification.userId}:`, {
-    id: notification.id,
-    title: notification.title,
-    type: notification.type,
-  });
+  console.log(
+    `📢 [publishNotification] Publishing to user ${notification.userId}:`,
+    {
+      id: notification.id,
+      title: notification.title,
+      type: notification.type,
+    }
+  );
   pubsub.publish("notification:new", notification.userId, notification);
   console.log(`✅ [publishNotification] Published successfully`);
 }
@@ -61,7 +63,10 @@ export async function publishTaskAssigned(userId: number, task: TaskPayload) {
 /**
  * Publish a task status change event
  */
-export async function publishTaskStatusChanged(taskId: number, payload: TaskStatusPayload) {
+export async function publishTaskStatusChanged(
+  taskId: number,
+  payload: TaskStatusPayload
+) {
   pubsub.publish("task:statusChanged", taskId, payload);
 }
 
@@ -87,16 +92,6 @@ export async function publishProductionStageUpdated(
   payload: ProductionStagePayload
 ) {
   pubsub.publish("production:stageUpdated", productionId, payload);
-}
-
-/**
- * Publish a quality control result event
- */
-export async function publishQualityControl(
-  productionId: number,
-  payload: QualityControlPayload
-) {
-  pubsub.publish("production:qualityControl", productionId, payload);
 }
 
 // ========================================
@@ -193,12 +188,14 @@ export async function publishOrderUserUpdate(
 
 /**
  * Publish a new message event
+ * @param contextId - Order or Sample ID for the conversation context
+ * @param payload - Message data
  */
 export async function publishNewMessage(
-  productId: number,
+  contextId: number,
   payload: MessagePayload
 ) {
-  pubsub.publish("message:new", productId, payload);
+  pubsub.publish("message:new", contextId, payload);
 }
 
 /**
@@ -213,10 +210,12 @@ export async function publishUserMessage(
 
 /**
  * Publish a message read event
+ * @param contextId - Order or Sample ID for the conversation context
+ * @param payload - Message read status
  */
 export async function publishMessageRead(
-  productId: number,
+  contextId: number,
   payload: MessageReadPayload
 ) {
-  pubsub.publish("message:read", productId, payload);
+  pubsub.publish("message:read", contextId, payload);
 }

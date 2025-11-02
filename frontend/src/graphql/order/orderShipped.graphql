@@ -1,0 +1,11 @@
+subscription subscription_orderShipped($orderId: Int!) {
+  orderShipped(orderId: $orderId) {
+    cargoTrackingNumber
+    deliveryAddress
+    estimatedDelivery
+    orderId
+    orderNumber
+    shippedAt
+    __typename
+  }
+}

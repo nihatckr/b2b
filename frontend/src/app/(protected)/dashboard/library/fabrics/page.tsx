@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,7 +36,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, Edit, Eye, Globe, Plus, Trash2, Users } from "lucide-react";
+import {
+  Building,
+  Edit,
+  Eye,
+  Globe,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import NextImage from "next/image";
 import { useState } from "react";
@@ -452,7 +462,29 @@ export default function FabricsPage() {
                           }
                         })()}
 
-                      <div className="flex gap-2">
+                      {/* 🔗 Certifications Badge */}
+                      {fabric.certifications &&
+                        fabric.certifications.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {fabric.certifications.slice(0, 3).map((cert) => (
+                              <Badge
+                                key={cert.id}
+                                variant="secondary"
+                                className="text-xs flex items-center gap-1"
+                              >
+                                <ShieldCheck className="h-3 w-3" />
+                                {cert.code || cert.name}
+                              </Badge>
+                            ))}
+                            {fabric.certifications.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{fabric.certifications.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
+                      <div className="flex gap-2 mt-2">
                         <Button
                           variant="outline"
                           size="sm"

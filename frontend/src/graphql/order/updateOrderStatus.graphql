@@ -1,0 +1,490 @@
+mutation mutation_updateOrderStatus($input: UpdateOrderStatusInput!) {
+  updateOrderStatus(input: $input) {
+    actualProductionEnd
+    actualProductionStart
+    basedOnSample {
+      actualProductionDate
+      aiGenerated
+      aiPrompt
+      aiSketchUrl
+      collection {
+        id
+        __typename
+      }
+      collectionId
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customDesignImages
+      customer {
+        id
+        __typename
+      }
+      customerId
+      customerNote
+      customerQuoteDays
+      customerQuoteNote
+      customerQuotedPrice
+      description
+      estimatedProductionDate
+      id
+      images
+      manufacture {
+        id
+        __typename
+      }
+      manufactureId
+      manufacturerResponse
+      name
+      productionDays
+      sampleNumber
+      sampleType
+      status
+      unitPrice
+      updatedAt
+      __typename
+    }
+    cargoTrackingNumber
+    changeLogs {
+      changeReason
+      changeType
+      changedBy
+      changedByUser {
+        id
+        __typename
+      }
+      createdAt
+      id
+      manufacturerResponse
+      manufacturerReviewedAt
+      manufacturerReviewedBy
+      manufacturerStatus
+      negotiationId
+      negotiationTriggered
+      newValues
+      order {
+        id
+        __typename
+      }
+      orderId
+      previousValues
+      relatedNegotiation {
+        id
+        __typename
+      }
+      reviewedByUser {
+        id
+        __typename
+      }
+      __typename
+    }
+    collection {
+      accessories {
+        id
+        __typename
+      }
+      allowDirectOrder
+      author {
+        id
+        __typename
+      }
+      authorId
+      category {
+        id
+        __typename
+      }
+      categoryId
+      certifications {
+        id
+        __typename
+      }
+      colors {
+        id
+        __typename
+      }
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currency
+      customerBrief
+      deadline
+      deadlineDays
+      defaultSizeBreakdown {
+        id
+        __typename
+      }
+      defaultSizeBreakdownId
+      defectTolerance
+      depositPercentage
+      depositRequired
+      description
+      fabrics {
+        id
+        __typename
+      }
+      fit {
+        id
+        __typename
+      }
+      fitId
+      gender
+      id
+      images
+      invitedManufacturers
+      isActive
+      isFeatured
+      isRFQ
+      labelingDetails
+      labelingType {
+        id
+        __typename
+      }
+      labelingTypeId
+      lastViewedAt
+      maxOrderQuantity
+      modelCode
+      monthlyCapacity
+      moq
+      name
+      notes
+      orders {
+        id
+        __typename
+      }
+      ownerType
+      packagingDetails
+      packagingType {
+        id
+        __typename
+      }
+      packagingTypeId
+      paymentTerms {
+        id
+        __typename
+      }
+      paymentTermsId
+      priceBreaks
+      prints {
+        id
+        __typename
+      }
+      productionSchedule
+      qualityStandard {
+        id
+        __typename
+      }
+      qualityStandardId
+      questions {
+        id
+        __typename
+      }
+      quotes {
+        id
+        __typename
+      }
+      referenceImages
+      requireSample
+      revisedSamples {
+        id
+        __typename
+      }
+      rfqDeadline
+      rfqStatus
+      rfqWinner {
+        id
+        __typename
+      }
+      rfqWinnerId
+      rushOrderAvailable
+      rushOrderExtraCost
+      rushOrderMinDays
+      sampleLeadTime
+      samplePolicy
+      samplePrice
+      samples {
+        id
+        __typename
+      }
+      season {
+        id
+        __typename
+      }
+      seasonId
+      shareCount
+      sizeGroups {
+        id
+        __typename
+      }
+      sketchUrl
+      targetBudget
+      targetDeliveryDays
+      targetLeadTime
+      targetPrice
+      targetQuantity
+      techPack
+      trend {
+        id
+        __typename
+      }
+      trendId
+      updatedAt
+      viewCount
+      visibility
+      washEffect {
+        id
+        __typename
+      }
+      washEffectId
+      __typename
+    }
+    collectionImage
+    collectionModelCode
+    collectionName
+    company {
+      address
+      billingAddress
+      billingCycle
+      billingEmail
+      brandColors
+      cancelAtPeriodEnd
+      cancelledAt
+      city
+      country
+      coverImage
+      createdAt
+      currentCollections
+      currentOrders
+      currentPeriodEnd
+      currentPeriodStart
+      currentSamples
+      currentStorageGB
+      currentUsers
+      defaultView
+      description
+      email
+      employees {
+        id
+        __typename
+      }
+      enabledModules
+      id
+      isActive
+      isPublicProfile
+      location
+      logo
+      maxCollections
+      maxOrders
+      maxSamples
+      maxStorageGB
+      maxUsers
+      name
+      owner {
+        id
+        __typename
+      }
+      ownerId
+      phone
+      profileSlug
+      settings
+      socialLinks
+      subscriptionPlan
+      subscriptionStartedAt
+      subscriptionStatus
+      taxId
+      trialEndsAt
+      trialStartedAt
+      type
+      updatedAt
+      website
+      __typename
+    }
+    createdAt
+    currency
+    customer {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    customerNote
+    customerQuoteDays
+    customerQuoteNote
+    customerQuoteSentAt
+    customerQuoteType
+    customerQuotedPrice
+    deadline
+    deliveryAddress
+    estimatedProductionDate
+    id
+    manufacture {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    manufacturerResponse
+    negotiations {
+      createdAt
+      currency
+      id
+      message
+      order {
+        id
+        __typename
+      }
+      orderId
+      productionDays
+      quantity
+      relatedChangeLog {
+        id
+        __typename
+      }
+      respondedAt
+      respondedBy
+      responder {
+        id
+        __typename
+      }
+      sender {
+        id
+        __typename
+      }
+      senderId
+      senderRole
+      status
+      unitPrice
+      __typename
+    }
+    notes
+    orderNumber
+    productionDays
+    productionTracking {
+      actualEndDate
+      actualStartDate
+      canStartProduction
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currentStage
+      customerNote
+      customerRejectionReason
+      estimatedEndDate
+      estimatedStartDate
+      id
+      notes
+      notifications {
+        id
+        __typename
+      }
+      order {
+        id
+        __typename
+      }
+      orderId
+      overallStatus
+      planApprovedAt
+      planRejectedAt
+      planSentAt
+      planStatus
+      productionStartDate
+      progress
+      revisionCount
+      sample {
+        id
+        __typename
+      }
+      sampleId
+      stageUpdates {
+        id
+        __typename
+      }
+      updatedAt
+      __typename
+    }
+    quantity
+    shippingDate
+    sizeBreakdown {
+      createdAt
+      id
+      notes
+      order {
+        id
+        __typename
+      }
+      orderId
+      packed
+      percentage
+      produced
+      quantity
+      shipped
+      size
+      updatedAt
+      __typename
+    }
+    status
+    targetPrice
+    totalPrice
+    unitPrice
+    updatedAt
+    __typename
+  }
+}

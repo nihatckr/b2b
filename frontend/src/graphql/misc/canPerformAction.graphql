@@ -1,0 +1,10 @@
+query query_canPerformAction($action: String!) {
+  canPerformAction(action: $action) {
+    allowed
+    currentUsage
+    maxLimit
+    reason
+    usagePercentage
+    __typename
+  }
+}

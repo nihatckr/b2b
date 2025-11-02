@@ -2,6 +2,10 @@
 
 > ProtexFlow Next.js 15 app with React 19, TypeScript, and URQL
 
+**Status**: ✅ Production Ready (v2.0.0)  
+**Port**: 3000  
+**Last Updated**: 1 Kasım 2025
+
 ---
 
 ## 🚀 Quick Start
@@ -111,10 +115,48 @@ npx shadcn-ui@latest add form
 ## 📚 Documentation
 
 - **[Main Docs](../docs/README.md)** - Complete documentation
+- **[Backend README](../backend/README.md)** - GraphQL API docs (4300+ lines)
 - **[Architecture](../docs/ARCHITECTURE.md)** - System design
 - **[URQL Usage Guide](./URQL_USAGE_GUIDE.md)** - GraphQL client
 - **[Authentication Guide](./AUTHENTICATION_GUIDE.md)** - Auth flow
 - **[WebSocket Guide](./WEBSOCKET_SUBSCRIPTIONS_GUIDE.md)** - Real-time
+- **[Copilot Instructions](../.github/copilot-instructions.md)** - AI agent guide
+
+---
+
+## 🔄 Recent Changes (v2.0.0)
+
+### Key Updates
+
+- ✅ Backend schema 100% compliant (21 models, 26 enums)
+- ✅ GraphQL Codegen updated for all backend changes
+- ✅ Role enum updated (4 roles: ADMIN, COMPANY_OWNER, COMPANY_EMPLOYEE, INDIVIDUAL_CUSTOMER)
+- ✅ Performance: 95%+ improvement via Relay + DataLoader
+- ✅ All deprecated features removed
+
+### Breaking Changes
+
+- ❌ **MANUFACTURE role** removed - Use backend company type checks instead
+- ❌ **CUSTOMER role** removed - Use INDIVIDUAL_CUSTOMER
+- ❌ **Task system** deprecated - Status tracking remains, task creation removed
+
+### Migration Guide
+
+If using old roles:
+
+```typescript
+// ❌ OLD
+if (user.role === "MANUFACTURE") { ... }
+
+// ✅ NEW
+if (user.company?.companyType === "MANUFACTURE") { ... }
+
+// ❌ OLD
+if (user.role === "CUSTOMER") { ... }
+
+// ✅ NEW
+if (user.role === "INDIVIDUAL_CUSTOMER") { ... }
+```
 
 ---
 

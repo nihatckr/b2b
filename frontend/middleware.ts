@@ -12,7 +12,7 @@ const protectedRoutes = [
   "/production",
   "/quality-control",
   "/messages",
-  "/notifications", // Protected: Notification page
+  "/notifications",
 ];
 
 const authRoutes = ["/auth/login", "/auth/signup", "/auth/reset"];
@@ -30,7 +30,10 @@ export async function middleware(req: NextRequest) {
   // CRITICAL FIX: Only bypass auth routes with session-expired error
   // This prevents redirect loops while maintaining security for protected routes
   const isAuthRoute = authRoutes.some((route) => path.startsWith(route));
-  if (isAuthRoute && req.nextUrl.searchParams.get("error") === "session-expired") {
+  if (
+    isAuthRoute &&
+    req.nextUrl.searchParams.get("error") === "session-expired"
+  ) {
     return NextResponse.next();
   }
 
@@ -58,15 +61,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // Role-based access control (optional)
+  // Role-based access control
   if (token && isProtectedRoute) {
     const userRole = token.role as string;
     const companyType = token.companyType as string;
-
-    // Admin-only routes
-    if (path.startsWith("/admin") && userRole !== "ADMIN") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
 
     // Manufacturer-only routes (check companyType, not role)
     if (path.startsWith("/production")) {
@@ -86,11 +84,10 @@ export async function middleware(req: NextRequest) {
       }
     }
 
-    // Orders - accessible by all roles but with different views
-    // (filtering will be done in the page component)
-
-    // Collections & Samples - accessible by all authenticated users
-    // (visibility will be controlled by backend permissions)
+    // Orders, Collections, Samples - accessible by all authenticated users
+    // Visibility and actions controlled by:
+    // - Frontend: session.user.role checks (ADMIN sees extra features)
+    // - Backend: GraphQL authScopes and resolver-level permission checks
   }
 
   return NextResponse.next();

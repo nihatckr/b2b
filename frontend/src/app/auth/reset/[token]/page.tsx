@@ -7,7 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { ResetPasswordDocument } from "@/__generated__/graphql";
+import { AuthResetPasswordDocument } from "@/__generated__/graphql";
 import { CardWrapper } from "@/components/auth/card-wrapper";
 import { FormError } from "@/components/auth/form-error";
 import { FormSuccess } from "@/components/auth/form-success";
@@ -36,7 +36,7 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [{ fetching: isLoading }, resetPasswordMutation] = useMutation(
-    ResetPasswordDocument
+    AuthResetPasswordDocument
   );
 
   // Eğer zaten giriş yapılmışsa dashboard'a yönlendir

@@ -1,0 +1,8 @@
+subscription subscription_messageRead($orderId: Int, $sampleId: Int) {
+  messageRead(orderId: $orderId, sampleId: $sampleId) {
+    isRead
+    messageId
+    readAt
+    __typename
+  }
+}

@@ -1,0 +1,3 @@
+query query_searchNotifications($input: NotificationSearchInput!) {
+  searchNotifications(input: $input)
+}

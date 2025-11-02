@@ -1,0 +1,3 @@
+query query_revenueReport($dateRange: DateRangeInput!, $groupBy: String!) {
+  revenueReport(dateRange: $dateRange, groupBy: $groupBy)
+}

@@ -1,0 +1,8 @@
+mutation mutation_upgradeSubscription($input: UpgradeSubscriptionInput!) {
+  upgradeSubscription(input: $input) {
+    checkoutUrl
+    message
+    success
+    __typename
+  }
+}

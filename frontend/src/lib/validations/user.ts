@@ -2,11 +2,13 @@ import * as z from "zod";
 
 // ============================================
 // USER PROFILE VALIDATION SCHEMAS
+// Backend: userMutation.ts, authMutation.ts
+// Backend errors: "İsim en az 2 karakter olmalıdır", "Şifre en az 8 karakter olmalıdır"
 // ============================================
 
 // Kullanıcı profil bilgileri schema
 export const ProfileSchema = z.object({
-  name: z.string().min(1, "Ad soyad gerekli"),
+  name: z.string().min(1, "İsim gereklidir"),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   phone: z.string().optional(),
@@ -44,11 +46,12 @@ export const PreferencesSchema = z.object({
 });
 
 // Şifre değiştirme schema
+// Backend error: "Şifre en az 8 karakter olmalıdır"
 export const PasswordSchema = z
   .object({
-    oldPassword: z.string().min(1, "Mevcut şifre gerekli"),
-    newPassword: z.string().min(8, "Yeni şifre en az 8 karakter olmalı"),
-    confirmPassword: z.string().min(1, "Şifre onayı gerekli"),
+    oldPassword: z.string().min(1, "Mevcut şifre gereklidir"),
+    newPassword: z.string().min(8, "Şifre en az 8 karakter olmalıdır"),
+    confirmPassword: z.string().min(1, "Şifre onayı gereklidir"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Şifreler eşleşmiyor",

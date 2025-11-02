@@ -24,21 +24,23 @@ ProtexFlow follows a **modern full-stack architecture** with clear separation of
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Client (Browser)                      │
-│  Next.js 15 (App Router) + React 19 + TypeScript        │
+│  Next.js 15.5.4 + React 19 + TypeScript 5.7.3 + URQL    │
 └───────────────────────┬─────────────────────────────────┘
                         │
-                   HTTP/WebSocket
+                   HTTP/WebSocket (graphql-ws)
                         │
 ┌───────────────────────┴─────────────────────────────────┐
 │                   GraphQL API Layer                      │
-│        GraphQL Yoga + Pothos + GraphQL Shield           │
+│  GraphQL Yoga 5.10.6 + Pothos 4.3.0 + GraphQL Shield    │
+│            (Code-First, Type-Safe Schema)                │
 └───────────────────────┬─────────────────────────────────┘
                         │
-                   Prisma ORM
+                 Prisma ORM 6.17.1
                         │
 ┌───────────────────────┴─────────────────────────────────┐
 │                    Database Layer                        │
-│                      MySQL 8.0+                          │
+│              MySQL 8.0+ (textile_test_db21)              │
+│         1538 lines schema | 20 models | 150+ relations   │
 └─────────────────────────────────────────────────────────┘
 ```
 

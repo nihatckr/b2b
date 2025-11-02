@@ -1,0 +1,3 @@
+mutation mutation_reorderCategories($updates: [CategoryOrderUpdate!]!) {
+  reorderCategories(updates: $updates)
+}

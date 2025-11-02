@@ -1,431 +1,1013 @@
+/**
+ * Analytics Queries - ANALYTICS & DASHBOARD SYSTEM
+ *
+ * 🎯 Amaç: Dashboard istatistikleri, raporlama, trend analizi
+ *
+ * 📋 Mevcut Query'ler:
+ *
+ * DASHBOARD QUERIES:
+ * - companyDashboardStats: Firma dashboard istatistikleri (orders, revenue, production)
+ * - userDashboardStats: Kullanıcı dashboard istatistikleri (my orders, samples, tasks)
+ *
+ * TREND QUERIES:
+ * - orderTrends: Sipariş trendi (zaman serisi)
+ * - productionMetrics: Üretim metrikleri (verimlilik, gecikmeler)
+ * - revenueReport: Gelir raporu (aylık/yıllık)
+ *
+ * PERFORMANCE QUERIES:
+ * - supplierPerformance: Tedarikçi performans analizi (kalite, teslimat süreleri)
+ * - customerAnalytics: Müşteri analizi (sipariş hacmi, ödeme performansı)
+ *
+ * 🔒 Güvenlik:
+ * - Tüm query'ler doğrulanmış kullanıcı gerektirir
+ * - Kullanıcılar sadece kendi firma verilerini görür
+ * - Admin tüm verileri görür
+ *
+ * 💡 Özellikler:
+ * - Gerçek zamanlı istatistikler
+ * - Zaman serisi analizi
+ * - Karşılaştırmalı raporlama
+ * - Performans metrikleri
+ */
+
+import { handleError, requireAuth } from "../../utils/errors";
+import { createTimer, logInfo } from "../../utils/logger";
+import { sanitizeInt } from "../../utils/sanitize";
 import builder from "../builder";
 
-// Company Dashboard Statistics - Comprehensive analytics for dashboard
+// ========================================
+// INPUT TYPES
+// ========================================
+
+const DateRangeInput = builder.inputType("DateRangeInput", {
+  fields: (t) => ({
+    startDate: t.string({ required: true }),
+    endDate: t.string({ required: true }),
+  }),
+});
+
+const TrendPeriodInput = builder.inputType("TrendPeriodInput", {
+  fields: (t) => ({
+    period: t.string({ required: true }), // DAILY, WEEKLY, MONTHLY, YEARLY
+    startDate: t.string({ required: true }),
+    endDate: t.string({ required: true }),
+  }),
+});
+
+// ========================================
+// DASHBOARD QUERIES
+// ========================================
+
+/**
+ * QUERY: companyDashboardStats
+ *
+ * Açıklama: Firma dashboard istatistikleri (CEO/Owner görünümü)
+ * Güvenlik: Doğrulanmış kullanıcı (firma üyesi)
+ * Döner: JSON (orders, revenue, production, users, samples)
+ */
 builder.queryField("companyDashboardStats", (t) =>
   t.field({
     type: "JSON",
-    args: {
-      startDate: t.arg.string(),
-      endDate: t.arg.string(),
-    },
     authScopes: { user: true },
-    resolve: async (_root, args: any, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
-      const companyId = context.user?.companyId;
-      if (!companyId) throw new Error("User is not associated with a company");
-
+    resolve: async (_root, _args, ctx) => {
+      const timer = createTimer("companyDashboardStats");
       try {
-        // Date range setup
-        const now = new Date();
-        const startDate = args.startDate ? new Date(args.startDate) : new Date(now.getFullYear(), now.getMonth(), 1);
-        const endDate = args.endDate ? new Date(args.endDate) : now;
+        requireAuth(ctx.user?.id);
 
-        const dateFilter = {
-          gte: startDate,
-          lte: endDate,
-        };
+        const companyId = sanitizeInt(ctx.user?.companyId);
+        if (!companyId) {
+          throw new Error("Kullanıcı bir firmaya bağlı değil");
+        }
 
-        const companyFilter = {
-          companyId,
-          createdAt: dateFilter,
-        };
+        // Get company role (manufacturer or customer)
+        const company = await ctx.prisma.company.findUnique({
+          where: { id: companyId },
+          select: { type: true },
+        });
 
-        // Order Statistics
+        if (!company) {
+          throw new Error("Firma bulunamadı");
+        }
+
+        const isManufacturer = company.type === "MANUFACTURER";
+
+        // Parallel queries for better performance
         const [
           totalOrders,
-          pendingOrders,
-          confirmedOrders,
+          activeOrders,
           completedOrders,
-          cancelledOrders,
-        ] = await Promise.all([
-          context.prisma.order.count({ where: { companyId } }),
-          context.prisma.order.count({ where: { companyId, status: "PENDING" } }),
-          context.prisma.order.count({ where: { companyId, status: "CONFIRMED" } }),
-          context.prisma.order.count({ where: { companyId, status: "DELIVERED" } }),
-          context.prisma.order.count({ where: { companyId, status: "CANCELLED" } }),
-        ]);
-
-        // Sample Statistics
-        const [
           totalSamples,
-          pendingSamples,
-          approvedSamples,
-          rejectedSamples,
-          inProductionSamples,
+          activeSamples,
+          totalProductions,
+          activeProductions,
+          completedProductions,
+          totalUsers,
+          totalRevenue,
+          pendingPayments,
+          overduePayments,
         ] = await Promise.all([
-          context.prisma.sample.count({ where: { companyId } }),
-          context.prisma.sample.count({ where: { companyId, status: { in: ["PENDING", "REVIEWED"] } } }),
-          context.prisma.sample.count({ where: { companyId, status: "CONFIRMED" } }),
-          context.prisma.sample.count({ where: { companyId, status: { in: ["REJECTED", "REJECTED_BY_CUSTOMER", "REJECTED_BY_MANUFACTURER"] } } }),
-          context.prisma.sample.count({ where: { companyId, status: "IN_PRODUCTION" } }),
-        ]);
-
-        // Revenue Analytics
-        const revenueData = await context.prisma.order.aggregate({
-          where: { companyId, status: { in: ["DELIVERED", "CONFIRMED"] } },
-          _sum: { totalPrice: true },
-          _avg: { totalPrice: true },
-        });
-
-        const totalRevenue = revenueData._sum?.totalPrice || 0;
-        const averageOrderValue = revenueData._avg?.totalPrice || 0;
-
-        // Recent Activities (last 10)
-        const recentOrders = await context.prisma.order.findMany({
-          where: { companyId },
-          take: 10,
-          orderBy: { createdAt: "desc" },
-          select: {
-            id: true,
-            orderNumber: true,
-            status: true,
-            quantity: true,
-            totalPrice: true,
-            createdAt: true,
-            collection: { select: { name: true } },
-          },
-        });
-
-        const recentSamples = await context.prisma.sample.findMany({
-          where: { companyId },
-          take: 10,
-          orderBy: { createdAt: "desc" },
-          select: {
-            id: true,
-            sampleNumber: true,
-            name: true,
-            status: true,
-            createdAt: true,
-            collection: { select: { name: true } },
-          },
-        });
-
-        // Collections Count
-        const totalCollections = await context.prisma.collection.count({
-          where: { companyId, isActive: true },
-        });
-
-        // Task Statistics
-        const [totalTasks, pendingTasks, completedTasks, overdueTasks] = await Promise.all([
-          context.prisma.task.count({ where: { userId: context.user.id } }),
-          context.prisma.task.count({ where: { userId: context.user.id, status: "TODO" } }),
-          context.prisma.task.count({ where: { userId: context.user.id, status: "COMPLETED" } }),
-          context.prisma.task.count({
+          // Orders
+          ctx.prisma.order.count({
+            where: isManufacturer
+              ? { manufactureId: companyId }
+              : { customerId: companyId },
+          }),
+          ctx.prisma.order.count({
             where: {
-              userId: context.user.id,
-              status: "TODO",
-              dueDate: { lt: now },
+              ...(isManufacturer
+                ? { manufactureId: companyId }
+                : { customerId: companyId }),
+              status: {
+                in: [
+                  "PENDING",
+                  "IN_PRODUCTION",
+                  "QUALITY_CHECK",
+                  "SHIPPED",
+                  "IN_TRANSIT",
+                ],
+              },
+            },
+          }),
+          ctx.prisma.order.count({
+            where: {
+              ...(isManufacturer
+                ? { manufactureId: companyId }
+                : { customerId: companyId }),
+              status: "DELIVERED",
+            },
+          }),
+
+          // Samples
+          ctx.prisma.sample.count({
+            where: isManufacturer
+              ? { manufactureId: companyId }
+              : { customerId: companyId },
+          }),
+          ctx.prisma.sample.count({
+            where: {
+              ...(isManufacturer
+                ? { manufactureId: companyId }
+                : { customerId: companyId }),
+              status: {
+                in: ["PENDING", "IN_PRODUCTION", "QUALITY_CHECK"],
+              },
+            },
+          }),
+
+          // Productions (manufacturer only)
+          isManufacturer
+            ? ctx.prisma.productionTracking.count({
+                where: {
+                  order: { manufactureId: companyId },
+                },
+              })
+            : 0,
+          isManufacturer
+            ? ctx.prisma.productionTracking.count({
+                where: {
+                  order: { manufactureId: companyId },
+                  overallStatus: "IN_PROGRESS",
+                },
+              })
+            : 0,
+          isManufacturer
+            ? ctx.prisma.productionTracking.count({
+                where: {
+                  order: { manufactureId: companyId },
+                  overallStatus: "COMPLETED",
+                },
+              })
+            : 0,
+
+          // Users
+          ctx.prisma.user.count({
+            where: { companyId },
+          }),
+
+          // Revenue (manufacturer only)
+          isManufacturer
+            ? ctx.prisma.payment.aggregate({
+                where: {
+                  order: { manufactureId: companyId },
+                  status: "CONFIRMED",
+                },
+                _sum: { amount: true },
+              })
+            : { _sum: { amount: null } },
+
+          // Pending payments
+          ctx.prisma.payment.count({
+            where: {
+              ...(isManufacturer
+                ? { order: { manufactureId: companyId } }
+                : { order: { customerId: companyId } }),
+              status: {
+                in: ["PENDING", "RECEIPT_UPLOADED"],
+              },
+            },
+          }),
+
+          // Overdue payments
+          ctx.prisma.payment.count({
+            where: {
+              ...(isManufacturer
+                ? { order: { manufactureId: companyId } }
+                : { order: { customerId: companyId } }),
+              status: "OVERDUE",
             },
           }),
         ]);
 
-        return {
-          // Order Stats
+        const stats = {
           orders: {
             total: totalOrders,
-            pending: pendingOrders,
-            confirmed: confirmedOrders,
+            active: activeOrders,
             completed: completedOrders,
-            cancelled: cancelledOrders,
-            completionRate: totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0,
+            completionRate:
+              totalOrders > 0
+                ? Math.round((completedOrders / totalOrders) * 100)
+                : 0,
           },
-          // Sample Stats
           samples: {
             total: totalSamples,
-            pending: pendingSamples,
-            approved: approvedSamples,
-            rejected: rejectedSamples,
-            inProduction: inProductionSamples,
-            approvalRate: totalSamples > 0 ? Math.round((approvedSamples / totalSamples) * 100) : 0,
+            active: activeSamples,
           },
-          // Revenue Stats
-          revenue: {
-            total: totalRevenue,
-            average: averageOrderValue,
-            currency: "USD",
+          production: isManufacturer
+            ? {
+                total: totalProductions,
+                active: activeProductions,
+                completed: completedProductions,
+                completionRate:
+                  totalProductions > 0
+                    ? Math.round(
+                        (completedProductions / totalProductions) * 100
+                      )
+                    : 0,
+              }
+            : null,
+          users: {
+            total: totalUsers,
           },
-          // Collections
-          collections: {
-            total: totalCollections,
-          },
-          // Tasks
-          tasks: {
-            total: totalTasks,
-            pending: pendingTasks,
-            completed: completedTasks,
-            overdue: overdueTasks,
-            completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
-          },
-          // Recent Activities
-          recentActivities: {
-            orders: recentOrders,
-            samples: recentSamples,
-          },
-          // Date Range
-          period: {
-            start: startDate.toISOString(),
-            end: endDate.toISOString(),
+          revenue: isManufacturer
+            ? {
+                total: totalRevenue._sum.amount || 0,
+                currency: "USD",
+              }
+            : null,
+          payments: {
+            pending: pendingPayments,
+            overdue: overduePayments,
           },
         };
+
+        logInfo("Company dashboard stats retrieved", {
+          metadata: timer.end(),
+          companyId,
+          userId: ctx.user!.id,
+          isManufacturer,
+        });
+
+        return stats;
       } catch (error) {
-        console.error("Error in companyDashboardStats:", error);
-        throw new Error("Failed to fetch company dashboard stats");
+        throw handleError(error);
       }
     },
   })
 );
 
-// Dashboard statistics - overall system stats (legacy - kept for backward compatibility)
-builder.queryField("dashboardStats", (t) =>
+/**
+ * QUERY: userDashboardStats
+ *
+ * Açıklama: Kullanıcı dashboard istatistikleri (my orders, my samples, my tasks)
+ * Güvenlik: Doğrulanmış kullanıcı
+ * Döner: JSON
+ */
+builder.queryField("userDashboardStats", (t) =>
   t.field({
     type: "JSON",
     authScopes: { user: true },
-    resolve: async (_root, _args, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
+    resolve: async (_root, _args, ctx) => {
+      const timer = createTimer("userDashboardStats");
       try {
-        const totalUsers = await context.prisma.user.count();
-        const totalCompanies = await context.prisma.company.count();
-        const totalSamples = await context.prisma.sample.count();
-        const totalOrders = await context.prisma.order.count();
-        const totalCollections = await context.prisma.collection.count();
+        requireAuth(ctx.user?.id);
+        const userId = ctx.user!.id;
 
-        const recentSamples = await context.prisma.sample.findMany({
-          take: 5,
-          orderBy: { createdAt: "desc" },
-          select: { id: true, name: true, createdAt: true, status: true },
+        // Get user's role and company
+        const user = await ctx.prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            role: true,
+            department: true,
+            companyId: true,
+            company: {
+              select: { type: true },
+            },
+          },
         });
 
-        const recentOrders = await context.prisma.order.findMany({
-          take: 5,
-          orderBy: { createdAt: "desc" },
-          select: { id: true, orderNumber: true, createdAt: true, status: true, quantity: true },
-        });
+        if (!user) {
+          throw new Error("Kullanıcı bulunamadı");
+        }
 
-        return {
-          totalUsers,
-          totalCompanies,
-          totalSamples,
-          totalOrders,
-          totalCollections,
-          recentSamples,
-          recentOrders,
+        // Parallel queries
+        const [
+          myOrders,
+          myActiveOrders,
+          mySamples,
+          myActiveSamples,
+          unreadNotifications,
+          unreadMessages,
+          pendingApprovals,
+        ] = await Promise.all([
+          // My orders (if customer company)
+          user.company?.type === "BUYER"
+            ? ctx.prisma.order.count({
+                where: {
+                  customerId: user.companyId!,
+                },
+              })
+            : 0,
+
+          user.company?.type === "BUYER"
+            ? ctx.prisma.order.count({
+                where: {
+                  customerId: user.companyId!,
+                  status: {
+                    in: ["PENDING", "IN_PRODUCTION"],
+                  },
+                },
+              })
+            : 0,
+
+          // My samples
+          user.company?.type === "BUYER"
+            ? ctx.prisma.sample.count({
+                where: {
+                  customerId: user.companyId!,
+                },
+              })
+            : 0,
+
+          user.company?.type === "BUYER"
+            ? ctx.prisma.sample.count({
+                where: {
+                  customerId: user.companyId!,
+                  status: {
+                    in: ["REQUESTED", "IN_PRODUCTION"],
+                  },
+                },
+              })
+            : 0,
+
+          // Unread notifications
+          ctx.prisma.notification.count({
+            where: { userId, isRead: false },
+          }),
+
+          // Unread messages
+          ctx.prisma.message.count({
+            where: { receiverId: userId, isRead: false },
+          }),
+
+          // Pending approvals (if owner or admin)
+          user.role === "ADMIN" || user.role === "COMPANY_OWNER"
+            ? ctx.prisma.productionTracking.count({
+                where: {
+                  planStatus: "PENDING",
+                  order: { customerId: user.companyId! },
+                },
+              })
+            : 0,
+        ]);
+
+        const stats = {
+          orders: {
+            total: myOrders,
+            active: myActiveOrders,
+          },
+          samples: {
+            total: mySamples,
+            active: myActiveSamples,
+          },
+          notifications: {
+            unread: unreadNotifications,
+          },
+          messages: {
+            unread: unreadMessages,
+          },
+          tasks: {
+            pendingApprovals,
+          },
         };
+
+        logInfo("User dashboard stats retrieved", {
+          metadata: timer.end(),
+          userId,
+        });
+
+        return stats;
       } catch (error) {
-        console.error("Error in dashboardStats:", error);
-        throw new Error("Failed to fetch dashboard stats");
+        throw handleError(error);
       }
     },
   })
 );
 
-// Production analytics
-builder.queryField("productionAnalytics", (t) =>
+// ========================================
+// TREND QUERIES
+// ========================================
+
+/**
+ * QUERY: orderTrends
+ *
+ * Açıklama: Sipariş trendi (zaman serisi)
+ * Güvenlik: Doğrulanmış kullanıcı (firma üyesi)
+ * Döner: JSON (time series data)
+ */
+builder.queryField("orderTrends", (t) =>
   t.field({
     type: "JSON",
     args: {
-      orderId: t.arg.int(),
-      sampleId: t.arg.int(),
+      input: t.arg({ type: TrendPeriodInput, required: true }),
     },
     authScopes: { user: true },
-    resolve: async (_root, args: any, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
+    resolve: async (_root, args, ctx) => {
+      const timer = createTimer("orderTrends");
       try {
-        const where: any = {};
-        if (args.orderId) where.orderId = args.orderId;
-        if (args.sampleId) where.sampleId = args.sampleId;
+        requireAuth(ctx.user?.id);
 
-        const productionData = await context.prisma.productionTracking.findMany({
-          where: where.length === 0 ? undefined : where,
-          include: {
-            updates: {
-              orderBy: { createdAt: "desc" },
-              take: 10,
-            },
-          },
+        const companyId = sanitizeInt(ctx.user?.companyId);
+        if (!companyId) {
+          throw new Error("Kullanıcı bir firmaya bağlı değil");
+        }
+
+        const company = await ctx.prisma.company.findUnique({
+          where: { id: companyId },
+          select: { type: true },
         });
 
-        const stageCounts = {
-          PLANNING: 0,
-          CUTTING: 0,
-          SEWING: 0,
-          QUALITY_CHECK: 0,
-          PACKAGING: 0,
-          SHIPPED: 0,
-          COMPLETED: 0,
-        };
+        if (!company) {
+          throw new Error("Firma bulunamadı");
+        }
 
-        productionData.forEach((prod: any) => {
-          const stage = prod.currentStage || "PLANNING";
-          if (stage in stageCounts) {
-            stageCounts[stage as keyof typeof stageCounts]++;
+        const isManufacturer = company.type === "MANUFACTURER";
+        const startDate = new Date(args.input.startDate);
+        const endDate = new Date(args.input.endDate);
+
+        // Get orders in date range
+        const orders = await ctx.prisma.order.findMany({
+          where: {
+            ...(isManufacturer
+              ? { manufactureId: companyId }
+              : { customerId: companyId }),
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          select: {
+            id: true,
+            createdAt: true,
+            totalPrice: true,
+            status: true,
+          },
+          orderBy: { createdAt: "asc" },
+        });
+
+        // Group by period
+        const periodMap = new Map<string, any>();
+
+        orders.forEach((order) => {
+          let periodKey: string;
+          const date = new Date(order.createdAt);
+
+          if (args.input.period === "DAILY") {
+            periodKey = date.toISOString().split("T")[0]!;
+          } else if (args.input.period === "WEEKLY") {
+            const weekStart = new Date(date);
+            weekStart.setDate(date.getDate() - date.getDay());
+            periodKey = weekStart.toISOString().split("T")[0]!;
+          } else if (args.input.period === "MONTHLY") {
+            periodKey = `${date.getFullYear()}-${String(
+              date.getMonth() + 1
+            ).padStart(2, "0")}`;
+          } else {
+            // YEARLY
+            periodKey = String(date.getFullYear());
           }
+
+          if (!periodMap.has(periodKey)) {
+            periodMap.set(periodKey, {
+              period: periodKey,
+              count: 0,
+              revenue: 0,
+              orders: [],
+            });
+          }
+
+          const periodData = periodMap.get(periodKey);
+          periodData.count++;
+          periodData.revenue += order.totalPrice;
+          periodData.orders.push(order.id);
+        });
+
+        // Convert to array and sort
+        const trends = Array.from(periodMap.values()).sort((a, b) =>
+          a.period.localeCompare(b.period)
+        );
+
+        logInfo("Order trends retrieved", {
+          metadata: timer.end(),
+          companyId,
+          userId: ctx.user!.id,
+          period: args.input.period,
+          dataPoints: trends.length,
         });
 
         return {
-          totalProductions: productionData.length,
-          stageCounts,
-          recentUpdates: productionData.slice(0, 5).map((p: any) => ({
-            id: p.id,
-            stage: p.currentStage,
-            progress: p.progressPercentage,
-            updates: p.updates?.length || 0,
-          })),
+          period: args.input.period,
+          startDate: args.input.startDate,
+          endDate: args.input.endDate,
+          data: trends,
+          summary: {
+            totalOrders: orders.length,
+            totalRevenue: orders.reduce((sum, o) => sum + o.totalPrice, 0),
+            averageOrderValue:
+              orders.length > 0
+                ? orders.reduce((sum, o) => sum + o.totalPrice, 0) /
+                  orders.length
+                : 0,
+          },
         };
       } catch (error) {
-        console.error("Error in productionAnalytics:", error);
-        throw new Error("Failed to fetch production analytics");
+        throw handleError(error);
       }
     },
   })
 );
 
-// Public platform statistics (anonymous access)
-builder.queryField("publicPlatformStats", (t) =>
+/**
+ * QUERY: productionMetrics
+ *
+ * Açıklama: Üretim metrikleri (verimlilik, gecikmeler, on-time %)
+ * Güvenlik: Doğrulanmış kullanıcı (manufacturer only)
+ * Döner: JSON
+ */
+builder.queryField("productionMetrics", (t) =>
   t.field({
     type: "JSON",
-    authScopes: { public: true },
-    resolve: async (_root, _args, context: any) => {
-      try {
-        const totalPublicCollections = await context.prisma.collection.count({
-          where: { isActive: true },
-        });
-
-        const totalPublicQuestions = await context.prisma.question.count();
-        const totalApprovedReviews = await context.prisma.review.count({
-          where: { isApproved: true },
-        });
-
-        const topCollections = await context.prisma.collection.findMany({
-          take: 5,
-          where: { isActive: true },
-          orderBy: { likesCount: "desc" },
-          select: { id: true, name: true, likesCount: true, viewCount: true },
-        });
-
-        const averageRating = await context.prisma.review.aggregate({
-          _avg: { rating: true },
-          where: { isApproved: true },
-        });
-
-        return {
-          totalPublicCollections,
-          totalPublicQuestions,
-          totalApprovedReviews,
-          averageRating: averageRating._avg?.rating || 0,
-          topCollections,
-        };
-      } catch (error) {
-        console.error("Error in publicPlatformStats:", error);
-        throw new Error("Failed to fetch public platform stats");
-      }
+    args: {
+      dateRange: t.arg({ type: DateRangeInput }),
     },
-  })
-);
-
-// Task analytics
-builder.queryField("taskAnalytics", (t) =>
-  t.field({
-    type: "JSON",
     authScopes: { user: true },
-    resolve: async (_root, _args, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
+    resolve: async (_root, args, ctx) => {
+      const timer = createTimer("productionMetrics");
       try {
-        const totalTasks = await context.prisma.task.count({
-          where: { userId: context.user.id },
+        requireAuth(ctx.user?.id);
+
+        const companyId = sanitizeInt(ctx.user?.companyId);
+        if (!companyId) {
+          throw new Error("Kullanıcı bir firmaya bağlı değil");
+        }
+
+        const company = await ctx.prisma.company.findUnique({
+          where: { id: companyId },
+          select: { type: true },
         });
 
-        const completedTasks = await context.prisma.task.count({
-          where: { userId: context.user.id, status: "COMPLETED" },
-        });
+        if (!company || company.type !== "MANUFACTURER") {
+          throw new Error(
+            "Sadece üretici firmalar üretim metriklerini görebilir"
+          );
+        }
 
-        const pendingTasks = await context.prisma.task.count({
-          where: { userId: context.user.id, status: "TODO" },
-        });
-
-        const tasksByPriority = {
-          HIGH: await context.prisma.task.count({
-            where: { userId: context.user.id, priority: "HIGH" },
-          }),
-          MEDIUM: await context.prisma.task.count({
-            where: { userId: context.user.id, priority: "MEDIUM" },
-          }),
-          LOW: await context.prisma.task.count({
-            where: { userId: context.user.id, priority: "LOW" },
-          }),
+        const whereClause: any = {
+          order: { manufactureId: companyId },
         };
 
-        const overdueTasks = await context.prisma.task.count({
+        if (args.dateRange) {
+          whereClause.createdAt = {
+            gte: new Date(args.dateRange.startDate),
+            lte: new Date(args.dateRange.endDate),
+          };
+        }
+
+        const [totalProductions, completedProductions, productions] =
+          await Promise.all([
+            ctx.prisma.productionTracking.count({ where: whereClause }),
+            ctx.prisma.productionTracking.count({
+              where: { ...whereClause, overallStatus: "COMPLETED" },
+            }),
+            ctx.prisma.productionTracking.findMany({
+              where: whereClause,
+              select: {
+                id: true,
+                overallStatus: true,
+                currentStage: true,
+                estimatedStartDate: true,
+                estimatedEndDate: true,
+                actualStartDate: true,
+                actualEndDate: true,
+              },
+            }),
+          ]);
+
+        const delayedProductions = productions.filter(
+          (p) =>
+            p.actualEndDate &&
+            p.estimatedEndDate &&
+            p.actualEndDate > p.estimatedEndDate
+        ).length;
+
+        // Calculate metrics
+        const onTimeProductions = productions.filter(
+          (p) =>
+            p.overallStatus === "COMPLETED" &&
+            p.actualEndDate &&
+            p.estimatedEndDate &&
+            p.actualEndDate <= p.estimatedEndDate
+        ).length;
+
+        const onTimePercentage =
+          completedProductions > 0
+            ? Math.round((onTimeProductions / completedProductions) * 100)
+            : 0;
+
+        const averageCompletionTime =
+          completedProductions > 0
+            ? productions
+                .filter(
+                  (p) =>
+                    p.overallStatus === "COMPLETED" &&
+                    p.actualEndDate &&
+                    p.actualStartDate
+                )
+                .reduce((sum, p) => {
+                  const start = new Date(p.actualStartDate!);
+                  const end = new Date(p.actualEndDate!);
+                  return sum + (end.getTime() - start.getTime());
+                }, 0) /
+              completedProductions /
+              (1000 * 60 * 60 * 24) // Convert to days
+            : 0;
+
+        // Stage distribution
+        const stageDistribution = productions.reduce((acc, p) => {
+          const stage = p.currentStage || "PLANNING";
+          acc[stage] = (acc[stage] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+
+        const metrics = {
+          total: totalProductions,
+          completed: completedProductions,
+          delayed: delayedProductions,
+          inProgress: totalProductions - completedProductions,
+          onTimePercentage,
+          onTimeCount: onTimeProductions,
+          averageCompletionDays: Math.round(averageCompletionTime * 10) / 10,
+          stageDistribution,
+        };
+
+        logInfo("Production metrics retrieved", {
+          metadata: timer.end(),
+          companyId,
+          userId: ctx.user!.id,
+          totalProductions,
+        });
+
+        return metrics;
+      } catch (error) {
+        throw handleError(error);
+      }
+    },
+  })
+);
+
+/**
+ * QUERY: revenueReport
+ *
+ * Açıklama: Gelir raporu (aylık/yıllık breakdown)
+ * Güvenlik: Doğrulanmış kullanıcı (manufacturer only)
+ * Döner: JSON
+ */
+builder.queryField("revenueReport", (t) =>
+  t.field({
+    type: "JSON",
+    args: {
+      dateRange: t.arg({ type: DateRangeInput, required: true }),
+      groupBy: t.arg.string({ required: true }), // MONTH or YEAR
+    },
+    authScopes: { user: true },
+    resolve: async (_root, args, ctx) => {
+      const timer = createTimer("revenueReport");
+      try {
+        requireAuth(ctx.user?.id);
+
+        const companyId = sanitizeInt(ctx.user?.companyId);
+        if (!companyId) {
+          throw new Error("Kullanıcı bir firmaya bağlı değil");
+        }
+
+        const company = await ctx.prisma.company.findUnique({
+          where: { id: companyId },
+          select: { type: true },
+        });
+
+        if (!company || company.type !== "MANUFACTURER") {
+          throw new Error("Sadece üretici firmalar gelir raporunu görebilir");
+        }
+
+        const startDate = new Date(args.dateRange.startDate);
+        const endDate = new Date(args.dateRange.endDate);
+
+        // Get confirmed payments in range
+        const payments = await ctx.prisma.payment.findMany({
           where: {
-            userId: context.user.id,
-            status: "TODO",
-            dueDate: {
-              lt: new Date(),
+            order: { manufactureId: companyId },
+            status: "CONFIRMED",
+            confirmedAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          select: {
+            id: true,
+            amount: true,
+            currency: true,
+            type: true,
+            confirmedAt: true,
+            order: {
+              select: {
+                id: true,
+                orderNumber: true,
+              },
+            },
+          },
+          orderBy: { confirmedAt: "asc" },
+        });
+
+        // Group by period
+        const periodMap = new Map<string, any>();
+
+        payments.forEach((payment) => {
+          if (!payment.confirmedAt) return;
+
+          const date = new Date(payment.confirmedAt);
+          let periodKey: string;
+
+          if (args.groupBy === "MONTH") {
+            periodKey = `${date.getFullYear()}-${String(
+              date.getMonth() + 1
+            ).padStart(2, "0")}`;
+          } else {
+            // YEAR
+            periodKey = String(date.getFullYear());
+          }
+
+          if (!periodMap.has(periodKey)) {
+            periodMap.set(periodKey, {
+              period: periodKey,
+              totalRevenue: 0,
+              paymentCount: 0,
+              byType: {
+                DEPOSIT: 0,
+                PROGRESS: 0,
+                BALANCE: 0,
+                FULL: 0,
+              },
+              payments: [],
+            });
+          }
+
+          const periodData = periodMap.get(periodKey);
+          periodData.totalRevenue += payment.amount;
+          periodData.paymentCount++;
+          periodData.byType[payment.type] += payment.amount;
+          periodData.payments.push({
+            id: payment.id,
+            amount: payment.amount,
+            orderId: payment.order.id,
+            orderNumber: payment.order.orderNumber,
+          });
+        });
+
+        // Convert to array and sort
+        const report = Array.from(periodMap.values()).sort((a, b) =>
+          a.period.localeCompare(b.period)
+        );
+
+        const summary = {
+          totalRevenue: payments.reduce((sum, p) => sum + p.amount, 0),
+          totalPayments: payments.length,
+          averagePayment:
+            payments.length > 0
+              ? payments.reduce((sum, p) => sum + p.amount, 0) / payments.length
+              : 0,
+          currency: payments[0]?.currency || "USD",
+        };
+
+        logInfo("Revenue report retrieved", {
+          metadata: timer.end(),
+          companyId,
+          userId: ctx.user!.id,
+          groupBy: args.groupBy,
+          periodsCount: report.length,
+        });
+
+        return {
+          groupBy: args.groupBy,
+          startDate: args.dateRange.startDate,
+          endDate: args.dateRange.endDate,
+          data: report,
+          summary,
+        };
+      } catch (error) {
+        throw handleError(error);
+      }
+    },
+  })
+);
+
+// ========================================
+// PERFORMANCE QUERIES
+// ========================================
+
+/**
+ * QUERY: supplierPerformance
+ *
+ * Açıklama: Tedarikçi performans analizi (kalite, teslimat süreleri)
+ * Güvenlik: Doğrulanmış kullanıcı (customer only)
+ * Döner: JSON
+ */
+builder.queryField("supplierPerformance", (t) =>
+  t.field({
+    type: "JSON",
+    args: {
+      supplierId: t.arg.int(),
+      dateRange: t.arg({ type: DateRangeInput }),
+    },
+    authScopes: { user: true },
+    resolve: async (_root, args, ctx) => {
+      const timer = createTimer("supplierPerformance");
+      try {
+        requireAuth(ctx.user?.id);
+
+        const companyId = sanitizeInt(ctx.user?.companyId);
+        if (!companyId) {
+          throw new Error("Kullanıcı bir firmaya bağlı değil");
+        }
+
+        const company = await ctx.prisma.company.findUnique({
+          where: { id: companyId },
+          select: { type: true },
+        });
+
+        if (!company || company.type !== "BUYER") {
+          throw new Error(
+            "Sadece müşteri firmalar tedarikçi performansını görebilir"
+          );
+        }
+
+        const whereClause: any = {
+          customerId: companyId,
+          ...(args.supplierId && { manufactureId: args.supplierId }),
+        };
+
+        if (args.dateRange) {
+          whereClause.createdAt = {
+            gte: new Date(args.dateRange.startDate),
+            lte: new Date(args.dateRange.endDate),
+          };
+        }
+
+        // Get orders from suppliers with production tracking
+        const orders = await ctx.prisma.order.findMany({
+          where: whereClause,
+          select: {
+            id: true,
+            manufactureId: true,
+            status: true,
+            createdAt: true,
+            deadline: true,
+            shippingDate: true,
+            productionTracking: {
+              select: {
+                overallStatus: true,
+                actualEndDate: true,
+                estimatedEndDate: true,
+              },
             },
           },
         });
 
+        // Get manufacturer details
+        const manufacturerIds = Array.from(
+          new Set(orders.map((o) => o.manufactureId))
+        );
+        const manufacturers = await ctx.prisma.user.findMany({
+          where: { id: { in: manufacturerIds } },
+          select: { id: true, name: true },
+        });
+
+        const manufacturerMap = new Map(
+          manufacturers.map((m) => [m.id, m.name])
+        );
+
+        // Group by manufacturer
+        const supplierMap = new Map<number, any>();
+
+        orders.forEach((order) => {
+          const supplierId = order.manufactureId;
+          if (!supplierMap.has(supplierId)) {
+            supplierMap.set(supplierId, {
+              supplierId,
+              supplierName:
+                manufacturerMap.get(supplierId) || `Manufacturer ${supplierId}`,
+              totalOrders: 0,
+              completedOrders: 0,
+              delayedOrders: 0,
+              onTimeOrders: 0,
+              orders: [],
+            });
+          }
+
+          const supplierData = supplierMap.get(supplierId);
+          supplierData.totalOrders++;
+
+          if (order.status === "DELIVERED") {
+            supplierData.completedOrders++;
+
+            // Check if on time (based on productionTracking)
+            const tracking = order.productionTracking;
+            if (
+              tracking &&
+              tracking.actualEndDate &&
+              tracking.estimatedEndDate &&
+              tracking.actualEndDate <= tracking.estimatedEndDate
+            ) {
+              supplierData.onTimeOrders++;
+            }
+          }
+
+          // Check if delayed
+          const tracking = order.productionTracking;
+          if (
+            tracking &&
+            tracking.actualEndDate &&
+            tracking.estimatedEndDate &&
+            tracking.actualEndDate > tracking.estimatedEndDate
+          ) {
+            supplierData.delayedOrders++;
+          }
+
+          supplierData.orders.push({
+            orderId: order.id,
+            status: order.status,
+          });
+        });
+
+        // Calculate percentages
+        const performanceData = Array.from(supplierMap.values()).map(
+          (supplier) => ({
+            ...supplier,
+            onTimePercentage:
+              supplier.completedOrders > 0
+                ? Math.round(
+                    (supplier.onTimeOrders / supplier.completedOrders) * 100
+                  )
+                : 0,
+            completionRate:
+              supplier.totalOrders > 0
+                ? Math.round(
+                    (supplier.completedOrders / supplier.totalOrders) * 100
+                  )
+                : 0,
+            delayRate:
+              supplier.totalOrders > 0
+                ? Math.round(
+                    (supplier.delayedOrders / supplier.totalOrders) * 100
+                  )
+                : 0,
+          })
+        );
+
+        logInfo("Supplier performance retrieved", {
+          metadata: timer.end(),
+          companyId,
+          userId: ctx.user!.id,
+          suppliersCount: performanceData.length,
+        });
+
         return {
-          totalTasks,
-          completedTasks,
-          pendingTasks,
-          tasksByPriority,
-          overdueTasks,
-          completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
-        };
-      } catch (error) {
-        console.error("Error in taskAnalytics:", error);
-        throw new Error("Failed to fetch task analytics");
-      }
-    },
-  })
-);
-
-// Workshop utilization analytics
-builder.queryField("workshopAnalytics", (t) =>
-  t.field({
-    type: "JSON",
-    authScopes: { user: true },
-    resolve: async (_root, _args, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-
-      try {
-        const totalWorkshops = await context.prisma.workshop.count();
-
-        const activeProductions = await context.prisma.productionTracking.count({
-          where: {
-            status: { in: ["IN_PROGRESS"] },
+          suppliers: performanceData,
+          summary: {
+            totalOrders: orders.length,
+            suppliersCount: performanceData.length,
           },
-        });
-
-        const workshopTypes = await context.prisma.workshop.groupBy({
-          by: ["type"],
-          _count: { id: true },
-        });
-
-        const workshopStats = workshopTypes.map((ws: any) => ({
-          type: ws.type,
-          count: ws._count?.id || 0,
-        }));
-
-        const recentWorkshops = await context.prisma.workshop.findMany({
-          take: 5,
-          orderBy: { createdAt: "desc" },
-          select: { id: true, name: true, type: true, capacity: true, createdAt: true },
-        });
-
-        return {
-          totalWorkshops,
-          activeProductions,
-          workshopStats,
-          recentWorkshops,
         };
       } catch (error) {
-        console.error("Error in workshopAnalytics:", error);
-        throw new Error("Failed to fetch workshop analytics");
+        throw handleError(error);
       }
     },
   })

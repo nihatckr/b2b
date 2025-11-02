@@ -1,0 +1,3 @@
+query query_categoryTree($isActive: Boolean) {
+  categoryTree(isActive: $isActive)
+}

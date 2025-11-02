@@ -1,0 +1,240 @@
+query query_delayedProductions($pagination: ProductionPaginationInput) {
+  delayedProductions(pagination: $pagination) {
+    actualEndDate
+    actualStartDate
+    canStartProduction
+    company {
+      address
+      billingAddress
+      billingCycle
+      billingEmail
+      brandColors
+      cancelAtPeriodEnd
+      cancelledAt
+      city
+      country
+      coverImage
+      createdAt
+      currentCollections
+      currentOrders
+      currentPeriodEnd
+      currentPeriodStart
+      currentSamples
+      currentStorageGB
+      currentUsers
+      defaultView
+      description
+      email
+      employees {
+        id
+        __typename
+      }
+      enabledModules
+      id
+      isActive
+      isPublicProfile
+      location
+      logo
+      maxCollections
+      maxOrders
+      maxSamples
+      maxStorageGB
+      maxUsers
+      name
+      owner {
+        id
+        __typename
+      }
+      ownerId
+      phone
+      profileSlug
+      settings
+      socialLinks
+      subscriptionPlan
+      subscriptionStartedAt
+      subscriptionStatus
+      taxId
+      trialEndsAt
+      trialStartedAt
+      type
+      updatedAt
+      website
+      __typename
+    }
+    companyId
+    createdAt
+    currentStage
+    customerNote
+    customerRejectionReason
+    estimatedEndDate
+    estimatedStartDate
+    id
+    notes
+    notifications {
+      createdAt
+      data
+      id
+      isRead
+      link
+      message
+      orderId
+      productionTrackingId
+      sampleId
+      title
+      type
+      updatedAt
+      user {
+        id
+        __typename
+      }
+      userId
+      __typename
+    }
+    order {
+      actualProductionEnd
+      actualProductionStart
+      basedOnSample {
+        id
+        __typename
+      }
+      cargoTrackingNumber
+      changeLogs {
+        id
+        __typename
+      }
+      collection {
+        id
+        __typename
+      }
+      collectionImage
+      collectionModelCode
+      collectionName
+      company {
+        id
+        __typename
+      }
+      createdAt
+      currency
+      customer {
+        id
+        __typename
+      }
+      customerNote
+      customerQuoteDays
+      customerQuoteNote
+      customerQuoteSentAt
+      customerQuoteType
+      customerQuotedPrice
+      deadline
+      deliveryAddress
+      estimatedProductionDate
+      id
+      manufacture {
+        id
+        __typename
+      }
+      manufacturerResponse
+      negotiations {
+        id
+        __typename
+      }
+      notes
+      orderNumber
+      productionDays
+      productionTracking {
+        id
+        __typename
+      }
+      quantity
+      shippingDate
+      sizeBreakdown {
+        id
+        __typename
+      }
+      status
+      targetPrice
+      totalPrice
+      unitPrice
+      updatedAt
+      __typename
+    }
+    orderId
+    overallStatus
+    planApprovedAt
+    planRejectedAt
+    planSentAt
+    planStatus
+    productionStartDate
+    progress
+    revisionCount
+    sample {
+      actualProductionDate
+      aiGenerated
+      aiPrompt
+      aiSketchUrl
+      collection {
+        id
+        __typename
+      }
+      collectionId
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customDesignImages
+      customer {
+        id
+        __typename
+      }
+      customerId
+      customerNote
+      customerQuoteDays
+      customerQuoteNote
+      customerQuotedPrice
+      description
+      estimatedProductionDate
+      id
+      images
+      manufacture {
+        id
+        __typename
+      }
+      manufactureId
+      manufacturerResponse
+      name
+      productionDays
+      sampleNumber
+      sampleType
+      status
+      unitPrice
+      updatedAt
+      __typename
+    }
+    sampleId
+    stageUpdates {
+      actualEndDate
+      actualStartDate
+      createdAt
+      delayReason
+      estimatedDays
+      extraDays
+      id
+      isRevision
+      notes
+      photos
+      production {
+        id
+        __typename
+      }
+      productionId
+      stage
+      status
+      updatedAt
+      __typename
+    }
+    updatedAt
+    __typename
+  }
+}

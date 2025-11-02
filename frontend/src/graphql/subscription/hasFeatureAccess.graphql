@@ -1,0 +1,3 @@
+query query_hasFeatureAccess($feature: String!) {
+  hasFeatureAccess(feature: $feature)
+}

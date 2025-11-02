@@ -22,10 +22,6 @@ enum Role {
   COMPANY_OWNER // Firma sahibi (hem üretici hem müşteri)
   COMPANY_EMPLOYEE // Firma çalışanı (hem üretici hem müşteri)
   INDIVIDUAL_CUSTOMER // Bireysel müşteri (firma olmadan)
-
-  // Backward compatibility (deprecated)
-  MANUFACTURE
-  CUSTOMER
 }
 
 enum CompanyType {
@@ -77,13 +73,36 @@ enum Gender {
   UNISEX // Unisex
 }
 
-enum Fit {
-  REGULAR // Regular
-  SLIM // Slim
-  RELAXED // Relaxed
-  OVERSIZED // Oversized
-  FITTED // Fitted
-  LOOSE // Loose
+// ========================================
+// RFQ (Request for Quotation) System Enums
+// ========================================
+enum CollectionOwnerType {
+  MANUFACTURER // Üretici koleksiyonu (mevcut - hazır katalog)
+  CUSTOMER     // Müşteri koleksiyonu (yeni - RFQ/teklif talebi)
+}
+
+enum CollectionVisibility {
+  PRIVATE  // Sadece sahibi görür
+  INVITED  // Davet edilen üreticiler görür
+  PUBLIC   // Tüm üreticiler görür (marketplace)
+}
+
+enum RFQStatus {
+  OPEN              // Açık (teklifler bekleniyor)
+  QUOTES_RECEIVED   // Teklifler geldi
+  UNDER_REVIEW      // İnceleniyor
+  WINNER_SELECTED   // Kazanan seçildi
+  CLOSED            // Kapatıldı (iptal veya tamamlandı)
+}
+
+enum QuoteStatus {
+  PENDING       // Beklemede (müşteri henüz bakmadı)
+  REVIEWED      // Müşteri gördü
+  SHORTLISTED   // Kısa listeye alındı
+  ACCEPTED      // Kabul edildi (kazanan)
+  REJECTED      // Reddedildi
+  EXPIRED       // Süresi doldu
+  WITHDRAWN     // Üretici geri çekti
 }
 
 model Company {
@@ -162,8 +181,6 @@ model Company {
 
   // Relations
   employees          User[]               @relation("CompanyEmployees")
-  categories         Category[]
-  companyCategories  CompanyCategory[]    // Yeni standart kategori sistemi
   collections        Collection[]
   samples            Sample[]
   orders             Order[]
@@ -173,26 +190,14 @@ model Company {
   // Library Management (Unified)
   libraryItems   LibraryItem[] @relation("CompanyLibraryItems")
 
-  // Company Partnerships & Collaboration
-  partnershipsAsInitiator  CompanyPartnership[] @relation("CompanyAsInitiator")
-  partnershipsAsPartner    CompanyPartnership[] @relation("CompanyAsPartner")
-  sourceCategoryMappings   SharedCategoryMapping[] @relation("SourceCategoryCompany")
-  targetCategoryMappings   SharedCategoryMapping[] @relation("TargetCategoryCompany")
-
-  // Analytics
-  metrics         CompanyMetrics[]
-
+  // ✅ OPTIMIZED INDEXES
   @@index([email])
-  @@index([type, isActive])
-  @@index([isActive, createdAt])
-  @@index([location])
-  @@index([ownerId])
-  @@index([subscriptionPlan])
-  @@index([subscriptionStatus])
-  @@index([trialEndsAt])
-  @@index([currentPeriodEnd])
+  @@index([type, isActive, createdAt]) // Composite: 3 query'yi kapsar
+  @@index([subscriptionStatus, currentPeriodEnd]) // Subscription renewal check
+  @@index([subscriptionPlan, subscriptionStatus]) // Subscription filtering
   @@index([profileSlug])
-  @@index([isPublicProfile])
+  @@index([isPublicProfile, type]) // Public profile listing
+  @@index([ownerId])
   @@fulltext([name, description])
   @@map("companies")
 }
@@ -230,7 +235,7 @@ model Message {
 model ProductionTracking {
   id       Int  @id @default(autoincrement())
   orderId  Int? @unique // Her sipariş için tek plan
-  sampleId Int?
+  sampleId Int? @unique // Her numune için tek plan
 
   currentStage  ProductionStage  @default(PLANNING)
   overallStatus ProductionStatus @default(IN_PROGRESS)
@@ -243,57 +248,37 @@ model ProductionTracking {
 
   notes String? @db.Text
 
-  // Customer Approval (Production Plan)
-  customerApprovalStatus ApprovalStatus @default(DRAFT) // Plan approval workflow
-  customerApprovedAt     DateTime?
-  customerNote           String?   @db.Text
-  revisionCount          Int       @default(0)
+  // ========================================
+  // ÜRETİM PLANI MÜŞTERİ ONAYI (Production Plan Customer Approval)
+  // ========================================
+  // Plan durumu
+  planStatus             ApprovalStatus @default(DRAFT) // DRAFT, PENDING, APPROVED, REJECTED, REVISION
+  planSentAt             DateTime? // Plan müşteriye gönderildi
+  planApprovedAt         DateTime? // Müşteri onayladı
+  planRejectedAt         DateTime? // Müşteri reddetti
+  
+  // Müşteri geri bildirimi
+  customerNote           String? @db.Text // Müşteri notu/talebi
+  customerRejectionReason String? @db.Text // Red sebebi
+  revisionCount          Int @default(0) // Kaç kez revize edildi
+  
+  // Üretim başlama koşulu
+  canStartProduction     Boolean @default(false) // TRUE = Müşteri onayladı, üretim başlayabilir
+  productionStartDate    DateTime? // Fiili üretim başlangıç tarihi
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  order     Order?   @relation(fields: [orderId], references: [id])
-  sample    Sample?  @relation(fields: [sampleId], references: [id])
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  sample    Sample?  @relation(fields: [sampleId], references: [id], onDelete: SetNull)
   company   Company? @relation(fields: [companyId], references: [id])
   companyId Int?
 
-  // New relations
-  sewingWorkshop      Workshop? @relation("SewingWorkshop", fields: [sewingWorkshopId], references: [id])
-  sewingWorkshopId    Int?
-  packagingWorkshop   Workshop? @relation("PackagingWorkshop", fields: [packagingWorkshopId], references: [id])
-  packagingWorkshopId Int?
-
   stageUpdates        ProductionStageUpdate[]
-  qualityControls     QualityControl[]
-  productionRevisions ProductionRevision[]
-  revisions           Revision[] // Legacy
-  tasks               Task[] @relation("ProductionTrackingTasks")
   notifications       Notification[] @relation("ProductionNotifications")
 
   @@map("production_tracking")
-}
-
-model Revision {
-  id                   Int       @id @default(autoincrement())
-  orderId              Int?
-  sampleId             Int?
-  productionTrackingId Int?
-  revisionNumber       Int       @default(1)
-  requestMessage       String?
-  responseMessage      String?
-  status               String    @default("pending")
-  requestedAt          DateTime  @default(now())
-  completedAt          DateTime?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-
-  // Relations
-  order              Order?              @relation(fields: [orderId], references: [id])
-  sample             Sample?             @relation(fields: [sampleId], references: [id])
-  productionTracking ProductionTracking? @relation(fields: [productionTrackingId], references: [id])
-
-  @@map("revisions")
 }
 
 model User {
@@ -357,9 +342,7 @@ model User {
   receivedMessages Message[] @relation("ReceivedMessages")
 
   // Category Management
-  categories                Category[]
-  createdStandardCategories StandardCategory[] @relation("StandardCategoryCreator")
-  createdCompanyCategories  CompanyCategory[]
+  createdCategories Category[] @relation("CategoryCreator")
 
   collections      Collection[]
 
@@ -367,7 +350,6 @@ model User {
   customerSamples   Sample[]   @relation("CustomerSamples")
   customerOrders    Order[]    @relation("CustomerOrders")
   customerQuestions Question[] @relation("CustomerQuestions")
-  customerReviews   Review[]   @relation("CustomerReviews")
 
   // Manufacture relations
   manufactureSamples      Sample[]           @relation("ManufactureSamples")
@@ -376,28 +358,8 @@ model User {
   sampleProductionUpdates SampleProduction[]
   orderProductionUpdates  OrderProduction[]  @relation("OrderProductionUpdates")
 
-  // Production system relations
-  qualityInspections QualityControl[]     @relation("QualityInspector")
-  ownedWorkshops     Workshop[]           @relation("WorkshopOwner")
-  revisionRequests   ProductionRevision[] @relation("RevisionRequester")
-
-  // Favorites/Likes
-  favoriteCollections UserFavoriteCollection[]
-
   // Notifications
   notifications Notification[] @relation("UserNotifications")
-
-  // Tasks
-  tasks         Task[] @relation("UserTasks")
-  assignedTasks Task[] @relation("AssignedTasks")
-
-  // Company Partnerships & Category Mappings
-  initiatedPartnerships     CompanyPartnership[] @relation
-  approvedPartnerships      CompanyPartnership[] @relation("PartnershipApprover")
-  createdCategoryMappings   SharedCategoryMapping[]
-
-  // Admin Reports
-  createdReports            AdminReport[]
 
   // Unified Library Management (Admin)
   createdLibraryItems       LibraryItem[] @relation("LibraryItemCreator")
@@ -410,26 +372,25 @@ model User {
   orderChangesMade         OrderChangeLog[] @relation("OrderChangesMade")
   orderChangesReviewed     OrderChangeLog[] @relation("OrderChangesReviewed")
 
-  @@index([email])
-  @@index([username])
-  @@index([companyId, role])
-  @@index([companyId, isActive])
-  @@index([companyId, department])
-  @@index([role, isActive])
-  @@index([isActive])
-  @@index([isPendingApproval])
+  // RFQ System Relations
+  manufacturerQuotes       CollectionQuote[] @relation("ManufacturerQuotes") // Üreticinin verdiği teklifler
+  wonRFQs                  Collection[]      @relation("RFQWinner") // Kazandığı RFQ'ler
+
+  // Rating/Review System Relations
+  givenReviews             OrderReview[]     @relation("CustomerReviews") // Müşteri olarak verdiği değerlendirmeler
+  receivedReviews          OrderReview[]     @relation("ManufacturerReviews") // Üretici olarak aldığı değerlendirmeler
+
+ @@index([email])
+  @@index([companyId, role, isActive]) // 3 sorguyu kapsar
+  @@index([companyId, department, isActive])
   @@index([createdAt])
   @@map("users")
 }
 
 // ========================================
-// STANDARDIZED CATEGORY SYSTEM FOR TEXTILE INDUSTRY
+// ADMIN-MANAGED CATEGORY SYSTEM FOR TEXTILE INDUSTRY
+// Tek kategori sistemi: Admin tarafından yönetilen StandardCategory
 // ========================================
-
-enum CategoryType {
-  GLOBAL_STANDARD   // Platform geneli standart kategori (admin tanımlı)
-  COMPANY_CUSTOM    // Firma özel kategorisi (kendi kullanımı için)
-}
 
 enum CategoryLevel {
   ROOT              // Ana kategori (Tekstil, Giyim, Aksesuar)
@@ -439,7 +400,7 @@ enum CategoryLevel {
 }
 
 // Platform Geneli Standart Kategori Ağacı (Admin yönetir)
-model StandardCategory {
+model Category {
   id          Int           @id @default(autoincrement())
   code        String        @unique // "TEX-001", "GAR-001-001", "ACC-002"
   name        String        // i18n key or direct name (frontend handles translations)
@@ -458,15 +419,15 @@ model StandardCategory {
   tags             String?   // "#gömlek #shirt #formal" gibi
 
   // İlişkiler
-  parentCategory   StandardCategory?  @relation("StandardCategoryTree", fields: [parentId], references: [id])
+  parentCategory   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   parentId         Int?
-  subCategories    StandardCategory[] @relation("StandardCategoryTree")
+  subCategories    Category[] @relation("CategoryTree")
 
-  // Şirketlerin bu standart kategoriyi kullanımı
-  companyCategories CompanyCategory[]
+  // Bu kategorideki koleksiyonlar
+  collections      Collection[] @relation("CollectionCategory")
 
   // Admin
-  createdBy        User?     @relation("StandardCategoryCreator", fields: [createdById], references: [id])
+  createdBy        User?     @relation("CategoryCreator", fields: [createdById], references: [id])
   createdById      Int?
 
   createdAt        DateTime  @default(now())
@@ -478,82 +439,6 @@ model StandardCategory {
   @@index([isActive, isPublic])
   @@index([order])
   @@fulltext([name, description, keywords])
-  @@map("standard_categories")
-}
-
-// Firma Bazlı Kategori Sistemi (Standart kategorileri extend eder veya özel ekler)
-model CompanyCategory {
-  id          Int          @id @default(autoincrement())
-  type        CategoryType @default(COMPANY_CUSTOM)
-
-  // Standart kategori referansı (varsa)
-  standardCategory   StandardCategory? @relation(fields: [standardCategoryId], references: [id])
-  standardCategoryId Int?
-
-  // Firma özel bilgileri
-  name        String       // Firma kendi adını verebilir: "Defacto Gömlek", "Koton T-Shirt"
-  description String?      @db.Text
-
-  // İlişkiler
-  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   Int
-
-  parentCategory     CompanyCategory?  @relation("CompanyCategoryTree", fields: [parentId], references: [id])
-  parentId           Int?
-  subCategories      CompanyCategory[] @relation("CompanyCategoryTree")
-
-  // Firma içi özel alanlar
-  internalCode       String?  // Firma içi referans kodu
-  order              Int      @default(0)
-  isActive           Boolean  @default(true)
-
-  // Kullanım istatistikleri
-  productCount       Int      @default(0) // Bu kategoride kaç ürün var
-  lastUsedAt         DateTime?
-
-  // Metadata
-  customFields       Json?    // Firma özel alanları: { targetAge: "18-25", priceRange: "mid", etc. }
-
-  // Relations
-  collections        Collection[]
-
-  // Cross-brand category mappings
-  sourceMappings     SharedCategoryMapping[] @relation("SourceCategory")
-  targetMappings     SharedCategoryMapping[] @relation("TargetCategory")
-
-  author             User?    @relation(fields: [authorId], references: [id])
-  authorId           Int?
-
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  @@unique([companyId, parentId, name]) // Aynı firma, aynı parent altında aynı isim olamaz
-  @@index([companyId, type])
-  @@index([companyId, isActive])
-  @@index([standardCategoryId])
-  @@index([parentId])
-  @@index([productCount])
-  @@fulltext([name, description])
-  @@map("company_categories")
-}
-
-// Legacy Category model (backward compatibility - will be migrated)
-model Category {
-  id               Int          @id @default(autoincrement())
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  name             String
-  description      String?
-  author           User?        @relation(fields: [authorId], references: [id])
-  authorId         Int?
-  collections      Collection[]
-  subCategories    Category[]   @relation("CategoryToSubCategories")
-  parentCategory   Category?    @relation("CategoryToSubCategories", fields: [parentCategoryId], references: [id])
-  parentCategoryId Int?
-  company          Company?     @relation(fields: [companyId], references: [id])
-  companyId        Int?
-
-  @@unique([companyId, parentCategoryId, name])
   @@map("categories")
 }
 
@@ -566,21 +451,36 @@ model Collection {
 
   // ADIM 1: Temel Bilgiler
   modelCode String  @unique // THS-2024-00
-  season    String? // Library'den seçilen sezon adı: "İlkbahar/Yaz 2025", "Sonbahar/Kış 2025"
+  
+  // Season (LibraryItem relation - Platform standardı)
+  season   LibraryItem? @relation("CollectionSeason", fields: [seasonId], references: [id])
+  seasonId Int?
+  
   // klasman -> category ile handle edilecek (Gömlek, Pantolon, Triko)
   gender    Gender? // Kadın, Erkek, Kız Çocuk, Erkek Çocuk
-  fit       String? // Library'den seçilen fit adı: "Slim Fit", "Regular Fit", "Relaxed Fit"
-  trend     String? // Trend adı: "Minimalist", "Vintage", "Sport Chic", "Y2K"
+  
+  // Fit (LibraryItem relation - Platform standardı + Ölçü tablosu)
+  fit   LibraryItem? @relation("CollectionFit", fields: [fitId], references: [id])
+  fitId Int?
+  
+  // Trend (LibraryItem relation - Platform standardı)
+  trend   LibraryItem? @relation("CollectionTrend", fields: [trendId], references: [id])
+  trendId Int?
 
   // ADIM 2: Varyantlar ve Ölçüler
-  colors           String? // JSON array: ["beyaz", "siyah", "yeşil"]
-  sizeGroups       String? // JSON array of group IDs: [1, 2, 3] - Birden fazla beden grubu (pantolon + gömlek)
-  sizeRange        String? // Manuel override: "S-XL" veya "6-16" (legacy)
-  measurementChart String? // File path: /uploads/measurements/xxx.pdf
+  // Colors (Many-to-Many - Platform renk kataloğu: Pantone + HEX standardı)
+  colors LibraryItem[] @relation("CollectionColors")
+  
+  // Size Groups (Many-to-Many - Platform beden grubu kataloğu: Men Upper EU, Women Lower US standardı)
+  sizeGroups LibraryItem[] @relation("CollectionSizeGroups")
 
   // ADIM 3: Teknik Detaylar
-  fabricComposition String? @db.Text // "%100 Cotton" veya "80% Cotton 20% Polyester" - TEXT tipi uzun açıklamalar için
-  accessories       String? @db.Text // JSON: {"buttons": "metal", "zipper": "YKK", "labels": "woven"}
+  // Fabrics (Many-to-Many - Platform kumaş kataloğu: Fiber tipi + Weight + Certifications)
+  fabrics LibraryItem[] @relation("CollectionFabrics")
+  
+  // Accessories (Many-to-Many - Platform aksesuar kataloğu: YKK, Button, Label standardı)
+  accessories LibraryItem[] @relation("CollectionAccessories")
+  
   images            String? @db.Text // JSON array: ["/uploads/products/img1.jpg", ...] or ["https://..."]
   techPack          String? // File path: /uploads/techpacks/xxx.pdf
 
@@ -593,12 +493,85 @@ model Collection {
   deadlineDays   Int? // Termin gün sayısı
   notes          String? @db.Text // Açıklama/Notlar
 
+  // ========================================
+  // KADEME FİYATLANDIRMA (Tier Pricing)
+  // ========================================
+  priceBreaks    Json? // Kademe fiyatları: { "tiers": [{"min": 100, "max": 500, "price": 12.5}, {"min": 501, "max": 1000, "price": 11.0}, {"min": 1001, "price": 9.5}] }
+
+  // ========================================
+  // PAKETLEME & ETİKETLEME (Standardized)
+  // ========================================
+  // Packaging Type (LibraryItem relation - Platform standardı: POLYBAG, CARTON, HANGER, etc.)
+  packagingType   LibraryItem? @relation("CollectionPackagingType", fields: [packagingTypeId], references: [id])
+  packagingTypeId Int?
+  packagingDetails  String? @db.Text // Ek paketleme talimatları (özel talepler)
+
+  // Labeling Type (LibraryItem relation - Platform standardı: CUSTOMER_LABEL, NEUTRAL, HANG_TAG, etc.)
+  labelingType   LibraryItem? @relation("CollectionLabelingType", fields: [labelingTypeId], references: [id])
+  labelingTypeId Int?
+  labelingDetails   String? @db.Text // Ek etiket talimatları (özel talepler)
+
+  // ========================================
+  // ÖDEME KOŞULLARI (Standardized)
+  // ========================================
+  // Payment Terms (LibraryItem relation - Platform standardı: 30 Days Net, 50/50, LC, TT, etc.)
+  paymentTerms   LibraryItem? @relation("CollectionPaymentTerms", fields: [paymentTermsId], references: [id])
+  paymentTermsId Int?
+  depositRequired   Boolean @default(false) // Ön ödeme gerekli mi?
+  depositPercentage Float? // Ön ödeme oranı (%30, %50, vb.) - Esnek alan
+
+  // ========================================
+  // KALİTE STANDARTLARI (Standardized)
+  // ========================================
+  // Quality Standard (LibraryItem relation - Platform standardı: AQL 2.5, AQL 4.0, ZERO_DEFECT, etc.)
+  qualityStandard   LibraryItem? @relation("CollectionQualityStandard", fields: [qualityStandardId], references: [id])
+  qualityStandardId Int?
+  defectTolerance   Float? // İzin verilen hata oranı (örn: 2.5 = %2.5 AQL) - Sayısal veri
+
+  // ========================================
+  // ACİL SİPARİŞ SEÇENEKLERİ
+  // ========================================
+  rushOrderAvailable Boolean @default(false) // Hızlı üretim mümkün mü?
+  rushOrderExtraCost Float? // Acil sipariş ek maliyeti (% olarak)
+  rushOrderMinDays   Int? // Minimum hızlı üretim süresi (gün)
+
   // Sertifikalar (GOTS, OEKO-TEX, BSCI vb.) - Artık LibraryItem üzerinden
   certifications LibraryItem[] @relation("CollectionCertifications")
 
-  // Beğeni/Favoriler
-  likesCount  Int                      @default(0) // Toplam beğeni sayısı
-  favoritedBy UserFavoriteCollection[] // Beğenen kullanıcılar
+  // ========================================
+  // REVİZE/ÖZELLEŞTİRME SİSTEMİ
+  // RFQ sistemi zaten tam özelleştirme sağlıyor (customerBrief, targetBudget, vb.)
+  // Sample sistemi revize talepleri için kullanılıyor (SampleType.REVISION)
+  // ========================================
+
+  // ========================================
+  // KAPASITE VE NUMUNE POLİTİKASI
+  // ========================================
+  monthlyCapacity  Int? // Aylık üretim kapasitesi (adet)
+  maxOrderQuantity Int? // Maksimum sipariş miktarı (adet)
+  
+  // ========================================
+  // SİPARİŞ POLİTİKASI (Order Policy)
+  // ========================================
+  allowDirectOrder Boolean @default(true)  // Numune olmadan sipariş alınır mı?
+  requireSample    Boolean @default(false) // Numune zorunlu mu? (özel/karmaşık ürünler için)
+  samplePolicy     String? @default("OPTIONAL") // "REQUIRED", "OPTIONAL", "NOT_AVAILABLE"
+  sampleLeadTime   Int?    @default(7) // Numune üretim süresi (gün)
+  samplePrice      Float?  @default(0) // Numune birim fiyatı (0 = ücretsiz)
+
+  // ========================================
+  // YENİ: Library Item Relations
+  // ========================================
+  // Varsayılan beden dağılımı (SIZE_BREAKDOWN)
+  defaultSizeBreakdown   LibraryItem? @relation("CollectionSizeBreakdown", fields: [defaultSizeBreakdownId], references: [id])
+  defaultSizeBreakdownId Int?
+
+  // Baskı/desen tipleri (PRINT) - Many-to-many
+  prints LibraryItem[] @relation("CollectionPrints")
+
+  // Yıkama efekti (WASH_EFFECT)
+  washEffect   LibraryItem? @relation("CollectionWashEffect", fields: [washEffectId], references: [id])
+  washEffectId Int?
 
   // ========================================
   // ANALYTICS & ENGAGEMENT
@@ -607,24 +580,16 @@ model Collection {
   shareCount   Int       @default(0) // Paylaşım sayısı
   lastViewedAt DateTime? // Son görüntülenme zamanı
 
-  // Legacy fields (backward compatibility)
-  price      Float   @default(0.00)
-
-  sku        String? @unique
-  stock      Int     @default(0)
+  // Status flags
   isActive   Boolean @default(true)
   isFeatured Boolean @default(false)
-  slug       String? @unique
 
   // Production Schedule - Her aşama için standart gün sayısı
   productionSchedule Json? // { "PLANNING": 5, "FABRIC": 3, "CUTTING": 2, "SEWING": 10, "QUALITY": 2, "PACKAGING": 2, "SHIPPING": 1 }
 
-  category   Category? @relation(fields: [categoryId], references: [id])
+  // Admin tarafından belirlenen standart kategori
+  category   Category? @relation("CollectionCategory", fields: [categoryId], references: [id])
   categoryId Int?
-
-  // Yeni standart kategori sistemi (opsiyonel)
-  companyCategory   CompanyCategory? @relation(fields: [companyCategoryId], references: [id])
-  companyCategoryId Int?
 
   author     User?     @relation(fields: [authorId], references: [id]) // Üretici
   authorId   Int?
@@ -634,45 +599,130 @@ model Collection {
   revisedSamples Sample[]   @relation("OriginalCollection") // Bu ürün için yapılan revize numuneleri
   orders         Order[]
   questions      Question[]
-  reviews        Review[]
-  tasks          Task[]     @relation("CollectionTasks")
 
   // Company relation
   company   Company? @relation(fields: [companyId], references: [id])
   companyId Int?
 
-  // BOM relation
-  billOfMaterials BillOfMaterial[]
+  // ========================================
+  // MÜŞTERİ RFQ SİSTEMİ (Customer Request for Quotation)
+  // ========================================
+  ownerType              CollectionOwnerType @default(MANUFACTURER) // Sahibi: Üretici mi Müşteri mi?
+  
+  // Müşteri RFQ Bilgileri (ownerType=CUSTOMER ise dolu)
+  customerBrief          String?             @db.Text // Müşteri açıklaması (basit, teknik olmayan)
+  referenceImages        String?             @db.Text // JSON array: Referans görseller
+  sketchUrl              String?             // Müşteri taslak tasarımı
+  
+  // Müşteri Hedef Bilgileri
+  targetBudget           Float?              // Hedef birim fiyat (USD)
+  targetQuantity         Int?                // Hedef sipariş miktarı
+  targetDeliveryDays     Int?                // Hedef termin süresi (gün)
+  
+  // RFQ Durum Yönetimi
+  isRFQ                  Boolean             @default(false) // Bu bir RFQ mü?
+  rfqStatus              RFQStatus?          // RFQ durumu
+  rfqDeadline            DateTime?           // Teklif son tarihi
+  rfqWinnerId            Int?                // Seçilen kazanan üretici ID
+  rfqWinner              User?               @relation("RFQWinner", fields: [rfqWinnerId], references: [id])
+  
+  // RFQ Görünürlük Kontrolü
+  visibility             CollectionVisibility @default(PRIVATE) // PRIVATE, INVITED, PUBLIC
+  invitedManufacturers   Json?               // Davet edilen üretici ID'leri: [123, 456, 789]
+  
+  // Üreticilerden gelen teklifler
+  quotes                 CollectionQuote[]
 
-  @@index([companyId, isActive])
-  @@index([season])
-  @@index([gender])
-  @@index([isFeatured])
-  @@index([isActive, createdAt])
-  @@index([slug])
+  // ✅ OPTIMIZED INDEXES
+  @@index([companyId, isActive, createdAt]) // Composite: firma koleksiyonları
+  @@index([seasonId, gender, isActive]) // Sezon + cinsiyet filtreleme (seasonId scalar field)
+  @@index([fitId, gender, isActive]) // Fit + cinsiyet filtreleme
+  @@index([trendId, isActive]) // Trend bazlı filtreleme
+  @@index([isFeatured, isActive]) // Öne çıkan koleksiyonlar
+  @@index([packagingTypeId, isActive]) // Paketleme tipi filtreleme
+  @@index([qualityStandardId, isActive]) // Kalite standardı filtreleme
+  @@index([paymentTermsId, isActive]) // Ödeme koşulu filtreleme
   @@index([modelCode])
-  @@index([createdAt])
   @@index([viewCount])
-  @@index([likesCount])
+  @@index([ownerType, isRFQ, visibility, isActive]) // RFQ marketplace filtreleme
+  @@index([rfqStatus, rfqDeadline]) // RFQ durum ve termin bazlı sorgular
   @@fulltext([name, description])
   @@map("collections")
 }
 
-// User Favorite Collections (Junction Table for Likes)
-model UserFavoriteCollection {
-  id        Int      @id @default(autoincrement())
+// ========================================
+// KOLEKSİYON TEKLİF YÖNETİMİ (Collection Quote Management)
+// Müşteri RFQ'leri için üretici teklifleri
+// ========================================
+model CollectionQuote {
+  id             Int        @id @default(autoincrement())
+  collectionId   Int
+  collection     Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  
+  manufactureId Int
+  manufacture   User       @relation("ManufacturerQuotes", fields: [manufactureId], references: [id])
+  
+  // ========================================
+  // TEKLİF DETAYLARI
+  // ========================================
+  unitPrice      Float      // Teklif edilen birim fiyat
+  currency       String     @default("USD") // Para birimi
+  moq            Int        // Minimum sipariş miktarı (MOQ)
+  productionDays Int        // Üretim süresi (gün)
+  
+  // Numune bilgileri
+  sampleDays     Int?       @default(7) // Numune üretim süresi (gün)
+  samplePrice    Float?     @default(0) // Numune birim fiyatı
+  
+  // ========================================
+  // TEKNİK BİLGİLER & ÖNERİLER
+  // ========================================
+  notes            String? @db.Text // Genel notlar
+  technicalNotes   String? @db.Text // Teknik açıklamalar/öneriler
+  suggestedFabric  String? @db.Text // Önerilen kumaş detayları
+  suggestedPrint   String? @db.Text // Önerilen baskı/desen
+  suggestedFinish  String? @db.Text // Önerilen yıkama/finish işlemleri
+  
+  // Sertifikalar (JSON array: ["GOTS", "OEKO-TEX", "BSCI"])
+  certifications   String? @db.Text
+  
+  // Portföy görselleri (JSON array: ["/uploads/...", "..."])
+  portfolioImages  String? @db.Text
+  
+  // ========================================
+  // TEKLİF DURUMU
+  // ========================================
+  status         QuoteStatus @default(PENDING)
+  isWinner       Boolean     @default(false) // Kazanan teklif mi?
+  
+  // ========================================
+  // MÜŞTERİ DEĞERLENDİRMESİ
+  // ========================================
+  customerNote   String?  @db.Text // Müşteri notu (teklif hakkında)
+  customerRating Int?              // Müşteri değerlendirmesi (1-5 yıldız)
+  
+  // ========================================
+  // İLİŞKİLER (Quote → Sample → Order akışı)
+  // ========================================
+  sampleRequested Boolean @default(false) // Numune talep edildi mi?
+  sampleId        Int?    @unique         // İlgili numune
+  sample          Sample? @relation("QuoteSample", fields: [sampleId], references: [id])
+  
+  orderId         Int?    @unique         // İlgili sipariş (numune sonrası)
+  order           Order?  @relation("QuoteOrder", fields: [orderId], references: [id])
+  
+  // ========================================
+  // ZAMAN BİLGİLERİ
+  // ========================================
   createdAt DateTime @default(now())
-
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
-
-  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  collectionId Int
-
-  @@unique([userId, collectionId])
-  @@index([userId])
-  @@index([collectionId])
-  @@map("user_favorite_collections")
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime? // Teklif son geçerlilik tarihi
+  
+  @@unique([collectionId, manufactureId]) // Her koleksiyon için her üreticiden 1 teklif
+  @@index([collectionId, status]) // Koleksiyon tekliflerini filtreleme
+  @@index([manufactureId, status]) // Üretici tekliflerini filtreleme
+  @@index([isWinner])
+  @@map("collection_quotes")
 }
 
 // Numune talep ve üretim sistemi
@@ -724,28 +774,27 @@ model Sample {
   manufactureId      Int
   productionHistory  SampleProduction[] // Üretim geçmişi takibi
   productionTracking ProductionTracking[]
-  revisions          Revision[]
   messages           Message[] // Numune bazlı mesajlaşma
 
   // Company relation
   company   Company? @relation(fields: [companyId], references: [id])
   companyId Int?
 
-  // ========================================
-  // ANALYTICS & ENGAGEMENT
-  // ========================================
-  viewCount    Int       @default(0) // Görüntülenme sayısı
-  shareCount   Int       @default(0) // Paylaşım sayısı
-  lastViewedAt DateTime? // Son görüntülenme zamanı
-
-  // AI Analysis relation
-  aiAnalysis AIAnalysis?
-
-  // Tasks
-  tasks Task[] @relation("SampleTasks")
-
   // Notifications
   notifications Notification[] @relation("SampleNotifications")
+
+  // Beden talepleri
+  requestedSizes SampleSizeRequest[]
+
+  // ========================================
+  // REVERSE RELATION: Bu numune sonrası verilen siparişler
+  // ========================================
+  resultingOrders Order[] @relation("OrderBasedOnSample")
+
+  // ========================================
+  // REVERSE RELATION: Bu numune ile ilgili teklif
+  // ========================================
+  relatedQuote CollectionQuote? @relation("QuoteSample")
 
   @@index([status])
   @@index([customerId, status])
@@ -757,52 +806,7 @@ model Sample {
   @@index([aiGenerated])
   @@index([createdAt])
   @@index([status, createdAt])
-  @@index([viewCount])
   @@map("samples")
-}
-
-// AI Analiz Sonuçları (Numune ile ilişkili)
-model AIAnalysis {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Temel Analiz Sonuçları (Form'a yazılan)
-  detectedProduct       String? // Tespit edilen ürün türü
-  detectedColor         String? // Tespit edilen renk
-  detectedFabric        String? // Tespit edilen kumaş
-  detectedPattern       String? // Tespit edilen kalıp
-  detectedGender        String? // Tespit edilen cinsiyet
-  detectedClassification String? // Tespit edilen klasman
-  detectedAccessories   String? // Tespit edilen aksesuarlar
-  technicalDescription  String? @db.Text // Teknik açıklama
-
-  // Kalite Analizi
-  qualityAnalysis String? @db.Text // Kalite analiz raporu
-  qualityScore    Float? // Genel kalite skoru (1-10)
-
-  // Maliyet Analizi
-  costAnalysis         String? @db.Text // Maliyet analiz raporu
-  estimatedCostMin     Float? // Tahmini minimum maliyet (₺)
-  estimatedCostMax     Float? // Tahmini maksimum maliyet (₺)
-  suggestedMinOrder    Int? // Önerilen minimum sipariş adedi
-
-  // Trend Analizi
-  trendAnalysis    String? @db.Text // Trend analiz raporu
-  trendScore       Float? // Trend skoru (1-10)
-  targetMarket     String? // Hedef pazar segmenti
-  salesPotential   String? // Satış potansiyeli (LOW/MEDIUM/HIGH)
-
-  // Tasarım Önerileri
-  designSuggestions String? @db.Text // Tasarım önerileri (JSON veya text)
-  designStyle       String? // Seçilen stil yönü
-  designFocus       String? // Odaklanılan alanlar (JSON array)
-
-  // İlişki
-  sample   Sample @relation(fields: [sampleId], references: [id], onDelete: Cascade)
-  sampleId Int    @unique
-
-  @@map("ai_analyses")
 }
 
 // Numune üretim geçmişi takibi
@@ -854,12 +858,20 @@ model Order {
 
   // ============================================
   // PAZARLIK SİSTEMİ (Negotiation)
+  // OrderNegotiation modeli tüm pazarlık geçmişini detaylı tutuyor
   // ============================================
-  negotiationStatus String? @default("OPEN") // OPEN, AGREED, CLOSED
-  agreedPrice       Float? // Anlaşılan birim fiyat (USD/adet)
-  agreedDays        Int? // Anlaşılan üretim süresi (gün)
-  agreedAt          DateTime? // Anlaşma tarihi
-  agreedQuantity    Int? // Anlaşılan koleksiyon adeti (sipariş miktarı)
+
+  // ========================================
+  // NUMUNE İLİŞKİSİ (Sample Relationship)
+  // ========================================
+  basedOnSample   Sample? @relation("OrderBasedOnSample", fields: [basedOnSampleId], references: [id])
+  basedOnSampleId Int?    // Hangi numune onaylandı? (NULL = direkt sipariş)
+  orderType       String  @default("DIRECT") // "DIRECT" (katalog) veya "CUSTOM" (numune sonrası)
+
+  // ✅ DENORMALIZED CACHE (hızlı liste görünümü için)
+  collectionName    String? // Collection adı cache
+  collectionImage   String? // Collection ilk görseli cache
+  collectionModelCode String? // Collection model kodu cache
 
   collection         Collection           @relation(fields: [collectionId], references: [id])
   collectionId       Int
@@ -869,15 +881,11 @@ model Order {
   manufactureId      Int
   productionHistory  OrderProduction[] // Üretim süreç takibi
   productionTracking ProductionTracking? // Her sipariş için tek üretim planı
-  revisions          Revision[]
   messages           Message[] // Sipariş bazlı mesajlaşma
 
   // Company relation
   company   Company? @relation(fields: [companyId], references: [id])
   companyId Int?
-
-  // Tasks
-  tasks Task[] @relation("OrderTasks")
 
   // Notifications
   notifications Notification[] @relation("OrderNotifications")
@@ -888,13 +896,80 @@ model Order {
   // Değişiklik takibi
   changeLogs OrderChangeLog[]
 
+  // Beden dağılımı
+  sizeBreakdown OrderSizeBreakdown[]
+
+  // Ödemeler
+  payments Payment[]
+
+  // ========================================
+  // REVERSE RELATION: Bu siparişin teklif kaynağı
+  // ========================================
+  relatedQuote CollectionQuote? @relation("QuoteOrder")
+
+  // ========================================
+  // DEĞERLENDİRME/RATING SİSTEMİ
+  // ========================================
+  review OrderReview? @relation("OrderReview")
+
   @@index([orderNumber])
   @@index([status])
   @@index([customerId, status])
   @@index([manufactureId, status])
   @@index([companyId, status, createdAt])
   @@index([collectionId])
+  @@index([basedOnSampleId]) // Numune bazlı siparişler
+  @@index([orderType, status]) // Sipariş tipi filtreleme
   @@map("orders")
+}
+
+// ============================================
+// SİPARİŞ DEĞERLENDİRME SİSTEMİ (Order Review/Rating)
+// Müşteriler teslim edilen siparişler için değerlendirme yapabilir
+// ============================================
+model OrderReview {
+  id      Int   @id @default(autoincrement())
+  orderId Int   @unique
+  order   Order @relation("OrderReview", fields: [orderId], references: [id], onDelete: Cascade)
+  
+  // Değerlendiren müşteri
+  customerId Int
+  customer   User @relation("CustomerReviews", fields: [customerId], references: [id])
+  
+  // Değerlendirilen üretici
+  manufactureId Int
+  manufacture   User @relation("ManufacturerReviews", fields: [manufactureId], references: [id])
+  
+  // Değerlendirme puanları (1-5 yıldız)
+  rating              Int // Genel puan (1-5)
+  qualityRating       Int? // Kalite puanı (1-5)
+  deliveryRating      Int? // Teslimat puanı (1-5)
+  communicationRating Int? // İletişim puanı (1-5)
+  
+  // Yorum
+  comment String? @db.Text
+  
+  // Üreticinin yanıtı (opsiyonel)
+  manufacturerReply   String?   @db.Text
+  manufacturerRepliedAt DateTime?
+  
+  // Durum
+  isPublic  Boolean @default(true) // Herkese açık mı?
+  isApproved Boolean @default(true) // Admin onayı (spam/hakaret kontrolü)
+  
+  // Faydalı mı? (Diğer kullanıcılar için)
+  helpfulCount   Int @default(0) // "Bu yorum yararlı" sayısı
+  unhelpfulCount Int @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([orderId])
+  @@index([customerId, rating])
+  @@index([manufactureId, rating])
+  @@index([rating, isPublic, isApproved])
+  @@index([createdAt])
+  @@map("order_reviews")
 }
 
 // ============================================
@@ -985,6 +1060,127 @@ model OrderChangeLog {
   @@map("order_change_logs")
 }
 
+// ============================================
+// ÖDEME SİSTEMİ (Payment System)
+// ============================================
+enum PaymentType {
+  DEPOSIT         // Ön ödeme / Kapora (%30, %50 vb.)
+  PROGRESS        // Ara ödeme (üretim aşamasında)
+  BALANCE         // Kalan ödeme (sevkiyat öncesi)
+  FULL            // Peşin ödeme (tüm tutar)
+}
+
+enum PaymentStatus {
+  PENDING         // Ödeme bekleniyor
+  RECEIPT_UPLOADED // Dekont yüklendi, onay bekleniyor
+  CONFIRMED       // Ödeme onaylandı
+  REJECTED        // Dekont reddedildi
+  OVERDUE         // Ödeme gecikmiş
+  CANCELLED       // İptal edildi
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER   // Banka havalesi (EFT/SWIFT)
+  WIRE_TRANSFER   // Havale
+  CHECK           // Çek
+  CASH            // Nakit (nadiren)
+  OTHER           // Diğer
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  // Ödeme Detayları
+  type            PaymentType
+  status          PaymentStatus @default(PENDING)
+  method          PaymentMethod @default(BANK_TRANSFER)
+  
+  // Tutar Bilgileri
+  amount          Float         // Ödeme tutarı (USD/TRY)
+  currency        String        @default("USD")
+  percentage      Float?        // Toplam tutarın yüzdesi (%30, %50 vb.)
+  
+  // Banka Dekontu
+  receiptUrl      String?       @db.Text // Dekont dosya yolu
+  receiptUploadedAt DateTime?   // Dekont yüklenme zamanı
+  receiptUploadedBy Int?        // Dekontu yükleyen kullanıcı (müşteri)
+  
+  // Onay Bilgileri
+  confirmedAt     DateTime?     // Ödeme onay zamanı
+  confirmedBy     Int?          // Onaylayan kullanıcı (üretici)
+  rejectionReason String?       @db.Text // Red sebebi
+  
+  // Vade Bilgileri
+  dueDate         DateTime?     // Ödeme vadesi
+  paidDate        DateTime?     // Ödeme gerçekleşme tarihi
+  
+  // Notlar
+  description     String?       @db.Text // Ödeme açıklaması
+  notes           String?       @db.Text // Ek notlar (müşteri/üretici)
+  
+  // Banka Bilgileri (opsiyonel - ödeme detayları için)
+  bankName        String?       // Banka adı
+  accountHolder   String?       // Hesap sahibi
+  transactionId   String?       // İşlem referans numarası
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([orderId, status])
+  @@index([status, dueDate])
+  @@index([type])
+  @@map("payments")
+}
+
+// ============================================
+// BEDEN DAĞILIMI SİSTEMİ (Size Breakdown)
+// ============================================
+// Sipariş beden dağılımı (örn: XS:10%, S:25%, M:35%, L:20%, XL:10%)
+model OrderSizeBreakdown {
+  id       Int   @id @default(autoincrement())
+  orderId  Int
+  order    Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  // Beden bilgisi
+  size       String // "XS", "S", "M", "L", "XL", "2XL", "3XL"
+  quantity   Int    // Bu bedenden kaç adet (örn: 350 adet M beden)
+  percentage Float  // Yüzde dağılımı (örn: 35 = %35)
+  
+  // Üretim takibi
+  produced    Int @default(0) // Üretilmiş miktar
+  packed      Int @default(0) // Paketlenmiş miktar
+  shipped     Int @default(0) // Kargoya verilmiş miktar
+  
+  // Notlar
+  notes      String? @db.Text // Beden için özel notlar
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([orderId, size]) // Her sipariş için her beden sadece bir kez
+  @@index([orderId])
+  @@index([size])
+  @@map("order_size_breakdowns")
+}
+
+// Numune beden talepleri (müşteri hangi bedenleri istiyor)
+model SampleSizeRequest {
+  id       Int    @id @default(autoincrement())
+  sampleId Int
+  sample   Sample @relation(fields: [sampleId], references: [id], onDelete: Cascade)
+  
+  // Beden bilgisi
+  size     String // "XS", "S", "M", "L", "XL"
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([sampleId, size]) // Her numune için her beden sadece bir kez
+  @@index([sampleId])
+  @@map("sample_size_requests")
+}
+
 // Sipariş üretim geçmişi takibi
 model OrderProduction {
   id            Int         @id @default(autoincrement())
@@ -1014,20 +1210,6 @@ model Question {
   customerId    Int
   manufacture   User       @relation("ManufactureQuestions", fields: [manufactureId], references: [id])
   manufactureId Int
-}
-
-// Değerlendirme sistemi
-model Review {
-  id           Int        @id @default(autoincrement())
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  rating       Int // 1-5 yıldız
-  comment      String?
-  isApproved   Boolean    @default(false) // Üretici onayı
-  collection   Collection @relation(fields: [collectionId], references: [id])
-  collectionId Int
-  customer     User       @relation("CustomerReviews", fields: [customerId], references: [id])
-  customerId   Int
 }
 
 // Enum'lar
@@ -1078,24 +1260,62 @@ enum SampleStatus {
 }
 
 enum OrderStatus {
-  PENDING // Sipariş beklemede
+  // ========================================
+  // AŞAMA 1: Sipariş Talebi ve İnceleme
+  // ========================================
+  PENDING // Yeni sipariş talebi (müşteriden geldi)
   REVIEWED // Üretici tarafından inceleniyor
-  QUOTE_SENT // Üretici süre ve fiyat teklifi gönderdi
-  CUSTOMER_QUOTE_SENT // Müşteri teklif gönderdi (standart veya revize)
-  MANUFACTURER_REVIEWING_QUOTE // Üretici müşteri teklifini inceliyor
-  CONFIRMED // Müşteri siparişi onayladı
-  PRODUCTION_PLAN_SENT // Üretici üretim planı gönderdi
-  PRODUCTION_PLAN_APPROVED // Müşteri üretim planını onayladı
-  PRODUCTION_PLAN_REJECTED // Müşteri üretim planını reddetti (revizyon gerekli)
-  REJECTED // Sipariş reddedildi
+  
+  // ========================================
+  // AŞAMA 2: Fiyat ve Süre Pazarlığı
+  // ========================================
+  QUOTE_SENT // Üretici fiyat/süre teklifi gönderdi
+  CUSTOMER_QUOTE_SENT // Müşteri karşı teklif gönderdi
+  MANUFACTURER_REVIEWING_QUOTE // Üretici karşı teklifi değerlendiriyor
+  QUOTE_AGREED // Fiyat ve sürede anlaşma sağlandı
+  
+  // ========================================
+  // AŞAMA 3: Sipariş Onayı
+  // ========================================
+  CONFIRMED // Müşteri siparişi kesinleştirdi (ödeme bekleniyor)
+  DEPOSIT_PENDING // Kapora ödemesi bekleniyor
+  DEPOSIT_RECEIVED // Kapora alındı, üretim planı hazırlanacak
+  
+  // ========================================
+  // AŞAMA 4: Üretim Planlaması
+  // ========================================
+  PRODUCTION_PLAN_PREPARING // Üretici üretim planı hazırlıyor
+  PRODUCTION_PLAN_SENT // Üretim planı müşteriye gönderildi (onay bekleniyor)
+  PRODUCTION_PLAN_APPROVED // Müşteri üretim planını onayladı (üretim başlayabilir)
+  PRODUCTION_PLAN_REJECTED // Müşteri planı reddetti (revizyon gerekli)
+  
+  // ========================================
+  // AŞAMA 5: Üretim Süreci
+  // ========================================
+  IN_PRODUCTION // Üretim başladı (aşamalar takip ediliyor)
+  PRODUCTION_COMPLETE // Üretim tamamlandı
+  QUALITY_CHECK // Kalite kontrol yapılıyor
+  QUALITY_APPROVED // Kalite kontrol geçti
+  QUALITY_FAILED // Kalite kontrol başarısız (revizyon gerekli)
+  
+  // ========================================
+  // AŞAMA 6: Sevkiyat ve Teslimat
+  // ========================================
+  READY_TO_SHIP // Sevkiyata hazır (kalan ödeme bekleniyor)
+  BALANCE_PENDING // Kalan ödeme bekleniyor
+  BALANCE_RECEIVED // Kalan ödeme alındı
+  SHIPPED // Kargoya verildi
+  IN_TRANSIT // Yolda
+  DELIVERED // Müşteriye teslim edildi
+  
+  // ========================================
+  // AŞAMA 7: Red ve İptal Durumları
+  // ========================================
+  REJECTED // Genel red
   REJECTED_BY_CUSTOMER // Müşteri tarafından reddedildi
   REJECTED_BY_MANUFACTURER // Üretici tarafından reddedildi
-  IN_PRODUCTION // Üretim aşamasında
-  PRODUCTION_COMPLETE // Üretim tamamlandı
-  QUALITY_CHECK // Kalite kontrolü yapılıyor
-  SHIPPED // Kargoya verildi
-  DELIVERED // Müşteriye teslim edildi
   CANCELLED // İptal edildi
+  ON_HOLD // Askıya alındı (geçici durduruldu)
 }
 
 model File {
@@ -1135,65 +1355,30 @@ model ProductionStageUpdate {
   @@map("production_stage_updates")
 }
 
-// Quality Control
-model QualityControl {
-  id           Int                @id @default(autoincrement())
-  production   ProductionTracking @relation(fields: [productionId], references: [id], onDelete: Cascade)
-  productionId Int
-  inspector    User               @relation("QualityInspector", fields: [inspectorId], references: [id])
-  inspectorId  Int
-
-  checkDate DateTime      @default(now())
-  result    QualityResult @default(PENDING)
-  score     Int? // 1-100 puan
-  notes     String?       @db.Text
-  photos    String?       @db.Text // JSON: defect photos
-
-  // Hata kategorileri
-  fabricDefects    Boolean @default(false)
-  sewingDefects    Boolean @default(false)
-  measureDefects   Boolean @default(false)
-  finishingDefects Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("quality_controls")
-}
-
-// Workshop
-model Workshop {
-  id       Int          @id @default(autoincrement())
-  name     String       @unique
-  type     WorkshopType
-  capacity Int? // Günlük kapasite
-  location String?
-  isActive Boolean      @default(true)
-
-  owner   User @relation("WorkshopOwner", fields: [ownerId], references: [id])
-  ownerId Int
-
-  sewingProductions    ProductionTracking[] @relation("SewingWorkshop")
-  packagingProductions ProductionTracking[] @relation("PackagingWorkshop")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("workshops")
-}
-
 // ========================================
 // UNIFIED LIBRARY SYSTEM (Simplified & Scalable)
 // ========================================
 
 enum LibraryCategory {
-  COLOR         // Renk paleti
-  FABRIC        // Kumaş kütüphanesi
-  MATERIAL      // Aksesuar/Malzemeler (Button, Zipper, Label, etc.)
-  SIZE_GROUP    // Beden grupları
-  SEASON        // Sezon yönetimi
-  FIT           // Kesim tipleri
-  CERTIFICATION // Sertifikalar
+  COLOR           // Renk paleti
+  FABRIC          // Kumaş kütüphanesi
+  MATERIAL        // Aksesuar/Malzemeler (Button, Zipper, Label, etc.)
+  SIZE_GROUP      // Beden grupları
+  SEASON          // Sezon yönetimi
+  FIT             // Kesim tipleri
+  CERTIFICATION   // Sertifikalar
+  SIZE_BREAKDOWN  // Beden dağılım şablonları (XS:10%, S:25%, M:35%, L:20%, XL:10%)
+  PRINT           // Baskı/desen tipleri (Dijital, Silkscreen, Transfer, Nakış)
+  WASH_EFFECT     // Yıkama efektleri (Stone Wash, Acid Wash, Vintage, Raw)
+  TREND           // Trend/Stil kütüphanesi (Minimalist, Vintage, Sport Chic, Y2K, Cottagecore)
+  
+  // ========================================
+  // YENİ: Ticari Standartlar (B2B)
+  // ========================================
+  PACKAGING_TYPE  // Paketleme standartları (POLYBAG, CARTON, HANGER, GIFT_BOX)
+  QUALITY_STANDARD // Kalite standartları (AQL 2.5, AQL 4.0, ZERO_DEFECT, ISO 9001)
+  PAYMENT_TERMS   // Ödeme koşulları (30 Days Net, 50/50, LC, TT, Cash)
+  LABELING_TYPE   // Etiketleme tipleri (CUSTOMER_LABEL, NEUTRAL, MANUFACTURER, HANG_TAG)
 }
 
 enum LibraryScope {
@@ -1212,109 +1397,31 @@ model LibraryItem {
   name        String   // i18n key or direct name (frontend handles translations)
 
   description String?  @db.Text
-  imageUrl    String?  @db.Text
-  iconValue   String?  // Sertifika ikonu için custom icon URL veya emoji
+  imageUrl    String?  @db.Text // PNG/SVG for all categories (COLOR swatch, CERTIFICATION logo, PRINT sample, etc.)
 
-  // Category-Specific Data (JSON - Esnek yapı)
-  data        Json?    // {
-  //   // For COLOR:
-  //   "pantone": "PANTONE 18-3838",
-  //   "hex": "#FFFFFF",
-  //   "rgb": "rgb(255,255,255)",
-  //   "cmyk": "cmyk(0,0,0,0)",
-  //   "ral": "RAL 9016",
-  //   "category": "NEUTRAL",
-  //   "season": "ALL",
-  //
-  //   // For FABRIC:
-  //   "composition": "%100 Cotton",
-  //   "weight": 180,
-  //   "width": 150,
-  //   "fiberType": "COTTON",
-  //   "construction": "Plain Weave",
-  //   "texture": "Smooth",
-  //   "finish": "Raw",
-  //   "usage": "Shirts",
-  //   "season": "ALL",
-  //   "certifications": ["GOTS", "OEKO-TEX"],
-  //   "supplier": "ABC Fabrics",
-  //   "supplierCode": "SUP-001",
-  //   "price": 15.50,
-  //   "currency": "USD",
-  //   "minOrder": 100,
-  //   "leadTime": 15,
-  //   // BOM for fabrics (consumable materials needed):
-  //   "bomComponents": [
-  //     { "name": "Main Fabric", "consumption": 1.2, "unit": "meters", "wastePercent": 5 },
-  //     { "name": "Lining", "consumption": 0.8, "unit": "meters", "wastePercent": 3 }
-  //   ],
-  //
-  //   // For MATERIAL:
-  //   "materialType": "Metal",
-  //   "size": "15mm",
-  //   "color": "Gold",
-  //   "brand": "YKK",
-  //   "subCategory": "BUTTON",
-  //   "finish": "Matte",
-  //   "supplier": "XYZ Accessories",
-  //   "price": 0.50,
-  //   "minOrder": 1000,
-  //   // BOM for materials (pieces per garment):
-  //   "bomComponents": [
-  //     { "name": "Front Buttons", "consumption": 6, "unit": "pieces", "placement": "front" },
-  //     { "name": "Sleeve Buttons", "consumption": 2, "unit": "pieces", "placement": "sleeve" }
-  //   ],
-  //
-  //   // For SIZE_GROUP (Enhanced with regional standards):
-  //   "sizes": ["XS", "S", "M", "L", "XL"],
-  //   "sizeCategory": "MEN",
-  //   "region": "EU", // EU, US, UK, JP, CN
-  //   "sizeSystem": "ALPHA", // ALPHA (XS-XXL), NUMERIC (36-44), INCHES (28-34)
-  //   "measurements": {
-  //     "XS": { "chest": 88, "waist": 76, "hip": 92, "length": 68 },
-  //     "S": { "chest": 92, "waist": 80, "hip": 96, "length": 70 },
-  //     "M": { "chest": 96, "waist": 84, "hip": 100, "length": 72 }
-  //   },
-  //   "gradeRules": { "chest": 4, "waist": 4, "hip": 4, "length": 2 }, // size increment
-  //
-  //   // For SEASON:
-  //   "year": 2025,
-  //   "type": "SS",
-  //   "fullName": "Spring/Summer 2025",
-  //   "startDate": "2025-01-01",
-  //   "endDate": "2025-06-30",
-  //
-  //   // For FIT (Enhanced with detailed measurements):
-  //   "fitCategory": "UPPER", // UPPER, LOWER, DRESS, OUTERWEAR
-  //   "fitType": "SLIM", // SLIM, REGULAR, RELAXED, OVERSIZED
-  //   "gender": "MEN", // MEN, WOMEN, BOYS, GIRLS, UNISEX
-  //   "measurementMode": "BODY", // BODY (vücut ölçüsü), GARMENT (ürün ölçüsü)
-  //   "measurements": [
-  //     { "point": "CHEST", "tolerance": "±1cm", "critical": true },
-  //     { "point": "WAIST", "tolerance": "±1cm", "critical": true },
-  //     { "point": "SHOULDER", "tolerance": "±0.5cm", "critical": true },
-  //     { "point": "SLEEVE_LENGTH", "tolerance": "±1cm", "critical": false }
-  //   ],
-  //   "measurementTable": {
-  //     "S": { "chest": 92, "waist": 80, "shoulder": 44, "sleeveLength": 59 },
-  //     "M": { "chest": 96, "waist": 84, "shoulder": 46, "sleeveLength": 61 },
-  //     "L": { "chest": 100, "waist": 88, "shoulder": 48, "sleeveLength": 63 }
-  //   },
-  //   "easeValues": { "chest": 12, "waist": 8, "shoulder": 2, "sleeveLength": 0 },
-  //   "easeNotes": "Regular ease for comfortable fit. Chest and waist have wearing ease.",
-  //
-  //   // For CERTIFICATION:
-  //   "certCategory": "FIBER",
-  //   "issuer": "GOTS International",
-  //   "validFrom": "2024-01-01",
-  //   "validUntil": "2025-12-31",
-  //   "certificateNumber": "GOTS-2024-001",
-  //   "certificateFile": "/uploads/certs/gots.pdf"
-  // }
+  // 🔍 Filtreleme için kritik alanlar (normalized - Hybrid Approach)
+  // FIT ve SIZE_GROUP kategorileri için hızlı query
+  gender       String?  // MEN, WOMEN, BOYS, GIRLS, UNISEX
+  fitCategory  String?  // TOP, BOTTOM, DRESS, OUTERWEAR  
+  sizeCategory String?  // TOP, BOTTOM, DRESS, OUTERWEAR, KIDS
+  
+  // ✅ FABRIC için sık sorgulanan alanlar (OPTIMIZED)
+  fiberType    String?  // COTTON, POLYESTER, WOOL, LINEN, SILK, BLEND
+  fabricWeight Int?     // Kumaş ağırlığı (gram/m²)
+  fabricWidth  Int?     // Kumaş eni (cm)
+  
+  // ✅ MATERIAL için sık sorgulanan alanlar (OPTIMIZED)
+  materialType String?  // BUTTON, ZIPPER, LABEL, THREAD, TRIM, ELASTIC
+  
+  // ✅ COLOR için sık sorgulanan alanlar (OPTIMIZED)
+  hexColor     String?  // #FFFFFF
+  colorFamily  String?  // NEUTRAL, WARM, COOL, EARTH, PASTEL, BRIGHT
+  
+  // Category-Specific Data (JSON - Detaylı bilgiler için)
+  // ⚠️ FABRIC/MATERIAL price data should be in data.price, not top-level
+  data        Json?      
 
   // Common Metadata
-  tags        Json?    // ["white", "basic", "neutral"]
-  internalCode String? // Firma içi referans kodu
   notes       String?  @db.Text
 
   // Status
@@ -1339,8 +1446,53 @@ model LibraryItem {
   // Collections using certifications
   collections Collection[] @relation("CollectionCertifications")
 
-  // BOM usage
-  bomUsages   BillOfMaterial[] @relation("BOMLibraryItems")
+  // ========================================
+  // YENİ: Collection Relations (Reverse) - STANDARDIZATION
+  // ========================================
+  // SEASON için reverse relation (Platform standardı)
+  collectionsWithSeason Collection[] @relation("CollectionSeason")
+  
+  // FIT için reverse relation (Platform standardı + Ölçü tablosu)
+  collectionsWithFit Collection[] @relation("CollectionFit")
+  
+  // TREND için reverse relation (Platform standardı)
+  collectionsWithTrend Collection[] @relation("CollectionTrend")
+  
+  // SIZE_BREAKDOWN için reverse relation
+  collectionsWithSizeBreakdown Collection[] @relation("CollectionSizeBreakdown")
+
+  // SIZE_GROUPS için reverse relation (Many-to-many - Platform beden grubu kataloğu)
+  collectionsWithSizeGroups Collection[] @relation("CollectionSizeGroups")
+
+  // PRINT için reverse relation (Many-to-many)
+  collectionsWithPrint Collection[] @relation("CollectionPrints")
+
+  // WASH_EFFECT için reverse relation
+  collectionsWithWashEffect Collection[] @relation("CollectionWashEffect")
+  
+  // COLORS için reverse relation (Many-to-many - Platform renk kataloğu)
+  collectionsWithColors Collection[] @relation("CollectionColors")
+  
+  // FABRICS için reverse relation (Many-to-many - Platform kumaş kataloğu)
+  collectionsWithFabrics Collection[] @relation("CollectionFabrics")
+  
+  // ACCESSORIES için reverse relation (Many-to-many - Platform aksesuar kataloğu)
+  collectionsWithAccessories Collection[] @relation("CollectionAccessories")
+
+  // ========================================
+  // YENİ: Ticari Standartlar İçin Reverse Relations
+  // ========================================
+  // PACKAGING_TYPE için reverse relation (Platform standardı)
+  collectionsWithPackagingType Collection[] @relation("CollectionPackagingType")
+  
+  // LABELING_TYPE için reverse relation (Platform standardı)
+  collectionsWithLabelingType Collection[] @relation("CollectionLabelingType")
+  
+  // PAYMENT_TERMS için reverse relation (Platform standardı)
+  collectionsWithPaymentTerms Collection[] @relation("CollectionPaymentTerms")
+  
+  // QUALITY_STANDARD için reverse relation (Platform standardı)
+  collectionsWithQualityStandard Collection[] @relation("CollectionQualityStandard")
 
   createdBy   User?    @relation("LibraryItemCreator", fields: [createdById], references: [id])
   createdById Int?
@@ -1348,87 +1500,18 @@ model LibraryItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // ✅ OPTIMIZED INDEXES
   @@unique([companyId, category, name])
-  @@index([scope, category])
-  @@index([companyId, category, isActive])
-  @@index([category, isActive, isPopular])
+  @@index([scope, category, isActive]) // Composite: liste sorguları için
+  @@index([companyId, category, isActive]) // Firma bazlı filtreleme
+  @@index([category, fiberType, isActive]) // Kumaş tipi filtreleme
+  @@index([category, materialType, isActive]) // Aksesuar tipi filtreleme
+  @@index([category, colorFamily, isActive]) // Renk filtreleme
+  @@index([gender, fitCategory, sizeCategory]) // FIT/SIZE_GROUP için composite
   @@index([standardItemId])
   @@index([code])
   @@fulltext([name, description])
   @@map("library_items")
-}
-
-// ========================================
-// BILL OF MATERIALS (BOM) MANAGEMENT
-// ========================================
-
-// Collection-level BOM structure
-model BillOfMaterial {
-  id           Int    @id @default(autoincrement())
-  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  collectionId Int
-
-  // Component details
-  componentType BOMComponentType @default(MATERIAL) // FABRIC, MATERIAL, LABOR, OTHER
-  libraryItem   LibraryItem?     @relation("BOMLibraryItems", fields: [libraryItemId], references: [id])
-  libraryItemId Int?
-
-  // Manual component (if not from library)
-  componentName String? // Custom component name if not using library item
-
-  // Consumption data
-  consumption   Float   // Amount needed per unit
-  unit         String  // "meters", "pieces", "hours", "kg"
-  wastePercent Float   @default(0) // Waste/tolerance percentage
-  placement    String? // "front", "back", "sleeve", "all"
-
-  // Supplier info
-  supplier     String?
-  supplierCode String?
-
-  // Timing
-  leadTime     Int?    // Days needed to procure
-
-  // Additional notes
-  notes        String? @db.Text
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([collectionId])
-  @@index([componentType])
-  @@index([libraryItemId])
-  @@map("bill_of_materials")
-}
-
-enum BOMComponentType {
-  FABRIC    // Main fabrics, linings, interfacing
-  MATERIAL  // Buttons, zippers, labels, threads
-  LABOR     // Sewing, cutting, finishing operations
-  OTHER     // Packaging, accessories, misc
-}
-
-// ========================================
-
-// Production Revisions
-model ProductionRevision {
-  id           Int                @id @default(autoincrement())
-  production   ProductionTracking @relation(fields: [productionId], references: [id], onDelete: Cascade)
-  productionId Int
-
-  reason      String
-  description String? @db.Text
-  extraDays   Int     @default(0)
-  extraCost   Float   @default(0)
-  isApproved  Boolean @default(false)
-
-  requestedBy   User @relation("RevisionRequester", fields: [requestedById], references: [id])
-  requestedById Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("production_revisions")
 }
 
 // Production Enums
@@ -1467,20 +1550,6 @@ enum ApprovalStatus {
   REVISION       // Revizyon gerekiyor
 }
 
-enum QualityResult {
-  PENDING
-  PASSED
-  FAILED
-  CONDITIONAL_PASS
-}
-
-enum WorkshopType {
-  SEWING
-  PACKAGING
-  QUALITY_CONTROL
-  GENERAL
-}
-
 // ========================================
 // NOTIFICATION SYSTEM
 // ========================================
@@ -1493,6 +1562,8 @@ enum NotificationType {
   QUALITY // Kalite kontrol bildirimleri
   SYSTEM // Sistem bildirimleri
   USER_MANAGEMENT // Kullanıcı yönetimi bildirimleri
+  ORDER_UPDATE // Sipariş güncellemeleri
+  ORDER_CHANGE_RESPONSE // Sipariş değişikliği yanıtları
 }
 
 model Notification {
@@ -1521,369 +1592,6 @@ model Notification {
   @@index([userId, isRead])
   @@index([userId, createdAt])
   @@map("notifications")
-}
-
-// ========================================
-// Task Model - Müşteri/Kullanıcı Aksiyonları
-// ========================================
-
-enum TaskStatus {
-  TODO // Yapılması gerekenler
-  IN_PROGRESS // Devam ediyor
-  COMPLETED // Tamamlandı
-  CANCELLED // İptal edildi
-}
-
-enum TaskPriority {
-  LOW // Düşük öncelik
-  MEDIUM // Orta öncelik
-  HIGH // Yüksek öncelik
-}
-
-enum TaskType {
-  // === STATUS BAZLI GÖREVLER (Dinamik) ===
-  STATUS_CHANGE // Status değişikliği gerektiren görev (SampleStatus, OrderStatus ile ilişkili)
-
-  // === ÖZEL GÖREV TİPLERİ ===
-  QUOTATION // Fiyat teklifi hazırla/gönder
-  REVIEW_QUOTE // Teklifi incele (müşteri veya üretici)
-  APPROVE_REJECT // Onay/Red aksiyonu gerekli
-  PAYMENT // Ödeme işlemi
-  DOCUMENT // Belge/Doküman işlemi
-
-  // === ÜRETİM SÜRECİ GÖREVLER ===
-  PRODUCTION_STAGE // Üretim aşama görevleri (ProductionStage ile ilişkili)
-  QUALITY_CHECK // Kalite kontrol görevi
-  SHIPMENT // Kargo/Sevkiyat işlemi
-  MATERIAL // Malzeme tedarik/kontrol
-
-  // === GENEL GÖREVLER ===
-  MEETING // Toplantı
-  REVISION // Revize talebi
-  NOTIFICATION // Bilgilendirme (aksiyon gerektirmeyen)
-  DEADLINE_WARNING // Termin uyarısı
-  OTHER // Diğer
-}
-
-model Task {
-  id            Int      @id @default(autoincrement())
-  title         String   // Görev başlığı (örn: "Teklif Onayı Bekliyor")
-  description   String?  @db.LongText // Detaylı açıklama
-  status        TaskStatus @default(TODO)
-  priority      TaskPriority @default(MEDIUM)
-  type          TaskType
-
-  // STATUS İLİŞKİSİ - Hangi status için bu task oluşturuldu
-  relatedStatus String? // "QUOTE_SENT", "CUSTOMER_QUOTE_SENT", vb.
-  targetStatus  String? // Hedef status (bu task tamamlandığında gidilecek status)
-  entityType    String? // "ORDER", "SAMPLE", "PRODUCTION" - Hangi entity için
-
-  // ÜRETİM AŞAMASI İLİŞKİSİ
-  productionStage String? // "PLANNING", "FABRIC", "CUTTING", vb. (ProductionStage enum değeri)
-
-  // Kullanıcı ve İlişkilendirmeler
-  userId        Int      // Görevin oluşturduğu kullanıcı (müşteri veya üretici)
-  user          User     @relation("UserTasks", fields: [userId], references: [id], onDelete: Cascade)
-
-  // Gözlemci (Üretici taraf için gelen görevlerde atanan kişi)
-  assignedToId  Int?     // Kime atanıyor (null ise kendisine atanmış)
-  assignedTo    User?    @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
-
-  // Opsiyonel İlişkiler
-  collectionId  Int?     // Koleksiyonla ilgili görev
-  collection    Collection? @relation("CollectionTasks", fields: [collectionId], references: [id], onDelete: SetNull)
-
-  sampleId      Int?     // Örnek talebesiyle ilgili görev
-  sample        Sample?  @relation("SampleTasks", fields: [sampleId], references: [id], onDelete: SetNull)
-
-  orderId       Int?     // Sipariş talebesiyle ilgili görev
-  order         Order?   @relation("OrderTasks", fields: [orderId], references: [id], onDelete: SetNull)
-
-  productionTrackingId Int?
-  productionTracking ProductionTracking? @relation("ProductionTrackingTasks", fields: [productionTrackingId], references: [id], onDelete: SetNull)
-
-  // Tarihler
-  dueDate       DateTime? // Son teslim tarihi
-  completedAt   DateTime? // Tamamlanma tarihi
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Metadata
-  notes         String?  @db.LongText // Notlar
-  assignedBy    Int? // Kimin tarafından atandığı
-
-  // Aksiyon Metadata (JSON)
-  actionData    Json? // Aksiyonla ilgili ekstra data: {buttonText, endpoint, requiredFields, etc.}
-
-  @@index([userId, status])
-  @@index([userId, dueDate])
-  @@index([status, priority])
-  @@index([relatedStatus]) // Status bazlı filtreleme için
-  @@index([entityType, relatedStatus]) // Entity ve status kombinasyonu
-  @@index([createdAt])
-  @@map("tasks")
-}
-
-// ========================================
-// COMPANY PARTNERSHIPS & CROSS-BRAND COLLABORATION
-// ========================================
-
-enum PartnershipType {
-  SUPPLIER          // Tedarikçi ilişkisi (kumaş, aksesuar, vb.)
-  MANUFACTURER      // Üretici ortaklığı
-  DISTRIBUTOR       // Distribütör ilişkisi
-  WHITE_LABEL       // White label üretim
-  CO_BRANDING       // Ortak marka işbirliği
-  SUBCONTRACTOR     // Fason üretici
-  STRATEGIC_PARTNER // Stratejik iş ortağı
-}
-
-enum PartnershipStatus {
-  PENDING      // Onay bekliyor
-  ACTIVE       // Aktif ortaklık
-  SUSPENDED    // Askıya alınmış
-  TERMINATED   // Sonlandırılmış
-  REJECTED     // Reddedilmiş
-}
-
-// Firmalar Arası Ortaklık/Eşleştirme Sistemi
-model CompanyPartnership {
-  id          Int               @id @default(autoincrement())
-
-  // İki taraflı ilişki
-  company     Company           @relation("CompanyAsInitiator", fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   Int
-
-  partner     Company           @relation("CompanyAsPartner", fields: [partnerId], references: [id], onDelete: Cascade)
-  partnerId   Int
-
-  type        PartnershipType
-  status      PartnershipStatus @default(PENDING)
-
-  // Ortaklık Detayları
-  title       String            // "Kumaş Tedarik Anlaşması", "Fason Üretim Ortaklığı"
-  description String?           @db.Text
-  terms       Json?             // Anlaşma koşulları: { paymentTerms, deliveryTerms, qualityStandards, etc. }
-
-  // Finansal Bilgiler
-  contractValue     Float?      // Anlaşma değeri
-  currency          String?     @default("USD")
-  paymentTerms      String?     // "NET 30", "NET 60", "Advance Payment"
-
-  // Tarihler
-  startDate         DateTime?
-  endDate           DateTime?
-  renewalDate       DateTime?
-
-  // Performans & İstatistikler
-  totalOrders       Int         @default(0)
-  totalRevenue      Float       @default(0)
-  averageLeadTime   Int?        // Ortalama teslim süresi (gün)
-  qualityScore      Float?      // 1-10 arası kalite skoru
-  onTimeDelivery    Float?      // Zamanında teslimat oranı (%)
-
-  // Notlar ve Dökümanlar
-  notes             String?     @db.Text
-  contractFile      String?     // Sözleşme PDF
-  nda               Boolean     @default(false) // NDA imzalandı mı?
-
-  // Kategori Eşleştirmeleri
-  categoryMappings  SharedCategoryMapping[]
-
-  // İletişim
-  initiatedBy       User?       @relation(fields: [initiatedById], references: [id])
-  initiatedById     Int?
-
-  approvedBy        User?       @relation("PartnershipApprover", fields: [approvedById], references: [id])
-  approvedById      Int?
-
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-
-  @@unique([companyId, partnerId, type])
-  @@index([companyId, status])
-  @@index([partnerId, status])
-  @@index([type, status])
-  @@index([status, startDate])
-  @@map("company_partnerships")
-}
-
-// Markalar Arası Kategori Eşleştirme (Kategori Uyumu)
-model SharedCategoryMapping {
-  id          Int       @id @default(autoincrement())
-
-  // Ortaklık ilişkisi
-  partnership CompanyPartnership @relation(fields: [partnershipId], references: [id], onDelete: Cascade)
-  partnershipId Int
-
-  // Birinci firmanın kategorisi
-  sourceCompany     Company         @relation("SourceCategoryCompany", fields: [sourceCompanyId], references: [id], onDelete: Cascade)
-  sourceCompanyId   Int
-  sourceCategory    CompanyCategory @relation("SourceCategory", fields: [sourceCategoryId], references: [id], onDelete: Cascade)
-  sourceCategoryId  Int
-
-  // İkinci firmanın eşleşen kategorisi
-  targetCompany     Company         @relation("TargetCategoryCompany", fields: [targetCompanyId], references: [id], onDelete: Cascade)
-  targetCompanyId   Int
-  targetCategory    CompanyCategory @relation("TargetCategory", fields: [targetCategoryId], references: [id], onDelete: Cascade)
-  targetCategoryId  Int
-
-  // Eşleştirme Detayları
-  matchScore        Float?          // Otomatik hesaplanan benzerlik skoru (0-100)
-  isManualMapping   Boolean         @default(false) // Manuel eşleştirme mi, otomatik mi?
-  isActive          Boolean         @default(true)
-
-  // Çapraz İşlem Ayarları
-  allowCrossOrders  Boolean         @default(true)  // Bu kategoriler arası sipariş alınabilir mi?
-  priceAdjustment   Float?          @default(0)     // Fiyat ayarlaması (% olarak)
-  notes             String?         @db.Text
-
-  createdBy         User?           @relation(fields: [createdById], references: [id])
-  createdById       Int?
-
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-
-  @@unique([sourceCategoryId, targetCategoryId])
-  @@index([partnershipId])
-  @@index([sourceCompanyId])
-  @@index([targetCompanyId])
-  @@index([isActive])
-  @@map("shared_category_mappings")
-}
-
-// ========================================
-// ADMIN ANALYTICS & COMPARISON SYSTEM
-// ========================================
-
-enum ReportType {
-  COMPANY_COMPARISON    // Firma karşılaştırma raporu
-  PERFORMANCE           // Performans raporu
-  FINANCIAL             // Finansal rapor
-  QUALITY               // Kalite raporu
-  MARKET_ANALYSIS       // Pazar analizi
-  TREND_ANALYSIS        // Trend analizi
-  CUSTOM                // Özel rapor
-}
-
-enum ReportPeriod {
-  DAILY
-  WEEKLY
-  MONTHLY
-  QUARTERLY
-  YEARLY
-  CUSTOM
-}
-
-// Admin Raporlama ve Analiz Sistemi
-model AdminReport {
-  id            Int          @id @default(autoincrement())
-
-  type          ReportType
-  period        ReportPeriod
-  title         String
-  description   String?      @db.Text
-
-  // Tarih Aralığı
-  startDate     DateTime
-  endDate       DateTime
-
-  // İlgili Firmalar
-  companies     Json         // Array of company IDs: [1, 2, 3, ...]
-
-  // Rapor Verileri
-  metrics       Json         // { totalOrders, totalRevenue, avgLeadTime, qualityScore, etc. }
-  charts        Json?        // Grafik verileri
-  summary       String?      @db.Text
-  insights      String?      @db.Text // AI-powered insights
-
-  // Kıyaslama Verileri
-  comparisons   Json?        // Firma kıyaslama verileri
-  rankings      Json?        // Sıralama verileri
-  benchmarks    Json?        // Sektör ortalamaları
-
-  // Dosya
-  reportFile    String?      // PDF/Excel export
-
-  // Oluşturan
-  createdBy     User         @relation(fields: [createdById], references: [id])
-  createdById   Int
-
-  // Paylaşım
-  isPublic      Boolean      @default(false)
-  sharedWith    Json?        // User/Company IDs ile paylaşım
-
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  @@index([type, period])
-  @@index([createdById])
-  @@index([startDate, endDate])
-  @@index([createdAt])
-  @@map("admin_reports")
-}
-
-// Firma Performans Metrikleri (Real-time tracking)
-model CompanyMetrics {
-  id            Int      @id @default(autoincrement())
-
-  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId     Int
-
-  // Tarih
-  date          DateTime @default(now())
-  period        ReportPeriod @default(DAILY)
-
-  // Sipariş Metrikleri
-  totalOrders          Int      @default(0)
-  completedOrders      Int      @default(0)
-  cancelledOrders      Int      @default(0)
-  pendingOrders        Int      @default(0)
-  orderCompletionRate  Float?   // %
-
-  // Finansal Metrikleri
-  totalRevenue         Float    @default(0)
-  averageOrderValue    Float?
-  totalProfit          Float?
-  profitMargin         Float?   // %
-
-  // Üretim Metrikleri
-  totalSamples         Int      @default(0)
-  approvedSamples      Int      @default(0)
-  sampleApprovalRate   Float?   // %
-  averageLeadTime      Int?     // gün
-  onTimeDeliveryRate   Float?   // %
-
-  // Kalite Metrikleri
-  qualityScore         Float?   // 1-10
-  defectRate           Float?   // %
-  returnRate           Float?   // %
-  customerSatisfaction Float?   // 1-10
-
-  // Müşteri/Partner Metrikleri
-  activeCustomers      Int      @default(0)
-  newCustomers         Int      @default(0)
-  retainedCustomers    Int      @default(0)
-  customerRetentionRate Float?  // %
-
-  // Verimlilik Metrikleri
-  capacityUtilization  Float?   // %
-  productivityScore    Float?   // 1-10
-  employeeCount        Int?
-
-  // Platform Kullanımı
-  activeUsers          Int      @default(0)
-  loginCount           Int      @default(0)
-  featureUsage         Json?    // { samples: 50, orders: 30, messages: 100 }
-
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  @@unique([companyId, date, period])
-  @@index([companyId, date])
-  @@index([period, date])
-  @@index([date])
-  @@map("company_metrics")
 }
 
 // ========================================

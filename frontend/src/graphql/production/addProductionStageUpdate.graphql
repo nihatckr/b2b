@@ -1,0 +1,73 @@
+mutation mutation_addProductionStageUpdate($delayReason: String, $extraDays: Int, $hasDelay: Boolean!, $notes: String, $photos: String, $productionId: Int!, $stage: String!) {
+  addProductionStageUpdate(
+    delayReason: $delayReason
+    extraDays: $extraDays
+    hasDelay: $hasDelay
+    notes: $notes
+    photos: $photos
+    productionId: $productionId
+    stage: $stage
+  ) {
+    actualEndDate
+    actualStartDate
+    createdAt
+    delayReason
+    estimatedDays
+    extraDays
+    id
+    isRevision
+    notes
+    photos
+    production {
+      actualEndDate
+      actualStartDate
+      canStartProduction
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      currentStage
+      customerNote
+      customerRejectionReason
+      estimatedEndDate
+      estimatedStartDate
+      id
+      notes
+      notifications {
+        id
+        __typename
+      }
+      order {
+        id
+        __typename
+      }
+      orderId
+      overallStatus
+      planApprovedAt
+      planRejectedAt
+      planSentAt
+      planStatus
+      productionStartDate
+      progress
+      revisionCount
+      sample {
+        id
+        __typename
+      }
+      sampleId
+      stageUpdates {
+        id
+        __typename
+      }
+      updatedAt
+      __typename
+    }
+    productionId
+    stage
+    status
+    updatedAt
+    __typename
+  }
+}

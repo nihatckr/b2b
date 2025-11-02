@@ -1,38 +1,112 @@
-import { DynamicTaskHelper } from "../../utils/dynamicTaskHelper";
+/**
+ * Order Mutations - PRODUCTION READY
+ *
+ * Handle order creation, updates, deletion, and negotiation workflows
+ * Full sanitization, validation, structured logging, Turkish errors
+ */
+
 import { publishNotification } from "../../utils/publishHelpers";
 import builder from "../builder";
+import { OrderStatus } from "../enums";
+
+// Error handling utilities
+import { handleError, requireAuth, ValidationError } from "../../utils/errors";
+
+// Logging utilities
+import { createTimer, logInfo } from "../../utils/logger";
+
+// Sanitization utilities
+import {
+  sanitizeFloat,
+  sanitizeInt,
+  sanitizeString,
+} from "../../utils/sanitize";
+
+// Validation utilities
+import {
+  validateEnum,
+  validateRange,
+  validateRequired,
+  validateStringLength,
+} from "../../utils/validation";
+
+// Subscription enforcement
+import { canPerformAction } from "../../utils/subscriptionHelper";
+
+// Permission utilities
+import {
+  PermissionGuide,
+  requirePermission,
+} from "../../utils/permissionHelpers";
+
+// ========================================
+// ORDER MUTATIONS
+// 5 mutations: createOrder, updateOrder, deleteOrder, customerCounterOffer, manufacturerAcceptCustomerQuote
+// ========================================
+
+// Valid Order Statuses (from schema - 15 statuses)
+const ValidOrderStatuses = [
+  // AŞAMA 1: Sipariş Talebi ve İnceleme
+  "PENDING",
+  "REVIEWED",
+  // AŞAMA 2: Fiyat ve Süre Pazarlığı
+  "QUOTE_SENT",
+  "CUSTOMER_QUOTE_SENT",
+  "MANUFACTURER_REVIEWING_QUOTE",
+  "QUOTE_AGREED",
+  // AŞAMA 3: Sipariş Onayı
+  "CONFIRMED",
+  "DEPOSIT_PENDING",
+  "DEPOSIT_RECEIVED",
+  // AŞAMA 4: Üretim Planlaması
+  "PRODUCTION_PLAN_PREPARING",
+  "PRODUCTION_PLAN_SENT",
+  "PRODUCTION_PLAN_APPROVED",
+  "PRODUCTION_PLAN_REJECTED",
+  // AŞAMA 5: Üretim Süreci
+  "IN_PRODUCTION",
+  "PRODUCTION_COMPLETE",
+  "QUALITY_CHECK",
+  "QUALITY_APPROVED",
+  "QUALITY_FAILED",
+  // AŞAMA 6: Sevkiyat ve Teslimat
+  "READY_TO_SHIP",
+  "BALANCE_PENDING",
+  "BALANCE_RECEIVED",
+  "SHIPPED",
+  "IN_TRANSIT",
+  "DELIVERED",
+  // AŞAMA 7: Red ve İptal Durumları
+  "REJECTED",
+  "REJECTED_BY_CUSTOMER",
+  "REJECTED_BY_MANUFACTURER",
+  "CANCELLED",
+  "ON_HOLD",
+];
 
 // Create Order input type
 const CreateOrderInput = builder.inputType("CreateOrderInput", {
   fields: (t) => ({
+    // Schema: Int (Required - Collection ID)
     collectionId: t.id({ required: true }),
+    // Schema: Int (Required - Order quantity)
     quantity: t.int({ required: true }),
+    // Schema: DateTime? (Optional - Target deadline as ISO string)
     targetDeadline: t.string({ required: false }),
+    // Schema: Float? (Optional - Target unit price)
     targetPrice: t.float({ required: false }),
+    // Schema: String? (Optional - Currency code)
     currency: t.string({ required: false }),
+    // Schema: String? @db.Text (Optional - Order notes)
     notes: t.string({ required: false }),
   }),
 });
 
-const ValidOrderStatuses = [
-  "PENDING",
-  "REVIEWED",
-  "QUOTE_SENT",
-  "CUSTOMER_QUOTE_SENT",
-  "MANUFACTURER_REVIEWING_QUOTE",
-  "CONFIRMED",
-  "REJECTED",
-  "REJECTED_BY_CUSTOMER",
-  "REJECTED_BY_MANUFACTURER",
-  "IN_PRODUCTION",
-  "PRODUCTION_COMPLETE",
-  "QUALITY_CHECK",
-  "SHIPPED",
-  "DELIVERED",
-  "CANCELLED",
-];
-
-// Create order with input type (user only)
+/**
+ * Mutation: createOrder
+ *
+ * Create new order from collection (BUYER companies only)
+ */
 builder.mutationField("createOrder", (t) =>
   t.prismaField({
     type: "Order",
@@ -40,189 +114,276 @@ builder.mutationField("createOrder", (t) =>
       input: t.arg({ type: CreateOrderInput, required: true }),
     },
     authScopes: { user: true },
-    resolve: async (query, _, { input }, { user, prisma }) => {
-      if (!user) {
-        throw new Error("Authentication required");
-      }
+    resolve: async (query, _, { input }, context) => {
+      const timer = createTimer("createOrder");
 
-      // Get user's company information from database
-      const userWithCompany = await prisma.user.findUnique({
-        where: { id: user.id },
-        include: { company: true },
-      });
+      try {
+        // ========================================
+        // AUTHENTICATION & AUTHORIZATION
+        // ========================================
+        requireAuth(context.user?.id);
+        const userId = context.user!.id;
 
-      if (!userWithCompany) {
-        throw new Error("User not found");
-      }
+        // ✅ Permission check: ORDER_CREATE
+        requirePermission(context, PermissionGuide.CREATE_ORDERS);
 
-      // Debug user and company info
-      console.log("User info:", {
-        id: user.id,
-        role: user.role,
-        companyId: user.companyId,
-        company: userWithCompany.company,
-      });
+        // ========================================
+        // SANITIZATION
+        // ========================================
+        const collectionId = sanitizeInt(Number(input.collectionId));
+        const quantity = sanitizeInt(input.quantity);
+        const targetPrice = input.targetPrice
+          ? sanitizeFloat(input.targetPrice)
+          : undefined;
+        const currency = input.currency
+          ? sanitizeString(input.currency)
+          : "USD";
+        const notes = input.notes ? sanitizeString(input.notes) : undefined;
+        const targetDeadline = input.targetDeadline
+          ? sanitizeString(input.targetDeadline)
+          : undefined;
 
-      // Verify user is a buyer - only check company type
-      const isBuyer = userWithCompany.company?.type === "BUYER";
+        // ========================================
+        // VALIDATION
+        // ========================================
+        validateRequired(collectionId, "Koleksiyon ID");
+        validateRequired(quantity, "Miktar");
 
-      if (!isBuyer) {
-        throw new Error(
-          `Only buyers can create orders. Your company type: ${userWithCompany.company?.type} (expected: BUYER)`
-        );
-      }
+        // Range validations
+        validateRange(quantity!, "Miktar", 1, 1000000);
 
-      // Get collection details
-      const collection = await prisma.collection.findUnique({
-        where: { id: Number(input.collectionId) },
-        include: {
-          company: true,
-        },
-      });
+        if (targetPrice) {
+          validateRange(targetPrice, "Hedef fiyat", 0.01, 1000000);
+        }
 
-      if (!collection) {
-        throw new Error("Collection not found");
-      }
+        // String length validations
+        if (currency && currency !== "USD") {
+          validateStringLength(currency, "Para birimi", 3, 3); // ISO 4217: USD, EUR, TRY
+        }
 
-      // Debug collection info
-      console.log("Collection info:", {
-        id: collection.id,
-        name: collection.name,
-        companyId: collection.companyId,
-        company: collection.company,
-        ownerId: collection.company?.ownerId,
-      });
+        if (notes) {
+          validateStringLength(notes, "Notlar", 1, 5000);
+        }
 
-      // Find manufacturer (company owner or first employee)
-      let manufacturerId = collection.company?.ownerId;
+        // ========================================
+        // EXISTENCE CHECK - USER & COMPANY
+        // ========================================
+        const userWithCompany = await context.prisma.user.findUnique({
+          where: { id: userId },
+          include: { company: true },
+        });
 
-      if (!manufacturerId) {
-        // If company has no owner, find the first employee with COMPANY_OWNER role
-        const companyOwner = await prisma.user.findFirst({
-          where: {
-            companyId: collection.companyId,
-            role: "COMPANY_OWNER",
-            isActive: true,
+        if (!userWithCompany) {
+          throw new ValidationError("Kullanıcı bulunamadı");
+        }
+
+        // ========================================
+        // PERMISSION CHECK - BUYER ONLY
+        // ========================================
+        const isBuyer =
+          userWithCompany.company?.type === "BUYER" ||
+          userWithCompany.company?.type === "BOTH";
+
+        if (!isBuyer) {
+          throw new ValidationError(
+            `Sadece alıcı firmalar sipariş oluşturabilir. Firma tipi: ${userWithCompany.company?.type} (beklenen: BUYER)`
+          );
+        }
+
+        // ========================================
+        // SUBSCRIPTION LIMIT CHECK
+        // ========================================
+        if (userWithCompany.companyId) {
+          const limitCheck = await canPerformAction(
+            context.prisma,
+            userWithCompany.companyId,
+            "create_order"
+          );
+
+          if (!limitCheck.allowed) {
+            throw new ValidationError(
+              limitCheck.reason || "Sipariş oluşturma limiti aşıldı"
+            );
+          }
+        }
+
+        // ========================================
+        // EXISTENCE CHECK - COLLECTION
+        // ========================================
+        const collection = await context.prisma.collection.findUnique({
+          where: { id: collectionId! },
+          include: {
+            company: true,
           },
         });
 
-        if (companyOwner) {
-          manufacturerId = companyOwner.id;
-        } else {
-          // Fallback: use first active employee
-          const firstEmployee = await prisma.user.findFirst({
+        if (!collection) {
+          throw new ValidationError("Koleksiyon bulunamadı");
+        }
+
+        // ========================================
+        // FIND MANUFACTURER USER
+        // ========================================
+        let manufacturerId = collection.company?.ownerId;
+
+        if (!manufacturerId) {
+          // If company has no owner, find the first employee with COMPANY_OWNER role
+          const companyOwner = await context.prisma.user.findFirst({
             where: {
               companyId: collection.companyId,
+              role: "COMPANY_OWNER",
               isActive: true,
             },
           });
 
-          if (!firstEmployee) {
-            throw new Error("Collection company has no active users");
+          if (companyOwner) {
+            manufacturerId = companyOwner.id;
+          } else {
+            // Fallback: use first active employee
+            const firstEmployee = await context.prisma.user.findFirst({
+              where: {
+                companyId: collection.companyId,
+                isActive: true,
+              },
+            });
+
+            if (!firstEmployee) {
+              throw new ValidationError(
+                "Koleksiyon firmasında aktif kullanıcı bulunamadı"
+              );
+            }
+            manufacturerId = firstEmployee.id;
           }
-          manufacturerId = firstEmployee.id;
         }
+
+        // ========================================
+        // BUSINESS LOGIC - GENERATE ORDER NUMBER
+        // ========================================
+        const orderNumber = `ORD-${Date.now()}-${collection.id}`;
+
+        // ========================================
+        // CREATE ORDER
+        // ========================================
+        const order = await context.prisma.order.create({
+          ...query,
+          data: {
+            orderNumber,
+            collectionId: collectionId!,
+            customerId: userId,
+            manufactureId: manufacturerId,
+            companyId: userWithCompany.companyId ?? null,
+            quantity: quantity!,
+            unitPrice: targetPrice || 0,
+            totalPrice: (targetPrice || 0) * quantity!,
+            customerQuotedPrice: targetPrice ?? null,
+            customerQuoteNote: notes ?? null,
+            customerQuoteSentAt: new Date(),
+            status: "CUSTOMER_QUOTE_SENT",
+            currency: currency!,
+            deadline: targetDeadline ? new Date(targetDeadline) : null,
+            // Cache collection data for fast list view
+            collectionName: collection.name,
+            collectionModelCode: collection.modelCode,
+            orderType: "DIRECT",
+          },
+        });
+
+        // ========================================
+        // CREATE INITIAL NEGOTIATION
+        // ========================================
+        await context.prisma.orderNegotiation.create({
+          data: {
+            orderId: order.id,
+            senderId: userId,
+            senderRole: "CUSTOMER",
+            unitPrice: targetPrice || 0,
+            productionDays: 30, // Default, üretici güncelleyecek
+            quantity: quantity!,
+            currency: currency!,
+            message: notes || "İlk sipariş teklifi",
+            status: "PENDING",
+          },
+        });
+
+        // ========================================
+        // REAL-TIME NOTIFICATIONS
+        // ========================================
+        // 1. Müşteriye: Siparişiniz oluşturuldu
+        try {
+          const customerNotification = await context.prisma.notification.create(
+            {
+              data: {
+                userId: userId,
+                type: "ORDER",
+                title: "✅ Sipariş Talebiniz Oluşturuldu",
+                message: `Sipariş talebiniz (${order.orderNumber}) başarıyla oluşturuldu. Üreticinin teklifini bekliyorsunuz.`,
+                orderId: order.id,
+                link: `/dashboard/orders/${order.id}`,
+              },
+            }
+          );
+          await publishNotification(customerNotification);
+        } catch (notificationError) {
+          logInfo("Müşteri bildirimi başarısız", {
+            orderId: order.id,
+            userId,
+          });
+        }
+
+        // 2. Üreticiye: Yeni sipariş talebi aldınız
+        try {
+          const manufacturerNotification =
+            await context.prisma.notification.create({
+              data: {
+                userId: manufacturerId,
+                type: "ORDER",
+                title: "🆕 Yeni Sipariş Talebi Aldınız",
+                message: `${
+                  userWithCompany.name || "Müşteri"
+                } firmasından yeni sipariş talebi! Sipariş No: ${
+                  order.orderNumber
+                }, Adet: ${quantity}. Lütfen teklif verin.`,
+                orderId: order.id,
+                link: `/dashboard/orders/${order.id}`,
+              },
+            });
+          await publishNotification(manufacturerNotification);
+        } catch (notificationError) {
+          logInfo("Üretici bildirimi başarısız", {
+            orderId: order.id,
+            manufacturerId,
+          });
+        }
+
+        // ========================================
+        // STRUCTURED LOGGING
+        // ========================================
+        logInfo("Sipariş oluşturuldu", {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          metadata: timer.end(),
+          userId,
+          manufacturerId,
+          collectionId: collectionId!,
+          quantity: quantity!,
+          targetPrice: targetPrice || 0,
+          currency: currency!,
+        });
+
+        return order;
+      } catch (error) {
+        handleError(error);
+        throw error;
       }
-
-      console.log("Manufacturer ID found:", manufacturerId);
-
-      // Generate unique order number
-      const orderNumber = `ORD-${Date.now()}-${collection.id}`;
-
-      // Create the order with CUSTOMER_QUOTE_SENT status (müşteri teklif gönderdi)
-      const order = await prisma.order.create({
-        data: {
-          orderNumber,
-          collectionId: collection.id,
-          customerId: user.id,
-          manufactureId: manufacturerId,
-          companyId: user.companyId ?? null,
-          quantity: input.quantity,
-          unitPrice: input.targetPrice || 0,
-          totalPrice: (input.targetPrice || 0) * input.quantity,
-          customerQuotedPrice: input.targetPrice ?? null,
-          customerQuoteNote: input.notes ?? null,
-          customerQuoteSentAt: new Date(),
-          status: "CUSTOMER_QUOTE_SENT", // Müşteri teklif gönderdi
-          negotiationStatus: "OPEN", // Pazarlık açık
-          currency: input.currency || "USD",
-          deadline: input.targetDeadline ? new Date(input.targetDeadline) : null,
-        },
-        include: {
-          collection: true,
-          customer: true,
-          manufacture: true,
-          company: true,
-        },
-      });
-
-      // Create initial negotiation record (müşterinin ilk teklifi)
-      await prisma.orderNegotiation.create({
-        data: {
-          orderId: order.id,
-          senderId: user.id,
-          senderRole: "CUSTOMER",
-          unitPrice: input.targetPrice || 0,
-          productionDays: 30, // Default, üretici güncelleyecek
-          quantity: input.quantity,
-          currency: input.currency || "USD",
-          message: input.notes || "İlk sipariş teklifi",
-          status: "PENDING",
-        },
-      });
-
-      // Initialize Dynamic Task Helper
-      const taskHelper = new DynamicTaskHelper(prisma);
-
-      // Create tasks for CUSTOMER_QUOTE_SENT status
-      await taskHelper.createTasksForOrderStatus(
-        order.id,
-        "CUSTOMER_QUOTE_SENT", // Müşteri teklif gönderdi
-        user.id, // customer
-        manufacturerId! // manufacturer
-      );
-
-      // Create notifications
-      // 1. Müşteriye: Siparişiniz oluşturuldu (bilgilendirme)
-      const customerNotification = await prisma.notification.create({
-        data: {
-          userId: user.id,
-          type: "ORDER",
-          title: "✅ Sipariş Talebiniz Oluşturuldu",
-          message: `Sipariş talebiniz (${order.orderNumber}) başarıyla oluşturuldu. Üreticinin teklifini bekliyorsunuz.`,
-          orderId: order.id,
-          link: `/dashboard/orders/${order.id}`,
-        },
-      });
-
-      // Publish to WebSocket subscribers
-      await publishNotification(customerNotification);
-
-      // 2. Üreticiye: Yeni sipariş talebi aldınız
-      const manufacturerNotification = await prisma.notification.create({
-        data: {
-          userId: manufacturerId!,
-          type: "ORDER",
-          title: "🆕 Yeni Sipariş Talebi Aldınız",
-          message: `${userWithCompany.name} firmasından yeni sipariş talebi! Sipariş No: ${order.orderNumber}, Adet: ${input.quantity}. Lütfen teklif verin.`,
-          orderId: order.id,
-          link: `/dashboard/orders/${order.id}`,
-        },
-      });
-
-      // Publish to WebSocket subscribers
-      await publishNotification(manufacturerNotification);
-
-      console.log(
-        `✅ Order created with negotiation. Notifications sent to customer and manufacturer.`
-      );
-
-      return order;
     },
   })
 );
 
-// Update order (owner or admin)
+/**
+ * Mutation: updateOrder
+ *
+ * Update order details (owner or admin)
+ */
 builder.mutationField("updateOrder", (t) =>
   t.prismaField({
     type: "Order",
@@ -254,137 +415,269 @@ builder.mutationField("updateOrder", (t) =>
     },
     authScopes: { user: true, admin: true },
     resolve: async (query, _root, args, context) => {
-      const order = await context.prisma.order.findUnique({
-        where: { id: args.id },
-      });
+      const timer = createTimer("updateOrder");
 
-      if (!order) throw new Error("Order not found");
-      if (
-        order.customerId !== context.user?.id &&
-        context.user?.role !== "ADMIN"
-      ) {
-        throw new Error("Unauthorized");
-      }
+      try {
+        // ========================================
+        // AUTHENTICATION & AUTHORIZATION
+        // ========================================
+        requireAuth(context.user?.id);
+        const userId = context.user!.id;
 
-      const updateData: any = {};
+        // ✅ Permission check: ORDER_UPDATE
+        requirePermission(context, PermissionGuide.UPDATE_ORDERS);
 
-      // Price & Quantity
-      if (args.quantity !== null && args.quantity !== undefined) {
-        updateData.quantity = args.quantity;
-        if (args.unitPrice !== null && args.unitPrice !== undefined) {
-          updateData.unitPrice = args.unitPrice;
-          updateData.totalPrice = args.quantity * args.unitPrice;
+        // ========================================
+        // SANITIZATION
+        // ========================================
+        const orderId = sanitizeInt(args.id);
+        const quantity = args.quantity ? sanitizeInt(args.quantity) : undefined;
+        const unitPrice = args.unitPrice
+          ? sanitizeFloat(args.unitPrice)
+          : undefined;
+        const status = args.status ? sanitizeString(args.status) : undefined;
+
+        // Customer Quote fields
+        const customerQuotedPrice = args.customerQuotedPrice
+          ? sanitizeFloat(args.customerQuotedPrice)
+          : undefined;
+        const customerQuoteDays = args.customerQuoteDays
+          ? sanitizeInt(args.customerQuoteDays)
+          : undefined;
+        const customerQuoteNote = args.customerQuoteNote
+          ? sanitizeString(args.customerQuoteNote)
+          : undefined;
+
+        // Production fields
+        const productionDays = args.productionDays
+          ? sanitizeInt(args.productionDays)
+          : undefined;
+        const estimatedProductionDate = args.estimatedProductionDate
+          ? sanitizeString(args.estimatedProductionDate)
+          : undefined;
+        const actualProductionStart = args.actualProductionStart
+          ? sanitizeString(args.actualProductionStart)
+          : undefined;
+        const actualProductionEnd = args.actualProductionEnd
+          ? sanitizeString(args.actualProductionEnd)
+          : undefined;
+
+        // Shipping fields
+        const shippingDate = args.shippingDate
+          ? sanitizeString(args.shippingDate)
+          : undefined;
+        const deliveryAddress = args.deliveryAddress
+          ? sanitizeString(args.deliveryAddress)
+          : undefined;
+        const cargoTrackingNumber = args.cargoTrackingNumber
+          ? sanitizeString(args.cargoTrackingNumber)
+          : undefined;
+
+        // Notes
+        const customerNote = args.customerNote
+          ? sanitizeString(args.customerNote)
+          : undefined;
+        const manufacturerResponse = args.manufacturerResponse
+          ? sanitizeString(args.manufacturerResponse)
+          : undefined;
+
+        // ========================================
+        // VALIDATION
+        // ========================================
+        validateRequired(orderId, "Sipariş ID");
+
+        // Range validations
+        if (quantity) {
+          validateRange(quantity, "Miktar", 1, 1000000);
         }
-      } else if (args.unitPrice !== null && args.unitPrice !== undefined) {
-        updateData.unitPrice = args.unitPrice;
-        updateData.totalPrice = order.quantity * args.unitPrice;
-      }
 
-      // Status
-      if (args.status !== null && args.status !== undefined) {
-        if (!ValidOrderStatuses.includes(args.status)) {
-          throw new Error(
-            `Invalid status. Must be one of: ${ValidOrderStatuses.join(", ")}`
+        if (unitPrice) {
+          validateRange(unitPrice, "Birim fiyat", 0.01, 1000000);
+        }
+
+        if (customerQuotedPrice) {
+          validateRange(
+            customerQuotedPrice,
+            "Müşteri teklif fiyatı",
+            0.01,
+            1000000
           );
         }
-        updateData.status = args.status;
+
+        if (customerQuoteDays) {
+          validateRange(customerQuoteDays, "Müşteri teklif günü", 1, 365);
+        }
+
+        if (productionDays) {
+          validateRange(productionDays, "Üretim günü", 1, 365);
+        }
+
+        // Enum validation
+        if (status) {
+          validateEnum(status, "Durum", ValidOrderStatuses);
+        }
+
+        // String length validations
+        if (customerQuoteNote) {
+          validateStringLength(
+            customerQuoteNote,
+            "Müşteri teklif notu",
+            1,
+            5000
+          );
+        }
+
+        if (deliveryAddress) {
+          validateStringLength(deliveryAddress, "Teslimat adresi", 1, 1000);
+        }
+
+        if (cargoTrackingNumber) {
+          validateStringLength(
+            cargoTrackingNumber,
+            "Kargo takip numarası",
+            1,
+            100
+          );
+        }
+
+        if (customerNote) {
+          validateStringLength(customerNote, "Müşteri notu", 1, 5000);
+        }
+
+        if (manufacturerResponse) {
+          validateStringLength(manufacturerResponse, "Üretici yanıtı", 1, 5000);
+        }
+
+        // ========================================
+        // EXISTENCE CHECK
+        // ========================================
+        const order = await context.prisma.order.findUnique({
+          where: { id: orderId! },
+        });
+
+        if (!order) {
+          throw new ValidationError("Sipariş bulunamadı");
+        }
+
+        // ========================================
+        // PERMISSION CHECK
+        // ========================================
+        if (order.customerId !== userId && context.user?.role !== "ADMIN") {
+          throw new ValidationError("Bu siparişi güncelleme yetkiniz yok");
+        }
+
+        // ========================================
+        // BUILD UPDATE DATA
+        // ========================================
+        const updateData: any = {};
+
+        // Price & Quantity (with totalPrice calculation)
+        if (quantity) {
+          updateData.quantity = quantity;
+          if (unitPrice) {
+            updateData.unitPrice = unitPrice;
+            updateData.totalPrice = quantity * unitPrice;
+          }
+        } else if (unitPrice) {
+          updateData.unitPrice = unitPrice;
+          updateData.totalPrice = order.quantity * unitPrice;
+        }
+
+        // Status
+        if (status) {
+          updateData.status = status;
+        }
+
+        // Customer Quote fields
+        if (customerQuotedPrice !== undefined) {
+          updateData.customerQuotedPrice = customerQuotedPrice;
+        }
+        if (customerQuoteDays !== undefined) {
+          updateData.customerQuoteDays = customerQuoteDays;
+        }
+        if (customerQuoteNote !== undefined) {
+          updateData.customerQuoteNote = customerQuoteNote;
+        }
+
+        // Production fields
+        if (productionDays !== undefined) {
+          updateData.productionDays = productionDays;
+        }
+        if (estimatedProductionDate) {
+          updateData.estimatedProductionDate = new Date(
+            estimatedProductionDate
+          );
+        }
+        if (actualProductionStart) {
+          updateData.actualProductionStart = new Date(actualProductionStart);
+        }
+        if (actualProductionEnd) {
+          updateData.actualProductionEnd = new Date(actualProductionEnd);
+        }
+
+        // Shipping fields
+        if (shippingDate) {
+          updateData.shippingDate = new Date(shippingDate);
+        }
+        if (deliveryAddress !== undefined) {
+          updateData.deliveryAddress = deliveryAddress;
+        }
+        if (cargoTrackingNumber !== undefined) {
+          updateData.cargoTrackingNumber = cargoTrackingNumber;
+        }
+
+        // Notes
+        if (customerNote !== undefined) {
+          updateData.customerNote = customerNote;
+        }
+        if (manufacturerResponse !== undefined) {
+          updateData.manufacturerResponse = manufacturerResponse;
+        }
+
+        // ========================================
+        // UPDATE ORDER
+        // ========================================
+        const updatedOrder = await context.prisma.order.update({
+          ...query,
+          where: { id: orderId! },
+          data: updateData,
+        });
+
+        // ========================================
+        // STRUCTURED LOGGING
+        // ========================================
+        if (status && status !== order.status) {
+          logInfo("Sipariş durumu değişti", {
+            orderId: updatedOrder.id,
+            oldStatus: order.status,
+            newStatus: status,
+          });
+        }
+
+        // ========================================
+        // STRUCTURED LOGGING
+        // ========================================
+        logInfo("Sipariş güncellendi", {
+          orderId: updatedOrder.id,
+          updatedFields: Object.keys(updateData),
+          statusChanged: status && status !== order.status,
+          duration: timer.end(),
+        });
+
+        return updatedOrder;
+      } catch (error) {
+        handleError(error);
+        throw error;
       }
-
-      // Customer Quote fields
-      if (
-        args.customerQuotedPrice !== null &&
-        args.customerQuotedPrice !== undefined
-      )
-        updateData.customerQuotedPrice = args.customerQuotedPrice;
-      if (
-        args.customerQuoteDays !== null &&
-        args.customerQuoteDays !== undefined
-      )
-        updateData.customerQuoteDays = args.customerQuoteDays;
-      if (
-        args.customerQuoteNote !== null &&
-        args.customerQuoteNote !== undefined
-      )
-        updateData.customerQuoteNote = args.customerQuoteNote;
-
-      // Production fields
-      if (args.productionDays !== null && args.productionDays !== undefined)
-        updateData.productionDays = args.productionDays;
-      if (
-        args.estimatedProductionDate !== null &&
-        args.estimatedProductionDate !== undefined
-      )
-        updateData.estimatedProductionDate = new Date(
-          args.estimatedProductionDate
-        );
-      if (
-        args.actualProductionStart !== null &&
-        args.actualProductionStart !== undefined
-      )
-        updateData.actualProductionStart = new Date(args.actualProductionStart);
-      if (
-        args.actualProductionEnd !== null &&
-        args.actualProductionEnd !== undefined
-      )
-        updateData.actualProductionEnd = new Date(args.actualProductionEnd);
-
-      // Shipping fields
-      if (args.shippingDate !== null && args.shippingDate !== undefined)
-        updateData.shippingDate = new Date(args.shippingDate);
-      if (args.deliveryAddress !== null && args.deliveryAddress !== undefined)
-        updateData.deliveryAddress = args.deliveryAddress;
-      if (
-        args.cargoTrackingNumber !== null &&
-        args.cargoTrackingNumber !== undefined
-      )
-        updateData.cargoTrackingNumber = args.cargoTrackingNumber;
-
-      // Notes
-      if (args.customerNote !== null && args.customerNote !== undefined)
-        updateData.customerNote = args.customerNote;
-      if (
-        args.manufacturerResponse !== null &&
-        args.manufacturerResponse !== undefined
-      )
-        updateData.manufacturerResponse = args.manufacturerResponse;
-
-      const updatedOrder = await context.prisma.order.update({
-        ...query,
-        where: { id: args.id },
-        data: updateData,
-      });
-
-      // ✅ Create tasks if status changed
-      if (
-        args.status !== null &&
-        args.status !== undefined &&
-        args.status !== order.status
-      ) {
-        console.log(
-          `📋 Order status changed: ${order.status} → ${args.status}`
-        );
-
-        const dynamicTaskHelper = new DynamicTaskHelper(context.prisma);
-
-        // Old tasks are auto-completed in createTasksForOrderStatus
-        await dynamicTaskHelper.createTasksForOrderStatus(
-          updatedOrder.id,
-          args.status,
-          updatedOrder.customerId,
-          updatedOrder.manufactureId
-        );
-
-        console.log(
-          `✅ Tasks created for order ${updatedOrder.orderNumber} - Status: ${args.status}`
-        );
-      }
-
-      return updatedOrder;
     },
   })
 );
 
-// Delete order (owner or admin)
+/**
+ * Mutation: deleteOrder
+ *
+ * Delete order (owner or admin)
+ */
 builder.mutationField("deleteOrder", (t) =>
   t.field({
     type: "Boolean",
@@ -393,27 +686,77 @@ builder.mutationField("deleteOrder", (t) =>
     },
     authScopes: { user: true, admin: true },
     resolve: async (_root, args, context) => {
-      const order = await context.prisma.order.findUnique({
-        where: { id: args.id },
-      });
+      const timer = createTimer("deleteOrder");
 
-      if (!order) throw new Error("Order not found");
-      if (
-        order.customerId !== context.user?.id &&
-        context.user?.role !== "ADMIN"
-      ) {
-        throw new Error("Unauthorized");
+      try {
+        // ========================================
+        // AUTHENTICATION & AUTHORIZATION
+        // ========================================
+        requireAuth(context.user?.id);
+        const userId = context.user!.id;
+
+        // ✅ Permission check: ORDER_DELETE
+        requirePermission(context, PermissionGuide.DELETE_ORDERS);
+
+        // ========================================
+        // SANITIZATION
+        // ========================================
+        const orderId = sanitizeInt(args.id);
+
+        // ========================================
+        // VALIDATION
+        // ========================================
+        validateRequired(orderId, "Sipariş ID");
+
+        // ========================================
+        // EXISTENCE CHECK
+        // ========================================
+        const order = await context.prisma.order.findUnique({
+          where: { id: orderId! },
+        });
+
+        if (!order) {
+          throw new ValidationError("Sipariş bulunamadı");
+        }
+
+        // ========================================
+        // PERMISSION CHECK
+        // ========================================
+        if (order.customerId !== userId && context.user?.role !== "ADMIN") {
+          throw new ValidationError("Bu siparişi silme yetkiniz yok");
+        }
+
+        // ========================================
+        // DELETE ORDER (CASCADE)
+        // ========================================
+        await context.prisma.order.delete({
+          where: { id: orderId! },
+        });
+
+        // ========================================
+        // STRUCTURED LOGGING
+        // ========================================
+        logInfo("Sipariş silindi", {
+          metadata: timer.end(),
+          orderId: orderId!,
+          orderNumber: order.orderNumber,
+          userId,
+        });
+
+        return true;
+      } catch (error) {
+        handleError(error);
+        throw error;
       }
-
-      await context.prisma.order.delete({
-        where: { id: args.id },
-      });
-      return true;
     },
   })
 );
 
-// Customer Counter Offer
+/**
+ * Mutation: customerCounterOffer
+ *
+ * Customer sends counter offer to manufacturer's quote
+ */
 builder.mutationField("customerCounterOffer", (t) =>
   t.prismaField({
     type: "Order",
@@ -425,81 +768,160 @@ builder.mutationField("customerCounterOffer", (t) =>
     },
     authScopes: { user: true },
     resolve: async (query, _root, args, context) => {
-      const user = context.user!;
+      const timer = createTimer("customerCounterOffer");
 
-      // Get order
-      const order = await context.prisma.order.findUnique({
-        where: { id: args.orderId },
-        include: {
-          customer: true,
-          manufacture: true,
-        },
-      });
+      try {
+        // ========================================
+        // AUTHENTICATION & AUTHORIZATION
+        // ========================================
+        requireAuth(context.user?.id);
+        const userId = context.user!.id;
 
-      if (!order) throw new Error("Order not found");
+        // ========================================
+        // SANITIZATION
+        // ========================================
+        const orderId = sanitizeInt(args.orderId);
+        const quotedPrice = sanitizeFloat(args.quotedPrice);
+        const quoteDays = sanitizeInt(args.quoteDays);
+        const quoteNote = args.quoteNote
+          ? sanitizeString(args.quoteNote)
+          : undefined;
 
-      // Only customer can send counter offer
-      if (order.customerId !== user.id) {
-        throw new Error("Only the customer can send a counter offer");
-      }
+        // ========================================
+        // VALIDATION
+        // ========================================
+        validateRequired(orderId, "Sipariş ID");
+        validateRequired(quotedPrice, "Teklif fiyatı");
+        validateRequired(quoteDays, "Teklif günü");
 
-      // Order must be in QUOTE_SENT status
-      if (order.status !== "QUOTE_SENT") {
-        throw new Error(
-          "Counter offer can only be sent when manufacturer has sent a quote"
-        );
-      }
+        // Range validations
+        validateRange(quotedPrice!, "Teklif fiyatı", 0.01, 1000000);
+        validateRange(quoteDays!, "Teklif günü", 1, 365);
 
-      // Update order with customer's counter offer
-      const updatedOrder = await context.prisma.order.update({
-        ...query,
-        where: { id: args.orderId },
-        data: {
-          customerQuotedPrice: args.quotedPrice,
-          customerQuoteDays: args.quoteDays,
-          customerQuoteNote: args.quoteNote || null,
-          status: "CUSTOMER_QUOTE_SENT", // Using existing status for negotiation
-        },
-      });
-
-      // Notification to manufacturer
-      const manufacturerNotification = await context.prisma.notification.create(
-        {
-          data: {
-            userId: order.manufactureId,
-            type: "ORDER",
-            title: "💬 Karşı Teklif Aldınız",
-            message: `${order.customer?.name || "Müşteri"} karşı teklif gönderdi. Sipariş No: ${order.orderNumber}. Teklif: $${args.quotedPrice} - ${args.quoteDays} gün`,
-            orderId: order.id,
-            link: `/dashboard/orders/${order.id}`,
-          },
+        // String length validation
+        if (quoteNote) {
+          validateStringLength(quoteNote, "Teklif notu", 1, 5000);
         }
-      );
 
-      await publishNotification(manufacturerNotification);
+        // ========================================
+        // EXISTENCE CHECK
+        // ========================================
+        const order = await context.prisma.order.findUnique({
+          where: { id: orderId! },
+          include: {
+            customer: true,
+            manufacture: true,
+          },
+        });
 
-      // Notification to customer (confirmation)
-      const customerNotification = await context.prisma.notification.create({
-        data: {
-          userId: user.id,
-          type: "ORDER",
-          title: "✅ Karşı Teklifiniz Gönderildi",
-          message: `Karşı teklifiniz (${order.orderNumber}) üreticiye iletildi. Yanıt bekleniyor.`,
+        if (!order) {
+          throw new ValidationError("Sipariş bulunamadı");
+        }
+
+        // ========================================
+        // PERMISSION CHECK
+        // ========================================
+        if (order.customerId !== userId) {
+          throw new ValidationError("Sadece müşteri karşı teklif gönderebilir");
+        }
+
+        // Status validation
+        if (order.status !== "QUOTE_SENT") {
+          throw new ValidationError(
+            "Karşı teklif sadece üretici teklif gönderdiğinde gönderilebilir (QUOTE_SENT)"
+          );
+        }
+
+        // ========================================
+        // UPDATE ORDER
+        // ========================================
+        const updatedOrder = await context.prisma.order.update({
+          ...query,
+          where: { id: orderId! },
+          data: {
+            customerQuotedPrice: quotedPrice!,
+            customerQuoteDays: quoteDays!,
+            customerQuoteNote: quoteNote || null,
+            status: "CUSTOMER_QUOTE_SENT",
+          },
+        });
+
+        // ========================================
+        // REAL-TIME NOTIFICATIONS
+        // ========================================
+        // 1. Üreticiye: Karşı teklif aldınız
+        try {
+          const manufacturerNotification =
+            await context.prisma.notification.create({
+              data: {
+                userId: order.manufactureId,
+                type: "ORDER",
+                title: "💬 Karşı Teklif Aldınız",
+                message: `${
+                  order.customer?.name || "Müşteri"
+                } karşı teklif gönderdi. Sipariş No: ${
+                  order.orderNumber
+                }. Teklif: $${quotedPrice} - ${quoteDays} gün`,
+                orderId: order.id,
+                link: `/dashboard/orders/${order.id}`,
+              },
+            });
+          await publishNotification(manufacturerNotification);
+        } catch (notificationError) {
+          logInfo("Üretici bildirimi başarısız", {
+            orderId: order.id,
+            manufacturerId: order.manufactureId,
+          });
+        }
+
+        // 2. Müşteriye: Karşı teklifiniz gönderildi
+        try {
+          const customerNotification = await context.prisma.notification.create(
+            {
+              data: {
+                userId: userId,
+                type: "ORDER",
+                title: "✅ Karşı Teklifiniz Gönderildi",
+                message: `Karşı teklifiniz (${order.orderNumber}) üreticiye iletildi. Yanıt bekleniyor.`,
+                orderId: order.id,
+                link: `/dashboard/orders/${order.id}`,
+              },
+            }
+          );
+          await publishNotification(customerNotification);
+        } catch (notificationError) {
+          logInfo("Müşteri bildirimi başarısız", {
+            orderId: order.id,
+            userId,
+          });
+        }
+
+        // ========================================
+        // STRUCTURED LOGGING
+        // ========================================
+        logInfo("Müşteri karşı teklif gönderdi", {
+          metadata: timer.end(),
           orderId: order.id,
-          link: `/dashboard/orders/${order.id}`,
-        },
-      });
+          orderNumber: order.orderNumber,
+          userId,
+          quotedPrice: quotedPrice!,
+          quoteDays: quoteDays!,
+        });
 
-      await publishNotification(customerNotification);
-
-      console.log(`✅ Customer counter offer sent for order ${order.orderNumber}`);
-
-      return updatedOrder;
+        return updatedOrder;
+      } catch (error) {
+        handleError(error);
+        throw error;
+      }
     },
   })
 );
 
-// Manufacturer Accept Customer Quote
+/**
+ * Mutation: manufacturerAcceptCustomerQuote
+ *
+ * Manufacturer accepts customer's counter offer
+ */
 builder.mutationField("manufacturerAcceptCustomerQuote", (t) =>
   t.prismaField({
     type: "Order",
@@ -508,77 +930,162 @@ builder.mutationField("manufacturerAcceptCustomerQuote", (t) =>
     },
     authScopes: { user: true },
     resolve: async (query, _root, args, context) => {
-      const user = context.user!;
+      const timer = createTimer("manufacturerAcceptCustomerQuote");
 
-      // Get order
-      const order = await context.prisma.order.findUnique({
-        where: { id: args.orderId },
-        include: {
-          customer: true,
-          collection: {
-            include: {
-              company: true,
+      try {
+        // ========================================
+        // AUTHENTICATION & AUTHORIZATION
+        // ========================================
+        requireAuth(context.user?.id);
+        const userId = context.user!.id;
+
+        // ========================================
+        // SANITIZATION
+        // ========================================
+        const orderId = sanitizeInt(args.orderId);
+
+        // ========================================
+        // VALIDATION
+        // ========================================
+        validateRequired(orderId, "Sipariş ID");
+
+        // ========================================
+        // EXISTENCE CHECK
+        // ========================================
+        const order = await context.prisma.order.findUnique({
+          where: { id: orderId! },
+          include: {
+            customer: true,
+            collection: {
+              include: {
+                company: true,
+              },
             },
           },
-        },
-      });
+        });
 
-      if (!order) throw new Error("Order not found");
+        if (!order) {
+          throw new ValidationError("Sipariş bulunamadı");
+        }
 
-      // Only manufacturer can accept
-      if (order.collection.companyId !== user.companyId) {
-        throw new Error("Only the manufacturer can accept this quote");
-      }
+        // ========================================
+        // PERMISSION CHECK
+        // ========================================
+        if (order.collection.companyId !== context.user?.companyId) {
+          throw new ValidationError("Sadece üretici bu teklifi kabul edebilir");
+        }
 
-      // Order must be in CUSTOMER_QUOTE_SENT status
-      if (order.status !== "CUSTOMER_QUOTE_SENT") {
-        throw new Error(
-          "Can only accept when customer has sent their quote"
-        );
-      }
+        // Status validation
+        if (order.status !== "CUSTOMER_QUOTE_SENT") {
+          throw new ValidationError(
+            "Sadece müşteri teklif gönderdiğinde kabul edilebilir (CUSTOMER_QUOTE_SENT)"
+          );
+        }
 
-      // Update order - accept customer's quote
-      const updatedOrder = await context.prisma.order.update({
-        ...query,
-        where: { id: args.orderId },
-        data: {
-          status: "CONFIRMED",
-          unitPrice: order.customerQuotedPrice || order.unitPrice,
-          productionDays: order.customerQuoteDays || order.productionDays,
-        },
-      });
+        // ========================================
+        // UPDATE ORDER - CONFIRM
+        // ========================================
+        const updatedOrder = await context.prisma.order.update({
+          ...query,
+          where: { id: orderId! },
+          data: {
+            status: "CONFIRMED",
+            unitPrice: order.customerQuotedPrice || order.unitPrice,
+            productionDays: order.customerQuoteDays || order.productionDays,
+          },
+        });
 
-      // Notification to customer
-      const customerNotification = await context.prisma.notification.create({
-        data: {
-          userId: order.customerId,
-          type: "ORDER",
-          title: "✅ Teklifiniz Kabul Edildi",
-          message: `${order.collection.company?.name || "Üretici"} teklifinizi kabul etti! Sipariş No: ${order.orderNumber}`,
+        // ========================================
+        // REAL-TIME NOTIFICATIONS
+        // ========================================
+        // 1. Müşteriye: Teklifiniz kabul edildi
+        try {
+          const customerNotification = await context.prisma.notification.create(
+            {
+              data: {
+                userId: order.customerId,
+                type: "ORDER",
+                title: "✅ Teklifiniz Kabul Edildi",
+                message: `${
+                  order.collection.company?.name || "Üretici"
+                } teklifinizi kabul etti! Sipariş No: ${order.orderNumber}`,
+                orderId: order.id,
+                link: `/dashboard/orders/${order.id}`,
+              },
+            }
+          );
+          await publishNotification(customerNotification);
+        } catch (notificationError) {
+          logInfo("Müşteri bildirimi başarısız", {
+            orderId: order.id,
+            customerId: order.customerId,
+          });
+        }
+
+        // 2. Üreticiye: Sipariş onaylandı
+        try {
+          const manufacturerNotification =
+            await context.prisma.notification.create({
+              data: {
+                userId: userId,
+                type: "ORDER",
+                title: "✅ Sipariş Onaylandı",
+                message: `${order.orderNumber} numaralı sipariş onaylandı. Üretim başlatılabilir.`,
+                orderId: order.id,
+                link: `/dashboard/orders/${order.id}`,
+              },
+            });
+          await publishNotification(manufacturerNotification);
+        } catch (notificationError) {
+          logInfo("Üretici bildirimi başarısız", {
+            orderId: order.id,
+            userId,
+          });
+        }
+
+        // ========================================
+        // STRUCTURED LOGGING
+        // ========================================
+        logInfo("Üretici müşteri teklifini kabul etti", {
+          metadata: timer.end(),
           orderId: order.id,
-          link: `/dashboard/orders/${order.id}`,
-        },
-      });
+          orderNumber: order.orderNumber,
+          userId,
+          customerId: order.customerId,
+          finalUnitPrice: updatedOrder.unitPrice,
+          finalProductionDays: updatedOrder.productionDays,
+        });
 
-      await publishNotification(customerNotification);
-
-      // Notification to manufacturer (confirmation)
-      const manufacturerNotification = await context.prisma.notification.create({
-        data: {
-          userId: user.id,
-          type: "ORDER",
-          title: "✅ Sipariş Onaylandı",
-          message: `${order.orderNumber} numaralı sipariş onaylandı. Üretim başlatılabilir.`,
-          orderId: order.id,
-          link: `/dashboard/orders/${order.id}`,
-        },
-      });
-
-      await publishNotification(manufacturerNotification);
-
-      console.log(`✅ Manufacturer accepted customer quote for order ${order.orderNumber}`);
-
-      return updatedOrder;
+        return updatedOrder;
+      } catch (error) {
+        handleError(error);
+        throw error;
+      }
     },
   })
 );
+
+// ========================================
+// BULK OPERATIONS (Admin)
+// ========================================
+
+const BulkOrderInput = builder.inputType("BulkOrderInput", {
+  fields: (t) => ({
+    ids: t.intList({ required: true }),
+  }),
+});
+
+const BulkOrderStatusInput = builder.inputType("BulkOrderStatusInput", {
+  fields: (t) => ({
+    ids: t.intList({ required: true }),
+    status: t.field({ type: OrderStatus, required: true }),
+  }),
+});
+
+// ============================================
+// NOTE: Bulk operations moved to bulkMutation.ts
+// - bulkUpdateOrderStatus
+// - bulkUpdateSampleStatus
+// - bulkDeleteOrders
+// - bulkDeleteSamples
+// ============================================

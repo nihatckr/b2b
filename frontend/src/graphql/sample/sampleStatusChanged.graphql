@@ -1,0 +1,11 @@
+subscription subscription_sampleStatusChanged($sampleId: Int!) {
+  sampleStatusChanged(sampleId: $sampleId) {
+    previousStatus
+    sampleId
+    sampleNumber
+    status
+    updatedAt
+    updatedBy
+    __typename
+  }
+}

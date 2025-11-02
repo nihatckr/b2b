@@ -1,0 +1,9 @@
+mutation mutation_bulkDeleteOrders($orderIds: [Int!]!) {
+  bulkDeleteOrders(orderIds: $orderIds) {
+    errors
+    failedIds
+    success
+    updatedCount
+    __typename
+  }
+}

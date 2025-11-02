@@ -1,0 +1,9 @@
+mutation mutation_bulkUpdateSampleStatus($sampleIds: [Int!]!, $status: SampleStatus!) {
+  bulkUpdateSampleStatus(sampleIds: $sampleIds, status: $status) {
+    errors
+    failedIds
+    success
+    updatedCount
+    __typename
+  }
+}

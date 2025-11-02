@@ -2,7 +2,6 @@
 import {
   CollectionsIncrementViewDocument,
   CollectionsListDocument,
-  CollectionsToggleLikeDocument,
 } from "@/__generated__/graphql";
 import { AddToPOModal } from "@/components/collections/AddToPOModal";
 import { CreateCollectionModal } from "@/components/collections/CreateCollectionModal";
@@ -17,7 +16,6 @@ import {
   Edit3,
   Eye,
   Folder,
-  Heart,
   Plus,
   ShoppingCart,
   Star,
@@ -57,7 +55,6 @@ export default function CollectionsPage() {
     },
   });
 
-  const [, toggleLikeMutation] = useMutation(CollectionsToggleLikeDocument);
   const [, incrementViewMutation] = useMutation(
     CollectionsIncrementViewDocument
   );
@@ -69,28 +66,6 @@ export default function CollectionsPage() {
 
   const nextPage = () => setSkip(skip + take);
   const prevPage = () => setSkip(Math.max(0, skip - take));
-
-  const handleLikeCollection = async (
-    collectionId: string,
-    e: React.MouseEvent
-  ) => {
-    e.stopPropagation();
-    try {
-      // Use useRelayIds hook to decode Global ID safely
-      const numericId = decodeGlobalId(collectionId);
-
-      if (numericId === null) {
-        console.error("Invalid collection ID");
-        return;
-      }
-
-      await toggleLikeMutation({ id: numericId });
-      // Refetch to get updated like count
-      refetchCollections({ requestPolicy: "network-only" });
-    } catch (error) {
-      console.error("Error toggling like:", error);
-    }
-  };
 
   const handleCollectionClick = async (collectionId: string) => {
     try {
@@ -380,13 +355,13 @@ export default function CollectionsPage() {
                           </span>
                         </div>
                       )}
-                      {(collection.targetPrice || collection.price) && (
+                      {collection.targetPrice && (
                         <div>
                           <span className="font-medium text-muted-foreground">
-                            Fiyat:
+                            Hedef Fiyat:
                           </span>
                           <span className="ml-1">
-                            {collection.targetPrice || collection.price}{" "}
+                            {collection.targetPrice}{" "}
                             {collection.currency || "USD"}
                           </span>
                         </div>
@@ -945,15 +920,6 @@ export default function CollectionsPage() {
                         </div>
 
                         {/* Like Button */}
-                        <button
-                          onClick={(e) =>
-                            handleLikeCollection(collection.id, e)
-                          }
-                          className="flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors"
-                        >
-                          <Heart className="h-3 w-3" />
-                          <span>{collection.likesCount || 0}</span>
-                        </button>
                       </div>
 
                       {collection.company && (

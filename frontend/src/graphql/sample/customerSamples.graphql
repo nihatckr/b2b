@@ -1,0 +1,11 @@
+query query_customerSamples($after: String, $before: String, $first: Int, $input: SampleStatusFilterInput, $last: Int) {
+  customerSamples(
+    after: $after
+    before: $before
+    first: $first
+    input: $input
+    last: $last
+  ) {
+    __typename
+  }
+}

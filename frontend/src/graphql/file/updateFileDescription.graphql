@@ -1,0 +1,14 @@
+mutation mutation_updateFileDescription($input: UpdateFileDescriptionInput!) {
+  updateFileDescription(input: $input) {
+    createdAt
+    description
+    encoding
+    filename
+    id
+    mimetype
+    path
+    size
+    updatedAt
+    __typename
+  }
+}

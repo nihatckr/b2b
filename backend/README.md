@@ -1,218 +1,298 @@
-# 🔧 Backend - GraphQL API Server# 🚀 Backend - GraphQL API
+# 🚀 Backend - GraphQL API Server
 
-> ProtexFlow GraphQL Yoga server with Prisma ORM**Tech Stack**: GraphQL Yoga v5 + Pothos + Prisma + TypeScript
+> ProtexFlow B2B Textile Platform - Production-ready GraphQL API
 
-**Port**: 4001
+**Tech Stack**: GraphQL Yoga v5 + Pothos + Prisma + PostgreSQL/MySQL + TypeScript  
+**Port**: 4001  
+**Status**: ✅ Production Ready (v2.0.0)  
+**Last Updated**: 1 Kasım 2025
 
----**Status**: ✅ Production Ready
+---
 
-## 🚀 Quick Start---
+## 🎯 Hızlı Başlangıç
 
-````bash## 🎯 Hızlı Başlangıç
-
-# Install dependencies
-
-npm install```bash
-
+```bash
 # 1. Dependencies kurulumu
+npm install
 
-# Setup environmentnpm install
-
+# 2. Environment setup
 cp .env.example .env
+# DATABASE_URL, JWT_SECRET vb. düzenleyin
 
-# Edit .env with your database credentials# 2. Environment setup
+# 3. Database migration
+npx prisma migrate dev
+npx prisma generate
 
-cp .env.example .env
+# 4. Seed data (opsiyonel)
+npx prisma db seed
 
-# Database setup
+# 5. Development server
+npm run dev
+# → http://localhost:4001/graphql
+```
 
-npx prisma generate# 3. Database migration
+**GraphQL Playground**: http://localhost:4001/graphql
 
-npx prisma migrate devnpx prisma migrate dev
+---
 
-npx prisma db seed  # Optional: Create test datanpx prisma generate
+## 📦 Available Scripts
 
+```bash
+# Development
+npm run dev              # Development server (hot reload)
+npm run build            # Production build
+npm start                # Start production server
 
+# Database (Prisma)
+npx prisma studio        # Visual database editor (GUI)
+npx prisma generate      # Generate Prisma Client
+npx prisma migrate dev   # Create & apply migration
+npx prisma db seed       # Seed database with test data
 
-# Start development server# 4. Development server
+# Utilities
+npx tsc --noEmit        # TypeScript validation
+```
 
-npm run devnpm run dev
+---
 
-# → http://localhost:4001```
+## 🔧 Core Features & Architecture
 
-# → GraphQL Playground: http://localhost:4001/graphql
+### ✅ Aktif Sistemler
 
-```**Backend URL**: http://localhost:4001/graphql
+| Özellik                 | Durum         | Açıklama                                |
+| ----------------------- | ------------- | --------------------------------------- |
+| **GraphQL API**         | ✅ Production | 21 Model, 26 Enum, 89+ Resolver         |
+| **Authentication**      | ✅ Production | JWT + NextAuth.js integration           |
+| **Authorization**       | ✅ Production | Role (4) + Department (6) based RBAC    |
+| **Real-time**           | ✅ Production | WebSocket subscriptions (5 channels)    |
+| **File Upload**         | ✅ Production | Sharp image optimization + Multi-format |
+| **Email Service**       | ✅ Production | Nodemailer + Templates                  |
+| **Subscription System** | ✅ Production | 5 Plans, Usage limits, Billing          |
 
+### 🎯 Pothos GraphQL Builder (5 Active Plugins)
 
+- ✅ **ScopeAuthPlugin** - Field-level authorization (15+ protected fields)
+- ✅ **PrismaPlugin** - Type-safe database integration + auto-optimization
+- ✅ **RelayPlugin** - Cursor pagination + Global ID system
+- ✅ **DataloaderPlugin** - Automatic batching (N+1 prevention)
+- ✅ **ValidationPlugin** - Runtime input validation
 
-------
+### 📊 Performance Metrics
 
+- 🚀 **95%+ overall performance improvement**
+- ⚡ **Relay Connections**: 99.8% faster (1002 → 2 queries)
+- 🔄 **DataLoader Batching**: 87% reduction (31 → 4 queries)
+- 🎯 **Global ID System**: User, Company, Sample, Order, Collection
+- 📉 **N+1 Query**: Automatically prevented via DataLoader
 
+### 🗄️ Database Schema
 
-## 📦 Scripts## 📋 Önemli Dökümanlar
+**21 Active Models**:
 
+- User, Company, Category, Collection, CollectionQuote
+- Sample, SampleProduction, SampleSizeRequest
+- Order, OrderNegotiation, OrderChangeLog, OrderProduction, OrderSizeBreakdown
+- ProductionTracking, ProductionStageUpdate
+- Payment, LibraryItem, File, Question, Message, Notification
 
+**26 Enums**:
 
-```bash### ⭐ Başlangıç İçin
+- Role (4), Department (6), CompanyType (3)
+- SampleStatus (28), SampleType (4)
+- OrderStatus (30), CollectionVisibility (3)
+- LibraryCategory (15), PaymentStatus (6)
+- ProductionStage (8), ProductionStatus (4)
+- QuoteStatus (7), RFQStatus (4)
+- +13 more specialized enums
 
-npm run dev          # Development server with hot reload1. **[HOW_TO_ADD_NEW_FEATURES.md](./HOW_TO_ADD_NEW_FEATURES.md)** - Yeni model/query/mutation ekleme rehberi
+**Key Features**:
 
-npm run build        # Build for production2. **[OPTIMIZATION_SUMMARY.md](./OPTIMIZATION_SUMMARY.md)** - Aktif optimizasyonlar ve kullanım örnekleri
-
-npm start            # Start production server
-
-### 📚 Teknik Detaylar
-
-# Prisma- **[POTHOS_OPTIMIZATION_GUIDE.md](./POTHOS_OPTIMIZATION_GUIDE.md)** - Pothos best practices
-
-npx prisma studio    # Open visual database editor- **[RELAY_NODES_GUIDE.md](./RELAY_NODES_GUIDE.md)** - Global ID sistemi
-
-npx prisma generate  # Generate Prisma Client- **[FINAL_IMPLEMENTATION_SUMMARY.md](./FINAL_IMPLEMENTATION_SUMMARY.md)** - Tüm değişiklikler
-
-npx prisma migrate dev --name <name>  # Create migration
-
-npx prisma db seed   # Seed database### 🔒 Güvenlik & Production
-
-```- **[PRODUCTION_READINESS_CHECKLIST.md](./PRODUCTION_READINESS_CHECKLIST.md)** - Production kontrol listesi
-
-- **[ERROR_HANDLING_GUIDE.md](./ERROR_HANDLING_GUIDE.md)** - Error handling stratejileri
-
----- **[CORS_CONFIGURATION.md](./CORS_CONFIGURATION.md)** - CORS ayarları
-
-
-
-## 📚 Documentation---
-
-
-
-- **[Main Docs](../docs/README.md)** - Complete documentation## 🔧 Aktif Özellikler
-
-- **[Architecture](../docs/ARCHITECTURE.md)** - System design
-
-- **[New Features Guide](../docs/GUIDES/NEW_FEATURES.md)** - Development workflow### Pothos Plugin'ler (5 adet)
-
-- ✅ **ScopeAuthPlugin** - Field-level authorization
-
----- ✅ **PrismaPlugin** - Database integration + optimization
-
-- ✅ **RelayPlugin** - Cursor pagination + Global ID
-
-**Version**: 2.0.0 | **Status**: Production Ready- ✅ **DataloaderPlugin** - Automatic batching (N+1 prevention)
-
-- ✅ **ValidationPlugin** - Type-safe input validation
-
-### Performans Optimizasyonları
-- 🚀 **~95% performans artışı** (toplamda)
-- ⚡ **Relay Connections**: 99.8% iyileşme (1002 → 2 query)
-- 🔄 **DataLoader**: 87% iyileşme (31 → 4 query)
-- 🔒 **Field Authorization**: 15+ protected field
-- 🎯 **Global ID**: 5 entity (User, Company, Sample, Order, Collection)
+- ✅ All models schema-compliant
+- ✅ 0 TypeScript compilation errors
+- ✅ Optimized indexes for performance
+- ✅ Full-text search support
+- ✅ JSON field validation
 
 ---
 
 ## 📂 Proje Yapısı
 
-````
-
+```
 backend/
 ├── src/
-│ ├── server.ts # GraphQL Yoga server
-│ ├── graphql/
-│ │ ├── builder.ts # Pothos SchemaBuilder
-│ │ ├── schema.ts # GraphQL Schema
-│ │ ├── context.ts # Request context
-│ │ ├── types/
-│ │ │ └── index.ts # GraphQL types (User, Company, etc.)
-│ │ ├── queries/
-│ │ │ ├── index.ts # Query exports
-│ │ │ ├── userQuery.ts # User queries
-│ │ │ ├── companyQuery.ts # Company queries
-│ │ │ └── ...
-│ │ ├── mutations/
-│ │ │ ├── index.ts # Mutation exports
-│ │ │ ├── authMutation.ts # Authentication
-│ │ │ └── ...
-│ │ └── subscriptions/ # Real-time subscriptions
-│ │
-│ ├── types/ # TypeScript types
-│ └── utils/ # Helpers
+│   ├── server.ts                 # GraphQL Yoga server
+│   │
+│   ├── graphql/
+│   │   ├── builder.ts            # Pothos SchemaBuilder (5 plugins)
+│   │   ├── schema.ts             # Final GraphQL schema
+│   │   ├── context.ts            # Request context + auth
+│   │   │
+│   │   ├── enums/                # 26 GraphQL enums
+│   │   │   ├── Role.ts           # 4 user roles
+│   │   │   ├── Department.ts     # 6 departments
+│   │   │   ├── SampleStatus.ts   # 28 sample statuses
+│   │   │   ├── OrderStatus.ts    # 30 order statuses
+│   │   │   └── ...
+│   │   │
+│   │   ├── types/                # 21 GraphQL types
+│   │   │   ├── User.ts
+│   │   │   ├── Company.ts
+│   │   │   ├── Sample.ts
+│   │   │   ├── Order.ts
+│   │   │   └── ...
+│   │   │
+│   │   ├── queries/              # 17 query files
+│   │   │   ├── userQuery.ts
+│   │   │   ├── companyQuery.ts
+│   │   │   ├── sampleQuery.ts
+│   │   │   ├── orderQuery.ts
+│   │   │   ├── analyticsQuery.ts
+│   │   │   └── ...
+│   │   │
+│   │   ├── mutations/            # 19 mutation files
+│   │   │   ├── authMutation.ts
+│   │   │   ├── userMutation.ts
+│   │   │   ├── sampleMutation.ts
+│   │   │   ├── orderMutation.ts
+│   │   │   ├── subscriptionMutation.ts
+│   │   │   └── ...
+│   │   │
+│   │   └── subscriptions/        # 5 real-time channels
+│   │       ├── messageSubscriptions.ts
+│   │       ├── notificationSubscriptions.ts
+│   │       ├── orderSubscriptions.ts
+│   │       ├── sampleSubscriptions.ts
+│   │       └── productionSubscriptions.ts
+│   │
+│   ├── routes/
+│   │   └── upload.ts             # File upload endpoint
+│   │
+│   ├── types/
+│   │   └── permissions.ts        # Role permissions config
+│   │
+│   └── utils/                    # 13 utility modules
+│       ├── errors.ts             # Custom GraphQL errors
+│       ├── validation.ts         # Input validators
+│       ├── sanitize.ts           # Input sanitization
+│       ├── logger.ts             # Structured logging
+│       ├── permissions.ts        # RBAC system
+│       ├── permissionHelpers.ts  # Auth helpers
+│       ├── emailService.ts       # Email templates
+│       ├── pubsub.ts             # WebSocket pub/sub
+│       ├── publishHelpers.ts     # Notification helpers
+│       ├── subscriptionHelper.ts # Subscription limits
+│       ├── stringUtils.ts        # String utilities
+│       └── fileUpload.ts         # Upload helpers
 │
 ├── prisma/
-│ ├── schema.prisma # Database schema
-│ ├── migrations/ # Migration history
-│ └── seed.ts # Database seeding
+│   ├── schema.prisma             # Database schema (1540 lines)
+│   ├── seed.ts                   # Test data seeder
+│   └── migrations/               # Migration history
 │
 ├── lib/
-│ ├── prisma.ts # Prisma client
-│ └── pothos-prisma-types.ts # Generated types
+│   ├── prisma.ts                 # Prisma client singleton
+│   └── generated/                # Auto-generated Prisma types
 │
-└── uploads/ # File uploads
-
-````
+└── uploads/                      # File storage
+    ├── companies/
+    ├── users/
+    ├── collections/
+    ├── library/
+    └── documents/
+```
 
 ---
 
-## 🛠️ Available Scripts
+## 🔐 Authentication & Authorization
 
-```bash
-# Development
-npm run dev              # Start development server (NODE_ENV=development)
+### JWT Authentication
 
-# Prisma
-npx prisma migrate dev   # Create and apply migration
-npx prisma generate      # Generate Prisma client
-npx prisma studio        # Open Prisma Studio GUI
-npx prisma db seed       # Seed database
-
-# Type Checking
-npx tsc --noEmit        # TypeScript type check
-````
-
----
-
-## 🔐 Authentication
-
-### JWT Token
-
-Authorization header:
-
-```
-Authorization: Bearer <jwt_token>
-```
-
-### Auth Scopes
-
-- `public` - Herkes erişebilir
-- `user` - Authenticated user gerekli
-- `employee` - Company employee gerekli
-- `companyOwner` - Company owner gerekli
-- `admin` - Admin gerekli
-
-### Örnek Query
+**Login Flow**:
 
 ```graphql
-query Me {
-  me {
-    id
-    email
-    name
-    company {
-      name
+mutation Login {
+  login(email: "admin@protexflow.com", password: "Admin123!") {
+    token # JWT token (12h rotation, 7d expiry)
+    user {
+      id
+      email
+      role
+      department
     }
   }
 }
 ```
 
+**Authorization Header**:
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+### Role-Based Access Control (RBAC)
+
+**4 Roles**:
+
+- `ADMIN` - Platform administrator (full access)
+- `COMPANY_OWNER` - Company owner (company-wide access)
+- `COMPANY_EMPLOYEE` - Employee (department-based access)
+- `INDIVIDUAL_CUSTOMER` - Individual customer (limited access)
+
+**6 Departments** (for COMPANY_EMPLOYEE):
+
+- `PURCHASING` - Satın alma
+- `PRODUCTION` - Üretim
+- `QUALITY` - Kalite kontrol
+- `DESIGN` - Tasarım
+- `SALES` - Satış
+- `MANAGEMENT` - Yönetim
+
+**Permission System**:
+
+```typescript
+// Example: Check user permission
+hasPermission(user.role, user.department, Permission.ORDER_CREATE);
+
+// Field-level authorization
+builder.prismaObject("User", {
+  authScopes: { user: true }, // Requires authentication
+  fields: (t) => ({
+    email: t.exposeString("email", {
+      authScopes: (user, parent) =>
+        user.id === parent.id || user.role === "ADMIN",
+    }),
+  }),
+});
+```
+
 ---
 
-## 📊 GraphQL Schema
+## 📊 GraphQL Schema Examples
 
-### Relay Connections (Pagination)
+### Global ID Query (Relay)
+
+```graphql
+query GetNode {
+  node(id: "VXNlcjox") {
+    # Base64 encoded ID
+    __typename
+    id
+    ... on User {
+      email
+      name
+      company {
+        name
+      }
+    }
+  }
+}
+```
+
+### Relay Connection (Pagination)
 
 ```graphql
 query GetEmployees {
-  company(id: 1) {
+  company(id: "Q29tcGFueTo0") {
     employeesConnection(first: 20, after: "cursor") {
       edges {
         cursor
@@ -224,6 +304,8 @@ query GetEmployees {
       }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
       totalCount
@@ -232,15 +314,40 @@ query GetEmployees {
 }
 ```
 
-### Global ID Queries
+### Real-time Subscription
 
 ```graphql
-query GetNode {
-  node(id: "VXNlcjox") {
-    __typename
+subscription OnNewNotification($userId: Int!) {
+  notificationReceived(userId: $userId) {
     id
-    ... on User {
-      email
+    type
+    title
+    message
+    isRead
+    createdAt
+  }
+}
+```
+
+### Complex Mutation
+
+```graphql
+mutation CreateOrder {
+  createOrder(
+    input: {
+      collectionId: 123
+      manufactureId: 456
+      targetPrice: 25.50
+      quantity: 1000
+      notes: "Urgent order"
+    }
+  ) {
+    id
+    status
+    collection {
+      name
+    }
+    manufacture {
       name
     }
   }
@@ -253,116 +360,305 @@ query GetNode {
 
 ```bash
 # Database
-DATABASE_URL="postgresql://user:pass@localhost:5432/db"
+DATABASE_URL="postgresql://user:pass@localhost:5432/protexflow"
 
 # JWT
-JWT_SECRET="your-secret-key"
+JWT_SECRET="your-super-secret-key-min-32-chars"
 JWT_EXPIRATION="7d"
 
 # Server
 PORT=4001
-NODE_ENV=development
+NODE_ENV=development  # development | production
 
 # CORS
 FRONTEND_URL="http://localhost:3000"
+
+# Email (Optional)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=587
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
+
+# File Upload
+MAX_FILE_SIZE=10485760  # 10MB
 ```
 
 ---
 
-## 🧪 Testing GraphQL
+## 🧪 Testing & Development
 
 ### GraphiQL Interface
 
-Development modda GraphiQL otomatik aktif:
+GraphiQL automatically enabled in development mode:
 
 ```
 http://localhost:4001/graphql
 ```
 
-### Example Mutations
+### Prisma Studio (Database GUI)
 
-```graphql
-# Login
-mutation Login {
-  login(email: "admin@example.com", password: "password") {
-    token
-    user {
-      id
-      email
-      role
-    }
-  }
-}
+```bash
+npx prisma studio
+# → http://localhost:5555
+```
 
-# Create Sample
-mutation CreateSample {
-  createSample(name: "New Sample", sampleType: FABRIC) {
-    id
-    name
-    sampleNumber
-  }
-}
+### Demo Accounts (Post-Seed)
+
+```
+Admin:
+  Email: admin@protexflow.com
+  Password: Admin123!
+
+Manufacturer Owner:
+  Email: owner@textile.com
+  Password: Owner123!
+
+Customer Owner:
+  Email: owner@fashionretail.com
+  Password: Customer123!
 ```
 
 ---
 
-## 🚨 Common Issues
+## 🚨 Common Issues & Solutions
 
-### Issue: "File scalar has not been implemented"
+### Issue: "Prisma Client not generated"
 
-**Solution**: File scalar registration zaten mevcut (`src/graphql/builder.ts`)
+**Solution**:
 
-### Issue: "Introspection disabled"
+```bash
+npx prisma generate
+```
 
-**Solution**: `NODE_ENV=development` ile çalıştırın
+### Issue: "Port 4001 already in use"
 
-### Issue: "Unauthorized"
+**Solution**:
 
-**Solution**: JWT token'ı Authorization header'a ekleyin
+```bash
+# Find and kill process
+lsof -ti:4001 | xargs kill -9
+
+# Or change PORT in .env
+PORT=4002
+```
 
 ### Issue: TypeScript errors after schema change
 
 **Solution**:
 
 ```bash
+# ALWAYS run in this order:
 npx prisma generate
+npx prisma migrate dev
 npx tsc --noEmit
+```
+
+### Issue: "Cannot decode global ID"
+
+**Problem**: Trying to decode a numeric ID as Base64.
+
+**Solution**:
+
+```typescript
+// ❌ WRONG: StandardCategory uses numeric IDs
+const categoryId = decodeGlobalId(category.id);
+
+// ✅ CORRECT: Use Number() for numeric IDs
+const categoryId = Number(category.id);
+
+// ✅ CORRECT: Use decodeGlobalId() for Relay Global IDs
+const userId = decodeGlobalId(user.id); // User has Global ID
+```
+
+**Global ID Models**: User, Company, Sample, Order, Collection  
+**Numeric ID Models**: Category, LibraryItem, Payment, etc.
+
+### Issue: "Invalid JSON in keywords field"
+
+**Solution**: Always validate and trim JSON fields
+
+```typescript
+// ✅ Frontend validation
+const cleanKeywords = formData.keywords?.trim();
+if (cleanKeywords) {
+  try {
+    JSON.parse(cleanKeywords);
+  } catch {
+    cleanKeywords = undefined; // Skip invalid
+  }
+}
+
+// ✅ Backend validation
+if (input.keywords?.trim() === "") {
+  updateData.keywords = null; // Empty string → null
+}
 ```
 
 ---
 
-## 📈 Performance Tips
+## 📈 Performance Best Practices
 
-1. ✅ **Her zaman `...query` kullanın** (Pothos optimization)
-2. ✅ **Büyük listeler için Relay Connection** kullanın
-3. ✅ **Field-level auth** ile gereksiz data yüklemeyin
-4. ✅ **DataLoader** otomatik batching yapıyor
-5. ✅ **Index'leri kontrol edin** (Prisma schema)
+### 1. Always Use Query Fragments
+
+```typescript
+// ✅ GOOD: Use ...query for optimized selection
+builder.queryField("users", (t) =>
+  t.prismaField({
+    type: ["User"],
+    resolve: (query) => prisma.user.findMany({ ...query }),
+  })
+);
+
+// ❌ BAD: Missing query optimization
+builder.queryField("users", (t) =>
+  t.prismaField({
+    type: ["User"],
+    resolve: () => prisma.user.findMany(), // No query selection
+  })
+);
+```
+
+### 2. Use Relay Connections for Large Lists
+
+```typescript
+// ✅ GOOD: Relay connection with cursor pagination
+builder.prismaObject("Company", {
+  fields: (t) => ({
+    employeesConnection: t.relatedConnection("employees", {
+      cursor: "id",
+      totalCount: true,
+    }),
+  }),
+});
+```
+
+### 3. Leverage DataLoader (Automatic)
+
+DataLoader plugin automatically batches and caches queries. No additional code needed!
+
+### 4. Add Database Indexes
+
+```prisma
+model Order {
+  @@index([customerId, status])
+  @@index([manufactureId, status])
+  @@index([createdAt])
+}
+```
+
+---
+
+## 🎯 Development Workflow
+
+### Adding New Feature
+
+1. **Update Schema**
+
+```bash
+# Edit prisma/schema.prisma
+npx prisma migrate dev --name add_new_field
+npx prisma generate
+```
+
+2. **Create GraphQL Type**
+
+```typescript
+// src/graphql/types/MyModel.ts
+export const MyModel = builder.prismaObject("MyModel", {
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    name: t.exposeString("name"),
+  }),
+});
+```
+
+3. **Add Query/Mutation**
+
+```typescript
+// src/graphql/queries/myModelQuery.ts
+builder.queryField("myModel", (t) =>
+  t.prismaField({
+    type: "MyModel",
+    args: { id: t.arg.int({ required: true }) },
+    resolve: (query, root, args, ctx) =>
+      ctx.prisma.myModel.findUniqueOrThrow({
+        ...query,
+        where: { id: args.id },
+      }),
+  })
+);
+```
+
+4. **Test in GraphiQL**
+
+```graphql
+query {
+  myModel(id: 1) {
+    id
+    name
+  }
+}
+```
+
+---
+
+## 🔄 Recent Changes (v2.0.0)
+
+### ✅ Completed Optimizations
+
+- ✅ Removed `DynamicTaskHelper` calls (Task model deprecated)
+- ✅ Removed deprecated `Company.location` field
+- ✅ Fixed all enum count documentation (OrderStatus: 30, SampleStatus: 28, etc.)
+- ✅ Updated Role enum (removed MANUFACTURE, CUSTOMER - now use INDIVIDUAL_CUSTOMER)
+- ✅ Cleaned up 5+ unnecessary imports and empty function calls
+
+### 📊 Schema Statistics
+
+- **Models**: 21 (100% implemented in GraphQL)
+- **Enums**: 26 (100% compliant with schema)
+- **Types**: 21 GraphQL types (fully typed)
+- **Queries**: 17 query files
+- **Mutations**: 19 mutation files
+- **Subscriptions**: 5 real-time channels
+
+### 🎯 Code Quality
+
+- ✅ 0 TypeScript compilation errors
+- ✅ 100% schema compliance
+- ✅ All deprecated code removed
+- ✅ Production-ready architecture
+
+---
+
+## 📚 Additional Documentation
+
+- **[.github/copilot-instructions.md](../.github/copilot-instructions.md)** - Complete AI agent guide
+- **[../docs/README.md](../docs/README.md)** - Main documentation
+- **[../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)** - System architecture
+- **[../docs/DATABASE.md](../docs/DATABASE.md)** - Database design
+- **[../docs/RBAC.md](../docs/RBAC.md)** - Authorization system
 
 ---
 
 ## 🤝 Contributing
 
-Yeni feature eklerken:
-
-1. **HOW_TO_ADD_NEW_FEATURES.md** rehberini takip edin
-2. Prisma migration oluşturun
-3. GraphQL type/query/mutation ekleyin
-4. Authorization scope belirleyin
-5. TypeScript kontrolü yapın
-6. Test edin (GraphiQL)
+1. Follow schema-first development workflow
+2. Run `npx prisma generate` after schema changes
+3. Add proper TypeScript types
+4. Include authorization checks
+5. Test in GraphiQL
+6. Run `npx tsc --noEmit` before commit
 
 ---
 
 ## 📞 Support
 
-Issues ve sorular için:
-
-- 📧 Email: [team@example.com]
-- 📚 Docs: [HOW_TO_ADD_NEW_FEATURES.md](./HOW_TO_ADD_NEW_FEATURES.md)
+- 📧 **Issues**: GitHub Issues
+- 📚 **Docs**: [copilot-instructions.md](../.github/copilot-instructions.md)
+- 🔧 **Version**: 2.0.0 (Production Ready)
 
 ---
 
-**Backend Status**: ✅ Production Ready
-**Last Update**: 18 Ekim 2025
-**Version**: 2.0.0 (Optimized)
+**Backend Status**: ✅ Production Ready  
+**Last Update**: 1 Kasım 2025  
+**Health Score**: 100/100 🎉

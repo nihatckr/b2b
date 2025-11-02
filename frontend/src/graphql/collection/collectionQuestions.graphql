@@ -1,0 +1,11 @@
+query query_collectionQuestions($after: String, $before: String, $first: Int, $input: CollectionQuestionsInput!, $last: Int) {
+  collectionQuestions(
+    after: $after
+    before: $before
+    first: $first
+    input: $input
+    last: $last
+  ) {
+    __typename
+  }
+}

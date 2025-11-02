@@ -1,0 +1,3 @@
+query query_paymentsByStatus($filter: PaymentFilterInput) {
+  paymentsByStatus(filter: $filter)
+}

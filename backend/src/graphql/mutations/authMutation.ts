@@ -6,8 +6,22 @@ import {
   sendPasswordResetEmail,
   sendWelcomeEmail,
 } from "../../utils/emailService";
-import { requireAuth } from "../../utils/errors";
+import {
+  AuthenticationError,
+  handleError,
+  NotFoundError,
+  requireAdmin,
+  requireAuth,
+  ValidationError,
+} from "../../utils/errors";
+import { createTimer, logAuth, logError, logInfo } from "../../utils/logger";
 import { publishNotification } from "../../utils/publishHelpers";
+import {
+  sanitizeEmail,
+  sanitizeInt,
+  sanitizePhone,
+  sanitizeString,
+} from "../../utils/sanitize";
 import builder from "../builder";
 
 // JWT Secret from environment variables
@@ -22,14 +36,6 @@ function generateToken(user: {
   department?: string | null;
   companyId?: number | null;
 }) {
-  console.log("🎫 generateToken INPUT:", {
-    userId: user.id,
-    companyId: user.companyId,
-    companyIdType: typeof user.companyId,
-    companyIdIsNull: user.companyId === null,
-    companyIdIsUndefined: user.companyId === undefined,
-  });
-
   const payload = {
     sub: user.id.toString(), // Subject (user ID) - standard JWT claim
     email: user.email,
@@ -38,7 +44,11 @@ function generateToken(user: {
     companyId: user.companyId || null, // Include companyId for authorization
   };
 
-  console.log("🎫 generateToken PAYLOAD:", payload);
+  logInfo("JWT token generated", {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+  });
 
   return jwt.sign(payload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
@@ -47,8 +57,15 @@ function generateToken(user: {
 }
 
 // ============================================
-// INPUT TYPES FOR SIMPLE SIGNUP
+// INPUT TYPES
 // ============================================
+
+const LoginInput = builder.inputType("LoginInput", {
+  fields: (t) => ({
+    email: t.string({ required: true }),
+    password: t.string({ required: true }),
+  }),
+});
 
 const SignupInput = builder.inputType("SignupInput", {
   fields: (t) => ({
@@ -59,72 +76,174 @@ const SignupInput = builder.inputType("SignupInput", {
   }),
 });
 
+const RegisterInput = builder.inputType("RegisterInput", {
+  fields: (t) => ({
+    email: t.string({ required: true }),
+    password: t.string({ required: true }),
+    name: t.string(),
+    role: t.string(),
+  }),
+});
+
+const OAuthSignupInput = builder.inputType("OAuthSignupInput", {
+  fields: (t) => ({
+    email: t.string({ required: true }),
+    name: t.string({ required: true }),
+    role: t.string(),
+  }),
+});
+
+const ChangePasswordInput = builder.inputType("ChangePasswordInput", {
+  fields: (t) => ({
+    oldPassword: t.string({ required: true }),
+    newPassword: t.string({ required: true }),
+  }),
+});
+
+const UpdateProfileInput = builder.inputType("UpdateProfileInput", {
+  fields: (t) => ({
+    name: t.string(),
+    firstName: t.string(),
+    lastName: t.string(),
+    phone: t.string(),
+    department: t.string(),
+    jobTitle: t.string(),
+    avatar: t.string(),
+    customAvatar: t.string(),
+    bio: t.string(),
+    socialLinks: t.string(), // JSON string
+    emailNotifications: t.boolean(),
+    pushNotifications: t.boolean(),
+    language: t.string(),
+    timezone: t.string(),
+  }),
+});
+
+const ResetUserPasswordInput = builder.inputType("ResetUserPasswordInput", {
+  fields: (t) => ({
+    userId: t.int({ required: true }),
+    newPassword: t.string({ required: true }),
+  }),
+});
+
+const UpdateUserRoleInput = builder.inputType("UpdateUserRoleInput", {
+  fields: (t) => ({
+    userId: t.int({ required: true }),
+    role: t.string({ required: true }),
+  }),
+});
+
+const RequestPasswordResetInput = builder.inputType(
+  "RequestPasswordResetInput",
+  {
+    fields: (t) => ({
+      email: t.string({ required: true }),
+    }),
+  }
+);
+
+const ResetPasswordInput = builder.inputType("ResetPasswordInput", {
+  fields: (t) => ({
+    token: t.string({ required: true }),
+    newPassword: t.string({ required: true }),
+  }),
+});
+
+const VerifyEmailInput = builder.inputType("VerifyEmailInput", {
+  fields: (t) => ({
+    token: t.string({ required: true }),
+  }),
+});
+
 // Login (returns JWT token)
 builder.mutationField("login", (t) =>
   t.field({
     type: "JSON", // { token: string, user: User }
     args: {
-      email: t.arg.string({ required: true }),
-      password: t.arg.string({ required: true }),
+      input: t.arg({ type: LoginInput, required: true }),
     },
     authScopes: { public: true },
     resolve: async (_root: any, args: any, context: any) => {
-      const user = await context.prisma.user.findUnique({
-        where: { email: args.email },
-        include: {
-          company: true, // Include company to get type
-        },
-      });
+      const timer = createTimer("Login");
 
-      if (!user) throw new Error("Invalid email or password");
+      try {
+        // ✅ Sanitize inputs
+        const email = sanitizeEmail(args.input.email);
+        const password = sanitizeString(args.input.password);
 
-      const isValidPassword = await bcrypt.compare(
-        args.password,
-        user.password
-      );
-      if (!isValidPassword) throw new Error("Invalid email or password");
+        // ✅ Validate sanitized inputs
+        if (!email) {
+          throw new ValidationError("Geçerli bir email adresi giriniz");
+        }
 
-      // Debug: Log user data before token generation
-      console.log("🔐 Login User Data:", {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-        companyId: user.companyId,
-        companyIdType: typeof user.companyId,
-        companyIdIsNull: user.companyId === null,
-        companyIdIsUndefined: user.companyId === undefined,
-        department: user.department,
-        hasCompanyRelation: !!user.company,
-        companyData: user.company
-          ? { id: user.company.id, name: user.company.name }
-          : null,
-      });
+        if (!password || password.length < 6) {
+          throw new ValidationError(
+            "Şifre en az 6 karakter uzunluğunda olmalıdır"
+          );
+        }
 
-      // Generate real JWT token
-      const token = generateToken({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        department: user.department,
-        companyId: user.companyId,
-      });
+        // ✅ Log login attempt
+        logAuth("Login attempt", undefined, { email });
 
-      return {
-        token,
-        user: {
+        const user = await context.prisma.user.findUnique({
+          where: { email },
+          include: {
+            company: true, // Include company to get type
+          },
+        });
+
+        if (!user) {
+          logAuth("Login failed - user not found", undefined, { email });
+          throw new AuthenticationError("Email veya şifre hatalı");
+        }
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+          logAuth("Login failed - invalid password", user.id, { email });
+          throw new AuthenticationError("Email veya şifre hatalı");
+        }
+
+        // Generate real JWT token
+        const token = generateToken({
           id: user.id,
           email: user.email,
-          name: user.name,
+          role: user.role,
+          department: user.department,
+          companyId: user.companyId,
+        });
+
+        // ✅ Log successful login
+        logAuth("Login successful", user.id, {
+          email,
           role: user.role,
           companyId: user.companyId,
-          companyType: user.company?.type || null,
-          isCompanyOwner: user.isCompanyOwner || false,
-          department: user.department || null,
-          jobTitle: user.jobTitle || null,
-          permissions: user.permissions || null,
-          emailVerified: user.emailVerified || false,
-        },
-      };
+        });
+
+        timer.end({ userId: user.id, success: true });
+
+        return {
+          token,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            companyId: user.companyId,
+            companyType: user.company?.type || null,
+            isCompanyOwner: user.isCompanyOwner || false,
+            department: user.department || null,
+            jobTitle: user.jobTitle || null,
+            permissions: user.permissions || null,
+            emailVerified: user.emailVerified || false,
+          },
+        };
+      } catch (error) {
+        logError("Login mutation failed", error as Error, {
+          email: args.input.email,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
+      }
     },
   })
 );
@@ -138,330 +257,146 @@ builder.mutationField("signup", (t) =>
     },
     authScopes: { public: true },
     resolve: async (_root: any, args: any, context: any) => {
-      const { name, email, password, accountType } = args.input;
+      const timer = createTimer("Signup");
 
-      if (!email || !password || !name) {
-        throw new Error("Email, password, and name are required");
-      }
-
-      // Check if email already exists
-      const existing = await context.prisma.user.findUnique({
-        where: { email },
-      });
-
-      if (existing) throw new Error("Email already registered");
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Generate email verification token
-      const emailVerificationToken = crypto.randomBytes(32).toString("hex");
-      const emailVerificationExpiry = new Date(Date.now() + 86400000); // 24 hours
-
-      // Determine user role based on account type
-      let role = "INDIVIDUAL_CUSTOMER";
-
-      if (accountType === "MANUFACTURER") {
-        role = "COMPANY_OWNER"; // Will set up company later in dashboard
-      } else if (accountType === "BUYER") {
-        role = "COMPANY_OWNER"; // Will set up company later in dashboard
-      }
-
-      // Create user with company if COMPANY_OWNER
-      let userData: any = {
-        email,
-        password: hashedPassword,
-        name,
-        role: role as any,
-        isCompanyOwner: role === "COMPANY_OWNER",
-        emailVerificationToken,
-        emailVerificationExpiry,
-      };
-
-      // If COMPANY_OWNER, create company automatically
-      if (role === "COMPANY_OWNER" && accountType) {
-        const companyType =
-          accountType === "MANUFACTURER"
-            ? "MANUFACTURER"
-            : accountType === "BUYER"
-            ? "BUYER"
-            : "BOTH";
-
-        userData.company = {
-          create: {
-            name: `${name}'s Company`, // Default name, user can update later
-            type: companyType as any,
-            // Don't set email initially - user will update in settings
-            // This prevents unique constraint errors
-          },
-        };
-      }
-
-      // Create user (and company if COMPANY_OWNER)
-      const user = await context.prisma.user.create({
-        data: userData,
-        include: {
-          company: true,
-        },
-      });
-
-      // Send verification email
       try {
-        if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-          await sendEmailVerification(
-            user.email,
-            emailVerificationToken,
-            user.name || undefined
-          );
-          console.log(`✅ Verification email sent to: ${user.email}`);
-        } else {
-          console.log("⚠️  Email not configured - skipping verification email");
+        // ✅ Sanitize inputs
+        const name = sanitizeString(args.input.name);
+        const email = sanitizeEmail(args.input.email);
+        const password = sanitizeString(args.input.password);
+        const accountType = sanitizeString(args.input.accountType);
+
+        // ✅ Validate sanitized inputs
+        if (!name || name.length < 2) {
+          throw new ValidationError("İsim en az 2 karakter olmalıdır");
         }
-      } catch (emailError) {
-        console.error(
-          "⚠️  Email send failed (continuing anyway):",
-          emailError instanceof Error ? emailError.message : emailError
-        );
-      }
 
-      // ✅ Create welcome notification
-      try {
-        const notification = await context.prisma.notification.create({
-          data: {
-            type: "SYSTEM",
-            title: "🎉 Hoş Geldiniz!",
-            message:
-              "Hesabınız başarıyla oluşturuldu. Lütfen email adresinizi doğrulayın.",
-            userId: user.id,
-            link: "/auth/verify-email",
-            isRead: false,
-          },
-        });
-        await publishNotification(notification);
-        console.log(`📢 Welcome notification sent to user ${user.id}`);
-      } catch (notifError) {
-        console.error(
-          "⚠️  Notification failed (continuing anyway):",
-          notifError instanceof Error ? notifError.message : notifError
-        );
-      }
+        if (!email) {
+          throw new ValidationError("Geçerli bir email adresi giriniz");
+        }
 
-      // ✅ Notify all admins about new user registration
-      try {
-        const admins = await context.prisma.user.findMany({
-          where: { role: "ADMIN" },
-          select: { id: true, name: true },
-        });
-
-        for (const admin of admins) {
-          const adminNotification = await context.prisma.notification.create({
-            data: {
-              type: "USER_MANAGEMENT",
-              title: "👤 Yeni Kullanıcı Kaydı",
-              message: `${user.name} (${user.email}) sisteme kayıt oldu. Rol: ${
-                user.role
-              }${user.company ? `, Şirket: ${user.company.name}` : ""}`,
-              userId: admin.id,
-              link: "/dashboard/admin/users",
-              isRead: false,
-            },
-          });
-          await publishNotification(adminNotification);
-          console.log(
-            `📢 New user registration notification sent to admin ${admin.id} (${admin.name})`
+        if (!password || password.length < 6) {
+          throw new ValidationError(
+            "Şifre en az 6 karakter uzunluğunda olmalıdır"
           );
         }
-      } catch (adminNotifError) {
-        console.error(
-          "⚠️  Admin notification failed (continuing anyway):",
-          adminNotifError instanceof Error
-            ? adminNotifError.message
-            : adminNotifError
-        );
-      }
 
-      // Development mode - log verification link
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `🔑 Email verification token for ${user.email}: ${emailVerificationToken}`
-        );
-        console.log(
-          `🔗 Verification link: ${
-            process.env.FRONTEND_URL || "http://localhost:3000"
-          }/auth/verify-email/${emailVerificationToken}`
-        );
-      }
+        if (!accountType) {
+          throw new ValidationError("Hesap tipi seçiniz");
+        }
 
-      // Generate real JWT token
-      const token = generateToken({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        department: user.department,
-        companyId: user.companyId,
-      });
+        // ✅ Log signup attempt
+        logAuth("Signup attempt", undefined, { email, accountType });
 
-      return {
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          companyId: user.companyId,
-          companyType: user.company?.type || null,
-          isCompanyOwner: user.role === "COMPANY_OWNER",
-          department: user.department || null,
-          jobTitle: user.jobTitle || null,
-          permissions: user.permissions || null,
-          emailVerified: user.emailVerified,
-        },
-        // Dev only:
-        verificationToken:
-          process.env.NODE_ENV === "development"
-            ? emailVerificationToken
-            : undefined,
-      };
-    },
-  })
-); // Register (alias for signup)
-builder.mutationField("register", (t) =>
-  t.field({
-    type: "JSON", // { token: string, user: User }
-    args: {
-      email: t.arg.string({ required: true }),
-      password: t.arg.string({ required: true }),
-      name: t.arg.string(),
-      role: t.arg.string(),
-    },
-    authScopes: { public: true },
-    resolve: async (_root: any, args: any, context: any) => {
-      const existing = await context.prisma.user.findUnique({
-        where: { email: args.email },
-      });
+        // Check if email already exists
+        const existing = await context.prisma.user.findUnique({
+          where: { email },
+        });
 
-      if (existing) throw new Error("Email already registered");
+        if (existing) {
+          logAuth("Signup failed - email exists", undefined, { email });
+          throw new ValidationError("Bu email adresi zaten kayıtlı");
+        }
 
-      const hashedPassword = await bcrypt.hash(args.password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-      const user = await context.prisma.user.create({
-        data: {
-          email: args.email,
+        // Generate email verification token
+        const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+        const emailVerificationExpiry = new Date(Date.now() + 86400000); // 24 hours
+
+        // Determine user role based on account type
+        let role = "INDIVIDUAL_CUSTOMER";
+
+        if (accountType === "MANUFACTURER") {
+          role = "COMPANY_OWNER"; // Will set up company later in dashboard
+        } else if (accountType === "BUYER") {
+          role = "COMPANY_OWNER"; // Will set up company later in dashboard
+        }
+
+        // Create user with company if COMPANY_OWNER
+        let userData: any = {
+          email,
           password: hashedPassword,
-          name: args.name || args.email,
-          role: (args.role || "INDIVIDUAL_CUSTOMER") as any,
-        },
-        include: {
-          company: true,
-        },
-      });
+          name,
+          role: role as any,
+          isCompanyOwner: role === "COMPANY_OWNER",
+          emailVerificationToken,
+          emailVerificationExpiry,
+        };
 
-      // ✅ Notify all admins about new user registration
-      try {
-        const admins = await context.prisma.user.findMany({
-          where: { role: "ADMIN" },
-          select: { id: true, name: true },
-        });
+        // If COMPANY_OWNER, create company automatically
+        if (role === "COMPANY_OWNER" && accountType) {
+          const companyType =
+            accountType === "MANUFACTURER"
+              ? "MANUFACTURER"
+              : accountType === "BUYER"
+              ? "BUYER"
+              : "BOTH";
 
-        for (const admin of admins) {
-          const adminNotification = await context.prisma.notification.create({
-            data: {
-              type: "USER_MANAGEMENT",
-              title: "👤 Yeni Kullanıcı Kaydı",
-              message: `${user.name} (${args.email}) sisteme kayıt oldu. Rol: ${
-                user.role
-              }${user.company ? `, Şirket: ${user.company.name}` : ""}`,
-              userId: admin.id,
-              link: "/dashboard/admin/users",
-              isRead: false,
+          userData.company = {
+            create: {
+              name: `${name}'s Company`, // Default name, user can update later
+              type: companyType as any,
+              // Don't set email initially - user will update in settings
+              // This prevents unique constraint errors
             },
-          });
-          await publishNotification(adminNotification);
-          console.log(
-            `📢 New user registration notification sent to admin ${admin.id} (${admin.name})`
-          );
+          };
         }
-      } catch (adminNotifError) {
-        console.error(
-          "⚠️  Admin notification failed (continuing anyway):",
-          adminNotifError instanceof Error
-            ? adminNotifError.message
-            : adminNotifError
-        );
-      }
 
-      // Generate real JWT token
-      const token = generateToken({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        department: user.department,
-        companyId: user.companyId,
-      });
-
-      return {
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          companyId: user.companyId,
-          companyType: user.company?.type || null,
-          isCompanyOwner: user.isCompanyOwner || false,
-          department: user.department || null,
-          jobTitle: user.jobTitle || null,
-          permissions: user.permissions || null,
-        },
-      };
-    },
-  })
-);
-
-// SignupOAuth (Google/OAuth - no password required)
-builder.mutationField("signupOAuth", (t) =>
-  t.field({
-    type: "JSON", // { token: string, user: User }
-    args: {
-      email: t.arg.string({ required: true }),
-      name: t.arg.string({ required: true }),
-      role: t.arg.string(),
-    },
-    authScopes: { public: true },
-    resolve: async (_root: any, args: any, context: any) => {
-      // Email already exists - update name if different
-      let user = await context.prisma.user.findUnique({
-        where: { email: args.email },
-        include: {
-          company: true,
-        },
-      });
-
-      if (user) {
-        // User already exists, update name if needed
-        if (user.name !== args.name) {
-          user = await context.prisma.user.update({
-            where: { email: args.email },
-            data: { name: args.name },
-            include: {
-              company: true,
-            },
-          });
-        }
-      } else {
-        // Create new OAuth user (with empty password)
-        user = await context.prisma.user.create({
-          data: {
-            email: args.email,
-            name: args.name,
-            password: "", // OAuth users don't have password
-            role: (args.role || "INDIVIDUAL_CUSTOMER") as any,
-          },
+        // Create user (and company if COMPANY_OWNER)
+        const user = await context.prisma.user.create({
+          data: userData,
           include: {
             company: true,
           },
         });
 
-        // ✅ Notify all admins about new OAuth user registration
+        // Send verification email
+        try {
+          if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+            await sendEmailVerification(
+              user.email,
+              emailVerificationToken,
+              user.name || undefined
+            );
+            logInfo(`✅ Doğrulama e-postası gönderildi: ${user.email}`);
+          } else {
+            logInfo(
+              "⚠️  E-posta yapılandırılmamış - doğrulama e-postası atlandı"
+            );
+          }
+        } catch (emailError) {
+          logError(
+            "E-posta gönderilemedi (devam ediliyor)",
+            emailError as Error,
+            { userId: user.id }
+          );
+        }
+
+        // ✅ Create welcome notification
+        try {
+          const notification = await context.prisma.notification.create({
+            data: {
+              type: "SYSTEM",
+              title: "🎉 Hoş Geldiniz!",
+              message:
+                "Hesabınız başarıyla oluşturuldu. Lütfen email adresinizi doğrulayın.",
+              userId: user.id,
+              link: "/auth/verify-email",
+              isRead: false,
+            },
+          });
+          await publishNotification(notification);
+          logInfo(`📢 Hoş geldin bildirimi gönderildi: kullanıcı ${user.id}`);
+        } catch (notifError) {
+          logError(
+            "Bildirim gönderilemedi (devam ediliyor)",
+            notifError as Error,
+            { userId: user.id }
+          );
+        }
+
+        // ✅ Notify all admins about new user registration
         try {
           const admins = await context.prisma.user.findMany({
             where: { role: "ADMIN" },
@@ -472,52 +407,358 @@ builder.mutationField("signupOAuth", (t) =>
             const adminNotification = await context.prisma.notification.create({
               data: {
                 type: "USER_MANAGEMENT",
-                title: "👤 Yeni OAuth Kullanıcı Kaydı",
-                message: `${args.name} (${args.email}) OAuth ile sisteme kayıt oldu. Rol: ${user.role}`,
+                title: "👤 Yeni Kullanıcı Kaydı",
+                message: `${user.name} (${
+                  user.email
+                }) sisteme kayıt oldu. Rol: ${user.role}${
+                  user.company ? `, Şirket: ${user.company.name}` : ""
+                }`,
                 userId: admin.id,
-                link: "/dashboard/admin/users",
+                link: "/dashboard/users-management",
                 isRead: false,
               },
             });
             await publishNotification(adminNotification);
-            console.log(
-              `📢 New OAuth user registration notification sent to admin ${admin.id} (${admin.name})`
+            logInfo(
+              `📢 New user registration notification sent to admin ${admin.id} (${admin.name})`
             );
           }
         } catch (adminNotifError) {
-          console.error(
-            "⚠️  Admin notification failed (continuing anyway):",
-            adminNotifError instanceof Error
-              ? adminNotifError.message
-              : adminNotifError
+          logError(
+            "Admin notification failed (signup)",
+            adminNotifError as Error,
+            { userId: user.id }
           );
         }
-      }
 
-      // Generate real JWT token
-      const token = generateToken({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        department: user.department,
-        companyId: user.companyId,
-      });
+        // Development mode - log verification link
+        if (process.env.NODE_ENV === "development") {
+          logInfo(
+            `🔑 Email verification token for ${user.email}: ${emailVerificationToken}`
+          );
+          logInfo(
+            `🔗 Verification link: ${
+              process.env.FRONTEND_URL || "http://localhost:3000"
+            }/auth/verify-email/${emailVerificationToken}`
+          );
+        }
 
-      return {
-        token,
-        user: {
+        // Generate real JWT token
+        const token = generateToken({
           id: user.id,
           email: user.email,
-          name: user.name,
           role: user.role,
+          department: user.department,
           companyId: user.companyId,
-          companyType: user.company?.type || null,
-          isCompanyOwner: user.isCompanyOwner || false,
-          department: user.department || null,
-          jobTitle: user.jobTitle || null,
-          permissions: user.permissions || null,
-        },
-      };
+        });
+
+        // ✅ Log successful signup
+        logAuth("Signup successful", user.id, {
+          email,
+          role: user.role,
+          accountType,
+        });
+
+        timer.end({ userId: user.id, success: true });
+
+        return {
+          token,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            companyId: user.companyId,
+            companyType: user.company?.type || null,
+            isCompanyOwner: user.role === "COMPANY_OWNER",
+            department: user.department || null,
+            jobTitle: user.jobTitle || null,
+            permissions: user.permissions || null,
+            emailVerified: user.emailVerified,
+          },
+          // Dev only:
+          verificationToken:
+            process.env.NODE_ENV === "development"
+              ? emailVerificationToken
+              : undefined,
+        };
+      } catch (error) {
+        logError("Signup mutation failed", error as Error, {
+          email: args.input.email,
+          accountType: args.input.accountType,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
+      }
+    },
+  })
+);
+
+// Register (alias for signup)
+builder.mutationField("register", (t) =>
+  t.field({
+    type: "JSON", // { token: string, user: User }
+    args: {
+      input: t.arg({ type: RegisterInput, required: true }),
+    },
+    authScopes: { public: true },
+    resolve: async (_root: any, args: any, context: any) => {
+      const timer = createTimer("Register");
+
+      try {
+        // ✅ Sanitize inputs
+        const email = sanitizeEmail(args.input.email);
+        const password = sanitizeString(args.input.password);
+        const name = args.input.name ? sanitizeString(args.input.name) : email;
+        const role = args.input.role
+          ? sanitizeString(args.input.role)
+          : "INDIVIDUAL_CUSTOMER";
+
+        // ✅ Validate sanitized inputs
+        if (!email) {
+          throw new ValidationError("Geçerli bir email adresi giriniz");
+        }
+
+        if (!password || password.length < 6) {
+          throw new ValidationError(
+            "Şifre en az 6 karakter uzunluğunda olmalıdır"
+          );
+        }
+
+        // ✅ Log register attempt
+        logAuth("Register attempt", undefined, { email, role });
+
+        const existing = await context.prisma.user.findUnique({
+          where: { email },
+        });
+
+        if (existing) {
+          logAuth("Register failed - email exists", undefined, { email });
+          throw new ValidationError("Bu email adresi zaten kayıtlı");
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await context.prisma.user.create({
+          data: {
+            email,
+            password: hashedPassword,
+            name: name || email,
+            role: role as any,
+          },
+          include: {
+            company: true,
+          },
+        });
+
+        // ✅ Notify all admins about new user registration
+        try {
+          const admins = await context.prisma.user.findMany({
+            where: { role: "ADMIN" },
+            select: { id: true, name: true },
+          });
+
+          for (const admin of admins) {
+            const adminNotification = await context.prisma.notification.create({
+              data: {
+                type: "USER_MANAGEMENT",
+                title: "👤 Yeni Kullanıcı Kaydı",
+                message: `${user.name} (${email}) sisteme kayıt oldu. Rol: ${
+                  user.role
+                }${user.company ? `, Şirket: ${user.company.name}` : ""}`,
+                userId: admin.id,
+                link: "/dashboard/users-management",
+                isRead: false,
+              },
+            });
+            await publishNotification(adminNotification);
+            logInfo(
+              `📢 New user registration notification sent to admin ${admin.id} (${admin.name})`
+            );
+          }
+        } catch (adminNotifError) {
+          logError(
+            "Admin notification failed (register)",
+            adminNotifError as Error,
+            { userId: user.id }
+          );
+        }
+
+        // Generate real JWT token
+        const token = generateToken({
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          department: user.department,
+          companyId: user.companyId,
+        });
+
+        // ✅ Log successful register
+        logAuth("Register successful", user.id, { email, role });
+
+        timer.end({ userId: user.id, success: true });
+
+        return {
+          token,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            companyId: user.companyId,
+            companyType: user.company?.type || null,
+            isCompanyOwner: user.isCompanyOwner || false,
+            department: user.department || null,
+            jobTitle: user.jobTitle || null,
+            permissions: user.permissions || null,
+          },
+        };
+      } catch (error) {
+        logError("Register mutation failed", error as Error, {
+          email: args.input.email,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
+      }
+    },
+  })
+);
+
+// SignupOAuth (Google/OAuth - no password required)
+builder.mutationField("signupOAuth", (t) =>
+  t.field({
+    type: "JSON", // { token: string, user: User }
+    args: {
+      input: t.arg({ type: OAuthSignupInput, required: true }),
+    },
+    authScopes: { public: true },
+    resolve: async (_root: any, args: any, context: any) => {
+      const timer = createTimer("SignupOAuth");
+
+      try {
+        // ✅ Sanitize inputs
+        const email = sanitizeEmail(args.input.email);
+        const name = sanitizeString(args.input.name);
+        const role = args.input.role
+          ? sanitizeString(args.input.role)
+          : "INDIVIDUAL_CUSTOMER";
+
+        // ✅ Validate sanitized inputs
+        if (!email) {
+          throw new ValidationError("Geçerli bir email adresi giriniz");
+        }
+
+        if (!name || name.length < 2) {
+          throw new ValidationError("İsim en az 2 karakter olmalıdır");
+        }
+
+        // ✅ Log OAuth signup attempt
+        logAuth("OAuth signup attempt", undefined, { email, role });
+
+        // Email already exists - update name if different
+        let user = await context.prisma.user.findUnique({
+          where: { email },
+          include: {
+            company: true,
+          },
+        });
+
+        if (user) {
+          // User already exists, update name if needed
+          if (user.name !== name) {
+            user = await context.prisma.user.update({
+              where: { email },
+              data: { name },
+              include: {
+                company: true,
+              },
+            });
+            logAuth("OAuth user updated", user.id, { email, name });
+          } else {
+            logAuth("OAuth user logged in (existing)", user.id, { email });
+          }
+        } else {
+          // Create new OAuth user (with empty password)
+          user = await context.prisma.user.create({
+            data: {
+              email,
+              name,
+              password: "", // OAuth users don't have password
+              role: role as any,
+            },
+            include: {
+              company: true,
+            },
+          });
+
+          // ✅ Notify all admins about new OAuth user registration
+          try {
+            const admins = await context.prisma.user.findMany({
+              where: { role: "ADMIN" },
+              select: { id: true, name: true },
+            });
+
+            for (const admin of admins) {
+              const adminNotification =
+                await context.prisma.notification.create({
+                  data: {
+                    type: "USER_MANAGEMENT",
+                    title: "👤 Yeni OAuth Kullanıcı Kaydı",
+                    message: `${name} (${email}) OAuth ile sisteme kayıt oldu. Rol: ${user.role}`,
+                    userId: admin.id,
+                    link: "/dashboard/users-management",
+                    isRead: false,
+                  },
+                });
+              await publishNotification(adminNotification);
+              logInfo(
+                `📢 New OAuth user registration notification sent to admin ${admin.id} (${admin.name})`
+              );
+            }
+          } catch (adminNotifError) {
+            logError(
+              "Admin notification failed (OAuth)",
+              adminNotifError as Error,
+              { userId: user.id }
+            );
+          }
+
+          logAuth("OAuth signup successful", user.id, { email, role });
+        }
+
+        // Generate real JWT token
+        const token = generateToken({
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          department: user.department,
+          companyId: user.companyId,
+        });
+
+        timer.end({ userId: user.id, success: true });
+
+        return {
+          token,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            companyId: user.companyId,
+            companyType: user.company?.type || null,
+            isCompanyOwner: user.isCompanyOwner || false,
+            department: user.department || null,
+            jobTitle: user.jobTitle || null,
+            permissions: user.permissions || null,
+          },
+        };
+      } catch (error) {
+        logError("OAuth signup mutation failed", error as Error, {
+          email: args.input.email,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
+      }
     },
   })
 );
@@ -528,8 +769,23 @@ builder.mutationField("logout", (t) =>
     type: "Boolean",
     authScopes: { user: true },
     resolve: async (_root: any, _args: any, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
-      return true;
+      const timer = createTimer("Logout");
+
+      try {
+        // ✅ Auth check
+        requireAuth(context.user?.id);
+
+        logAuth("User logged out", context.user.id);
+        timer.end({ userId: context.user.id, success: true });
+
+        return true;
+      } catch (error) {
+        logError("Logout mutation failed", error as Error, {
+          userId: context.user?.id,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
+      }
     },
   })
 );
@@ -539,33 +795,77 @@ builder.mutationField("changePassword", (t) =>
   t.field({
     type: "Boolean",
     args: {
-      oldPassword: t.arg.string({ required: true }),
-      newPassword: t.arg.string({ required: true }),
+      input: t.arg({ type: ChangePasswordInput, required: true }),
     },
     authScopes: { user: true },
     resolve: async (_root: any, args: any, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
+      const timer = createTimer("ChangePassword");
 
-      const user = await context.prisma.user.findUnique({
-        where: { id: context.user.id },
-      });
+      try {
+        // ✅ Auth check
+        requireAuth(context.user?.id);
 
-      if (!user) throw new Error("User not found");
+        // ✅ Sanitize inputs
+        const oldPassword = sanitizeString(args.input.oldPassword);
+        const newPassword = sanitizeString(args.input.newPassword);
 
-      const isValidPassword = await bcrypt.compare(
-        args.oldPassword,
-        user.password
-      );
-      if (!isValidPassword) throw new Error("Old password is incorrect");
+        // ✅ Validate sanitized inputs
+        if (!oldPassword) {
+          throw new ValidationError("Mevcut şifre gerekli");
+        }
 
-      const hashedPassword = await bcrypt.hash(args.newPassword, 10);
+        if (!newPassword || newPassword.length < 6) {
+          throw new ValidationError(
+            "Yeni şifre en az 6 karakter uzunluğunda olmalıdır"
+          );
+        }
 
-      await context.prisma.user.update({
-        where: { id: context.user.id },
-        data: { password: hashedPassword },
-      });
+        if (oldPassword === newPassword) {
+          throw new ValidationError(
+            "Yeni şifre mevcut şifreden farklı olmalıdır"
+          );
+        }
 
-      return true;
+        // ✅ Log password change attempt
+        logAuth("Password change attempt", context.user.id);
+
+        const user = await context.prisma.user.findUnique({
+          where: { id: context.user.id },
+        });
+
+        if (!user) {
+          throw new AuthenticationError("Kullanıcı bulunamadı");
+        }
+
+        const isValidPassword = await bcrypt.compare(
+          oldPassword,
+          user.password
+        );
+        if (!isValidPassword) {
+          logAuth("Password change failed - invalid old password", user.id);
+          throw new ValidationError("Mevcut şifre hatalı");
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await context.prisma.user.update({
+          where: { id: context.user.id },
+          data: { password: hashedPassword },
+        });
+
+        // ✅ Log successful password change
+        logAuth("Password changed successfully", user.id);
+
+        timer.end({ userId: user.id, success: true });
+
+        return true;
+      } catch (error) {
+        logError("Change password mutation failed", error as Error, {
+          userId: context.user?.id,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
+      }
     },
   })
 );
@@ -575,132 +875,139 @@ builder.mutationField("updateProfile", (t) =>
   t.prismaField({
     type: "User",
     args: {
-      name: t.arg.string(),
-      firstName: t.arg.string(),
-      lastName: t.arg.string(),
-      phone: t.arg.string(),
-      department: t.arg.string(),
-      jobTitle: t.arg.string(),
-
-      // Profile fields
-      avatar: t.arg.string(),
-      customAvatar: t.arg.string(), // User-uploaded profile picture
-      bio: t.arg.string(),
-      socialLinks: t.arg.string(), // JSON string
-
-      // Settings
-      emailNotifications: t.arg.boolean(),
-      pushNotifications: t.arg.boolean(),
-      language: t.arg.string(),
-      timezone: t.arg.string(),
+      input: t.arg({ type: UpdateProfileInput, required: true }),
     },
     authScopes: { user: true },
     resolve: async (query, _root, args, context) => {
-      console.log("👤 UpdateProfile Debug:", {
-        hasUser: !!context.user,
-        userId: context.user?.id,
-        userRole: context.user?.role,
-        hasJWT: !!(context as any).jwt,
-        jwtPayload: (context as any).jwt?.payload,
-        receivedArgs: Object.keys(args).filter(
-          (k) => args[k] !== null && args[k] !== undefined
-        ),
-      });
+      const timer = createTimer("UpdateProfile");
 
-      if (!context.user?.id) {
-        console.error("❌ UpdateProfile: User not authenticated");
-        console.error("❌ Full context:", {
-          hasUser: !!context.user,
-          hasJWT: !!(context as any).jwt,
-          jwtKeys: (context as any).jwt
-            ? Object.keys((context as any).jwt)
-            : [],
-        });
-        throw new Error("Not authenticated");
-      }
-
-      const updateData: any = {};
-
-      // Basic profile fields
-      if (args.name !== null && args.name !== undefined)
-        updateData.name = args.name;
-      if (args.firstName !== null && args.firstName !== undefined)
-        updateData.firstName = args.firstName;
-      if (args.lastName !== null && args.lastName !== undefined)
-        updateData.lastName = args.lastName;
-      if (args.phone !== null && args.phone !== undefined)
-        updateData.phone = args.phone;
-      if (args.department !== null && args.department !== undefined)
-        updateData.department = args.department;
-      if (args.jobTitle !== null && args.jobTitle !== undefined)
-        updateData.jobTitle = args.jobTitle;
-
-      // New profile fields
-      if (args.avatar !== null && args.avatar !== undefined)
-        updateData.avatar = args.avatar;
-      if (args.customAvatar !== null && args.customAvatar !== undefined)
-        updateData.customAvatar = args.customAvatar;
-      if (args.bio !== null && args.bio !== undefined)
-        updateData.bio = args.bio;
-      if (args.socialLinks !== null && args.socialLinks !== undefined)
-        updateData.socialLinks = args.socialLinks;
-
-      // Settings
-      if (
-        args.emailNotifications !== null &&
-        args.emailNotifications !== undefined
-      )
-        updateData.emailNotifications = args.emailNotifications;
-      if (
-        args.pushNotifications !== null &&
-        args.pushNotifications !== undefined
-      )
-        updateData.pushNotifications = args.pushNotifications;
-      if (args.language !== null && args.language !== undefined)
-        updateData.language = args.language;
-      if (args.timezone !== null && args.timezone !== undefined)
-        updateData.timezone = args.timezone;
-
-      console.log("💾 UpdateProfile: Updating user", {
-        userId: context.user.id,
-        fieldsToUpdate: Object.keys(updateData),
-      });
-
-      const updatedUser = await context.prisma.user.update({
-        ...query,
-        where: { id: context.user.id },
-        data: updateData,
-      });
-
-      console.log("✅ UpdateProfile: User updated successfully", {
-        userId: updatedUser.id,
-        name: updatedUser.name,
-      });
-
-      // ✅ Create profile update notification
       try {
-        const notification = await context.prisma.notification.create({
-          data: {
-            type: "SYSTEM",
-            title: "✅ Profil Güncellendi",
-            message: "Profil bilgileriniz başarıyla güncellendi.",
-            userId: context.user.id,
-            link: "/settings",
-            isRead: false,
-          },
+        logInfo("👤 UpdateProfile Debug:", {
+          hasUser: !!context.user,
+          userId: context.user?.id,
+          userRole: context.user?.role,
+          hasJWT: !!(context as any).jwt,
+          jwtPayload: (context as any).jwt?.payload,
+          receivedArgs: Object.keys(args).filter(
+            (k) => args[k] !== null && args[k] !== undefined
+          ),
         });
-        await publishNotification(notification);
-        console.log(
-          `📢 Profile update notification sent to user ${context.user.id}`
-        );
-      } catch (notifError) {
-        console.error(
-          "⚠️  Notification failed (continuing anyway):",
-          notifError instanceof Error ? notifError.message : notifError
-        );
-      }
 
-      return updatedUser;
+        // ✅ Auth check
+        requireAuth(context.user?.id);
+
+        // ✅ Log profile update attempt
+        logAuth("Profile update attempt", context.user.id);
+
+        const updateData: any = {};
+
+        // ✅ Sanitize and validate inputs
+        // Basic profile fields
+        if (args.input.name !== null && args.input.name !== undefined) {
+          const sanitizedName = sanitizeString(args.input.name);
+          if (sanitizedName && sanitizedName.length >= 2) {
+            updateData.name = sanitizedName;
+          }
+        }
+        if (args.input.firstName !== null && args.input.firstName !== undefined)
+          updateData.firstName = sanitizeString(args.input.firstName);
+        if (args.input.lastName !== null && args.input.lastName !== undefined)
+          updateData.lastName = sanitizeString(args.input.lastName);
+        if (args.input.phone !== null && args.input.phone !== undefined)
+          updateData.phone = sanitizePhone(args.input.phone);
+        if (
+          args.input.department !== null &&
+          args.input.department !== undefined
+        )
+          updateData.department = sanitizeString(args.input.department);
+        if (args.input.jobTitle !== null && args.input.jobTitle !== undefined)
+          updateData.jobTitle = sanitizeString(args.input.jobTitle);
+
+        // New profile fields
+        if (args.input.avatar !== null && args.input.avatar !== undefined)
+          updateData.avatar = sanitizeString(args.input.avatar);
+        if (
+          args.input.customAvatar !== null &&
+          args.input.customAvatar !== undefined
+        )
+          updateData.customAvatar = sanitizeString(args.input.customAvatar);
+        if (args.input.bio !== null && args.input.bio !== undefined)
+          updateData.bio = sanitizeString(args.input.bio);
+        if (
+          args.input.socialLinks !== null &&
+          args.input.socialLinks !== undefined
+        )
+          updateData.socialLinks = sanitizeString(args.input.socialLinks);
+
+        // Settings
+        if (
+          args.input.emailNotifications !== null &&
+          args.input.emailNotifications !== undefined
+        )
+          updateData.emailNotifications = args.input.emailNotifications;
+        if (
+          args.input.pushNotifications !== null &&
+          args.input.pushNotifications !== undefined
+        )
+          updateData.pushNotifications = args.input.pushNotifications;
+        if (args.input.language !== null && args.input.language !== undefined)
+          updateData.language = sanitizeString(args.input.language);
+        if (args.input.timezone !== null && args.input.timezone !== undefined)
+          updateData.timezone = sanitizeString(args.input.timezone);
+
+        logInfo("💾 UpdateProfile: Updating user", {
+          userId: context.user.id,
+          fieldsToUpdate: Object.keys(updateData),
+        });
+
+        const updatedUser = await context.prisma.user.update({
+          ...query,
+          where: { id: context.user.id },
+          data: updateData,
+        });
+
+        logInfo("✅ UpdateProfile: User updated successfully", {
+          userId: updatedUser.id,
+          name: updatedUser.name,
+        });
+
+        // ✅ Create profile update notification
+        try {
+          const notification = await context.prisma.notification.create({
+            data: {
+              type: "SYSTEM",
+              title: "✅ Profil Güncellendi",
+              message: "Profil bilgileriniz başarıyla güncellendi.",
+              userId: context.user.id,
+              link: "/settings",
+              isRead: false,
+            },
+          });
+          await publishNotification(notification);
+          logInfo(
+            `📢 Profile update notification sent to user ${context.user.id}`
+          );
+        } catch (notifError) {
+          logError("Notification failed (updateProfile)", notifError as Error, {
+            userId: context.user.id,
+          });
+        }
+
+        // ✅ Log successful profile update
+        logAuth("Profile updated successfully", context.user.id, {
+          fieldsUpdated: Object.keys(updateData),
+        });
+
+        timer.end({ userId: context.user.id, success: true });
+
+        return updatedUser;
+      } catch (error) {
+        logError("Update profile mutation failed", error as Error, {
+          userId: context.user?.id,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
+      }
     },
   })
 );
@@ -710,24 +1017,63 @@ builder.mutationField("resetUserPassword", (t) =>
   t.prismaField({
     type: "User",
     args: {
-      userId: t.arg.int({ required: true }),
-      newPassword: t.arg.string({ required: true }),
+      input: t.arg({ type: ResetUserPasswordInput, required: true }),
     },
     authScopes: { admin: true },
     resolve: async (query, _root: any, args: any, context: any) => {
-      const user = await context.prisma.user.findUnique({
-        where: { id: args.userId },
-      });
+      const timer = createTimer("ResetUserPassword");
 
-      if (!user) throw new Error("User not found");
+      try {
+        // ✅ Auth check
+        requireAdmin(context.user);
 
-      const hashedPassword = await bcrypt.hash(args.newPassword, 10);
+        // ✅ Sanitize inputs
+        const userId = sanitizeInt(args.input.userId);
+        const newPassword = sanitizeString(args.input.newPassword);
 
-      return context.prisma.user.update({
-        ...query,
-        where: { id: args.userId },
-        data: { password: hashedPassword },
-      });
+        // ✅ Validate sanitized inputs
+        if (!userId || userId <= 0) {
+          throw new ValidationError("Geçerli bir kullanıcı ID'si gerekli");
+        }
+
+        if (!newPassword || newPassword.length < 6) {
+          throw new ValidationError(
+            "Yeni şifre en az 6 karakter uzunluğunda olmalıdır"
+          );
+        }
+
+        logAuth("Admin resetting user password", context.user.id, { userId });
+
+        const user = await context.prisma.user.findUnique({
+          where: { id: userId },
+        });
+
+        if (!user) {
+          throw new NotFoundError("Kullanıcı bulunamadı");
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        const updatedUser = await context.prisma.user.update({
+          ...query,
+          where: { id: userId },
+          data: { password: hashedPassword },
+        });
+
+        logAuth("User password reset by admin", context.user.id, {
+          userId,
+          targetUser: user.email,
+        });
+        timer.end({ userId: context.user.id, success: true });
+
+        return updatedUser;
+      } catch (error) {
+        logError("Reset user password mutation failed", error as Error, {
+          userId: args.input.userId,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
+      }
     },
   })
 );
@@ -737,29 +1083,76 @@ builder.mutationField("updateUserRole", (t) =>
   t.prismaField({
     type: "User",
     args: {
-      userId: t.arg.int({ required: true }),
-      role: t.arg.string({ required: true }),
+      input: t.arg({ type: UpdateUserRoleInput, required: true }),
     },
     authScopes: { admin: true },
     resolve: async (query, _root: any, args: any, context: any) => {
-      const ValidRoles = [
-        "ADMIN",
-        "COMPANY_OWNER",
-        "COMPANY_EMPLOYEE",
-        "INDIVIDUAL_CUSTOMER",
-        "MANUFACTURE",
-        "CUSTOMER",
-      ];
+      const timer = createTimer("UpdateUserRole");
 
-      if (!ValidRoles.includes(args.role)) {
-        throw new Error("Invalid role");
+      try {
+        // ✅ Auth check
+        requireAdmin(context.user);
+
+        // ✅ Sanitize inputs
+        const userId = sanitizeInt(args.input.userId);
+        const role = sanitizeString(args.input.role);
+
+        // ✅ Validate sanitized inputs
+        if (!userId || userId <= 0) {
+          throw new ValidationError("Geçerli bir kullanıcı ID'si gerekli");
+        }
+
+        const ValidRoles = [
+          "ADMIN",
+          "COMPANY_OWNER",
+          "COMPANY_EMPLOYEE",
+          "INDIVIDUAL_CUSTOMER",
+          "MANUFACTURE",
+          "CUSTOMER",
+        ];
+
+        if (!role || !ValidRoles.includes(role)) {
+          throw new ValidationError(
+            "Geçerli bir rol seçiniz: " + ValidRoles.join(", ")
+          );
+        }
+
+        logAuth("Admin updating user role", context.user.id, {
+          userId,
+          newRole: role,
+        });
+
+        const user = await context.prisma.user.findUnique({
+          where: { id: userId },
+        });
+
+        if (!user) {
+          throw new NotFoundError("Kullanıcı bulunamadı");
+        }
+
+        const updatedUser = await context.prisma.user.update({
+          ...query,
+          where: { id: userId },
+          data: { role: role as any },
+        });
+
+        logAuth("User role updated by admin", context.user.id, {
+          userId,
+          targetUser: user.email,
+          oldRole: user.role,
+          newRole: role,
+        });
+        timer.end({ userId: context.user.id, success: true });
+
+        return updatedUser;
+      } catch (error) {
+        logError("Update user role mutation failed", error as Error, {
+          userId: args.input.userId,
+          role: args.input.role,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
       }
-
-      return context.prisma.user.update({
-        ...query,
-        where: { id: args.userId },
-        data: { role: args.role as any },
-      });
     },
   })
 );
@@ -769,67 +1162,98 @@ builder.mutationField("requestPasswordReset", (t) =>
   t.field({
     type: "JSON", // { success: boolean, message: string }
     args: {
-      email: t.arg.string({ required: true }),
+      input: t.arg({ type: RequestPasswordResetInput, required: true }),
     },
     authScopes: { public: true },
     resolve: async (_root: any, args: any, context: any) => {
-      const user = await context.prisma.user.findUnique({
-        where: { email: args.email },
-      });
+      const timer = createTimer("RequestPasswordReset");
 
-      // Don't reveal if user exists (security best practice)
-      if (!user) {
+      try {
+        // ✅ Sanitize inputs
+        const email = sanitizeEmail(args.input.email);
+
+        // ✅ Validate sanitized inputs
+        if (!email) {
+          throw new ValidationError("Geçerli bir email adresi gerekli");
+        }
+
+        logAuth("Password reset requested", undefined, { email });
+
+        const user = await context.prisma.user.findUnique({
+          where: { email },
+        });
+
+        // Don't reveal if user exists (security best practice)
+        if (!user) {
+          logAuth("Password reset requested for non-existent user", undefined, {
+            email,
+          });
+          timer.end({ success: true });
+
+          return {
+            success: true,
+            message:
+              "If this email exists, a password reset link has been sent.",
+          };
+        }
+
+        // Generate secure random token
+        const resetToken = crypto.randomBytes(32).toString("hex");
+        const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+        // Save token to database
+        await context.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            resetToken,
+            resetTokenExpiry,
+          },
+        });
+
+        // Send email with reset link (optional in dev mode)
+        try {
+          if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+            await sendPasswordResetEmail(user.email, resetToken);
+            logInfo(`✅ Password reset email sent to: ${user.email}`);
+          } else {
+            logInfo("⚠️  Email not configured - skipping email send");
+          }
+        } catch (emailError) {
+          logError(
+            "Email send failed (requestPasswordReset)",
+            emailError as Error,
+            { email }
+          );
+          // Don't throw error - token is saved, user can still use console token in dev
+        }
+
+        // Development mode - also log to console
+        if (process.env.NODE_ENV === "development") {
+          logInfo(`🔑 Password reset token for ${user.email}: ${resetToken}`);
+          logInfo(
+            `🔗 Reset link: ${
+              process.env.FRONTEND_URL || "http://localhost:3000"
+            }/auth/reset/${resetToken}`
+          );
+        }
+
+        logAuth("Password reset token generated", user.id, { email });
+        timer.end({ userId: user.id, success: true });
+
         return {
           success: true,
           message: "If this email exists, a password reset link has been sent.",
+          // Dev only - remove in production:
+          token:
+            process.env.NODE_ENV === "development" ? resetToken : undefined,
         };
+      } catch (error) {
+        logError("Request password reset mutation failed", error as Error, {
+          email: args.input.email,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
       }
-
-      // Generate secure random token
-      const resetToken = crypto.randomBytes(32).toString("hex");
-      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
-
-      // Save token to database
-      await context.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          resetToken,
-          resetTokenExpiry,
-        },
-      });
-
-      // Send email with reset link (optional in dev mode)
-      try {
-        if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-          await sendPasswordResetEmail(user.email, resetToken);
-          console.log(`✅ Password reset email sent to: ${user.email}`);
-        } else {
-          console.log("⚠️  Email not configured - skipping email send");
-        }
-      } catch (emailError) {
-        console.error(
-          "⚠️  Email send failed (continuing anyway):",
-          emailError instanceof Error ? emailError.message : emailError
-        );
-        // Don't throw error - token is saved, user can still use console token in dev
-      }
-
-      // Development mode - also log to console
-      if (process.env.NODE_ENV === "development") {
-        console.log(`🔑 Password reset token for ${user.email}: ${resetToken}`);
-        console.log(
-          `🔗 Reset link: ${
-            process.env.FRONTEND_URL || "http://localhost:3000"
-          }/auth/reset/${resetToken}`
-        );
-      }
-
-      return {
-        success: true,
-        message: "If this email exists, a password reset link has been sent.",
-        // Dev only - remove in production:
-        token: process.env.NODE_ENV === "development" ? resetToken : undefined,
-      };
     },
   })
 );
@@ -839,43 +1263,72 @@ builder.mutationField("resetPassword", (t) =>
   t.field({
     type: "JSON", // { success: boolean, message: string }
     args: {
-      token: t.arg.string({ required: true }),
-      newPassword: t.arg.string({ required: true }),
+      input: t.arg({ type: ResetPasswordInput, required: true }),
     },
     authScopes: { public: true },
     resolve: async (_root: any, args: any, context: any) => {
-      // Find user with valid token
-      const user = await context.prisma.user.findFirst({
-        where: {
-          resetToken: args.token,
-          resetTokenExpiry: {
-            gt: new Date(), // Token not expired
+      const timer = createTimer("ResetPassword");
+
+      try {
+        // ✅ Sanitize inputs
+        const token = sanitizeString(args.input.token);
+        const newPassword = sanitizeString(args.input.newPassword);
+
+        // ✅ Validate sanitized inputs
+        if (!token) {
+          throw new ValidationError("Geçerli bir token gerekli");
+        }
+
+        if (!newPassword || newPassword.length < 6) {
+          throw new ValidationError(
+            "Yeni şifre en az 6 karakter uzunluğunda olmalıdır"
+          );
+        }
+
+        logAuth("Password reset attempt with token", undefined, {
+          tokenLength: token.length,
+        });
+
+        // Find user with valid token
+        const user = await context.prisma.user.findFirst({
+          where: {
+            resetToken: token,
+            resetTokenExpiry: {
+              gt: new Date(), // Token not expired
+            },
           },
-        },
-      });
+        });
 
-      if (!user) {
-        throw new Error("Invalid or expired reset token");
+        if (!user) {
+          throw new ValidationError("Geçersiz veya süresi dolmuş token");
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password and clear reset token
+        await context.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            password: hashedPassword,
+            resetToken: null,
+            resetTokenExpiry: null,
+          },
+        });
+
+        logAuth("Password reset successful", user.id, { email: user.email });
+        timer.end({ userId: user.id, success: true });
+
+        return {
+          success: true,
+          message:
+            "Password has been reset successfully. You can now login with your new password.",
+        };
+      } catch (error) {
+        logError("Reset password mutation failed", error as Error);
+        timer.end({ success: false });
+        throw handleError(error);
       }
-
-      // Hash new password
-      const hashedPassword = await bcrypt.hash(args.newPassword, 10);
-
-      // Update password and clear reset token
-      await context.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          password: hashedPassword,
-          resetToken: null,
-          resetTokenExpiry: null,
-        },
-      });
-
-      return {
-        success: true,
-        message:
-          "Password has been reset successfully. You can now login with your new password.",
-      };
     },
   })
 );
@@ -885,77 +1338,99 @@ builder.mutationField("verifyEmail", (t) =>
   t.field({
     type: "JSON", // { success: boolean, message: string }
     args: {
-      token: t.arg.string({ required: true }),
+      input: t.arg({ type: VerifyEmailInput, required: true }),
     },
     authScopes: { public: true },
     resolve: async (_root: any, args: any, context: any) => {
-      // Find user with valid verification token
-      const user = await context.prisma.user.findFirst({
-        where: {
-          emailVerificationToken: args.token,
-          emailVerificationExpiry: {
-            gt: new Date(), // Token not expired
-          },
-        },
-      });
+      const timer = createTimer("VerifyEmail");
 
-      if (!user) {
-        throw new Error("Invalid or expired verification token");
-      }
-
-      // Update user - mark email as verified and clear token
-      await context.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          emailVerified: true,
-          emailVerificationToken: null,
-          emailVerificationExpiry: null,
-        },
-      });
-
-      // Send welcome email
       try {
-        if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-          await sendWelcomeEmail(user.email, user.name || "User");
-          console.log(`✅ Welcome email sent to: ${user.email}`);
+        // ✅ Sanitize inputs
+        const token = sanitizeString(args.input.token);
+
+        // ✅ Validate sanitized inputs
+        if (!token) {
+          throw new ValidationError("Geçerli bir token gerekli");
         }
-      } catch (emailError) {
-        console.error(
-          "⚠️  Welcome email failed:",
-          emailError instanceof Error ? emailError.message : emailError
-        );
-        // Don't throw - verification was successful
-      }
 
-      // ✅ Create email verified notification
-      try {
-        const notification = await context.prisma.notification.create({
-          data: {
-            type: "SYSTEM",
-            title: "✅ Email Doğrulandı",
-            message:
-              "Email adresiniz başarıyla doğrulandı! Artık profil bilgilerinizi tamamlayabilirsiniz.",
-            userId: user.id,
-            link: "/settings",
-            isRead: false,
+        logAuth("Email verification attempt with token", undefined, {
+          tokenLength: token.length,
+        });
+
+        // Find user with valid verification token
+        const user = await context.prisma.user.findFirst({
+          where: {
+            emailVerificationToken: token,
+            emailVerificationExpiry: {
+              gt: new Date(), // Token not expired
+            },
           },
         });
-        await publishNotification(notification);
-        console.log(
-          `📢 Email verification notification sent to user ${user.id}`
-        );
-      } catch (notifError) {
-        console.error(
-          "⚠️  Notification failed (continuing anyway):",
-          notifError instanceof Error ? notifError.message : notifError
-        );
-      }
 
-      return {
-        success: true,
-        message:
-          "Email has been verified successfully! Welcome to the platform.",
-      };
+        if (!user) {
+          throw new ValidationError("Geçersiz veya süresi dolmuş token");
+        }
+
+        // Update user - mark email as verified and clear token
+        await context.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            emailVerified: true,
+            emailVerificationToken: null,
+            emailVerificationExpiry: null,
+          },
+        });
+
+        // Send welcome email
+        try {
+          if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+            await sendWelcomeEmail(user.email, user.name || "User");
+            logInfo(`✅ Welcome email sent to: ${user.email}`);
+          }
+        } catch (emailError) {
+          logError("Welcome email failed", emailError as Error, {
+            userId: user.id,
+            email: user.email,
+          });
+          // Don't throw - verification was successful
+        }
+
+        // ✅ Create email verified notification
+        try {
+          const notification = await context.prisma.notification.create({
+            data: {
+              type: "SYSTEM",
+              title: "✅ Email Doğrulandı",
+              message:
+                "Email adresiniz başarıyla doğrulandı! Artık profil bilgilerinizi tamamlayabilirsiniz.",
+              userId: user.id,
+              link: "/settings",
+              isRead: false,
+            },
+          });
+          await publishNotification(notification);
+          logInfo(`📢 Email verification notification sent to user ${user.id}`);
+        } catch (notifError) {
+          logError("Notification failed (verifyEmail)", notifError as Error, {
+            userId: user.id,
+          });
+        }
+
+        logAuth("Email verification successful", user.id, {
+          email: user.email,
+        });
+        timer.end({ userId: user.id, success: true });
+
+        return {
+          success: true,
+          message:
+            "Email has been verified successfully! Welcome to the platform.",
+        };
+      } catch (error) {
+        logError("Verify email mutation failed", error as Error);
+        timer.end({ success: false });
+        throw handleError(error);
+      }
     },
   })
 );
@@ -966,75 +1441,98 @@ builder.mutationField("resendVerificationEmail", (t) =>
     type: "JSON", // { success: boolean, message: string }
     authScopes: { user: true },
     resolve: async (_root: any, _args: any, context: any) => {
-      if (!context.user?.id) throw new Error("Not authenticated");
+      const timer = createTimer("ResendVerificationEmail");
 
-      const user = await context.prisma.user.findUnique({
-        where: { id: context.user.id },
-      });
-
-      if (!user) throw new Error("User not found");
-
-      // Already verified
-      if (user.emailVerified) {
-        return {
-          success: false,
-          message: "Email is already verified",
-        };
-      }
-
-      // Generate new verification token
-      const emailVerificationToken = crypto.randomBytes(32).toString("hex");
-      const emailVerificationExpiry = new Date(Date.now() + 86400000); // 24 hours
-
-      // Update user with new token
-      await context.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          emailVerificationToken,
-          emailVerificationExpiry,
-        },
-      });
-
-      // Send verification email
       try {
-        if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-          await sendEmailVerification(
-            user.email,
-            emailVerificationToken,
-            user.name || undefined
-          );
-          console.log(`✅ Verification email resent to: ${user.email}`);
-        } else {
-          console.log("⚠️  Email not configured - skipping verification email");
+        // ✅ Auth check
+        requireAuth(context.user?.id);
+
+        logAuth("Resend verification email requested", context.user.id);
+
+        const user = await context.prisma.user.findUnique({
+          where: { id: context.user.id },
+        });
+
+        if (!user) {
+          throw new NotFoundError("Kullanıcı bulunamadı");
         }
-      } catch (emailError) {
-        console.error(
-          "⚠️  Email send failed (continuing anyway):",
-          emailError instanceof Error ? emailError.message : emailError
-        );
-      }
 
-      // Development mode - log verification link
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `🔑 Email verification token for ${user.email}: ${emailVerificationToken}`
-        );
-        console.log(
-          `🔗 Verification link: ${
-            process.env.FRONTEND_URL || "http://localhost:3000"
-          }/auth/verify-email/${emailVerificationToken}`
-        );
-      }
+        // Already verified
+        if (user.emailVerified) {
+          logAuth(
+            "Verification email requested for already verified user",
+            user.id
+          );
+          timer.end({ userId: user.id, success: false });
 
-      return {
-        success: true,
-        message: "Verification email has been sent to your email address.",
-        // Dev only:
-        verificationToken:
-          process.env.NODE_ENV === "development"
-            ? emailVerificationToken
-            : undefined,
-      };
+          return {
+            success: false,
+            message: "Email is already verified",
+          };
+        }
+
+        // Generate new verification token
+        const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+        const emailVerificationExpiry = new Date(Date.now() + 86400000); // 24 hours
+
+        // Update user with new token
+        await context.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            emailVerificationToken,
+            emailVerificationExpiry,
+          },
+        });
+
+        // Send verification email
+        try {
+          if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+            await sendEmailVerification(
+              user.email,
+              emailVerificationToken,
+              user.name || undefined
+            );
+            logInfo(`✅ Verification email resent to: ${user.email}`);
+          } else {
+            logInfo("⚠️  Email not configured - skipping verification email");
+          }
+        } catch (emailError) {
+          logError(
+            "Email send failed (resendVerification)",
+            emailError as Error,
+            { userId: context.user.id }
+          );
+        }
+
+        // Development mode - log verification link
+        if (process.env.NODE_ENV === "development") {
+          logInfo(
+            `🔑 Email verification token for ${user.email}: ${emailVerificationToken}`
+          );
+          logInfo(
+            `🔗 Verification link: ${process.env.FRONTEND_URL}/auth/verify-email/${emailVerificationToken}`
+          );
+        }
+
+        logAuth("Verification email resent", user.id, { email: user.email });
+        timer.end({ userId: user.id, success: true });
+
+        return {
+          success: true,
+          message: "Verification email has been sent to your email address.",
+          // Dev only:
+          verificationToken:
+            process.env.NODE_ENV === "development"
+              ? emailVerificationToken
+              : undefined,
+        };
+      } catch (error) {
+        logError("Resend verification email mutation failed", error as Error, {
+          userId: context.user?.id,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
+      }
     },
   })
 );
@@ -1061,29 +1559,44 @@ builder.mutationField("refreshToken", (t) =>
     authScopes: { user: true },
     description: "Refresh authentication token for the current user",
     resolve: async (_root: any, _args: any, context: any) => {
-      requireAuth(context.user?.id);
+      const timer = createTimer("RefreshToken");
 
-      // Get fresh user data
-      const user = await context.prisma.user.findUnique({
-        where: { id: context.user.id },
-      });
+      try {
+        // ✅ Auth check
+        requireAuth(context.user?.id);
 
-      if (!user) {
-        throw new Error("User not found");
+        logAuth("Token refresh requested", context.user.id);
+
+        // Get fresh user data
+        const user = await context.prisma.user.findUnique({
+          where: { id: context.user.id },
+        });
+
+        if (!user) {
+          throw new NotFoundError("Kullanıcı bulunamadı");
+        }
+
+        // Generate new token with current user data
+        const newToken = generateToken({
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          department: user.department,
+          companyId: user.companyId,
+        });
+
+        logInfo(`🔄 Token refreshed for user: ${user.email}`);
+        logAuth("Token refresh successful", user.id, { email: user.email });
+        timer.end({ userId: user.id, success: true });
+
+        return newToken;
+      } catch (error) {
+        logError("Refresh token mutation failed", error as Error, {
+          userId: context.user?.id,
+        });
+        timer.end({ success: false });
+        throw handleError(error);
       }
-
-      // Generate new token with current user data
-      const newToken = generateToken({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        department: user.department,
-        companyId: user.companyId,
-      });
-
-      console.log(`🔄 Token refreshed for user: ${user.email}`);
-
-      return newToken;
     },
   })
 );

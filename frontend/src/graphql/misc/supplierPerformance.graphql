@@ -1,0 +1,3 @@
+query query_supplierPerformance($dateRange: DateRangeInput, $supplierId: Int) {
+  supplierPerformance(dateRange: $dateRange, supplierId: $supplierId)
+}

@@ -1,0 +1,3 @@
+query query_companiesCount($filter: CompanyCountFilterInput) {
+  companiesCount(filter: $filter)
+}

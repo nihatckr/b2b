@@ -147,9 +147,10 @@ function SizeGroupCardItem({
   editText: string;
 }) {
   const sizes = getSizes(sizeGroup.data);
-  const category = getSizeCategory(sizeGroup.data);
-  const regional = getRegionalStandard(sizeGroup.data);
-  const gender = getTargetGender(sizeGroup.data);
+  // ✅ Hybrid Approach: Use direct fields from schema
+  const category = sizeGroup.sizeCategory || getSizeCategory(sizeGroup.data); // Fallback to JSON
+  const regional = getRegionalStandard(sizeGroup.data); // This stays in JSON
+  const gender = sizeGroup.gender || getTargetGender(sizeGroup.data); // Fallback to JSON
 
   return (
     <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">

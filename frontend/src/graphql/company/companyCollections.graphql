@@ -1,0 +1,11 @@
+query query_companyCollections($after: String, $before: String, $first: Int, $input: AdvancedFilterInput, $last: Int) {
+  companyCollections(
+    after: $after
+    before: $before
+    first: $first
+    input: $input
+    last: $last
+  ) {
+    __typename
+  }
+}

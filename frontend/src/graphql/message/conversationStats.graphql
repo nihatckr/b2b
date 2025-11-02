@@ -1,0 +1,3 @@
+query query_conversationStats($filter: ConversationFilterInput) {
+  conversationStats(filter: $filter)
+}

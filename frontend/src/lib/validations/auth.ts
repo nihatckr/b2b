@@ -2,6 +2,8 @@ import * as z from "zod";
 
 // ============================================
 // AUTH VALIDATION SCHEMAS
+// Backend: authMutation.ts
+// Backend errors: "Geçerli bir email adresi giriniz", "İsim en az 2 karakter olmalıdır"
 // ============================================
 
 // Güçlü şifre doğrulama regex'i
@@ -12,8 +14,8 @@ const strongPasswordRegex =
 export const ResetSchema = z.object({
   email: z
     .string()
-    .min(1, "E-posta adresi gerekli")
-    .email("Geçersiz e-posta adresi"),
+    .min(1, "E-posta adresi gereklidir")
+    .email("Geçerli bir e-posta adresi giriniz"),
 });
 
 // Yeni şifre belirleme için schema (token ile)
@@ -36,7 +38,7 @@ export const ResetPasswordSchema = z
 export const NewPasswordSchema = z.object({
   password: z
     .string()
-    .min(8, "Şifre en az 8 karakter olmalı")
+    .min(8, "Şifre en az 8 karakter olmalıdır")
     .regex(
       strongPasswordRegex,
       "Şifre en az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter içermelidir"
@@ -47,25 +49,26 @@ export const NewPasswordSchema = z.object({
 export const LoginSchema = z.object({
   email: z
     .string()
-    .min(1, "E-posta adresi gerekli")
-    .email("Geçersiz e-posta adresi"),
-  password: z.string().min(1, "Şifre gerekli"),
+    .min(1, "E-posta adresi gereklidir")
+    .email("Geçerli bir e-posta adresi giriniz"),
+  password: z.string().min(1, "Şifre gereklidir"),
 });
 
 // Kayıt olmak için schema
+// Backend error: "İsim en az 2 karakter olmalıdır"
 export const RegisterSchema = z.object({
   email: z
     .string()
-    .min(1, "E-posta adresi gerekli")
-    .email("Geçersiz e-posta adresi"),
+    .min(1, "E-posta adresi gereklidir")
+    .email("Geçerli bir e-posta adresi giriniz"),
   password: z
     .string()
-    .min(8, "Şifre en az 8 karakter olmalı")
+    .min(8, "Şifre en az 8 karakter olmalıdır")
     .regex(
       strongPasswordRegex,
       "Şifre en az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter içermelidir"
     ),
-  name: z.string().min(1, "İsim gerekli"),
+  name: z.string().min(2, "İsim en az 2 karakter olmalıdır"),
   accountType: z.enum(["INDIVIDUAL", "MANUFACTURER", "BUYER"]),
 });
 

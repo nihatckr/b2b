@@ -1,0 +1,8 @@
+query query_searchLibraryItems($category: String, $limit: Int, $query: String!, $scope: String) {
+  searchLibraryItems(
+    category: $category
+    limit: $limit
+    query: $query
+    scope: $scope
+  )
+}

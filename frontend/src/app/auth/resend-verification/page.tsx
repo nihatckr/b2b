@@ -1,6 +1,6 @@
 "use client";
 
-import { ResendVerificationEmailAuthDocument } from "@/__generated__/graphql";
+import { AuthResendVerificationEmailDocument } from "@/__generated__/graphql";
 import { CardWrapper } from "@/components/auth/card-wrapper";
 import { FormError } from "@/components/auth/form-error";
 import { FormSuccess } from "@/components/auth/form-success";
@@ -18,7 +18,7 @@ export default function ResendVerificationPage() {
   const [error, setError] = useState("");
 
   const [{ fetching: isLoading }, resendEmailMutation] = useMutation(
-    ResendVerificationEmailAuthDocument
+    AuthResendVerificationEmailDocument
   );
 
   // Eğer giriş yapmamışsa login'e yönlendir

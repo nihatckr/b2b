@@ -6,7 +6,7 @@
 
 import { requireAuth } from "../../utils/errors";
 import { pubsub } from "../../utils/pubsub";
-import { builder } from "../builder";
+import builder from "../builder";
 
 /**
  * Message Event
@@ -14,9 +14,11 @@ import { builder } from "../builder";
 const MessageEvent = builder.objectRef<{
   id: number;
   content: string;
-  productId: number;
+  type: string;
+  orderId: number | null;
+  sampleId: number | null;
   senderId: number;
-  receiverId: number;
+  receiverId: number | null;
   isRead: boolean;
   createdAt: Date;
 }>("MessageEvent");
@@ -25,9 +27,11 @@ MessageEvent.implement({
   fields: (t) => ({
     id: t.exposeInt("id"),
     content: t.exposeString("content"),
-    productId: t.exposeInt("productId"),
+    type: t.exposeString("type"),
+    orderId: t.exposeInt("orderId", { nullable: true }),
+    sampleId: t.exposeInt("sampleId", { nullable: true }),
     senderId: t.exposeInt("senderId"),
-    receiverId: t.exposeInt("receiverId"),
+    receiverId: t.exposeInt("receiverId", { nullable: true }),
     isRead: t.exposeBoolean("isRead"),
     createdAt: t.expose("createdAt", { type: "DateTime" }),
   }),
@@ -53,14 +57,17 @@ MessageReadEvent.implement({
 /**
  * Subscription: newMessage
  *
- * Subscribe to new messages for a specific product/conversation
+ * Subscribe to new messages for a specific order or sample conversation
  *
  * @example
  * ```graphql
  * subscription {
- *   newMessage(productId: 123) {
+ *   newMessage(orderId: 123) {
  *     id
  *     content
+ *     type
+ *     orderId
+ *     sampleId
  *     senderId
  *     createdAt
  *   }
@@ -71,14 +78,28 @@ builder.subscriptionField("newMessage", (t) =>
   t.field({
     type: MessageEvent,
     authScopes: { user: true },
-    description: "Subscribe to new messages for a specific product conversation",
+    description:
+      "Subscribe to new messages for a specific order or sample conversation",
     args: {
-      productId: t.arg.int({ required: true, description: "Product ID (Collection/Sample/Order)" }),
+      orderId: t.arg.int({
+        required: false,
+        description: "Order ID",
+      }),
+      sampleId: t.arg.int({
+        required: false,
+        description: "Sample ID",
+      }),
     },
     subscribe: (root, args, context) => {
       requireAuth(context.user?.id);
 
-      return pubsub.subscribe("message:new", args.productId);
+      // Subscribe to either order or sample messages
+      const channelKey = args.orderId || args.sampleId;
+      if (!channelKey) {
+        throw new Error("Either orderId or sampleId must be provided");
+      }
+
+      return pubsub.subscribe("message:new", channelKey);
     },
     resolve: (payload) => payload,
   })
@@ -92,7 +113,7 @@ builder.subscriptionField("newMessage", (t) =>
  * @example
  * ```graphql
  * subscription {
- *   messageRead(productId: 123) {
+ *   messageRead(orderId: 123) {
  *     messageId
  *     isRead
  *     readAt
@@ -106,12 +127,24 @@ builder.subscriptionField("messageRead", (t) =>
     authScopes: { user: true },
     description: "Subscribe to message read status changes",
     args: {
-      productId: t.arg.int({ required: true, description: "Product ID to watch" }),
+      orderId: t.arg.int({
+        required: false,
+        description: "Order ID to watch",
+      }),
+      sampleId: t.arg.int({
+        required: false,
+        description: "Sample ID to watch",
+      }),
     },
     subscribe: (root, args, context) => {
       requireAuth(context.user?.id);
 
-      return pubsub.subscribe("message:read", args.productId);
+      const channelKey = args.orderId || args.sampleId;
+      if (!channelKey) {
+        throw new Error("Either orderId or sampleId must be provided");
+      }
+
+      return pubsub.subscribe("message:read", channelKey);
     },
     resolve: (payload) => payload,
   })
@@ -128,7 +161,9 @@ builder.subscriptionField("messageRead", (t) =>
  *   myMessages {
  *     id
  *     content
- *     productId
+ *     type
+ *     orderId
+ *     sampleId
  *     senderId
  *     createdAt
  *   }

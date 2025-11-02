@@ -1,0 +1,3 @@
+query query_questionStats($filter: QuestionFilterInput) {
+  questionStats(filter: $filter)
+}

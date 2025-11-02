@@ -1,0 +1,15 @@
+query query_companyAverageRating($companyId: Int!) {
+  companyAverageRating(companyId: $companyId) {
+    averageRating
+    ratingBreakdown {
+      fiveStars
+      fourStars
+      oneStar
+      threeStars
+      twoStars
+      __typename
+    }
+    totalReviews
+    __typename
+  }
+}

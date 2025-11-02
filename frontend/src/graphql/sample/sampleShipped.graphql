@@ -1,0 +1,10 @@
+subscription subscription_sampleShipped($sampleId: Int!) {
+  sampleShipped(sampleId: $sampleId) {
+    cargoTrackingNumber
+    estimatedDelivery
+    sampleId
+    sampleNumber
+    shippedAt
+    __typename
+  }
+}

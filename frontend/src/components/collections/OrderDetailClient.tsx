@@ -2,11 +2,11 @@
 
 import {
   BuyerOrderDetailDocument,
-  ManufacturerAcceptCustomerQuoteDocument,
   RespondToProductionPlanDocument,
   SendProductionPlanForApprovalDocument,
 } from "@/__generated__/graphql";
 import { CounterOfferDialog } from "@/components/orders/CounterOfferDialog";
+import { OrderChangeReviewDialog } from "@/components/orders/OrderChangeReviewDialog";
 import { ProductionPlanDialog } from "@/components/orders/ProductionPlanDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -117,25 +117,11 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
     variables: { id: orderId },
   });
 
-  const [, acceptCustomerQuote] = useMutation(
-    ManufacturerAcceptCustomerQuoteDocument
-  );
-
   // Production plan approval mutations
   const [, sendForApproval] = useMutation(
     SendProductionPlanForApprovalDocument
   );
   const [, respondToPlan] = useMutation(RespondToProductionPlanDocument);
-
-  const handleAcceptQuote = async () => {
-    const result = await acceptCustomerQuote({ orderId });
-    if (result.error) {
-      toast.error(`Hata: ${result.error.message}`);
-      return;
-    }
-    toast.success("✅ Teklif kabul edildi!");
-    refetchOrder({ requestPolicy: "network-only" });
-  };
 
   // Production plan approval handlers
   const handleSendForApproval = async (productionId: string | number) => {
@@ -228,14 +214,28 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
 
   const { order } = data;
 
-  // Debug: Log order data to check productionTracking
-  console.log("Order data:", order);
-  console.log("Production tracking:", order.productionTracking);
-  console.log(
-    "📋 Approval Status:",
-    order.productionTracking?.customerApprovalStatus
-  );
-  console.log("🔄 Revision Count:", order.productionTracking?.revisionCount);
+  // Debug: Log order data to check all values
+  console.log("📦 Order Data:", {
+    quantity: order.quantity,
+    targetPrice: order.targetPrice,
+    unitPrice: order.unitPrice,
+    deadline: order.deadline,
+    currency: order.currency,
+    productionDays: order.productionDays,
+  });
+  console.log("🏭 Collection Data:", {
+    moq: order.collection?.moq,
+    targetPrice: order.collection?.targetPrice,
+    targetLeadTime: order.collection?.targetLeadTime,
+    deadlineDays: order.collection?.deadlineDays,
+    currency: order.collection?.currency,
+  });
+  console.log("� Customer Quote:", {
+    customerQuotedPrice: order.customerQuotedPrice,
+    customerQuoteDays: order.customerQuoteDays,
+    customerQuoteNote: order.customerQuoteNote,
+  });
+  // Negotiations feature removed
 
   // Check if user is customer (ordered the collection)
   const customerCompanyId = order.customer?.company?.id
@@ -305,6 +305,7 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Koleksiyon Adı</p>
@@ -330,6 +331,129 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                 </div>
               </div>
 
+              <Separator />
+
+              {/* Pricing & Production Info */}
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-3">
+                  Fiyatlandırma ve Üretim
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="  p-3 rounded-lg">
+                    <p className="text-xs text-gray-500">Hedef Birim Fiyat</p>
+                    <p className="font-semibold text-lg">
+                      {order.collection?.targetPrice}{" "}
+                      {order.collection?.currency || "USD"}
+                    </p>
+                  </div>
+                  <div className="  p-3 rounded-lg">
+                    <p className="text-xs text-gray-500">
+                      Minimum Sipariş (MOQ)
+                    </p>
+                    <p className="font-semibold text-lg">
+                      {order.collection?.moq || "-"} adet
+                    </p>
+                  </div>
+                  <div className=" not-only: p-3 rounded-lg">
+                    <p className="text-xs text-gray-500">Hedef Üretim Süresi</p>
+                    <p className="font-semibold text-lg">
+                      {order.collection?.targetLeadTime || "-"} gün
+                    </p>
+                  </div>
+                  <div className="  p-3 rounded-lg">
+                    <p className="text-xs text-gray-500">Termin Süresi</p>
+                    <p className="font-semibold text-lg">
+                      {order.collection?.deadlineDays || "-"} gün
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Fabric & Material Info */}
+              {(order.collection?.fabricComposition ||
+                order.collection?.accessories) && (
+                <>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700 mb-3">
+                      Kumaş ve Malzeme Bilgileri
+                    </p>
+                    {order.collection?.fabricComposition && (
+                      <div className="mb-3">
+                        <p className="text-xs text-gray-500 mb-1">
+                          Kumaş Kompozisyonu
+                        </p>
+                        <p className="text-sm bg-gray-50 p-2 rounded border">
+                          {order.collection.fabricComposition}
+                        </p>
+                      </div>
+                    )}
+                    {order.collection?.accessories && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">
+                          Aksesuarlar
+                        </p>
+                        <p className="text-sm bg-gray-50 p-2 rounded border">
+                          {order.collection.accessories}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <Separator />
+                </>
+              )}
+
+              {/* Additional Details */}
+              {(order.collection?.fit ||
+                order.collection?.trend ||
+                order.collection?.colors ||
+                order.collection?.sizeRange) && (
+                <>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700 mb-3">
+                      Ek Detaylar
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {order.collection?.fit && (
+                        <div>
+                          <p className="text-xs text-gray-500">Kesim</p>
+                          <p className="text-sm font-medium">
+                            {order.collection.fit}
+                          </p>
+                        </div>
+                      )}
+                      {order.collection?.trend && (
+                        <div>
+                          <p className="text-xs text-gray-500">Trend</p>
+                          <p className="text-sm font-medium">
+                            {order.collection.trend}
+                          </p>
+                        </div>
+                      )}
+                      {order.collection?.colors && (
+                        <div>
+                          <p className="text-xs text-gray-500">Renkler</p>
+                          <p className="text-sm font-medium">
+                            {order.collection.colors}
+                          </p>
+                        </div>
+                      )}
+                      {order.collection?.sizeRange && (
+                        <div>
+                          <p className="text-xs text-gray-500">Beden Aralığı</p>
+                          <p className="text-sm font-medium">
+                            {order.collection.sizeRange}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              )}
+
+              {/* Description */}
               {order.collection?.description && (
                 <div>
                   <p className="text-sm text-gray-500">Açıklama</p>
@@ -337,6 +461,7 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                 </div>
               )}
 
+              {/* Images */}
               {order.collection?.images &&
                 Array.isArray(order.collection.images) &&
                 order.collection.images.length > 0 && (
@@ -356,6 +481,16 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                     </div>
                   </div>
                 )}
+
+              {/* Notes */}
+              {order.collection?.notes && (
+                <div>
+                  <p className="text-sm text-gray-500">Notlar</p>
+                  <p className="text-sm bg-gray-50 p-2 rounded border">
+                    {order.collection.notes}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -432,6 +567,288 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
             </CardContent>
           </Card>
 
+          {/* Customer Requests vs Collection Defaults - Negotiation Panel */}
+          <Card className="border-purple-200 bg-purple-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-purple-800">
+                <AlertCircle className="w-5 h-5" />
+                Müşteri Talepleri ve Karşılaştırma
+              </CardTitle>
+              <p className="text-sm text-purple-600 mt-1">
+                Koleksiyon varsayılanları ile sipariş değerleri
+                karşılaştırılıyor
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Comparison Table */}
+              <div className="  rounded-lg border border-purple-200 overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-purple-100">
+                    <tr>
+                      <th className="text-left p-3 text-sm font-semibold text-gray-700">
+                        Özellik
+                      </th>
+                      <th className="text-center p-3 text-sm font-semibold text-gray-700">
+                        Koleksiyon Varsayılan
+                      </th>
+                      <th className="text-center p-3 text-sm font-semibold text-purple-700">
+                        Müşteri Talebi
+                      </th>
+                      <th className="text-center p-3 text-sm font-semibold text-gray-700">
+                        Durum
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {/* Quantity Row */}
+                    <tr>
+                      <td className="p-3 text-sm font-medium flex items-center gap-2">
+                        <Package className="w-4 h-4 text-gray-500" />
+                        Miktar (Adet)
+                      </td>
+                      <td className="p-3 text-center text-sm">
+                        <span className="font-semibold">
+                          {order.collection?.moq || "-"}
+                        </span>
+                        <p className="text-xs text-gray-500">MOQ</p>
+                      </td>
+                      <td className="p-3 text-center text-sm">
+                        <span className="font-semibold text-purple-700">
+                          {order.quantity || "-"}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        {order.collection?.moq &&
+                        order.quantity === order.collection.moq ? (
+                          <Badge className="bg-green-100 text-green-800 border-green-300">
+                            ✓ Eşit
+                          </Badge>
+                        ) : order.quantity &&
+                          order.collection?.moq &&
+                          order.quantity > order.collection.moq ? (
+                          <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+                            +
+                            {(
+                              ((order.quantity - order.collection.moq) /
+                                order.collection.moq) *
+                              100
+                            ).toFixed(0)}
+                            %
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-red-100 text-red-800 border-red-300">
+                            MOQ Altı
+                          </Badge>
+                        )}
+                      </td>
+                    </tr>
+
+                    {/* Unit Price Row */}
+                    <tr className="bg-gray-50">
+                      <td className="p-3 text-sm font-medium flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-gray-500" />
+                        Birim Fiyat
+                      </td>
+                      <td className="p-3 text-center text-sm">
+                        <span className="font-semibold">
+                          {order.collection?.targetPrice || "-"}
+                        </span>
+                        <p className="text-xs text-gray-500">
+                          {order.currency || "USD"}
+                        </p>
+                      </td>
+                      <td className="p-3 text-center text-sm">
+                        <span className="font-semibold text-purple-700">
+                          {order.targetPrice || "-"}
+                        </span>
+                        <p className="text-xs text-gray-500">
+                          {order.currency || "USD"}
+                        </p>
+                      </td>
+                      <td className="p-3 text-center">
+                        {order.collection?.targetPrice &&
+                        order.targetPrice === order.collection.targetPrice ? (
+                          <Badge className="bg-green-100 text-green-800 border-green-300">
+                            ✓ Eşit
+                          </Badge>
+                        ) : order.targetPrice &&
+                          order.collection?.targetPrice &&
+                          order.targetPrice < order.collection.targetPrice ? (
+                          <Badge className="bg-orange-100 text-orange-800 border-orange-300">
+                            -
+                            {(
+                              ((order.collection.targetPrice -
+                                order.targetPrice) /
+                                order.collection.targetPrice) *
+                              100
+                            ).toFixed(0)}
+                            %
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                            Farklı
+                          </Badge>
+                        )}
+                      </td>
+                    </tr>
+
+                    {/* Lead Time Row */}
+                    <tr>
+                      <td className="p-3 text-sm font-medium flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-gray-500" />
+                        Termin Süresi (Gün)
+                      </td>
+                      <td className="p-3 text-center text-sm">
+                        <span className="font-semibold">
+                          {order.collection?.deadlineDays || "-"}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center text-sm">
+                        <span className="font-semibold text-purple-700">
+                          {order.deadline
+                            ? Math.ceil(
+                                (new Date(order.deadline).getTime() -
+                                  new Date(order.createdAt).getTime()) /
+                                  (1000 * 60 * 60 * 24)
+                              )
+                            : "-"}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        {(() => {
+                          if (
+                            !order.deadline ||
+                            !order.collection?.deadlineDays
+                          )
+                            return "-";
+                          const orderDays = Math.ceil(
+                            (new Date(order.deadline).getTime() -
+                              new Date(order.createdAt).getTime()) /
+                              (1000 * 60 * 60 * 24)
+                          );
+                          if (orderDays === order.collection.deadlineDays) {
+                            return (
+                              <Badge className="bg-green-100 text-green-800 border-green-300">
+                                ✓ Eşit
+                              </Badge>
+                            );
+                          } else if (
+                            orderDays < order.collection.deadlineDays
+                          ) {
+                            return (
+                              <Badge className="bg-red-100 text-red-800 border-red-300">
+                                ⚡ Acil
+                              </Badge>
+                            );
+                          } else {
+                            return (
+                              <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+                                Uzun
+                              </Badge>
+                            );
+                          }
+                        })()}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Customer Quote Information */}
+              {(order.customerQuotedPrice ||
+                order.customerQuoteDays ||
+                order.customerQuoteNote) && (
+                <div className="  p-4 rounded-lg border border-purple-200">
+                  <p className="text-sm font-medium text-gray-700 mb-3">
+                    Müşteri Teklifi
+                  </p>
+                  <div className="space-y-2">
+                    {order.customerQuotedPrice && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">
+                          Teklif Edilen Birim Fiyat:
+                        </span>
+                        <span className="font-semibold text-purple-700">
+                          {order.customerQuotedPrice} {order.currency}
+                        </span>
+                      </div>
+                    )}
+                    {order.customerQuoteDays && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">
+                          İstenen Üretim Süresi:
+                        </span>
+                        <span className="font-semibold text-purple-700">
+                          {order.customerQuoteDays} gün
+                        </span>
+                      </div>
+                    )}
+                    {order.customerQuoteNote && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500 mb-1">
+                          Müşteri Notu:
+                        </p>
+                        <p className="text-sm text-gray-700 bg-purple-50 p-2 rounded">
+                          {order.customerQuoteNote}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Manufacturer Actions */}
+              {isManufacturer &&
+                order.status !== "CONFIRMED" &&
+                order.status !== "CANCELLED" &&
+                order.status !== "REJECTED" && (
+                  <div className="pt-4 border-t border-purple-200 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Accept & Create Production Plan */}
+                      <Button
+                        onClick={() => setProductionPlanOpen(true)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        Kabul Et & Üretim Planla
+                      </Button>
+
+                      {/* Counter Offer */}
+                      <Button
+                        onClick={() => setCounterOfferOpen(true)}
+                        variant="outline"
+                        className="border-purple-600 text-purple-600 hover:bg-purple-50"
+                      >
+                        <DollarSign className="w-4 h-4 mr-2" />
+                        Karşı Teklif Gönder
+                      </Button>
+                    </div>
+                    <p className="text-xs text-purple-600 text-center">
+                      Müşteri talebini kabul edip üretim planlaması yapabilir
+                      veya farklı değerlerle karşı teklif gönderebilirsiniz
+                    </p>
+                  </div>
+                )}
+              {/* No Changes Message */}
+              {!order.customerQuotedPrice &&
+                !order.customerQuoteDays &&
+                !order.customerQuoteNote &&
+                order.quantity === order.collection?.moq &&
+                order.targetPrice === order.collection?.targetPrice && (
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200 text-center">
+                    <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-green-800">
+                      ✅ Değişiklik Yok
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">
+                      Sipariş değerleri koleksiyon varsayılan değerleriyle
+                      tamamen uyumlu
+                    </p>
+                  </div>
+                )}
+            </CardContent>
+          </Card>
+
           {/* Order Changes Notification */}
           {isManufacturer &&
             order.changeLogs &&
@@ -453,7 +870,7 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                       .map((log: any) => (
                         <div
                           key={log.id}
-                          className="flex items-center justify-between p-3 bg-white rounded border border-amber-200"
+                          className="flex items-center justify-between p-3   rounded border border-amber-200"
                         >
                           <div className="flex items-center gap-3">
                             <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
@@ -1012,63 +1429,22 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
             </Card>
           )}
 
-          {/* Action Buttons */}
+          {/* Negotiation History - Feature removed
           <Card>
-            <CardContent className="pt-6 space-y-2">
-              {isCustomer && order.status === "QUOTE_SENT" && (
-                <>
-                  <Button className="w-full" variant="default">
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Teklifi Kabul Et
-                  </Button>
-                  <Button
-                    className="w-full"
-                    variant="outline"
-                    onClick={() => setCounterOfferOpen(true)}
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Karşı Teklif Gönder
-                  </Button>
-                  <Button className="w-full" variant="outline">
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Teklifi Reddet
-                  </Button>
-                </>
-              )}
-
-              {isManufacturer && order.status === "CUSTOMER_QUOTE_SENT" && (
-                <>
-                  <Button
-                    className="w-full"
-                    variant="default"
-                    onClick={() => setProductionPlanOpen(true)}
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {order.productionTracking
-                      ? "Üretim Planını Güncelle"
-                      : "Üretim Planı Oluştur"}
-                  </Button>
-                  <Button className="w-full" variant="outline">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Karşı Teklif Gönder
-                  </Button>
-                  <Button
-                    className="w-full"
-                    variant="outline"
-                    onClick={() => setOrderChangeReviewOpen(true)}
-                  >
-                    <AlertCircle className="w-4 h-4 mr-2" />
-                    Sipariş Değişiklikleri
-                  </Button>
-                </>
-              )}
-
-              <Button className="w-full" variant="outline">
-                <FileText className="w-4 h-4 mr-2" />
-                Sipariş Geçmişi
-              </Button>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Pazarlık Geçmişi
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-gray-500">
+                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Pazarlık özelliği kaldırıldı</p>
+              </div>
             </CardContent>
           </Card>
+          */}
         </div>
       </div>
 
@@ -1081,6 +1457,7 @@ export function OrderDetailClient({ orderId }: OrderDetailClientProps) {
             orderId={orderId}
             currentPrice={order.unitPrice || 0}
             currentDays={order.productionDays || 30}
+            currentQuantity={order.quantity || undefined}
             onSuccess={() => {
               refetchOrder({ requestPolicy: "network-only" });
             }}

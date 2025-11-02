@@ -1,0 +1,181 @@
+mutation mutation_respondToOrderOffer($input: RespondToOfferInput!) {
+  respondToOrderOffer(input: $input) {
+    createdAt
+    currency
+    id
+    message
+    order {
+      actualProductionEnd
+      actualProductionStart
+      basedOnSample {
+        id
+        __typename
+      }
+      cargoTrackingNumber
+      changeLogs {
+        id
+        __typename
+      }
+      collection {
+        id
+        __typename
+      }
+      collectionImage
+      collectionModelCode
+      collectionName
+      company {
+        id
+        __typename
+      }
+      createdAt
+      currency
+      customer {
+        id
+        __typename
+      }
+      customerNote
+      customerQuoteDays
+      customerQuoteNote
+      customerQuoteSentAt
+      customerQuoteType
+      customerQuotedPrice
+      deadline
+      deliveryAddress
+      estimatedProductionDate
+      id
+      manufacture {
+        id
+        __typename
+      }
+      manufacturerResponse
+      negotiations {
+        id
+        __typename
+      }
+      notes
+      orderNumber
+      productionDays
+      productionTracking {
+        id
+        __typename
+      }
+      quantity
+      shippingDate
+      sizeBreakdown {
+        id
+        __typename
+      }
+      status
+      targetPrice
+      totalPrice
+      unitPrice
+      updatedAt
+      __typename
+    }
+    orderId
+    productionDays
+    quantity
+    relatedChangeLog {
+      changeReason
+      changeType
+      changedBy
+      changedByUser {
+        id
+        __typename
+      }
+      createdAt
+      id
+      manufacturerResponse
+      manufacturerReviewedAt
+      manufacturerReviewedBy
+      manufacturerStatus
+      negotiationId
+      negotiationTriggered
+      newValues
+      order {
+        id
+        __typename
+      }
+      orderId
+      previousValues
+      relatedNegotiation {
+        id
+        __typename
+      }
+      reviewedByUser {
+        id
+        __typename
+      }
+      __typename
+    }
+    respondedAt
+    respondedBy
+    responder {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    sender {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    senderId
+    senderRole
+    status
+    unitPrice
+    __typename
+  }
+}

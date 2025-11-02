@@ -501,6 +501,14 @@ export default function CreateLibraryItemModal({
   // Initialize form with initial data when in edit mode
   useEffect(() => {
     if (open && initialData && isEditMode) {
+      console.log("📝 Edit Mode - Loading initialData:", {
+        category,
+        code: initialData.code,
+        name: initialData.name,
+        data: initialData.data,
+        dataType: typeof initialData.data,
+      });
+
       setFormData({
         code: initialData.code || "",
         name: initialData.name || "",
@@ -524,7 +532,7 @@ export default function CreateLibraryItemModal({
       setValidationErrors({});
       setError(null);
     }
-  }, [open, initialData, isEditMode]);
+  }, [open, initialData, isEditMode, category]);
 
   // Validate form data on change
   const validateField = (fieldPath: string) => {
@@ -1500,30 +1508,59 @@ export default function CreateLibraryItemModal({
         const fitGender = String(formData.data.gender || "");
         const fitCategory = String(formData.data.fitCategory || "");
 
-        const filteredSizeGroups = availableSizeGroups.filter((sg) => {
-          try {
-            const sizeGroupData =
-              typeof sg.data === "string"
-                ? JSON.parse(sg.data || "{}")
-                : sg.data || {};
-
-            // If no filters selected, show all
-            if (!fitGender && !fitCategory) return true;
-
-            // Check gender match
-            const sgGender = String(sizeGroupData.targetGender || "");
-            const genderMatch =
-              !fitGender || sgGender === fitGender || sgGender === "UNISEX";
-
-            // Check category match
-            const sgCategory = String(sizeGroupData.sizeCategory || "");
-            const categoryMatch = !fitCategory || sgCategory === fitCategory;
-
-            return genderMatch && categoryMatch;
-          } catch {
-            return true; // Show if parsing fails
-          }
+        console.log("🔍 FIT Filtering:", {
+          fitGender,
+          fitCategory,
+          totalSizeGroups: availableSizeGroups.length,
+          sampleData: availableSizeGroups[0]
+            ? {
+                name: availableSizeGroups[0].name,
+                gender: availableSizeGroups[0].gender,
+                sizeCategory: availableSizeGroups[0].sizeCategory,
+              }
+            : null,
         });
+
+        const filteredSizeGroups = availableSizeGroups.filter((sg) => {
+          // If no filters selected, show all
+          if (!fitGender && !fitCategory) return true;
+
+          // ✅ Hybrid Approach: Use direct fields instead of JSON parsing
+          const sgGender = sg.gender || "";
+          const sgCategory = sg.sizeCategory || "";
+
+          // Check gender match
+          const genderMatch =
+            !fitGender ||
+            sgGender.toUpperCase() === fitGender.toUpperCase() ||
+            sgGender.toUpperCase() === "UNISEX";
+
+          // Check category match
+          const categoryMatch =
+            !fitCategory ||
+            sgCategory.toUpperCase() === fitCategory.toUpperCase();
+
+          const match = genderMatch && categoryMatch;
+
+          console.log(match ? "✅" : "❌", "Size Group:", {
+            name: sg.name,
+            sgGender,
+            sgCategory,
+            fitGender,
+            fitCategory,
+            genderMatch,
+            categoryMatch,
+          });
+
+          return match;
+        });
+
+        console.log(
+          "📊 Filtered Results:",
+          filteredSizeGroups.length,
+          "of",
+          availableSizeGroups.length
+        );
 
         const selectedSizeGroup = filteredSizeGroups.find(
           (sg) => sg.id === selectedSizeGroupId

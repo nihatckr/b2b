@@ -2,11 +2,12 @@ import * as z from "zod";
 
 // ============================================
 // COMPANY VALIDATION SCHEMAS
+// Backend: companyMutation.ts
 // ============================================
 
 // Firma bilgileri schema
 export const CompanySchema = z.object({
-  name: z.string().min(1, "Firma adı gerekli"),
+  name: z.string().min(1, "Firma adı gereklidir"),
   email: z
     .string()
     .email("Geçerli bir e-posta adresi giriniz")

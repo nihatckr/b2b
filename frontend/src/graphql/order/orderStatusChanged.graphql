@@ -1,0 +1,11 @@
+subscription subscription_orderStatusChanged($orderId: Int!) {
+  orderStatusChanged(orderId: $orderId) {
+    orderId
+    orderNumber
+    previousStatus
+    status
+    updatedAt
+    updatedBy
+    __typename
+  }
+}

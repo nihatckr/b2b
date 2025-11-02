@@ -1,0 +1,3 @@
+query query_searchMessages($input: MessageSearchInput!) {
+  searchMessages(input: $input)
+}

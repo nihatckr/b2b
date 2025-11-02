@@ -1,0 +1,2131 @@
+query query_collection($id: Int!) {
+  collection(id: $id) {
+    accessories {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    allowDirectOrder
+    author {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    authorId
+    category {
+      code
+      collections {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      description
+      icon
+      id
+      image
+      isActive
+      isPublic
+      keywords
+      level
+      name
+      order
+      parentCategory {
+        id
+        __typename
+      }
+      parentId
+      subCategories {
+        id
+        __typename
+      }
+      tags
+      updatedAt
+      __typename
+    }
+    categoryId
+    certifications {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    colors {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    company {
+      address
+      billingAddress
+      billingCycle
+      billingEmail
+      brandColors
+      cancelAtPeriodEnd
+      cancelledAt
+      city
+      country
+      coverImage
+      createdAt
+      currentCollections
+      currentOrders
+      currentPeriodEnd
+      currentPeriodStart
+      currentSamples
+      currentStorageGB
+      currentUsers
+      defaultView
+      description
+      email
+      employees {
+        id
+        __typename
+      }
+      enabledModules
+      id
+      isActive
+      isPublicProfile
+      location
+      logo
+      maxCollections
+      maxOrders
+      maxSamples
+      maxStorageGB
+      maxUsers
+      name
+      owner {
+        id
+        __typename
+      }
+      ownerId
+      phone
+      profileSlug
+      settings
+      socialLinks
+      subscriptionPlan
+      subscriptionStartedAt
+      subscriptionStatus
+      taxId
+      trialEndsAt
+      trialStartedAt
+      type
+      updatedAt
+      website
+      __typename
+    }
+    companyId
+    createdAt
+    currency
+    customerBrief
+    deadline
+    deadlineDays
+    defaultSizeBreakdown {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    defaultSizeBreakdownId
+    defectTolerance
+    depositPercentage
+    depositRequired
+    description
+    fabrics {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    fit {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    fitId
+    gender
+    id
+    images
+    invitedManufacturers
+    isActive
+    isFeatured
+    isRFQ
+    labelingDetails
+    labelingType {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    labelingTypeId
+    lastViewedAt
+    maxOrderQuantity
+    modelCode
+    monthlyCapacity
+    moq
+    name
+    notes
+    orders {
+      actualProductionEnd
+      actualProductionStart
+      basedOnSample {
+        id
+        __typename
+      }
+      cargoTrackingNumber
+      changeLogs {
+        id
+        __typename
+      }
+      collection {
+        id
+        __typename
+      }
+      collectionImage
+      collectionModelCode
+      collectionName
+      company {
+        id
+        __typename
+      }
+      createdAt
+      currency
+      customer {
+        id
+        __typename
+      }
+      customerNote
+      customerQuoteDays
+      customerQuoteNote
+      customerQuoteSentAt
+      customerQuoteType
+      customerQuotedPrice
+      deadline
+      deliveryAddress
+      estimatedProductionDate
+      id
+      manufacture {
+        id
+        __typename
+      }
+      manufacturerResponse
+      negotiations {
+        id
+        __typename
+      }
+      notes
+      orderNumber
+      productionDays
+      productionTracking {
+        id
+        __typename
+      }
+      quantity
+      shippingDate
+      sizeBreakdown {
+        id
+        __typename
+      }
+      status
+      targetPrice
+      totalPrice
+      unitPrice
+      updatedAt
+      __typename
+    }
+    ownerType
+    packagingDetails
+    packagingType {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    packagingTypeId
+    paymentTerms {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    paymentTermsId
+    priceBreaks
+    prints {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    productionSchedule
+    qualityStandard {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    qualityStandardId
+    questions {
+      answer
+      collection {
+        id
+        __typename
+      }
+      collectionId
+      createdAt
+      customer {
+        id
+        __typename
+      }
+      customerId
+      id
+      isAnswered
+      isPublic
+      manufacture {
+        id
+        __typename
+      }
+      manufactureId
+      question
+      updatedAt
+      __typename
+    }
+    quotes {
+      certifications
+      collection {
+        id
+        __typename
+      }
+      collectionId
+      createdAt
+      currency
+      customerNote
+      customerRating
+      expiresAt
+      id
+      isWinner
+      manufacture {
+        id
+        __typename
+      }
+      manufactureId
+      moq
+      notes
+      order {
+        id
+        __typename
+      }
+      orderId
+      portfolioImages
+      productionDays
+      sample {
+        id
+        __typename
+      }
+      sampleDays
+      sampleId
+      samplePrice
+      sampleRequested
+      status
+      suggestedFabric
+      suggestedFinish
+      suggestedPrint
+      technicalNotes
+      unitPrice
+      updatedAt
+      __typename
+    }
+    referenceImages
+    requireSample
+    revisedSamples {
+      actualProductionDate
+      aiGenerated
+      aiPrompt
+      aiSketchUrl
+      collection {
+        id
+        __typename
+      }
+      collectionId
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customDesignImages
+      customer {
+        id
+        __typename
+      }
+      customerId
+      customerNote
+      customerQuoteDays
+      customerQuoteNote
+      customerQuotedPrice
+      description
+      estimatedProductionDate
+      id
+      images
+      manufacture {
+        id
+        __typename
+      }
+      manufactureId
+      manufacturerResponse
+      name
+      productionDays
+      sampleNumber
+      sampleType
+      status
+      unitPrice
+      updatedAt
+      __typename
+    }
+    rfqDeadline
+    rfqStatus
+    rfqWinner {
+      avatar
+      bio
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customAvatar
+      department
+      email
+      emailNotifications
+      firstName
+      id
+      isActive
+      isCompanyOwner
+      isPendingApproval
+      jobTitle
+      language
+      lastName
+      name
+      phone
+      pushNotifications
+      role
+      socialLinks
+      timezone
+      updatedAt
+      username
+      __typename
+    }
+    rfqWinnerId
+    rushOrderAvailable
+    rushOrderExtraCost
+    rushOrderMinDays
+    sampleLeadTime
+    samplePolicy
+    samplePrice
+    samples {
+      actualProductionDate
+      aiGenerated
+      aiPrompt
+      aiSketchUrl
+      collection {
+        id
+        __typename
+      }
+      collectionId
+      company {
+        id
+        __typename
+      }
+      companyId
+      createdAt
+      customDesignImages
+      customer {
+        id
+        __typename
+      }
+      customerId
+      customerNote
+      customerQuoteDays
+      customerQuoteNote
+      customerQuotedPrice
+      description
+      estimatedProductionDate
+      id
+      images
+      manufacture {
+        id
+        __typename
+      }
+      manufactureId
+      manufacturerResponse
+      name
+      productionDays
+      sampleNumber
+      sampleType
+      status
+      unitPrice
+      updatedAt
+      __typename
+    }
+    season {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    seasonId
+    shareCount
+    sizeGroups {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    sketchUrl
+    targetBudget
+    targetDeliveryDays
+    targetLeadTime
+    targetPrice
+    targetQuantity
+    techPack
+    trend {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    trendId
+    updatedAt
+    viewCount
+    visibility
+    washEffect {
+      category
+      certifications {
+        id
+        __typename
+      }
+      certifiedItems {
+        id
+        __typename
+      }
+      code
+      collections {
+        id
+        __typename
+      }
+      collectionsWithAccessories {
+        id
+        __typename
+      }
+      collectionsWithColors {
+        id
+        __typename
+      }
+      collectionsWithFabrics {
+        id
+        __typename
+      }
+      collectionsWithFit {
+        id
+        __typename
+      }
+      collectionsWithLabelingType {
+        id
+        __typename
+      }
+      collectionsWithPackagingType {
+        id
+        __typename
+      }
+      collectionsWithPaymentTerms {
+        id
+        __typename
+      }
+      collectionsWithPrint {
+        id
+        __typename
+      }
+      collectionsWithQualityStandard {
+        id
+        __typename
+      }
+      collectionsWithSeason {
+        id
+        __typename
+      }
+      collectionsWithSizeBreakdown {
+        id
+        __typename
+      }
+      collectionsWithSizeGroups {
+        id
+        __typename
+      }
+      collectionsWithTrend {
+        id
+        __typename
+      }
+      collectionsWithWashEffect {
+        id
+        __typename
+      }
+      colorFamily
+      company {
+        id
+        __typename
+      }
+      companyId
+      companyItems {
+        id
+        __typename
+      }
+      createdAt
+      createdBy {
+        id
+        __typename
+      }
+      createdById
+      data
+      description
+      fabricWeight
+      fabricWidth
+      fiberType
+      fitCategory
+      gender
+      hexColor
+      id
+      imageUrl
+      isActive
+      isPopular
+      materialType
+      name
+      notes
+      scope
+      sizeCategory
+      standardItem {
+        id
+        __typename
+      }
+      standardItemId
+      updatedAt
+      __typename
+    }
+    washEffectId
+    __typename
+  }
+}

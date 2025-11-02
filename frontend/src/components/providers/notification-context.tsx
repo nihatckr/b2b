@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  NotificationOnNewNotificationDocument,
-  NotificationOnTaskAssignedDocument,
-} from "@/__generated__/graphql";
+import { NotificationOnNewNotificationDocument } from "@/__generated__/graphql";
 import { useSession } from "next-auth/react";
 import React, {
   createContext,
@@ -253,26 +250,7 @@ export function NotificationProvider({
     }
   );
 
-  // Task Assigned Subscription
-  useSubscription(
-    { query: NotificationOnTaskAssignedDocument },
-    (prev, data) => {
-      if (data.taskAssigned) {
-        const task = data.taskAssigned;
-
-        addNotification({
-          type: "info",
-          title: "Yeni Görev Atandı",
-          message: `${task.title} - ${task.description}`,
-        });
-
-        toast.info("Yeni Görev", {
-          description: task.title,
-        });
-      }
-      return data;
-    }
-  );
+  // Task Assigned Subscription removed - Task model no longer exists
 
   // ============================================
   // Computed Values

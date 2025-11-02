@@ -6,7 +6,7 @@
 
 import { requireAuth } from "../../utils/errors";
 import { pubsub } from "../../utils/pubsub";
-import { builder } from "../builder";
+import builder from "../builder";
 
 /**
  * Production Status Event
@@ -27,8 +27,14 @@ ProductionStatusEvent.implement({
     status: t.exposeString("status"),
     previousStatus: t.exposeString("previousStatus"),
     currentStage: t.exposeString("currentStage", { nullable: true }),
-    estimatedCompletion: t.expose("estimatedCompletion", { type: "DateTime", nullable: true }),
-    actualCompletion: t.expose("actualCompletion", { type: "DateTime", nullable: true }),
+    estimatedCompletion: t.expose("estimatedCompletion", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    actualCompletion: t.expose("actualCompletion", {
+      type: "DateTime",
+      nullable: true,
+    }),
     updatedAt: t.expose("updatedAt", { type: "DateTime" }),
   }),
 });
@@ -60,32 +66,7 @@ ProductionStageEvent.implement({
   }),
 });
 
-/**
- * Quality Control Event
- */
-const QualityControlEvent = builder.objectRef<{
-  id: number;
-  productionId: number;
-  controlType: string;
-  result: string;
-  defects?: number | null;
-  notes?: string | null;
-  inspectedBy?: number | null;
-  inspectedAt: Date;
-}>("QualityControlEvent");
-
-QualityControlEvent.implement({
-  fields: (t) => ({
-    id: t.exposeInt("id"),
-    productionId: t.exposeInt("productionId"),
-    controlType: t.exposeString("controlType"),
-    result: t.exposeString("result"),
-    defects: t.exposeInt("defects", { nullable: true }),
-    notes: t.exposeString("notes", { nullable: true }),
-    inspectedBy: t.exposeInt("inspectedBy", { nullable: true }),
-    inspectedAt: t.expose("inspectedAt", { type: "DateTime" }),
-  }),
-});
+// Quality Control Event removed - QualityControl model no longer exists
 
 /**
  * Subscription: productionStatusChanged
@@ -113,7 +94,7 @@ builder.subscriptionField("productionStatusChanged", (t) =>
     args: {
       productionId: t.arg.int({
         required: true,
-        description: "Production tracking ID to watch"
+        description: "Production tracking ID to watch",
       }),
     },
     subscribe: (root, args, context) => {
@@ -151,7 +132,7 @@ builder.subscriptionField("productionStageUpdated", (t) =>
     args: {
       productionId: t.arg.int({
         required: true,
-        description: "Production tracking ID to watch"
+        description: "Production tracking ID to watch",
       }),
     },
     subscribe: (root, args, context) => {
@@ -163,41 +144,4 @@ builder.subscriptionField("productionStageUpdated", (t) =>
   })
 );
 
-/**
- * Subscription: productionQualityControl
- *
- * Subscribe to quality control results for a specific production
- *
- * @example
- * ```graphql
- * subscription {
- *   productionQualityControl(productionId: 123) {
- *     id
- *     controlType
- *     result
- *     defects
- *     notes
- *     inspectedAt
- *   }
- * }
- * ```
- */
-builder.subscriptionField("productionQualityControl", (t) =>
-  t.field({
-    type: QualityControlEvent,
-    authScopes: { user: true },
-    description: "Subscribe to quality control updates for production",
-    args: {
-      productionId: t.arg.int({
-        required: true,
-        description: "Production tracking ID to watch"
-      }),
-    },
-    subscribe: (root, args, context) => {
-      requireAuth(context.user?.id);
-
-      return pubsub.subscribe("production:qualityControl", args.productionId);
-    },
-    resolve: (payload) => payload,
-  })
-);
+// productionQualityControl subscription removed - QualityControl model no longer exists

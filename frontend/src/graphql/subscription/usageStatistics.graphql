@@ -1,0 +1,40 @@
+query query_usageStatistics {
+  usageStatistics {
+    collections {
+      current
+      isNearLimit
+      max
+      percentage
+      __typename
+    }
+    orders {
+      current
+      isNearLimit
+      max
+      percentage
+      __typename
+    }
+    samples {
+      current
+      isNearLimit
+      max
+      percentage
+      __typename
+    }
+    storage {
+      current
+      isNearLimit
+      max
+      percentage
+      __typename
+    }
+    users {
+      current
+      isNearLimit
+      max
+      percentage
+      __typename
+    }
+    __typename
+  }
+}

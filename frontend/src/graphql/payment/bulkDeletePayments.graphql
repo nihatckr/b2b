@@ -1,0 +1,3 @@
+mutation mutation_bulkDeletePayments($input: BulkPaymentInput!) {
+  bulkDeletePayments(input: $input)
+}
